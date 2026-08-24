@@ -21,8 +21,22 @@ const app = express();
 ensureUploadDirs();
 
 // Middlewares
+const allowedOrigins = process.env.CORS_ORIGIN 
+  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+  : [];
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (
+      origin.startsWith('http://localhost:') || 
+      origin.endsWith('.vercel.app') || 
+      allowedOrigins.includes(origin)
+    ) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 }));
 app.use(morgan('combined'));
