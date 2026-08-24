@@ -7,7 +7,9 @@ import { AppError } from '../../../shared/AppError.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const uploadsRoot = path.resolve(__dirname, '../../uploads');
+export const uploadsRoot = process.env.VERCEL
+  ? path.join('/tmp', 'uploads')
+  : path.resolve(__dirname, '../../uploads');
 export const studentUploadsDir = path.join(uploadsRoot, 'students');
 export const studentDocumentsDir = path.join(studentUploadsDir, 'documents');
 export const teacherUploadsDir = path.join(uploadsRoot, 'teachers');
