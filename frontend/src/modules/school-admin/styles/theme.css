@@ -1,0 +1,233 @@
+/* Primary token utilities — force dynamic brand color everywhere */
+html.school-admin-theme .bg-primary,
+.school-admin-theme .bg-primary {
+  background-color: rgb(var(--primary)) !important;
+}
+
+html.school-admin-theme .bg-primary\/5,
+.school-admin-theme .bg-primary\/5 {
+  background-color: rgb(var(--primary) / 0.05) !important;
+}
+
+html.school-admin-theme .bg-primary\/10,
+.school-admin-theme .bg-primary\/10 {
+  background-color: rgb(var(--primary) / 0.1) !important;
+}
+
+html.school-admin-theme .bg-primary\/15,
+.school-admin-theme .bg-primary\/15 {
+  background-color: rgb(var(--primary) / 0.15) !important;
+}
+
+html.school-admin-theme .bg-primary\/20,
+.school-admin-theme .bg-primary\/20 {
+  background-color: rgb(var(--primary) / 0.2) !important;
+}
+
+html.school-admin-theme .hover\:bg-primary:hover,
+.school-admin-theme .hover\:bg-primary:hover {
+  background-color: rgb(var(--primary)) !important;
+}
+
+html.school-admin-theme .hover\:bg-primary-hover:hover,
+.school-admin-theme .hover\:bg-primary-hover:hover {
+  background-color: rgb(var(--primary-hover)) !important;
+}
+
+html.school-admin-theme .text-primary,
+.school-admin-theme .text-primary {
+  color: rgb(var(--primary)) !important;
+}
+
+html.school-admin-theme .border-primary,
+.school-admin-theme .border-primary {
+  border-color: rgb(var(--primary)) !important;
+}
+
+html.school-admin-theme .border-primary\/20,
+.school-admin-theme .border-primary\/20 {
+  border-color: rgb(var(--primary) / 0.2) !important;
+}
+
+html.school-admin-theme .border-primary\/30,
+.school-admin-theme .border-primary\/30 {
+  border-color: rgb(var(--primary) / 0.3) !important;
+}
+
+html.school-admin-theme .ring-primary\/10,
+.school-admin-theme .ring-primary\/10 {
+  --tw-ring-color: rgb(var(--primary) / 0.1) !important;
+}
+
+html.school-admin-theme .ring-primary\/20,
+.school-admin-theme .ring-primary\/20 {
+  --tw-ring-color: rgb(var(--primary) / 0.2) !important;
+}
+
+html.school-admin-theme .focus\:border-primary:focus,
+.school-admin-theme .focus\:border-primary:focus {
+  border-color: rgb(var(--primary)) !important;
+}
+
+html.school-admin-theme .focus\:ring-primary\/10:focus,
+.school-admin-theme .focus\:ring-primary\/10:focus {
+  --tw-ring-color: rgb(var(--primary) / 0.1) !important;
+}
+
+html.school-admin-theme .selection\:bg-primary::selection,
+.school-admin-theme .selection\:bg-primary::selection {
+  background-color: rgb(var(--primary)) !important;
+}
+
+/* Indigo aliases used across school-admin pages */
+html.school-admin-theme .bg-indigo-500,
+html.school-admin-theme .bg-indigo-600,
+html.school-admin-theme .bg-indigo-650,
+.school-admin-theme .bg-indigo-500,
+.school-admin-theme .bg-indigo-600,
+.school-admin-theme .bg-indigo-650 {
+  background-color: rgb(var(--primary)) !important;
+}
+
+html.school-admin-theme .hover\:bg-indigo-500:hover,
+html.school-admin-theme .hover\:bg-indigo-600:hover,
+html.school-admin-theme .hover\:bg-indigo-650:hover,
+html.school-admin-theme .hover\:bg-indigo-700:hover,
+.school-admin-theme .hover\:bg-indigo-500:hover,
+.school-admin-theme .hover\:bg-indigo-600:hover,
+.school-admin-theme .hover\:bg-indigo-650:hover,
+.school-admin-theme .hover\:bg-indigo-700:hover {
+  background-color: rgb(var(--primary-hover)) !important;
+}
+
+html.school-admin-theme .text-indigo-500,
+html.school-admin-theme .text-indigo-600,
+html.school-admin-theme .text-indigo-650,
+.school-admin-theme .text-indigo-500,
+.school-admin-theme .text-indigo-600,
+.school-admin-theme .text-indigo-650 {
+  color: rgb(var(--primary)) !important;
+}
+
+html.school-admin-theme .text-indigo-400,
+html.school-admin-theme .dark\:text-indigo-400:is(.dark *),
+.school-admin-theme .text-indigo-400,
+.school-admin-theme .dark\:text-indigo-400:is(.dark *) {
+  color: rgb(var(--primary) / 0.85) !important;
+}
+
+html.school-admin-theme .text-indigo-300,
+html.school-admin-theme .dark\:text-indigo-300:is(.dark *),
+.school-admin-theme .text-indigo-300,
+.school-admin-theme .dark\:text-indigo-300:is(.dark *) {
+  color: rgb(var(--primary) / 0.75) !important;
+}
+
+html.school-admin-theme .text-indigo-200,
+.school-admin-theme .text-indigo-200 {
+  color: rgb(var(--primary) / 0.55) !important;
+}
+
+html.school-admin-theme .text-indigo-100,
+.school-admin-theme .text-indigo-100 {
+  color: rgb(255 255 255 / 0.85) !important;
+}
+
+html.school-admin-theme .bg-indigo-50,
+html.school-admin-theme .dark\:bg-indigo-950:is(.dark *),
+.school-admin-theme .bg-indigo-50,
+.school-admin-theme .dark\:bg-indigo-950:is(.dark *) {
+  background-color: rgb(var(--primary) / 0.1) !important;
+}
+
+html.school-admin-theme .bg-indigo-50\/20,
+.school-admin-theme .bg-indigo-50\/20 {
+  background-color: rgb(var(--primary) / 0.08) !important;
+}
+
+html.school-admin-theme .bg-indigo-50\/40,
+.school-admin-theme .bg-indigo-50\/40 {
+  background-color: rgb(var(--primary) / 0.12) !important;
+}
+
+html.school-admin-theme .bg-indigo-500\/10,
+html.school-admin-theme .bg-indigo-500\/15,
+html.school-admin-theme .dark\:bg-indigo-500\/10:is(.dark *),
+.school-admin-theme .bg-indigo-500\/10,
+.school-admin-theme .bg-indigo-500\/15,
+.school-admin-theme .dark\:bg-indigo-500\/10:is(.dark *) {
+  background-color: rgb(var(--primary) / 0.1) !important;
+}
+
+html.school-admin-theme .dark\:bg-indigo-950\/10:is(.dark *),
+html.school-admin-theme .dark\:bg-indigo-950\/20:is(.dark *),
+html.school-admin-theme .dark\:bg-indigo-950\/40:is(.dark *),
+html.school-admin-theme .dark\:bg-indigo-950\/50:is(.dark *),
+.school-admin-theme .dark\:bg-indigo-950\/10:is(.dark *),
+.school-admin-theme .dark\:bg-indigo-950\/20:is(.dark *),
+.school-admin-theme .dark\:bg-indigo-950\/40:is(.dark *),
+.school-admin-theme .dark\:bg-indigo-950\/50:is(.dark *) {
+  background-color: rgb(var(--primary) / 0.12) !important;
+}
+
+html.school-admin-theme .border-indigo-500,
+html.school-admin-theme .border-indigo-600,
+html.school-admin-theme .border-indigo-650,
+html.school-admin-theme .border-indigo-200,
+html.school-admin-theme .focus\:border-indigo-500:focus,
+.school-admin-theme .border-indigo-500,
+.school-admin-theme .border-indigo-600,
+.school-admin-theme .border-indigo-650,
+.school-admin-theme .border-indigo-200,
+.school-admin-theme .focus\:border-indigo-500:focus {
+  border-color: rgb(var(--primary)) !important;
+}
+
+html.school-admin-theme .border-indigo-400\/20,
+html.school-admin-theme .dark\:border-indigo-800:is(.dark *),
+html.school-admin-theme .dark\:border-indigo-850:is(.dark *),
+html.school-admin-theme .dark\:border-indigo-500\/20:is(.dark *),
+.school-admin-theme .border-indigo-400\/20,
+.school-admin-theme .dark\:border-indigo-800:is(.dark *),
+.school-admin-theme .dark\:border-indigo-850:is(.dark *),
+.school-admin-theme .dark\:border-indigo-500\/20:is(.dark *) {
+  border-color: rgb(var(--primary) / 0.28) !important;
+}
+
+html.school-admin-theme .ring-indigo-500\/10,
+html.school-admin-theme .focus\:ring-indigo-500:focus,
+html.school-admin-theme .focus\:ring-indigo-500\/10:focus,
+html.school-admin-theme .focus\:ring-indigo-500\/15:focus,
+.school-admin-theme .ring-indigo-500\/10,
+.school-admin-theme .focus\:ring-indigo-500:focus,
+.school-admin-theme .focus\:ring-indigo-500\/10:focus,
+.school-admin-theme .focus\:ring-indigo-500\/15:focus {
+  --tw-ring-color: rgb(var(--primary) / 0.18) !important;
+}
+
+html.school-admin-theme .shadow-indigo-600\/15,
+html.school-admin-theme .shadow-indigo-600\/20,
+html.school-admin-theme .shadow-indigo-650\/10,
+html.school-admin-theme .shadow-indigo-650\/15,
+.school-admin-theme .shadow-indigo-600\/15,
+.school-admin-theme .shadow-indigo-600\/20,
+.school-admin-theme .shadow-indigo-650\/10,
+.school-admin-theme .shadow-indigo-650\/15 {
+  --tw-shadow-color: rgb(var(--primary) / 0.2) !important;
+}
+
+html.school-admin-theme .hover\:text-indigo-600:hover,
+html.school-admin-theme .hover\:text-indigo-400:hover,
+html.school-admin-theme .hover\:text-indigo-300:hover,
+html.school-admin-theme .dark\:hover\:text-indigo-400:hover:is(.dark *),
+.school-admin-theme .hover\:text-indigo-600:hover,
+.school-admin-theme .hover\:text-indigo-400:hover,
+.school-admin-theme .hover\:text-indigo-300:hover,
+.school-admin-theme .dark\:hover\:text-indigo-400:hover:is(.dark *) {
+  color: rgb(var(--primary)) !important;
+}
+
+html.school-admin-theme .hover\:border-indigo-500\/50:hover,
+.school-admin-theme .hover\:border-indigo-500\/50:hover {
+  border-color: rgb(var(--primary) / 0.5) !important;
+}

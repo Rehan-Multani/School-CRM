@@ -1,0 +1,10 @@
+{
+  "name": "school-crm-services",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node start.js",
+    "seed": "npm run seed --prefix auth-service"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "school-crm-backend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node index.js",
+    "start": "node index.js",
+    "seed": "npm run seed --prefix services/auth-service"
+  }
+}
