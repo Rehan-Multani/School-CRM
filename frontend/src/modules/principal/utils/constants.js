@@ -2,14 +2,15 @@ import {
   LayoutDashboard,
   Users,
   UserCheck,
+  Briefcase,
   GraduationCap,
+  CalendarDays,
   ClipboardCheck,
   FileSpreadsheet,
   BookOpen,
+  CreditCard,
   CheckSquare,
   Video,
-  Megaphone,
-  Calendar,
   BarChart3,
   Bell,
   Settings
@@ -19,25 +20,30 @@ export const NAVIGATION_ITEMS = [
   // MAIN
   { name: 'Dashboard', path: '/principal/dashboard', icon: LayoutDashboard, category: 'Main' },
   
-  // MONITORING
-  { name: 'Student Monitoring', path: '/principal/students', icon: Users, category: 'Monitoring' },
-  { name: 'Teacher Monitoring', path: '/principal/teachers', icon: UserCheck, category: 'Monitoring' },
-  { name: 'Academic Monitoring', path: '/principal/academics', icon: GraduationCap, category: 'Monitoring' },
-  { name: 'Attendance Monitoring', path: '/principal/attendance', icon: ClipboardCheck, category: 'Monitoring' },
-  { name: 'Examination Monitoring', path: '/principal/exams', icon: FileSpreadsheet, category: 'Monitoring' },
-  { name: 'Homework Monitoring', path: '/principal/homework', icon: BookOpen, category: 'Monitoring' },
+  // PEOPLE
+  { name: 'Student Management', path: '/principal/students', icon: Users, category: 'People' },
+  { name: 'Teacher Management', path: '/principal/teachers', icon: UserCheck, category: 'People' },
+  { name: 'Staff Management', path: '/principal/staff', icon: Briefcase, category: 'People' },
+  
+  // ACADEMICS
+  { name: 'Academic Years', path: '/principal/academics/years', icon: CalendarDays, category: 'Academics' },
+  { name: 'Classes', path: '/principal/academics/classes', icon: GraduationCap, category: 'Academics' },
+  { name: 'Subjects', path: '/principal/academics/subjects', icon: BookOpen, category: 'Academics' },
+  { name: 'Subject Assignments', path: '/principal/academics/subject-assignments', icon: BookOpen, category: 'Academics' },
+  { name: 'Class Teachers', path: '/principal/academics/class-teachers', icon: UserCheck, category: 'Academics' },
+  { name: 'Attendance', path: '/principal/attendance', icon: ClipboardCheck, category: 'Academics' },
+  { name: 'Exam', path: '/principal/exams', icon: FileSpreadsheet, category: 'Academics' },
+  { name: 'Homework', path: '/principal/homework', icon: BookOpen, category: 'Academics' },
+  
+  // FINANCE
+  { name: 'Fee & Dues', path: '/principal/fees', icon: CreditCard, category: 'Finance' },
   
   // MANAGEMENT
   { name: 'Leave Approval', path: '/principal/leave', icon: CheckSquare, category: 'Management' },
-  { name: 'Meetings', path: '/principal/meetings', icon: Video, category: 'Management' },
-  
-  // COMMUNICATION
-  { name: 'Announcements & Circulars', path: '/principal/communication', icon: Megaphone, category: 'Communication' },
-  { name: 'Events', path: '/principal/events', icon: Calendar, category: 'Communication' },
-  
+
   // SYSTEM
-  { name: 'Reports Hub', path: '/principal/reports', icon: BarChart3, category: 'System' },
-  { name: 'Notifications', path: '/principal/notifications', icon: Bell, category: 'System' },
+  { name: 'Reports', path: '/principal/reports', icon: BarChart3, category: 'System' },
+  { name: 'Announcements & Notifications', path: '/principal/notifications', icon: Bell, category: 'System' },
   { name: 'Settings', path: '/principal/settings', icon: Settings, category: 'System' }
 ];
 

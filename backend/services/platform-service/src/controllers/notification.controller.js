@@ -1,6 +1,14 @@
 import { notificationService } from '../services/notification.service.js';
 import { isFirebaseConfigured } from '../config/firebase.js';
 
+function schoolId(req) {
+  const role = req.user?.role?.toUpperCase();
+  if (role === 'SCHOOLADMIN') {
+    return req.user?.sub;
+  }
+  return req.user?.schoolId || req.user?.sub;
+}
+
 export async function listNotifications(req, res, next) {
   try {
     const data = await notificationService.list();
@@ -12,7 +20,7 @@ export async function listNotifications(req, res, next) {
 
 export async function listSchoolNotifications(req, res, next) {
   try {
-    const data = await notificationService.listForSchool(req.user?.schoolId || '');
+    const data = await notificationService.listForSchool(schoolId(req) || '');
     res.json({ success: true, firebaseConfigured: data.firebaseConfigured, data: data.items });
   } catch (error) {
     next(error);
@@ -60,7 +68,7 @@ export async function sendNotification(req, res, next) {
 export async function sendSchoolNotification(req, res, next) {
   try {
     const data = await notificationService.send(req.body, req.user?.sub || null, {
-      schoolId: req.user?.schoolId || '',
+      schoolId: schoolId(req) || '',
     });
     res.status(201).json({
       success: true,
@@ -78,7 +86,7 @@ export async function sendSchoolNotification(req, res, next) {
 export async function sendLibraryNotification(req, res, next) {
   try {
     const data = await notificationService.send(req.body, req.user?.sub || null, {
-      schoolId: req.user?.schoolId || '',
+      schoolId: schoolId(req) || '',
     });
     const recipientCount = data.recipientRefIds?.length || 0;
     res.status(201).json({

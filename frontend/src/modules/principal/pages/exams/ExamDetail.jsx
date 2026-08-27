@@ -6,8 +6,8 @@ import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
-import { useSchoolAdminAuth } from '../../context/SchoolAdminAuthContext';
-import { academicPortalApi, examPortalApi } from '../../../../shared/api/client';
+import { usePrincipalAuth } from '../../context/PrincipalAuthContext';
+import { principalAcademicApi, principalExamApi } from '../../../../shared/api/client';
 import { apiMessage } from '../academics/utils';
 import {
   AlertCircle,
@@ -51,7 +51,7 @@ const inputClass =
 export const ExamDetail = () => {
   const { examId } = useParams();
   const navigate = useNavigate();
-  const { user: schoolAdmin } = useSchoolAdminAuth();
+  const { user } = usePrincipalAuth();
   const { showToast, ToastComponent } = useToast();
 
   const [exam, setExam] = useState(null);
@@ -116,7 +116,7 @@ export const ExamDetail = () => {
   const loadExam = useCallback(async () => {
     setLoadingExam(true);
     try {
-      const res = await examPortalApi.getExam(examId);
+      const res = await principalExamApi.getExam(examId);
       const data = res.data;
       setExam(data);
       setExamClasses(data.classes || []);
@@ -139,7 +139,7 @@ export const ExamDetail = () => {
   const fetchSectionsForClass = useCallback(async (classId) => {
     if (!classId || sectionsByClass[classId]) return;
     try {
-      const res = await academicPortalApi.sections({ classId, limit: 50 });
+      const res = await principalAcademicApi.sections({ classId, limit: 50 });
       setSectionsByClass((prev) => ({
         ...prev,
         [classId]: res.data || [],
@@ -180,7 +180,7 @@ export const ExamDetail = () => {
   const loadSubjects = useCallback(async () => {
     setLoadingSubjects(true);
     try {
-      const res = await examPortalApi.subjects(examId);
+      const res = await principalExamApi.subjects(examId);
       setSubjects(res.data || []);
     } catch (err) {
       showToast(apiMessage(err, 'Failed to load exam subjects'), 'error');
@@ -193,13 +193,13 @@ export const ExamDetail = () => {
     if (activeTab === 'subjects') {
       loadSubjects();
       // Load all master subjects for manual add
-      academicPortalApi.subjects({ limit: 100 }).then((r) => setAllMasterSubjects(r.data || [])).catch(() => {});
+      principalAcademicApi.subjects({ limit: 100 }).then((r) => setAllMasterSubjects(r.data || [])).catch(() => {});
     }
   }, [activeTab, loadSubjects]);
 
   const handleSeedSubjects = async () => {
     try {
-      const res = await examPortalApi.seedSubjects(examId);
+      const res = await principalExamApi.seedSubjects(examId);
       showToast(res.message || 'Exam subjects synchronized from Academic setup!', 'success');
       loadSubjects();
     } catch (err) {
@@ -211,7 +211,7 @@ export const ExamDetail = () => {
     e.preventDefault();
     try {
       const selectedSub = allMasterSubjects.find((s) => s.id === subjectForm.subjectId);
-      await examPortalApi.addSubject(examId, {
+      await principalExamApi.addSubject(examId, {
         classId: subjectForm.classId,
         subjectId: subjectForm.subjectId,
         subjectName: selectedSub?.name || subjectForm.subjectName,
@@ -230,7 +230,7 @@ export const ExamDetail = () => {
   const handleDeleteSubject = async () => {
     if (!deleteSubjectTarget) return;
     try {
-      await examPortalApi.deleteSubject(examId, deleteSubjectTarget.id);
+      await principalExamApi.deleteSubject(examId, deleteSubjectTarget.id);
       showToast('Subject removed from exam', 'success');
       setDeleteSubjectTarget(null);
       loadSubjects();
@@ -243,7 +243,7 @@ export const ExamDetail = () => {
   const loadSchedule = useCallback(async () => {
     setLoadingSchedule(true);
     try {
-      const res = await examPortalApi.schedule(examId);
+      const res = await principalExamApi.schedule(examId);
       setSchedules(res.data || []);
     } catch (err) {
       showToast(apiMessage(err, 'Failed to load timetable'), 'error');
@@ -261,7 +261,7 @@ export const ExamDetail = () => {
   const handleCreateSchedule = async (e) => {
     e.preventDefault();
     try {
-      await examPortalApi.createScheduleEntry(examId, {
+      await principalExamApi.createScheduleEntry(examId, {
         classId: scheduleForm.classId,
         sectionId: scheduleForm.sectionId || null,
         subjectId: scheduleForm.subjectId,
@@ -283,7 +283,7 @@ export const ExamDetail = () => {
   const handleDeleteSchedule = async () => {
     if (!deleteScheduleTarget) return;
     try {
-      await examPortalApi.deleteScheduleEntry(examId, deleteScheduleTarget.id);
+      await principalExamApi.deleteScheduleEntry(examId, deleteScheduleTarget.id);
       showToast('Schedule slot removed', 'success');
       setDeleteScheduleTarget(null);
       loadSchedule();
@@ -308,7 +308,7 @@ export const ExamDetail = () => {
     if (!selectedClassId || !selectedSectionId || !selectedSubjectId) return;
     setLoadingMarks(true);
     try {
-      const res = await examPortalApi.marksSheet(examId, {
+      const res = await principalExamApi.marksSheet(examId, {
         classId: selectedClassId,
         sectionId: selectedSectionId,
         subjectId: selectedSubjectId,
@@ -367,7 +367,7 @@ export const ExamDetail = () => {
           remarks: s.remarks,
         })),
       };
-      const res = await examPortalApi.saveMarks(examId, payload);
+      const res = await principalExamApi.saveMarks(examId, payload);
       showToast(res.message || 'Marks saved successfully!', 'success');
       loadMarksSheet();
     } catch (err) {
@@ -382,7 +382,7 @@ export const ExamDetail = () => {
     if (!resultsClassId) return;
     setLoadingResults(true);
     try {
-      const res = await examPortalApi.results(examId, {
+      const res = await principalExamApi.results(examId, {
         classId: resultsClassId,
         sectionId: resultsSectionId || undefined,
       });
@@ -407,7 +407,7 @@ export const ExamDetail = () => {
     }
     setCalculatingResults(true);
     try {
-      const res = await examPortalApi.calculateResults(examId, {
+      const res = await principalExamApi.calculateResults(examId, {
         classId: resultsClassId,
         sectionId: resultsSectionId,
       });
@@ -422,7 +422,7 @@ export const ExamDetail = () => {
 
   const handleOpenReportCard = async (studentId) => {
     try {
-      const res = await examPortalApi.reportCard(examId, studentId);
+      const res = await principalExamApi.reportCard(examId, studentId);
       setReportCardData(res.data);
       setReportCardModalOpen(true);
     } catch (err) {
@@ -432,7 +432,7 @@ export const ExamDetail = () => {
 
   const handlePublishResults = async () => {
     try {
-      await examPortalApi.updateExam(examId, { status: 'PUBLISHED' });
+      await principalExamApi.updateExam(examId, { status: 'PUBLISHED' });
       showToast('Results officially published to Student & Parent Portals!', 'success');
       loadExam();
     } catch (err) {
@@ -450,7 +450,7 @@ export const ExamDetail = () => {
         <AlertCircle className="h-12 w-12 text-rose-500" />
         <h3 className="mt-3 text-lg font-bold text-slate-800 dark:text-white">Exam Not Found</h3>
         <button
-          onClick={() => navigate('/school-admin/exams')}
+          onClick={() => navigate('/principal/exams')}
           className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to Examinations
@@ -464,7 +464,7 @@ export const ExamDetail = () => {
       {/* Header & Breadcrumb */}
       <div>
         <Link
-          to="/school-admin/exams"
+          to="/principal/exams"
           className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white mb-2"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to All Exams
@@ -1351,7 +1351,7 @@ export const ExamDetail = () => {
               {/* School Header */}
               <div className="border-b-2 border-slate-800 pb-4 text-center dark:border-slate-200">
                 <h2 className="text-xl font-black uppercase tracking-wider text-slate-900 dark:text-white">
-                  {schoolAdmin?.schoolName || 'Greenfield Public Senior Secondary School'}
+                  {user?.schoolName || 'Greenfield Public Senior Secondary School'}
                 </h2>
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mt-0.5">
                   Academic Report & Performance Evaluation

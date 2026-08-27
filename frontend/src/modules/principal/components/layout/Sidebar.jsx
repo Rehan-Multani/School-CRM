@@ -6,6 +6,14 @@ import { cn } from '../../utils/cn';
 import { LogOut, ChevronLeft, ChevronRight, GraduationCap } from 'lucide-react';
 import BrandLogo from '../../../../shared/ui/BrandLogo';
 
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '');
+
+function buildFileUrl(path) {
+  if (!path) return '';
+  if (/^(https?:|data:|blob:)/.test(path)) return path;
+  return `${API_BASE_URL}/platform${path.startsWith('/') ? path : `/${path}`}`;
+}
+
 const NavItem = ({ item, isCollapsed }) => {
   const Icon = item.icon;
   const location = useLocation();
@@ -108,7 +116,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isOpen, toggleSidebar }) 
       )}
 
       {/* Categorized Navigation Menu */}
-      <nav className="flex-1 overflow-y-auto px-2 py-3 no-scrollbar" style={{ minHeight: 0 }}>
+      <nav className="flex-1 overflow-y-auto px-2 py-3" style={{ minHeight: 0 }}>
         <div className="space-y-5">
           {Object.entries(categories).map(([category, items]) => (
             <div key={category}>
@@ -138,7 +146,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isOpen, toggleSidebar }) 
           >
             <div className="h-8 w-8 rounded-full bg-indigo-600/10 text-indigo-600 dark:bg-indigo-950/80 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0 border border-indigo-200 dark:border-indigo-800">
               {user.photo ? (
-                <img src={user.photo} alt={user.name} className="h-full w-full rounded-full object-cover" />
+                <img src={buildFileUrl(user.photo)} alt={user.name} className="h-full w-full rounded-full object-cover" />
               ) : (
                 <span>{user.name ? user.name.charAt(0).toUpperCase() : 'P'}</span>
               )}

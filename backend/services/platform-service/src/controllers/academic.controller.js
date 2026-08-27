@@ -3,7 +3,11 @@ import { deleteMulterFiles } from '../utils/upload.utils.js';
 import { collectTeacherUploadFiles } from '../middleware/uploadTeacherPhoto.js';
 
 function schoolId(req) {
-  return req.user?.sub;
+  const role = req.user?.role?.toUpperCase();
+  if (role === 'SCHOOLADMIN') {
+    return req.user?.sub;
+  }
+  return req.user?.schoolId || req.user?.sub;
 }
 
 function parseTeacherBody(body = {}) {

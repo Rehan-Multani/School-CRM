@@ -134,7 +134,11 @@ export class NotificationService {
   }
 
   async listForSchool(schoolId) {
-    const normalizedSchoolId = typeof schoolId === 'string' ? schoolId.trim() : '';
+    let normalizedSchoolId = typeof schoolId === 'string' ? schoolId.trim() : '';
+    if (normalizedSchoolId && mongoose.isValidObjectId(normalizedSchoolId)) {
+      const school = await schoolRepository.findById(normalizedSchoolId);
+      normalizedSchoolId = school?.schoolId || '';
+    }
     const items = await notificationRepository.list({ schoolId: normalizedSchoolId });
     return {
       firebaseConfigured: isFirebaseConfigured(),

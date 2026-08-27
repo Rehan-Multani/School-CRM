@@ -70,6 +70,28 @@ const DEFAULT_STAFF_USERS = [
     emailPrefix: 'suresh.accounts',
   },
   {
+    employeeId: 'PRN-501',
+    firstName: 'S.',
+    lastName: 'Chatterjee',
+    role: 'PRINCIPAL',
+    phone: '+91 99999 77777',
+    gender: 'MALE',
+    specialization: 'Academic Leadership, Curriculum Oversight & Institutional Governance',
+    joiningDate: new Date('2015-06-01'),
+    department: 'Academic & Faculty',
+    designation: 'School Principal',
+    basicSalary: 95000,
+    bankDetails: {
+      accountName: 'S. Chatterjee',
+      accountNumber: '702345671098',
+      ifscCode: 'HDFC0002210',
+      bankName: 'HDFC Bank',
+      branchName: 'Sector 18',
+      accountType: 'SALARY',
+    },
+    emailPrefix: 'principal',
+  },
+  {
     employeeId: 'TRN-401',
     firstName: 'Gurpreet',
     lastName: 'Singh',
@@ -193,7 +215,7 @@ export async function seedStaffUsers() {
   }
 
   if (totalSeeded > 0) {
-    console.log(`Staff users seeded: ${totalSeeded} (Librarian, HR, Accountant, Transport)`);
+    console.log(`Staff users seeded: ${totalSeeded} (Principal, Librarian, HR, Accountant, Transport)`);
   }
   return totalSeeded;
 }

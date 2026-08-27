@@ -36,7 +36,7 @@ const schoolUserSchema = new mongoose.Schema(
     passwordHash: { type: String, default: '', select: false },
     role: {
       type: String,
-      enum: ['TEACHER', 'LIBRARIAN', 'HR', 'ACCOUNTANT', 'TRANSPORT'],
+      enum: ['TEACHER', 'LIBRARIAN', 'HR', 'ACCOUNTANT', 'TRANSPORT', 'PRINCIPAL'],
       required: true,
       index: true,
     },

@@ -3,7 +3,7 @@ import { AppError } from '../../../shared/AppError.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { deleteUploadedFile } from '../utils/upload.utils.js';
 
-const VALID_ROLES = ['TEACHER', 'LIBRARIAN', 'HR', 'ACCOUNTANT', 'TRANSPORT'];
+const VALID_ROLES = ['TEACHER', 'LIBRARIAN', 'HR', 'ACCOUNTANT', 'TRANSPORT', 'PRINCIPAL'];
 const VALID_STATUSES = ['ACTIVE', 'INACTIVE'];
 const VALID_GENDERS = ['MALE', 'FEMALE', 'OTHER'];
 const VALID_ACCOUNT_TYPES = ['SAVINGS', 'CURRENT', 'SALARY'];

@@ -84,7 +84,7 @@ export const PrincipalLayout = () => {
       </AnimatePresence>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-h-screen relative max-w-full overflow-x-hidden">
+      <div className={`flex-1 flex flex-col min-h-screen relative max-w-full overflow-x-hidden transition-[margin] duration-200 ${isCollapsed ? 'md:ml-[68px]' : 'md:ml-64'}`}>
         {/* Header/TopBar */}
         <TopBar 
           onMenuClick={() => setMobileMenuOpen(true)} 

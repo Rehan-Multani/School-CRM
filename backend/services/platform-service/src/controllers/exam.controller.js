@@ -1,7 +1,11 @@
 import { examService } from '../services/exam.service.js';
 
 function schoolId(req) {
-  return req.user?.sub || req.schoolAdmin?.schoolId || req.user?.schoolId;
+  const role = req.user?.role?.toUpperCase();
+  if (role === 'SCHOOLADMIN') {
+    return req.user?.sub;
+  }
+  return req.user?.schoolId || req.schoolAdmin?.schoolId || req.user?.sub;
 }
 
 // ===================== EXAMS =====================

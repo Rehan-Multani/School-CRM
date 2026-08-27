@@ -3,7 +3,11 @@ import { deleteUploadedFile, toStudentPhotoPublicPath, toStudentDocumentPublicPa
 import { collectStudentUploadFiles } from '../middleware/uploadStudentPhoto.js';
 
 function schoolId(req) {
-  return req.user?.sub;
+  const role = req.user?.role?.toUpperCase();
+  if (role === 'SCHOOLADMIN') {
+    return req.user?.sub;
+  }
+  return req.user?.schoolId || req.user?.sub;
 }
 
 function cleanupStudentUploadFiles(files) {

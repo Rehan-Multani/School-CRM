@@ -3,7 +3,11 @@ import { collectSchoolUserUploadFiles } from '../middleware/uploadSchoolUser.js'
 import { deleteUploadedFile } from '../utils/upload.utils.js';
 
 function schoolId(req) {
-  return req.user?.sub;
+  const role = req.user?.role?.toUpperCase();
+  if (role === 'SCHOOLADMIN') {
+    return req.user?.sub;
+  }
+  return req.user?.schoolId || req.user?.sub;
 }
 
 function cleanupUploadedFiles(files) {

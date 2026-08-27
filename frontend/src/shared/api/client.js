@@ -544,6 +544,171 @@ export const hrApi = {
 
 export const hrPortalApi = hrApi;
 
+const principalClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+principalClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('principal_token') || localStorage.getItem('school_admin_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export const principalAuthApi = {
+  login: (credentials) => apiClient.post('/platform/school-portal/auth/principal-login', credentials).then((r) => r.data),
+  me: () => principalClient.get('/platform/school-portal/principal/me').then((r) => r.data),
+  updateProfile: (payload) =>
+    principalClient.patch('/platform/school-portal/principal/profile', payload, studentRequestConfig(payload)).then((r) => r.data),
+  changePassword: (payload) => principalClient.patch('/platform/school-portal/principal/password', payload).then((r) => r.data),
+};
+
+export const principalAcademicApi = {
+  years: (params) => principalClient.get('/platform/school-portal/academic/years', { params }).then((r) => r.data),
+  getYear: (id) => principalClient.get(`/platform/school-portal/academic/years/${id}`).then((r) => r.data),
+  createYear: (payload) => principalClient.post('/platform/school-portal/academic/years', payload).then((r) => r.data),
+  updateYear: (id, payload) => principalClient.patch(`/platform/school-portal/academic/years/${id}`, payload).then((r) => r.data),
+  activateYear: (id) => principalClient.post(`/platform/school-portal/academic/years/${id}/activate`).then((r) => r.data),
+  setCurrentYear: (id) => principalClient.post(`/platform/school-portal/academic/years/${id}/set-current`).then((r) => r.data),
+  archiveYear: (id) => principalClient.post(`/platform/school-portal/academic/years/${id}/archive`).then((r) => r.data),
+  unarchiveYear: (id) => principalClient.post(`/platform/school-portal/academic/years/${id}/unarchive`).then((r) => r.data),
+  completeYear: (id) => principalClient.post(`/platform/school-portal/academic/years/${id}/complete`).then((r) => r.data),
+  deleteYear: (id) => principalClient.delete(`/platform/school-portal/academic/years/${id}`).then((r) => r.data),
+  yearClasses: (yearId) => principalClient.get(`/platform/school-portal/academic/years/${yearId}/classes`).then((r) => r.data),
+  addClassToYear: (yearId, classId) =>
+    principalClient.post(`/platform/school-portal/academic/years/${yearId}/classes`, { classId }).then((r) => r.data),
+  removeClassFromYear: (yearId, classId) =>
+    principalClient.delete(`/platform/school-portal/academic/years/${yearId}/classes/${classId}`).then((r) => r.data),
+  classes: (params) => principalClient.get('/platform/school-portal/academic/classes', { params }).then((r) => r.data),
+  getClass: (id) => principalClient.get(`/platform/school-portal/academic/classes/${id}`).then((r) => r.data),
+  createClass: (payload) => principalClient.post('/platform/school-portal/academic/classes', payload).then((r) => r.data),
+  updateClass: (id, payload) => principalClient.patch(`/platform/school-portal/academic/classes/${id}`, payload).then((r) => r.data),
+  deleteClass: (id) => principalClient.delete(`/platform/school-portal/academic/classes/${id}`).then((r) => r.data),
+  seedClasses: () => principalClient.post('/platform/school-portal/academic/classes/seed').then((r) => r.data),
+  sections: (params) => principalClient.get('/platform/school-portal/academic/sections', { params }).then((r) => r.data),
+  getSection: (id) => principalClient.get(`/platform/school-portal/academic/sections/${id}`).then((r) => r.data),
+  createSection: (payload) => principalClient.post('/platform/school-portal/academic/sections', payload).then((r) => r.data),
+  updateSection: (id, payload) => principalClient.patch(`/platform/school-portal/academic/sections/${id}`, payload).then((r) => r.data),
+  deleteSection: (id) => principalClient.delete(`/platform/school-portal/academic/sections/${id}`).then((r) => r.data),
+  subjects: (params) => principalClient.get('/platform/school-portal/academic/subjects', { params }).then((r) => r.data),
+  createSubject: (payload) => principalClient.post('/platform/school-portal/academic/subjects', payload).then((r) => r.data),
+  updateSubject: (id, payload) => principalClient.patch(`/platform/school-portal/academic/subjects/${id}`, payload).then((r) => r.data),
+  deleteSubject: (id) => principalClient.delete(`/platform/school-portal/academic/subjects/${id}`).then((r) => r.data),
+  allSectionSubjects: (params) =>
+    principalClient.get('/platform/school-portal/academic/section-subjects', { params }).then((r) => r.data),
+  createSectionSubject: (payload) =>
+    principalClient.post('/platform/school-portal/academic/section-subjects', payload).then((r) => r.data),
+  sectionSubjects: (sectionId) =>
+    principalClient.get(`/platform/school-portal/academic/sections/${sectionId}/subjects`).then((r) => r.data),
+  addSectionSubject: (sectionId, payload) =>
+    principalClient.post(`/platform/school-portal/academic/sections/${sectionId}/subjects`, payload).then((r) => r.data),
+  updateSectionSubject: (id, payload) =>
+    principalClient.patch(`/platform/school-portal/academic/section-subjects/${id}`, payload).then((r) => r.data),
+  deleteSectionSubject: (id) =>
+    principalClient.delete(`/platform/school-portal/academic/section-subjects/${id}`).then((r) => r.data),
+  teachers: (params) => principalClient.get('/platform/school-portal/academic/teachers', { params }).then((r) => r.data),
+  getTeacher: (id) => principalClient.get(`/platform/school-portal/academic/teachers/${id}`).then((r) => r.data),
+  createTeacher: (payload) =>
+    principalClient.post('/platform/school-portal/academic/teachers', payload, studentRequestConfig(payload)).then((r) => r.data),
+  updateTeacher: (id, payload) =>
+    principalClient.patch(`/platform/school-portal/academic/teachers/${id}`, payload, studentRequestConfig(payload)).then((r) => r.data),
+  updateTeacherStatus: (id, status) =>
+    principalClient.patch(`/platform/school-portal/academic/teachers/${id}/status`, { status }).then((r) => r.data),
+  deleteTeacher: (id) => principalClient.delete(`/platform/school-portal/academic/teachers/${id}`).then((r) => r.data),
+};
+
+export const principalStudentApi = {
+  students: (params) => principalClient.get('/platform/school-portal/students', { params }).then((res) => res.data),
+  getStudent: (id) => principalClient.get(`/platform/school-portal/students/${id}`).then((res) => res.data),
+  createStudent: (payload) =>
+    principalClient.post('/platform/school-portal/students', payload, studentRequestConfig(payload)).then((res) => res.data),
+  updateStudent: (id, payload) =>
+    principalClient.patch(`/platform/school-portal/students/${id}`, payload, studentRequestConfig(payload)).then((res) => res.data),
+  updateStudentStatus: (id, status) =>
+    principalClient.patch(`/platform/school-portal/students/${id}/status`, { status }).then((res) => res.data),
+  deleteStudent: (id) => principalClient.delete(`/platform/school-portal/students/${id}`).then((res) => res.data),
+};
+
+export const principalUserApi = {
+  list: (params) => principalClient.get('/platform/school-portal/users', { params }).then((res) => res.data),
+  get: (id) => principalClient.get(`/platform/school-portal/users/${id}`).then((res) => res.data),
+  create: (payload) =>
+    principalClient.post('/platform/school-portal/users', payload, studentRequestConfig(payload)).then((res) => res.data),
+  update: (id, payload) =>
+    principalClient.patch(`/platform/school-portal/users/${id}`, payload, studentRequestConfig(payload)).then((res) => res.data),
+  updateStatus: (id, status) =>
+    principalClient.patch(`/platform/school-portal/users/${id}/status`, { status }).then((res) => res.data),
+  changePassword: (id, password) =>
+    principalClient.patch(`/platform/school-portal/users/${id}/password`, { password }).then((res) => res.data),
+  sendCredentials: (id) =>
+    principalClient.post(`/platform/school-portal/users/${id}/send-credentials`).then((res) => res.data),
+  delete: (id) => principalClient.delete(`/platform/school-portal/users/${id}`).then((res) => res.data),
+};
+
+export const principalNotificationApi = {
+  list: () => principalClient.get('/platform/school-portal/notifications').then((res) => res.data),
+  send: (payload) => principalClient.post('/platform/school-portal/notifications', payload).then((res) => res.data),
+};
+
+export const principalExamApi = {
+  // Exams
+  stats: () => principalClient.get('/platform/school-portal/exams/stats').then((r) => r.data),
+  exams: (params) => principalClient.get('/platform/school-portal/exams', { params }).then((r) => r.data),
+  getExam: (id) => principalClient.get(`/platform/school-portal/exams/${id}`).then((r) => r.data),
+  createExam: (payload) => principalClient.post('/platform/school-portal/exams', payload).then((r) => r.data),
+  updateExam: (id, payload) => principalClient.patch(`/platform/school-portal/exams/${id}`, payload).then((r) => r.data),
+  deleteExam: (id) => principalClient.delete(`/platform/school-portal/exams/${id}`).then((r) => r.data),
+
+  // Exam Subjects
+  subjects: (examId, params) => principalClient.get(`/platform/school-portal/exams/${examId}/subjects`, { params }).then((r) => r.data),
+  seedSubjects: (examId) => principalClient.post(`/platform/school-portal/exams/${examId}/subjects/seed`).then((r) => r.data),
+  addSubject: (examId, payload) => principalClient.post(`/platform/school-portal/exams/${examId}/subjects`, payload).then((r) => r.data),
+  updateSubject: (examId, id, payload) => principalClient.patch(`/platform/school-portal/exams/${examId}/subjects/${id}`, payload).then((r) => r.data),
+  deleteSubject: (examId, id) => principalClient.delete(`/platform/school-portal/exams/${examId}/subjects/${id}`).then((r) => r.data),
+
+  // Exam Schedule
+  schedule: (examId, params) => principalClient.get(`/platform/school-portal/exams/${examId}/schedule`, { params }).then((r) => r.data),
+  createScheduleEntry: (examId, payload) => principalClient.post(`/platform/school-portal/exams/${examId}/schedule`, payload).then((r) => r.data),
+  updateScheduleEntry: (examId, id, payload) => principalClient.patch(`/platform/school-portal/exams/${examId}/schedule/${id}`, payload).then((r) => r.data),
+  deleteScheduleEntry: (examId, id) => principalClient.delete(`/platform/school-portal/exams/${examId}/schedule/${id}`).then((r) => r.data),
+
+  // Marks Entry
+  marksSheet: (examId, params) => principalClient.get(`/platform/school-portal/exams/${examId}/marks`, { params }).then((r) => r.data),
+  saveMarks: (examId, payload) => principalClient.post(`/platform/school-portal/exams/${examId}/marks`, payload).then((r) => r.data),
+
+  // Results & Report Cards
+  calculateResults: (examId, payload) => principalClient.post(`/platform/school-portal/exams/${examId}/results/calculate`, payload).then((r) => r.data),
+  results: (examId, params) => principalClient.get(`/platform/school-portal/exams/${examId}/results`, { params }).then((r) => r.data),
+  reportCard: (examId, studentId) => principalClient.get(`/platform/school-portal/exams/${examId}/results/${studentId}`).then((r) => r.data),
+};
+
+export const principalDashboardApi = {
+  summary: () => principalClient.get('/platform/school-portal/dashboard/summary').then((res) => res.data),
+};
+
+export const principalReportApi = {
+  summary: () => principalClient.get('/platform/school-portal/reports/summary').then((res) => res.data),
+  data: (category, params) =>
+    principalClient.get('/platform/school-portal/reports/data', { params: { category, ...params } }).then((res) => res.data),
+};
+
+export const principalHrApi = {
+  departments: (params) => principalClient.get('/platform/school-portal/hr/departments', { params }).then((r) => r.data),
+  designations: (params) => principalClient.get('/platform/school-portal/hr/designations', { params }).then((r) => r.data),
+  approveEmployee: (id) => principalClient.patch(`/platform/school-portal/hr/employees/${id}/approve`).then((r) => r.data),
+  employees: (params) => principalClient.get('/platform/school-portal/hr/employees', { params }).then((r) => r.data),
+
+  // Leave Management
+  leaves: (params) => principalClient.get('/platform/school-portal/hr/leave', { params }).then((r) => r.data),
+  createLeave: (payload) => principalClient.post('/platform/school-portal/hr/leave', payload).then((r) => r.data),
+  approveLeave: (id) => principalClient.patch(`/platform/school-portal/hr/leave/${id}/approve`).then((r) => r.data),
+  rejectLeave: (id, reason) => principalClient.patch(`/platform/school-portal/hr/leave/${id}/reject`, { reason }).then((r) => r.data),
+  cancelLeave: (id) => principalClient.patch(`/platform/school-portal/hr/leave/${id}/cancel`).then((r) => r.data),
+  leaveBalance: (empId) => principalClient.get(`/platform/school-portal/hr/leave/balance/${empId}`).then((r) => r.data),
+};
+
 export const examPortalApi = {
   // Exams
   stats: () => schoolAdminClient.get('/platform/school-portal/exams/stats').then((r) => r.data),

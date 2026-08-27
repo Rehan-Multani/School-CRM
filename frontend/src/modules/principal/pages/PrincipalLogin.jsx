@@ -9,7 +9,7 @@ export const PrincipalLogin = () => {
   const navigate = useNavigate();
 
   const [username, setUsername] = useState('principal@greenfield.edu');
-  const [password, setPassword] = useState('principal123');
+  const [password, setPassword] = useState('Password@123');
   const [email, setEmail] = useState('');
   const [view, setView] = useState('login'); // 'login', 'forgot', 'sent'
   const [error, setError] = useState(null);
@@ -20,20 +20,19 @@ export const PrincipalLogin = () => {
     document.title = 'Principal Login | School CRM';
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    setTimeout(() => {
-      const result = login(username, password);
+    try {
+      await login(username, password);
+      navigate('/principal/dashboard');
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Invalid Principal credentials');
+    } finally {
       setLoading(false);
-      if (result.success) {
-        navigate('/principal/dashboard');
-      } else {
-        setError(result.message);
-      }
-    }, 450);
+    }
   };
 
   const handleForgotSubmit = (e) => {

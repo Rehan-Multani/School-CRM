@@ -6,6 +6,14 @@ import { Menu, Search, Sun, Moon, Bell, LogOut, User, Settings as SettingsIcon }
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '');
+
+function buildFileUrl(path) {
+  if (!path) return '';
+  if (/^(https?:|data:|blob:)/.test(path)) return path;
+  return `${API_BASE_URL}/platform${path.startsWith('/') ? path : `/${path}`}`;
+}
+
 export const TopBar = ({ onMenuClick, onSearchClick }) => {
   const { user, logout } = usePrincipalAuth();
   const { darkMode, toggleTheme } = usePrincipalTheme();
@@ -124,7 +132,13 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
               }}
               className="flex items-center gap-2 p-1 hover:bg-slate-55 dark:hover:bg-slate-950 rounded-xl transition-all cursor-pointer border"
             >
-              <img src={user.photo} alt={user.name} className="w-8 h-8 rounded-lg object-cover" />
+              {user.photo ? (
+                <img src={buildFileUrl(user.photo)} alt={user.name} className="w-8 h-8 rounded-lg object-cover" />
+              ) : (
+                <div className="w-8 h-8 rounded-lg bg-emerald-600/10 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 flex items-center justify-center font-bold text-xs">
+                  {user.name ? user.name.charAt(0).toUpperCase() : 'P'}
+                </div>
+              )}
               <span className="text-xs font-bold text-slate-700 dark:text-slate-350 hidden sm:inline-block max-w-28 truncate">{user.name}</span>
             </button>
 

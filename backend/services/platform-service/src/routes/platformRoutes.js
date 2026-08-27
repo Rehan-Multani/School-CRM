@@ -304,6 +304,13 @@ import { requireSuperAdmin } from '../middleware/requireSuperAdmin.js';
 import { requireSchoolAdmin } from '../middleware/requireSchoolAdmin.js';
 import { requireLibrarian } from '../middleware/requireLibrarian.js';
 import { requireHR } from '../middleware/requireHR.js';
+import { requirePrincipal } from '../middleware/requirePrincipal.js';
+import {
+  principalLogin,
+  getPrincipalProfile,
+  updatePrincipalProfile,
+  changePrincipalPassword,
+} from '../controllers/principal.controller.js';
 import {
   hrLogin,
   getHRDashboard,
@@ -377,11 +384,16 @@ router.post('/school-auth/librarian-login', loginRateLimiter, librarianLogin);
 router.post('/school-portal/auth/librarian-login', loginRateLimiter, librarianLogin);
 router.post('/school-auth/hr-login', hrLogin);
 router.post('/school-portal/auth/hr-login', hrLogin);
+router.post('/school-auth/principal-login', loginRateLimiter, principalLogin);
+router.post('/school-portal/auth/principal-login', loginRateLimiter, principalLogin);
+router.get('/school-portal/principal/me', requirePrincipal, getPrincipalProfile);
+router.patch('/school-portal/principal/profile', requirePrincipal, uploadSchoolUserFiles, convertSchoolUserImages, updatePrincipalProfile);
+router.patch('/school-portal/principal/password', requirePrincipal, changePrincipalPassword);
 router.post('/school-auth/forgot-password', schoolAdminForgotPassword);
 router.post('/school-auth/reset-password', schoolAdminResetPassword);
-router.get('/school-portal/dashboard/summary', requireSchoolAdmin, getSchoolAdminDashboardSummary);
-router.get('/school-portal/reports/summary', requireSchoolAdmin, getSchoolReportsSummary);
-router.get('/school-portal/reports/data', requireSchoolAdmin, getCategoryReportData);
+router.get('/school-portal/dashboard/summary', requirePrincipal, getSchoolAdminDashboardSummary);
+router.get('/school-portal/reports/summary', requirePrincipal, getSchoolReportsSummary);
+router.get('/school-portal/reports/data', requirePrincipal, getCategoryReportData);
 router.get('/school-portal/me', requireSchoolAdmin, schoolPortalMe);
 router.get('/school-portal/plans', requireSchoolAdmin, schoolPortalPlans);
 router.post('/school-portal/select-plan', requireSchoolAdmin, schoolSelectPlan);
@@ -392,65 +404,65 @@ router.patch('/school-portal/settings/theme', requireSchoolAdmin, schoolPortalUp
 router.patch('/school-portal/settings/branding', requireSchoolAdmin, schoolPortalUpdateBranding);
 router.patch('/school-portal/settings/password', requireSchoolAdmin, schoolPortalChangePassword);
 router.patch('/school-portal/settings/email', requireSchoolAdmin, schoolPortalUpdateEmail);
-router.get('/school-portal/notifications', requireSchoolAdmin, listSchoolNotifications);
-router.post('/school-portal/notifications', requireSchoolAdmin, sendSchoolNotification);
-router.get('/school-portal/academic/years', requireSchoolAdmin, listAcademicYears);
-router.post('/school-portal/academic/years', requireSchoolAdmin, createAcademicYear);
-router.get('/school-portal/academic/years/:id', requireSchoolAdmin, getAcademicYear);
-router.patch('/school-portal/academic/years/:id', requireSchoolAdmin, updateAcademicYear);
-router.delete('/school-portal/academic/years/:id', requireSchoolAdmin, deleteAcademicYear);
-router.post('/school-portal/academic/years/:id/activate', requireSchoolAdmin, activateAcademicYear);
-router.post('/school-portal/academic/years/:id/set-current', requireSchoolAdmin, setCurrentAcademicYear);
-router.post('/school-portal/academic/years/:id/archive', requireSchoolAdmin, archiveAcademicYear);
-router.post('/school-portal/academic/years/:id/unarchive', requireSchoolAdmin, unarchiveAcademicYear);
-router.post('/school-portal/academic/years/:id/complete', requireSchoolAdmin, completeAcademicYear);
-router.get('/school-portal/academic/years/:yearId/classes', requireSchoolAdmin, listYearClasses);
-router.post('/school-portal/academic/years/:yearId/classes', requireSchoolAdmin, addClassToYear);
-router.delete('/school-portal/academic/years/:yearId/classes/:classId', requireSchoolAdmin, removeClassFromYear);
-router.get('/school-portal/academic/classes', requireSchoolAdmin, listClasses);
-router.post('/school-portal/academic/classes', requireSchoolAdmin, createClass);
-router.post('/school-portal/academic/classes/seed', requireSchoolAdmin, seedClasses);
-router.get('/school-portal/academic/classes/:id', requireSchoolAdmin, getClass);
-router.patch('/school-portal/academic/classes/:id', requireSchoolAdmin, updateClass);
-router.delete('/school-portal/academic/classes/:id', requireSchoolAdmin, deleteClass);
-router.get('/school-portal/academic/sections', requireSchoolAdmin, listSections);
-router.post('/school-portal/academic/sections', requireSchoolAdmin, createSection);
-router.get('/school-portal/academic/sections/:id', requireSchoolAdmin, getSection);
-router.patch('/school-portal/academic/sections/:id', requireSchoolAdmin, updateSection);
-router.delete('/school-portal/academic/sections/:id', requireSchoolAdmin, deleteSection);
-router.get('/school-portal/academic/subjects', requireSchoolAdmin, listSubjects);
-router.post('/school-portal/academic/subjects', requireSchoolAdmin, createSubject);
-router.patch('/school-portal/academic/subjects/:id', requireSchoolAdmin, updateSubject);
-router.delete('/school-portal/academic/subjects/:id', requireSchoolAdmin, deleteSubject);
-router.get('/school-portal/academic/section-subjects', requireSchoolAdmin, listAllSectionSubjects);
-router.post('/school-portal/academic/section-subjects', requireSchoolAdmin, createSectionSubjectDirect);
-router.get('/school-portal/academic/sections/:sectionId/subjects', requireSchoolAdmin, listSectionSubjects);
-router.post('/school-portal/academic/sections/:sectionId/subjects', requireSchoolAdmin, addSectionSubject);
-router.patch('/school-portal/academic/section-subjects/:id', requireSchoolAdmin, updateSectionSubject);
-router.delete('/school-portal/academic/section-subjects/:id', requireSchoolAdmin, deleteSectionSubject);
-router.get('/school-portal/academic/teachers', requireSchoolAdmin, listTeachers);
-router.post('/school-portal/academic/teachers', requireSchoolAdmin, uploadTeacherFiles, convertTeacherImages, createTeacher);
-router.get('/school-portal/academic/teachers/:id', requireSchoolAdmin, getTeacher);
-router.patch('/school-portal/academic/teachers/:id', requireSchoolAdmin, uploadTeacherFiles, convertTeacherImages, updateTeacher);
-router.patch('/school-portal/academic/teachers/:id/status', requireSchoolAdmin, updateTeacherStatus);
-router.delete('/school-portal/academic/teachers/:id', requireSchoolAdmin, deleteTeacher);
-router.get('/school-portal/students', requireSchoolAdmin, listStudents);
-router.post('/school-portal/students', requireSchoolAdmin, uploadStudentFiles, convertStudentImages, createStudent);
-router.get('/school-portal/students/:id', requireSchoolAdmin, getStudent);
-router.patch('/school-portal/students/:id', requireSchoolAdmin, uploadStudentFiles, convertStudentImages, updateStudent);
-router.patch('/school-portal/students/:id/status', requireSchoolAdmin, updateStudentStatus);
-router.delete('/school-portal/students/:id', requireSchoolAdmin, deleteStudent);
+router.get('/school-portal/notifications', requirePrincipal, listSchoolNotifications);
+router.post('/school-portal/notifications', requirePrincipal, sendSchoolNotification);
+router.get('/school-portal/academic/years', requirePrincipal, listAcademicYears);
+router.post('/school-portal/academic/years', requirePrincipal, createAcademicYear);
+router.get('/school-portal/academic/years/:id', requirePrincipal, getAcademicYear);
+router.patch('/school-portal/academic/years/:id', requirePrincipal, updateAcademicYear);
+router.delete('/school-portal/academic/years/:id', requirePrincipal, deleteAcademicYear);
+router.post('/school-portal/academic/years/:id/activate', requirePrincipal, activateAcademicYear);
+router.post('/school-portal/academic/years/:id/set-current', requirePrincipal, setCurrentAcademicYear);
+router.post('/school-portal/academic/years/:id/archive', requirePrincipal, archiveAcademicYear);
+router.post('/school-portal/academic/years/:id/unarchive', requirePrincipal, unarchiveAcademicYear);
+router.post('/school-portal/academic/years/:id/complete', requirePrincipal, completeAcademicYear);
+router.get('/school-portal/academic/years/:yearId/classes', requirePrincipal, listYearClasses);
+router.post('/school-portal/academic/years/:yearId/classes', requirePrincipal, addClassToYear);
+router.delete('/school-portal/academic/years/:yearId/classes/:classId', requirePrincipal, removeClassFromYear);
+router.get('/school-portal/academic/classes', requirePrincipal, listClasses);
+router.post('/school-portal/academic/classes', requirePrincipal, createClass);
+router.post('/school-portal/academic/classes/seed', requirePrincipal, seedClasses);
+router.get('/school-portal/academic/classes/:id', requirePrincipal, getClass);
+router.patch('/school-portal/academic/classes/:id', requirePrincipal, updateClass);
+router.delete('/school-portal/academic/classes/:id', requirePrincipal, deleteClass);
+router.get('/school-portal/academic/sections', requirePrincipal, listSections);
+router.post('/school-portal/academic/sections', requirePrincipal, createSection);
+router.get('/school-portal/academic/sections/:id', requirePrincipal, getSection);
+router.patch('/school-portal/academic/sections/:id', requirePrincipal, updateSection);
+router.delete('/school-portal/academic/sections/:id', requirePrincipal, deleteSection);
+router.get('/school-portal/academic/subjects', requirePrincipal, listSubjects);
+router.post('/school-portal/academic/subjects', requirePrincipal, createSubject);
+router.patch('/school-portal/academic/subjects/:id', requirePrincipal, updateSubject);
+router.delete('/school-portal/academic/subjects/:id', requirePrincipal, deleteSubject);
+router.get('/school-portal/academic/section-subjects', requirePrincipal, listAllSectionSubjects);
+router.post('/school-portal/academic/section-subjects', requirePrincipal, createSectionSubjectDirect);
+router.get('/school-portal/academic/sections/:sectionId/subjects', requirePrincipal, listSectionSubjects);
+router.post('/school-portal/academic/sections/:sectionId/subjects', requirePrincipal, addSectionSubject);
+router.patch('/school-portal/academic/section-subjects/:id', requirePrincipal, updateSectionSubject);
+router.delete('/school-portal/academic/section-subjects/:id', requirePrincipal, deleteSectionSubject);
+router.get('/school-portal/academic/teachers', requirePrincipal, listTeachers);
+router.post('/school-portal/academic/teachers', requirePrincipal, uploadTeacherFiles, convertTeacherImages, createTeacher);
+router.get('/school-portal/academic/teachers/:id', requirePrincipal, getTeacher);
+router.patch('/school-portal/academic/teachers/:id', requirePrincipal, uploadTeacherFiles, convertTeacherImages, updateTeacher);
+router.patch('/school-portal/academic/teachers/:id/status', requirePrincipal, updateTeacherStatus);
+router.delete('/school-portal/academic/teachers/:id', requirePrincipal, deleteTeacher);
+router.get('/school-portal/students', requirePrincipal, listStudents);
+router.post('/school-portal/students', requirePrincipal, uploadStudentFiles, convertStudentImages, createStudent);
+router.get('/school-portal/students/:id', requirePrincipal, getStudent);
+router.patch('/school-portal/students/:id', requirePrincipal, uploadStudentFiles, convertStudentImages, updateStudent);
+router.patch('/school-portal/students/:id/status', requirePrincipal, updateStudentStatus);
+router.delete('/school-portal/students/:id', requirePrincipal, deleteStudent);
 
 // School User Management Routes (Teachers, Librarians, HR, Accountants, Transport)
-router.get('/school-portal/users', requireSchoolAdmin, listUsers);
-router.post('/school-portal/users', requireSchoolAdmin, uploadSchoolUserFiles, convertSchoolUserImages, createUser);
-router.post('/school-portal/users/seed', requireSchoolAdmin, seedUsers);
-router.get('/school-portal/users/:id', requireSchoolAdmin, getUser);
-router.patch('/school-portal/users/:id', requireSchoolAdmin, uploadSchoolUserFiles, convertSchoolUserImages, updateUser);
-router.patch('/school-portal/users/:id/status', requireSchoolAdmin, updateUserStatus);
-router.patch('/school-portal/users/:id/password', requireSchoolAdmin, changeUserPassword);
-router.post('/school-portal/users/:id/send-credentials', requireSchoolAdmin, sendUserCredentials);
-router.delete('/school-portal/users/:id', requireSchoolAdmin, deleteUser);
+router.get('/school-portal/users', requirePrincipal, listUsers);
+router.post('/school-portal/users', requirePrincipal, uploadSchoolUserFiles, convertSchoolUserImages, createUser);
+router.post('/school-portal/users/seed', requirePrincipal, seedUsers);
+router.get('/school-portal/users/:id', requirePrincipal, getUser);
+router.patch('/school-portal/users/:id', requirePrincipal, uploadSchoolUserFiles, convertSchoolUserImages, updateUser);
+router.patch('/school-portal/users/:id/status', requirePrincipal, updateUserStatus);
+router.patch('/school-portal/users/:id/password', requirePrincipal, changeUserPassword);
+router.post('/school-portal/users/:id/send-credentials', requirePrincipal, sendUserCredentials);
+router.delete('/school-portal/users/:id', requirePrincipal, deleteUser);
 
 // Fee Management Routes
 router.get('/school-portal/fees/heads', requireSchoolAdmin, listFeeHeads);
@@ -544,32 +556,32 @@ router.get('/school-portal/library/transactions', requireLibrarian, listTransact
 router.get('/school-portal/library/reports/:category', requireLibrarian, getReportData);
 
 // Examination & Terms Endpoints
-router.get('/school-portal/exams/stats', requireSchoolAdmin, getExamStats);
-router.get('/school-portal/exams', requireSchoolAdmin, listExams);
-router.post('/school-portal/exams', requireSchoolAdmin, createExam);
-router.get('/school-portal/exams/:id', requireSchoolAdmin, getExam);
-router.patch('/school-portal/exams/:id', requireSchoolAdmin, updateExam);
-router.delete('/school-portal/exams/:id', requireSchoolAdmin, deleteExam);
+router.get('/school-portal/exams/stats', requirePrincipal, getExamStats);
+router.get('/school-portal/exams', requirePrincipal, listExams);
+router.post('/school-portal/exams', requirePrincipal, createExam);
+router.get('/school-portal/exams/:id', requirePrincipal, getExam);
+router.patch('/school-portal/exams/:id', requirePrincipal, updateExam);
+router.delete('/school-portal/exams/:id', requirePrincipal, deleteExam);
 
 // Exam Subjects
-router.get('/school-portal/exams/:examId/subjects', requireSchoolAdmin, listExamSubjects);
-router.post('/school-portal/exams/:examId/subjects/seed', requireSchoolAdmin, seedExamSubjects);
-router.post('/school-portal/exams/:examId/subjects', requireSchoolAdmin, addExamSubject);
-router.patch('/school-portal/exams/:examId/subjects/:id', requireSchoolAdmin, updateExamSubject);
-router.delete('/school-portal/exams/:examId/subjects/:id', requireSchoolAdmin, deleteExamSubject);
+router.get('/school-portal/exams/:examId/subjects', requirePrincipal, listExamSubjects);
+router.post('/school-portal/exams/:examId/subjects/seed', requirePrincipal, seedExamSubjects);
+router.post('/school-portal/exams/:examId/subjects', requirePrincipal, addExamSubject);
+router.patch('/school-portal/exams/:examId/subjects/:id', requirePrincipal, updateExamSubject);
+router.delete('/school-portal/exams/:examId/subjects/:id', requirePrincipal, deleteExamSubject);
 
 // Exam Schedule (Timetable)
-router.get('/school-portal/exams/:examId/schedule', requireSchoolAdmin, listSchedule);
-router.post('/school-portal/exams/:examId/schedule', requireSchoolAdmin, createScheduleEntry);
-router.patch('/school-portal/exams/:examId/schedule/:id', requireSchoolAdmin, updateScheduleEntry);
-router.delete('/school-portal/exams/:examId/schedule/:id', requireSchoolAdmin, deleteScheduleEntry);
+router.get('/school-portal/exams/:examId/schedule', requirePrincipal, listSchedule);
+router.post('/school-portal/exams/:examId/schedule', requirePrincipal, createScheduleEntry);
+router.patch('/school-portal/exams/:examId/schedule/:id', requirePrincipal, updateScheduleEntry);
+router.delete('/school-portal/exams/:examId/schedule/:id', requirePrincipal, deleteScheduleEntry);
 
 // Marks Entry & Result Calculation
-router.get('/school-portal/exams/:examId/marks', requireSchoolAdmin, listMarksSheet);
-router.post('/school-portal/exams/:examId/marks', requireSchoolAdmin, saveMarks);
-router.post('/school-portal/exams/:examId/results/calculate', requireSchoolAdmin, calculateResults);
-router.get('/school-portal/exams/:examId/results', requireSchoolAdmin, listResults);
-router.get('/school-portal/exams/:examId/results/:studentId', requireSchoolAdmin, getStudentReportCard);
+router.get('/school-portal/exams/:examId/marks', requirePrincipal, listMarksSheet);
+router.post('/school-portal/exams/:examId/marks', requirePrincipal, saveMarks);
+router.post('/school-portal/exams/:examId/results/calculate', requirePrincipal, calculateResults);
+router.get('/school-portal/exams/:examId/results', requirePrincipal, listResults);
+router.get('/school-portal/exams/:examId/results/:studentId', requirePrincipal, getStudentReportCard);
 
 // Hostel Management Endpoints
 router.get('/school-portal/hostel/dashboard', requireSchoolAdmin, getHostelDashboard);
@@ -657,23 +669,23 @@ router.get('/school-portal/hr/announcements', requireHR, hrListAnnouncements);
 router.post('/school-portal/hr/announcements', requireHR, hrCreateAnnouncement);
 
 // Employees
-router.get('/school-portal/hr/employees', requireHR, hrListEmployees);
+router.get('/school-portal/hr/employees', requirePrincipal, hrListEmployees);
 router.post('/school-portal/hr/employees', requireHR, uploadSchoolUserFiles, convertSchoolUserImages, hrCreateEmployee);
 router.get('/school-portal/hr/employees/:id', requireHR, hrGetEmployee);
 router.patch('/school-portal/hr/employees/:id', requireHR, uploadSchoolUserFiles, convertSchoolUserImages, hrUpdateEmployee);
 router.patch('/school-portal/hr/employees/:id/status', requireHR, hrUpdateEmployeeStatus);
-router.patch('/school-portal/hr/employees/:id/approve', requireHR, hrApproveEmployee);
+router.patch('/school-portal/hr/employees/:id/approve', requirePrincipal, hrApproveEmployee);
 router.patch('/school-portal/hr/employees/:id/reject', requireHR, hrRejectEmployee);
 router.delete('/school-portal/hr/employees/:id', requireHR, hrDeleteEmployee);
 
 // Departments
-router.get('/school-portal/hr/departments', requireHR, hrListDepartments);
+router.get('/school-portal/hr/departments', requirePrincipal, hrListDepartments);
 router.post('/school-portal/hr/departments', requireHR, hrCreateDepartment);
 router.patch('/school-portal/hr/departments/:id', requireHR, hrUpdateDepartment);
 router.delete('/school-portal/hr/departments/:id', requireHR, hrDeleteDepartment);
 
 // Designations
-router.get('/school-portal/hr/designations', requireHR, hrListDesignations);
+router.get('/school-portal/hr/designations', requirePrincipal, hrListDesignations);
 router.post('/school-portal/hr/designations', requireHR, hrCreateDesignation);
 router.patch('/school-portal/hr/designations/:id', requireHR, hrUpdateDesignation);
 router.delete('/school-portal/hr/designations/:id', requireHR, hrDeleteDesignation);
@@ -687,12 +699,12 @@ router.post('/school-portal/hr/attendance', requireHR, saveHRAttendance);
 router.patch('/school-portal/hr/attendance/:id', requireHR, updateSingleAttendance);
 
 // Leave Management (Static routes BEFORE dynamic routes)
-router.get('/school-portal/hr/leave/balance/:empId', requireHR, getLeaveBalance);
-router.get('/school-portal/hr/leave', requireHR, listLeaveRequests);
-router.post('/school-portal/hr/leave', requireHR, createLeaveRequest);
-router.patch('/school-portal/hr/leave/:id/approve', requireHR, approveLeave);
-router.patch('/school-portal/hr/leave/:id/reject', requireHR, rejectLeave);
-router.patch('/school-portal/hr/leave/:id/cancel', requireHR, cancelLeave);
+router.get('/school-portal/hr/leave/balance/:empId', requirePrincipal, getLeaveBalance);
+router.get('/school-portal/hr/leave', requirePrincipal, listLeaveRequests);
+router.post('/school-portal/hr/leave', requirePrincipal, createLeaveRequest);
+router.patch('/school-portal/hr/leave/:id/approve', requirePrincipal, approveLeave);
+router.patch('/school-portal/hr/leave/:id/reject', requirePrincipal, rejectLeave);
+router.patch('/school-portal/hr/leave/:id/cancel', requirePrincipal, cancelLeave);
 
 // Payroll (Static routes BEFORE dynamic routes)
 router.get('/school-portal/hr/payroll/employees', requireHR, getHREligiblePayrollEmployees);

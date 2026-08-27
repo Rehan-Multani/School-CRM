@@ -5,7 +5,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
-import { schoolUserApi, hrApi } from '../../../../shared/api/client';
+import { principalUserApi, principalHrApi } from '../../../../shared/api/client';
 import { apiMessage } from '../academics/utils';
 import {
   Briefcase,
@@ -157,7 +157,7 @@ function exportUsersToCSV(users) {
   document.body.removeChild(link);
 }
 
-export const UserManagement = () => {
+export const StaffManagement = () => {
   const { showToast, ToastComponent } = useToast();
 
   const [users, setUsers] = useState([]);
@@ -203,7 +203,7 @@ export const UserManagement = () => {
   useEffect(() => {
     const loadOptions = async () => {
       try {
-        const [deptRes, desigRes] = await Promise.all([hrApi.departments(), hrApi.designations()]);
+        const [deptRes, desigRes] = await Promise.all([principalHrApi.departments(), principalHrApi.designations()]);
         setDepartments(deptRes.data || []);
         setDesignations(desigRes.data || []);
       } catch {
@@ -216,7 +216,7 @@ export const UserManagement = () => {
   const loadUsers = useCallback(async (targetPage = page) => {
     setLoading(true);
     try {
-      const res = await schoolUserApi.list({
+      const res = await principalUserApi.list({
         page: targetPage,
         limit: 5,
         role: selectedRoleTab !== 'ALL' ? selectedRoleTab : undefined,
@@ -352,10 +352,10 @@ export const UserManagement = () => {
       if (editingUser) {
         const removedDocs = (editingUser.documents || []).filter((d) => !existingDocs.includes(d));
         removedDocs.forEach((d) => formData.append('removeDocuments', d));
-        await schoolUserApi.update(editingUser.id, formData);
+        await principalUserApi.update(editingUser.id, formData);
         showToast(`User "${form.firstName}" updated successfully`, 'success');
       } else {
-        await schoolUserApi.create(formData);
+        await principalUserApi.create(formData);
         showToast(`Staff user "${form.firstName}" registered successfully`, 'success');
       }
 
@@ -371,7 +371,7 @@ export const UserManagement = () => {
   const handleToggleStatus = async (user) => {
     const nextStatus = user.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
     try {
-      await schoolUserApi.updateStatus(user.id, nextStatus);
+      await principalUserApi.updateStatus(user.id, nextStatus);
       showToast(`${user.name} marked as ${nextStatus}`, 'success');
       loadUsers();
     } catch (error) {
@@ -381,7 +381,7 @@ export const UserManagement = () => {
 
   const handleSendCredentials = async (user) => {
     try {
-      const res = await schoolUserApi.sendCredentials(user.id);
+      const res = await principalUserApi.sendCredentials(user.id);
       showToast(res.message || `Credentials dispatched to ${user.email}`, 'success');
       loadUsers();
     } catch (error) {
@@ -401,7 +401,7 @@ export const UserManagement = () => {
     }
     setChangingPassword(true);
     try {
-      const res = await schoolUserApi.changePassword(passwordModalUser.id, newPasswordInput);
+      const res = await principalUserApi.changePassword(passwordModalUser.id, newPasswordInput);
       showToast(res.message || 'Password changed successfully', 'success');
       setPasswordModalUser(null);
       setNewPasswordInput('');
@@ -416,7 +416,7 @@ export const UserManagement = () => {
   const handleDeleteSubmit = async () => {
     if (!deleteTarget) return;
     try {
-      await schoolUserApi.delete(deleteTarget.id);
+      await principalUserApi.delete(deleteTarget.id);
       showToast(`User "${deleteTarget.name}" deleted successfully`, 'success');
       setDeleteTarget(null);
       loadUsers();
@@ -427,7 +427,7 @@ export const UserManagement = () => {
 
   const handleExportCSV = async () => {
     try {
-      const res = await schoolUserApi.list({
+      const res = await principalUserApi.list({
         role: selectedRoleTab !== 'ALL' ? selectedRoleTab : undefined,
         status: statusFilter !== 'ALL' ? statusFilter : undefined,
         search: searchQuery.trim() || undefined,
@@ -631,7 +631,7 @@ export const UserManagement = () => {
                           )}
                           <div className="min-w-0">
                             <Link
-                              to={`/school-admin/users/${user.id}`}
+                              to={`/principal/staff/${user.id}`}
                               className="font-bold text-slate-900 hover:text-primary dark:text-white"
                             >
                               {user.name}
@@ -669,7 +669,7 @@ export const UserManagement = () => {
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1">
                           <Link
-                            to={`/school-admin/users/${user.id}`}
+                            to={`/principal/staff/${user.id}`}
                             className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-primary dark:hover:bg-slate-800"
                             title="View Full Profile"
                           >
@@ -1389,4 +1389,4 @@ export const UserManagement = () => {
   );
 };
 
-export default UserManagement;
+export default StaffManagement;
