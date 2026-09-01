@@ -4,7 +4,6 @@ import { NAVIGATION_ITEMS } from '../../utils/constants';
 import { useAccountantAuth } from '../../context/AccountantAuthContext';
 import { cn } from '../../utils/cn';
 import { LogOut, ChevronLeft, ChevronRight, CreditCard } from 'lucide-react';
-import BrandLogo from '../../../../shared/ui/BrandLogo';
 
 const NavItem = ({ item, isCollapsed }) => {
   const Icon = item.icon;
@@ -20,7 +19,7 @@ const NavItem = ({ item, isCollapsed }) => {
       title={isCollapsed ? item.name : undefined}
       className={cn(
         'flex items-center rounded-lg text-sm font-medium transition-colors duration-150 select-none',
-        isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5',
+        isCollapsed ? 'justify-center p-2' : 'gap-3 px-3 py-2',
         isActive
           ? 'bg-primary/10 text-primary dark:bg-primary/20 font-semibold'
           : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-foreground dark:hover:text-slate-100'
@@ -58,7 +57,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isOpen, toggleSidebar }) 
       {/* Brand Header */}
       <div
         className={cn(
-          'flex shrink-0 items-center border-b border-slate-200 px-3 py-4 dark:border-slate-800',
+          'flex shrink-0 items-center border-b border-slate-200 px-3 py-3.5 dark:border-slate-800',
           isCollapsed ? 'justify-center' : 'justify-between gap-2'
         )}
       >
@@ -67,40 +66,48 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isOpen, toggleSidebar }) 
             <CreditCard className="h-4 w-4" />
           </div>
           {!isCollapsed && (
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-foreground dark:text-white leading-tight">
+            <div className="min-w-0 flex-1">
+              <p
+                className="truncate text-sm font-semibold text-slate-800 dark:text-white leading-tight"
+                title={user?.schoolName || 'School CRM'}
+              >
                 {user?.schoolName || 'School CRM'}
               </p>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">Accountant Portal</p>
             </div>
           )}
         </div>
-        {!isCollapsed && (
+        {!isCollapsed && setIsCollapsed && (
           <button
             type="button"
             onClick={() => setIsCollapsed(true)}
             className="hidden md:flex rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-900 dark:hover:text-slate-200 cursor-pointer"
             aria-label="Collapse sidebar"
+            title="Collapse sidebar"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
         )}
-        <button
-          type="button"
-          onClick={toggleSidebar}
-          className="md:hidden rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-900 dark:hover:text-slate-200 cursor-pointer"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
+        {toggleSidebar && (
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className="md:hidden rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-900 dark:hover:text-slate-200 cursor-pointer"
+            aria-label="Close sidebar"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
-      {isCollapsed && (
+      {isCollapsed && setIsCollapsed && (
         <div className="hidden md:flex shrink-0 justify-center border-b border-slate-200 py-2 dark:border-slate-800">
           <button
             type="button"
             onClick={() => setIsCollapsed(false)}
             className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-900 dark:hover:text-slate-200 cursor-pointer"
             aria-label="Expand sidebar"
+            title="Expand sidebar"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -108,12 +115,12 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isOpen, toggleSidebar }) 
       )}
 
       {/* Categorized Navigation Menu */}
-      <nav className="flex-1 overflow-y-auto px-2 py-3 no-scrollbar" style={{ minHeight: 0 }}>
-        <div className="space-y-5">
+      <nav className="flex-1 overflow-y-auto px-2 py-2.5" style={{ minHeight: 0 }}>
+        <div className="space-y-3.5">
           {Object.entries(categories).map(([category, items]) => (
             <div key={category}>
               {!isCollapsed && (
-                <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                <p className="mb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                   {category}
                 </p>
               )}
@@ -129,14 +136,14 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isOpen, toggleSidebar }) 
 
       {/* User Footer Card */}
       {user && (
-        <div className="shrink-0 border-t border-slate-200 bg-white px-2 py-3 dark:border-slate-800 dark:bg-slate-950">
+        <div className="shrink-0 border-t border-slate-200 bg-white px-2 py-2.5 dark:border-slate-800 dark:bg-slate-950">
           <div
             className={cn(
               'flex items-center rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-slate-800 dark:bg-slate-900/50',
               isCollapsed ? 'justify-center' : 'gap-2.5'
             )}
           >
-            <div className="h-8 w-8 rounded-full bg-indigo-600/10 text-indigo-600 dark:bg-indigo-950/80 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0 border border-indigo-200 dark:border-indigo-800">
+            <div className="h-8 w-8 rounded-full bg-indigo-600/10 text-indigo-600 dark:bg-indigo-950/80 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0 border border-indigo-200 dark:border-indigo-800 overflow-hidden">
               {user.photo ? (
                 <img src={user.photo} alt={user.name} className="h-full w-full rounded-full object-cover" />
               ) : (
@@ -146,7 +153,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isOpen, toggleSidebar }) 
             {!isCollapsed && (
               <>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-semibold text-foreground dark:text-slate-200">
+                  <p className="truncate text-xs font-semibold text-slate-800 dark:text-slate-200" title={user.name}>
                     {user.name}
                   </p>
                   <p className="truncate text-[10px] text-slate-500 dark:text-slate-400">{user.role || 'Accountant'}</p>
@@ -156,6 +163,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isOpen, toggleSidebar }) 
                   onClick={handleLogout}
                   className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-500/10 dark:hover:text-rose-400 cursor-pointer"
                   aria-label="Logout"
+                  title="Logout"
                 >
                   <LogOut className="h-4 w-4" />
                 </button>
@@ -169,6 +177,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isOpen, toggleSidebar }) 
               onClick={handleLogout}
               className="mt-2 flex w-full items-center justify-center rounded-lg p-2 text-rose-500 transition-colors hover:bg-rose-50 dark:hover:bg-rose-500/10 cursor-pointer"
               aria-label="Logout"
+              title="Logout"
             >
               <LogOut className="h-4 w-4" />
             </button>

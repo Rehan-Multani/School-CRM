@@ -57,8 +57,8 @@ export const ReceiptManagement = () => {
   return (
     <div className="space-y-6">
       <PageHeader 
-        title="Receipt Management" 
-        subtitle="Access institutional payment records, verify unique receipt numbers, and print official duplicate receipts." 
+        title="Receipts & Invoices Desk" 
+        subtitle="Access institutional payment records, verify unique receipt numbers, and print or download official student fee invoices & duplicate receipts." 
       />
 
       <div className="bg-white dark:bg-slate-900 border border-border rounded-3xl p-6 shadow-sm">

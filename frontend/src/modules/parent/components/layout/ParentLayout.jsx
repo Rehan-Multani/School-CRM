@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { BottomNav } from './BottomNav';
@@ -10,6 +10,16 @@ import { usePlatformPush } from '../../../../shared/hooks/usePlatformPush';
 export const ParentLayout = () => {
   const { user, loading } = useParentAuth();
   const { mergeInbox, addNotification } = useParentNotifications();
+
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    const saved = localStorage.getItem('parent_sidebar_collapsed');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  const handleCollapse = (val) => {
+    setIsCollapsed(val);
+    localStorage.setItem('parent_sidebar_collapsed', JSON.stringify(val));
+  };
 
   usePlatformPush({
     enabled: Boolean(user),
@@ -34,10 +44,14 @@ export const ParentLayout = () => {
   return (
     <div className="min-h-screen flex bg-background text-foreground transition-colors duration-200">
       {/* Desktop Navigation Sidebar */}
-      <Sidebar />
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={handleCollapse} />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-h-screen relative max-w-full overflow-x-hidden">
+      <div
+        className={`flex-1 flex flex-col min-h-screen relative max-w-full overflow-x-hidden transition-[margin] duration-200 ${
+          isCollapsed ? 'md:ml-[68px]' : 'md:ml-64'
+        }`}
+      >
         {/* Mobile Navigation Header */}
         <TopBar />
 

@@ -2,15 +2,14 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Dashboard } from '../pages/Dashboard';
 import { FeeCollection } from '../pages/fee-collection/FeeCollection';
-import { ReceiptManagement } from '../pages/receipts/ReceiptManagement';
+import { FeeStructure } from '../pages/fee-structure/FeeStructure';
 import { InstallmentManagement } from '../pages/installments/InstallmentManagement';
-import { DiscountScholarship } from '../pages/discounts/DiscountScholarship';
-import { LateFeeManagement } from '../pages/late-fees/LateFeeManagement';
-import { RefundManagement } from '../pages/refunds/RefundManagement';
-import { FinancialReports } from '../pages/reports/FinancialReports';
-import { StudentFinancialHistory } from '../pages/student-history/StudentFinancialHistory';
-import { AuditLogs } from '../pages/audit/AuditLogs';
+import { DuesPendingFees } from '../pages/dues/DuesPendingFees';
+import { Expenses } from '../pages/expenses/Expenses';
+import { ReceiptManagement } from '../pages/receipts/ReceiptManagement';
+import { Transactions } from '../pages/transactions/Transactions';
 import { Notifications } from '../pages/notifications/Notifications';
+import { FinancialReports } from '../pages/reports/FinancialReports';
 import { Settings } from '../pages/settings/Settings';
 
 export const AccountantRoutes = () => {
@@ -18,16 +17,23 @@ export const AccountantRoutes = () => {
     <Routes>
       <Route path="dashboard" element={<Dashboard />} />
       <Route path="fee-collection" element={<FeeCollection />} />
-      <Route path="receipts" element={<ReceiptManagement />} />
+      <Route path="fee-structure" element={<FeeStructure />} />
       <Route path="installments" element={<InstallmentManagement />} />
-      <Route path="discounts" element={<DiscountScholarship />} />
-      <Route path="late-fees" element={<LateFeeManagement />} />
-      <Route path="refunds" element={<RefundManagement />} />
-      <Route path="reports" element={<FinancialReports />} />
-      <Route path="student-history" element={<StudentFinancialHistory />} />
-      <Route path="audit" element={<AuditLogs />} />
+      <Route path="dues" element={<DuesPendingFees />} />
+      <Route path="expenses" element={<Expenses />} />
+      <Route path="receipts" element={<ReceiptManagement />} />
+      <Route path="transactions" element={<Transactions />} />
       <Route path="notifications" element={<Notifications />} />
+      <Route path="reports" element={<FinancialReports />} />
       <Route path="settings" element={<Settings />} />
+
+      {/* Legacy Fallback Redirects */}
+      <Route path="discounts" element={<Navigate to="../fee-structure" replace />} />
+      <Route path="late-fees" element={<Navigate to="../fee-structure" replace />} />
+      <Route path="refunds" element={<Navigate to="../transactions" replace />} />
+      <Route path="student-history" element={<Navigate to="../dues" replace />} />
+      <Route path="audit" element={<Navigate to="../transactions" replace />} />
+
       <Route path="*" element={<Navigate to="dashboard" replace />} />
     </Routes>
   );

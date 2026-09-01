@@ -477,6 +477,40 @@ export const AppStoreProvider = ({ children }) => {
     return newReceipt;
   }, [updateStore]);
 
+  const addExpense = useCallback((expenseData, actor = 'Virender Mehta (Accountant)') => {
+    const randomVoucherNum = `VCH-${Math.floor(1000 + Math.random() * 9000)}`;
+    const newExpense = {
+      id: `EXP-2026-${Date.now().toString().slice(-4)}`,
+      voucherNo: expenseData.voucherNo || randomVoucherNum,
+      title: expenseData.title,
+      category: expenseData.category || 'Utilities & Bills',
+      payee: expenseData.payee,
+      amount: Number(expenseData.amount) || 0,
+      paymentMethod: expenseData.paymentMethod || 'Bank Transfer',
+      date: expenseData.date || new Date().toISOString().split('T')[0],
+      status: 'Paid',
+      notes: expenseData.notes || 'School operational expense',
+      createdBy: actor
+    };
+
+    updateStore(prev => ({
+      ...prev,
+      expenses: [newExpense, ...(prev.expenses || [])]
+    }), 'EXPENSE_ADDED', { voucherNo: newExpense.voucherNo, amount: newExpense.amount });
+
+    logAudit(actor, 'Finance', 'EXPENSE_ADDED', `Voucher #${newExpense.voucherNo} for ${newExpense.title} (INR ${newExpense.amount}) recorded`);
+    return newExpense;
+  }, [updateStore]);
+
+  const deleteExpense = useCallback((expenseId, actor = 'Virender Mehta (Accountant)') => {
+    updateStore(prev => ({
+      ...prev,
+      expenses: (prev.expenses || []).filter(e => e.id !== expenseId && e.voucherNo !== expenseId)
+    }), 'EXPENSE_DELETED', { expenseId });
+
+    logAudit(actor, 'Finance', 'EXPENSE_DELETED', `Expense ${expenseId} removed from ledger`);
+  }, [updateStore]);
+
   // 6. LIBRARY CIRCULATION (FRD §12)
   const issueBook = useCallback((bookId, memberId, memberName = 'Student', dueDate = null, actor = 'Sanjay Kumar (Librarian)') => {
     let createdLoan = null;
@@ -752,6 +786,8 @@ export const AppStoreProvider = ({ children }) => {
     submitMarks,
     publishExamResults,
     collectFee,
+    addExpense,
+    deleteExpense,
     issueBook,
     returnBook,
     assignStudentTransport,

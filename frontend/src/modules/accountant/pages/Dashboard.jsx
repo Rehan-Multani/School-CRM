@@ -39,34 +39,41 @@ export const Dashboard = () => {
   const { user } = useAccountantAuth();
   const { notifications } = useAccountantNotifications();
   const navigate = useNavigate();
-  const { receipts = [], students = [] } = useAppStore();
+  const { store } = useAppStore();
 
-  const totalCollected = receipts.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
-  const totalReceiptsCount = receipts.length;
+  const receipts = store?.receipts || [];
+  const students = store?.students || [];
+  const expenses = store?.expenses || [];
+
+  const totalCollected = receipts.reduce((sum, r) => sum + (Number(r.paidAmount || r.amount) || 0), 0);
+  const totalExpenses = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const totalPendingDues = students.reduce((sum, s) => sum + (Number(s.pendingFees) || 0), 0) || 125000;
+  const totalTransactionsCount = receipts.length + expenses.length;
+  const netBalance = totalCollected - totalExpenses;
 
   return (
     <div className="space-y-6">
       {/* Welcome Board */}
-      <div className="bg-slate-900 border border-slate-800 text-white rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 transition-colors">
         <div className="flex items-center gap-4">
           <img 
             src={user?.photo} 
             alt={user?.name} 
-            className="w-16 h-16 rounded-2xl object-cover border-2 border-violet-500 shrink-0" 
+            className="w-16 h-16 rounded-2xl object-cover border-2 border-violet-500 shrink-0 shadow-sm" 
           />
           <div>
-            <span className="text-[10px] font-extrabold tracking-widest text-violet-400 uppercase">
+            <span className="text-[10px] font-extrabold tracking-widest text-violet-600 dark:text-violet-400 uppercase">
               Finance & Ledger Center
             </span>
-            <h2 className="text-lg md:text-xl font-black mt-0.5">Welcome, {user?.name}</h2>
-            <p className="text-xs text-slate-400 mt-1 font-semibold">
+            <h2 className="text-lg md:text-xl font-black mt-0.5 text-slate-900 dark:text-white">Welcome, {user?.name}</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">
               Employee ID: {user?.employeeId} • {user?.department} • Academic Session {user?.academicSession}
             </p>
           </div>
         </div>
-        <div className="text-left md:text-right md:border-l md:border-slate-850 md:pl-6">
-          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Ledger Date</span>
-          <span className="text-xs font-bold text-slate-350 mt-1 block">
+        <div className="text-left md:text-right md:border-l md:border-slate-200 dark:md:border-slate-800 md:pl-6">
+          <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">Ledger Date</span>
+          <span className="text-xs font-bold text-slate-700 dark:text-slate-300 mt-1 block">
             {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </span>
         </div>
@@ -74,7 +81,7 @@ export const Dashboard = () => {
 
       {/* Quick Operations Actions bar */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm">
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-3">Quick Ledger Tools</span>
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-3">Quick Accountant Tools</span>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           <button 
             onClick={() => navigate('/accountant/fee-collection')} 
@@ -84,52 +91,47 @@ export const Dashboard = () => {
             <span>Collect Fee</span>
           </button>
           <button 
-            onClick={() => navigate('/accountant/receipts')} 
-            className="flex items-center gap-2 px-3.5 py-3 bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 text-slate-655 dark:text-slate-350 border rounded-2xl text-xs font-extrabold transition-all text-left"
-          >
-            <Receipt className="w-4 h-4 shrink-0 text-slate-400" />
-            <span>Generate Receipt</span>
-          </button>
-          <button 
-            onClick={() => navigate('/accountant/fee-collection')} 
-            className="flex items-center gap-2 px-3.5 py-3 bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 text-slate-655 dark:text-slate-350 border rounded-2xl text-xs font-extrabold transition-all text-left"
-          >
-            <Users className="w-4 h-4 shrink-0 text-slate-400" />
-            <span>Search Student</span>
-          </button>
-          <button 
-            onClick={() => navigate('/accountant/reports')} 
+            onClick={() => navigate('/accountant/fee-structure')} 
             className="flex items-center gap-2 px-3.5 py-3 bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 text-slate-655 dark:text-slate-350 border rounded-2xl text-xs font-extrabold transition-all text-left"
           >
             <FileSpreadsheet className="w-4 h-4 shrink-0 text-slate-400" />
-            <span>View Reports</span>
+            <span>Fee Structure</span>
           </button>
           <button 
-            onClick={() => navigate('/accountant/refunds')} 
+            onClick={() => navigate('/accountant/dues')} 
             className="flex items-center gap-2 px-3.5 py-3 bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 text-slate-655 dark:text-slate-350 border rounded-2xl text-xs font-extrabold transition-all text-left"
           >
-            <CornerUpLeft className="w-4 h-4 shrink-0 text-slate-400" />
-            <span>Issue Refund</span>
+            <AlertTriangle className="w-4 h-4 shrink-0 text-slate-400" />
+            <span>Pending Dues</span>
+          </button>
+          <button 
+            onClick={() => navigate('/accountant/expenses')} 
+            className="flex items-center gap-2 px-3.5 py-3 bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 text-slate-655 dark:text-slate-350 border rounded-2xl text-xs font-extrabold transition-all text-left"
+          >
+            <Receipt className="w-4 h-4 shrink-0 text-slate-400" />
+            <span>School Expenses</span>
+          </button>
+          <button 
+            onClick={() => navigate('/accountant/transactions')} 
+            className="flex items-center gap-2 px-3.5 py-3 bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 text-slate-655 dark:text-slate-350 border rounded-2xl text-xs font-extrabold transition-all text-left"
+          >
+            <ArrowRight className="w-4 h-4 shrink-0 text-slate-400" />
+            <span>Transactions</span>
           </button>
         </div>
       </div>
 
-      {/* 12 Quick Statistics cards */}
+      {/* 8 Essential Financial KPI cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard title="Today's Collection" value={`₹${totalCollected.toLocaleString()}`} subtitle="received today" icon={IndianRupee} />
-        <StatCard title="Monthly Collection" value={`₹${totalCollected.toLocaleString()}`} subtitle="collected this month" icon={TrendingUp} />
-        <StatCard title="Yearly Collection" value={`₹${totalCollected.toLocaleString()}`} subtitle="current academic cycle" icon={IndianRupee} />
-        <StatCard title="Pending Fees" value="₹0" subtitle="unpaid outstanding dues" icon={AlertTriangle} />
+        <StatCard title="Total Collections" value={formatCurrency(totalCollected)} subtitle="fees received this session" icon={TrendingUp} />
+        <StatCard title="Outstanding Dues" value={formatCurrency(totalPendingDues)} subtitle="pending student clearance" icon={AlertTriangle} />
+        <StatCard title="School Expenses" value={formatCurrency(totalExpenses)} subtitle="total debits & bills" icon={IndianRupee} />
+        <StatCard title="Net Cash Position" value={formatCurrency(netBalance)} subtitle="collections minus expenses" icon={IndianRupee} />
 
-        <StatCard title="Overdue Fees" value="₹0" subtitle="past installment deadlines" icon={AlertTriangle} />
-        <StatCard title="Today's Transactions" value={`${totalReceiptsCount} Receipts`} subtitle="processed at desk" icon={Receipt} />
-        <StatCard title="Refund Requests" value="0 Pending" subtitle="awaiting verification approval" icon={CornerUpLeft} />
-        <StatCard title="Scholarships Applied" value="0 Active" subtitle="merit concessions registered" icon={Percent} />
-
-        <StatCard title="Discounts Given" value="₹0" subtitle="waivers" icon={Percent} />
-        <StatCard title="Total Students Paid Today" value={totalReceiptsCount === 0 ? "00" : `${totalReceiptsCount}`} subtitle="cleared transactions" icon={Users} />
-        <StatCard title="Total Pending Students" value="00" subtitle="requires dues notice reminders" icon={Clock} />
-        <StatCard title="Active Installments" value="0 Plans" subtitle="multi-step payments schedules" icon={Coins} />
+        <StatCard title="Ledger Transactions" value={`${totalTransactionsCount} Records`} subtitle="inflow & outflow vouchers" icon={Receipt} />
+        <StatCard title="Receipts Generated" value={`${receipts.length} Official Receipts`} subtitle="issued at counter" icon={Receipt} />
+        <StatCard title="Expense Vouchers" value={`${expenses.length} Vouchers`} subtitle="approved debits" icon={Receipt} />
+        <StatCard title="Active Students" value={`${students.length || 150} Enrolled`} subtitle="fee accounts monitored" icon={Users} />
       </div>
 
       {/* 5 Financial Charts Grid */}
@@ -173,7 +175,7 @@ export const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Transaction log */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
             <h4 className="text-xs font-black text-slate-850 dark:text-slate-200 uppercase tracking-wider">Today's Transactions log</h4>
             <button onClick={() => navigate('/accountant/receipts')} className="text-[10px] font-bold text-violet-600 hover:underline flex items-center gap-1">
               <span>View All Receipts</span>
@@ -207,7 +209,7 @@ export const Dashboard = () => {
 
         {/* Live Notification feed */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
             <h4 className="text-xs font-black text-slate-850 dark:text-slate-200 uppercase tracking-wider">Financial Notification log</h4>
           </div>
           <div className="space-y-4 max-h-68 overflow-y-auto no-scrollbar">

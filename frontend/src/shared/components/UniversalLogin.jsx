@@ -10,7 +10,9 @@ import {
   CheckCircle2, 
   AlertCircle, 
   ShieldCheck,
-  RotateCcw
+  RotateCcw,
+  Monitor,
+  Smartphone
 } from 'lucide-react';
 import BrandLogo from '../ui/BrandLogo';
 
@@ -31,18 +33,103 @@ export const UniversalLogin = () => {
   const [newPassword, setNewPassword] = useState('');
   const [resetSuccess, setResetSuccess] = useState(false);
 
-  const DEMO_PRESETS = [
-    { role: 'Student', label: 'Aarav Sharma (Student)', id: 'STU108902', pass: 'password123', target: '/student/dashboard', color: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25' },
-    { role: 'Teacher', label: 'Mr. Rajesh Kumar (Teacher)', id: 'EMP101', pass: 'password123', target: '/teacher/dashboard', color: 'bg-blue-500/15 text-blue-300 border-blue-500/30 hover:bg-blue-500/25' },
-    { role: 'Parent', label: 'Mr. Rajesh Sharma (Parent)', id: 'rajesh.sharma@gmail.com', pass: 'password123', target: '/parent/dashboard', color: 'bg-purple-500/15 text-purple-300 border-purple-500/30 hover:bg-purple-500/25' },
-    { role: 'School Admin', label: 'Vikramaditya (Admin)', id: 'admin', pass: 'admin123', target: '/school-admin/dashboard', color: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/25' },
-    { role: 'Principal', label: 'Dr. S. Chatterjee (Principal)', id: 'principal', pass: 'principal123', target: '/principal/dashboard', color: 'bg-amber-500/15 text-amber-300 border-amber-500/30 hover:bg-amber-500/25' },
-    { role: 'Accountant', label: 'Virender Mehta (Accountant)', id: 'accountant', pass: 'accountant123', target: '/accountant/dashboard', color: 'bg-teal-500/15 text-teal-300 border-teal-500/30 hover:bg-teal-500/25' },
-    { role: 'HR', label: 'Meenakshi Iyer (HR)', id: 'hr', pass: 'hr123', target: '/hr/dashboard', color: 'bg-rose-500/15 text-rose-300 border-rose-500/30 hover:bg-rose-500/25' },
-    { role: 'Librarian', label: 'Sanjay Kumar (Librarian)', id: 'librarian', pass: 'lib123', target: '/librarian/dashboard', color: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30 hover:bg-cyan-500/25' },
-    { role: 'Transport', label: 'Manish Dave (Transport)', id: 'transport', pass: 'transport123', target: '/transport/dashboard', color: 'bg-orange-500/15 text-orange-300 border-orange-500/30 hover:bg-orange-500/25' },
-    { role: 'Super Admin', label: 'Global SaaS Super Admin', id: 'superadmin@gmail.com', pass: '123', target: '/super-admin/dashboard', color: 'bg-slate-700/30 text-slate-200 border-slate-600/40 hover:bg-slate-700/50' }
+  const WEB_PANELS = [
+    { 
+      role: 'Super Admin', 
+      label: 'Global SaaS Super Admin', 
+      id: 'superadmin@gmail.com', 
+      pass: '123', 
+      target: '/super-admin/dashboard', 
+      color: 'bg-slate-800/60 text-slate-200 border-slate-700/60 hover:bg-slate-800/90 hover:border-slate-500',
+      isComplete: true 
+    },
+    { 
+      role: 'Admin', 
+      label: 'Vikramaditya (Admin)', 
+      id: 'admin', 
+      pass: 'admin123', 
+      target: '/school-admin/dashboard', 
+      color: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/25 hover:border-indigo-400',
+      isComplete: true 
+    },
+    { 
+      role: 'Accountant', 
+      label: 'Virender Mehta (Accountant)', 
+      id: 'accountant', 
+      pass: 'accountant123', 
+      target: '/accountant/dashboard', 
+      color: 'bg-teal-500/15 text-teal-300 border-teal-500/30 hover:bg-teal-500/25 hover:border-teal-400',
+      isComplete: false 
+    },
+    { 
+      role: 'Library', 
+      label: 'Sanjay Kumar (Librarian)', 
+      id: 'librarian', 
+      pass: 'lib123', 
+      target: '/librarian/dashboard', 
+      color: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30 hover:bg-cyan-500/25 hover:border-cyan-400',
+      isComplete: true 
+    },
+    { 
+      role: 'Staff', 
+      label: 'Meenakshi Iyer (HR & Staff)', 
+      id: 'hr', 
+      pass: 'hr123', 
+      target: '/hr/dashboard', 
+      color: 'bg-rose-500/15 text-rose-300 border-rose-500/30 hover:bg-rose-500/25 hover:border-rose-400',
+      isComplete: false 
+    },
+    { 
+      role: 'Principal', 
+      label: 'Dr. S. Chatterjee (Principal)', 
+      id: 'principal', 
+      pass: 'principal123', 
+      target: '/principal/dashboard', 
+      color: 'bg-amber-500/15 text-amber-300 border-amber-500/30 hover:bg-amber-500/25 hover:border-amber-400',
+      isComplete: false 
+    }
   ];
+
+  const APK_PANELS = [
+    { 
+      role: 'Parents', 
+      label: 'Mr. Rajesh Sharma (Parent)', 
+      id: 'rajesh.sharma@gmail.com', 
+      pass: 'password123', 
+      target: '/parent/dashboard', 
+      color: 'bg-purple-500/15 text-purple-300 border-purple-500/30 hover:bg-purple-500/25 hover:border-purple-400',
+      isComplete: false 
+    },
+    { 
+      role: 'Students', 
+      label: 'Aarav Sharma (Student)', 
+      id: 'STU108902', 
+      pass: 'password123', 
+      target: '/student/dashboard', 
+      color: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25 hover:border-emerald-400',
+      isComplete: false 
+    },
+    { 
+      role: 'Teacher', 
+      label: 'Mr. Rajesh Kumar (Teacher)', 
+      id: 'EMP101', 
+      pass: 'password123', 
+      target: '/teacher/dashboard', 
+      color: 'bg-blue-500/15 text-blue-300 border-blue-500/30 hover:bg-blue-500/25 hover:border-blue-400',
+      isComplete: false 
+    },
+    { 
+      role: 'Transport', 
+      label: 'Manish Dave (Transport)', 
+      id: 'transport', 
+      pass: 'transport123', 
+      target: '/transport/dashboard', 
+      color: 'bg-orange-500/15 text-orange-300 border-orange-500/30 hover:bg-orange-500/25 hover:border-orange-400',
+      isComplete: false 
+    }
+  ];
+
+  const DEMO_PRESETS = [...WEB_PANELS, ...APK_PANELS];
 
   const handleLogin = (e) => {
     e?.preventDefault();
@@ -181,22 +268,78 @@ export const UniversalLogin = () => {
         </div>
 
         {/* 1-Click Role Jumpers for instant evaluation */}
-        <div className="mt-10 pt-6 border-t border-slate-800">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-3">
-            ⚡ Quick Demo Accounts (1-Click Switch)
-          </span>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {DEMO_PRESETS.map((preset, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => handleQuickDemo(preset)}
-                className={`text-left p-2.5 rounded-xl border text-xs font-semibold transition-all hover:scale-[1.02] active:scale-95 duration-100 ${preset.color}`}
-              >
-                <div className="font-bold truncate">{preset.role}</div>
-                <div className="text-[10px] text-white/80 font-medium truncate mt-0.5">{preset.id}</div>
-              </button>
-            ))}
+        <div className="mt-8 pt-5 border-t border-slate-800 space-y-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <span>⚡</span> Quick Demo Accounts (1-Click Switch)
+            </span>
+            <span className="text-[10px] text-slate-400 font-semibold bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700/60">
+              Web & App Split
+            </span>
+          </div>
+
+          {/* Web Panels */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Monitor className="w-3.5 h-3.5 text-indigo-400" />
+                <span className="text-xs font-bold text-indigo-200 tracking-wide uppercase">
+                  Web Panels
+                </span>
+              </div>
+              <span className="text-[10px] text-indigo-300/80 font-medium bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-md">
+                Desktop Portals
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {WEB_PANELS.map((preset, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleQuickDemo(preset)}
+                  className={`text-left p-2.5 rounded-xl border text-xs font-semibold transition-all hover:scale-[1.02] active:scale-95 duration-100 ${preset.color}`}
+                >
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="font-bold truncate">{preset.role}</span>
+                    {preset.isComplete && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 shrink-0">
+                        <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
+                        Complete
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[10px] text-white/80 font-medium truncate mt-0.5">{preset.id}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Apks (Mobile Apps) */}
+          <div className="space-y-2 pt-2 border-t border-slate-800/60">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Smartphone className="w-3.5 h-3.5 text-purple-400" />
+                <span className="text-xs font-bold text-purple-200 tracking-wide uppercase">
+                  Apks
+                </span>
+              </div>
+              <span className="text-[10px] text-purple-300/80 font-medium bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-md">
+                Mobile Apps
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {APK_PANELS.map((preset, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleQuickDemo(preset)}
+                  className={`text-left p-2.5 rounded-xl border text-xs font-semibold transition-all hover:scale-[1.02] active:scale-95 duration-100 ${preset.color}`}
+                >
+                  <div className="font-bold truncate">{preset.role}</div>
+                  <div className="text-[10px] text-white/80 font-medium truncate mt-0.5">{preset.id}</div>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

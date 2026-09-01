@@ -20,7 +20,15 @@ export const AccountantLayout = () => {
     mergeInbox,
     onPush: (item) => addNotification(item),
   });
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    const saved = localStorage.getItem('accountant_sidebar_collapsed');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  const handleCollapse = (val) => {
+    setIsCollapsed(val);
+    localStorage.setItem('accountant_sidebar_collapsed', JSON.stringify(val));
+  };
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const location = useLocation();
@@ -55,9 +63,9 @@ export const AccountantLayout = () => {
   }
 
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 text-slate-805 dark:text-slate-200 transition-colors duration-200">
+    <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 transition-colors duration-200">
       {/* Desktop Sidebar */}
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={handleCollapse} />
 
       {/* Mobile Drawer */}
       <AnimatePresence>
@@ -68,23 +76,32 @@ export const AccountantLayout = () => {
               animate={{ opacity: 0.4 }}
               exit={{ opacity: 0 }}
               onClick={() => setMobileMenuOpen(false)}
-              className="fixed inset-0 bg-slate-955"
+              className="fixed inset-0 bg-slate-950"
             />
             <motion.div
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="relative w-72 bg-slate-955 h-full flex flex-col z-10"
+              className="relative w-64 bg-slate-950 h-full flex flex-col z-10"
             >
-              <Sidebar isCollapsed={false} setIsCollapsed={() => {}} />
+              <Sidebar
+                isCollapsed={false}
+                setIsCollapsed={() => {}}
+                isOpen={true}
+                toggleSidebar={() => setMobileMenuOpen(false)}
+              />
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* Content wrapper */}
-      <div className="flex-1 flex flex-col min-h-screen relative max-w-full overflow-x-hidden">
+      {/* Content wrapper with responsive margin to prevent overlap */}
+      <div
+        className={`flex-1 flex flex-col min-h-screen relative max-w-full overflow-x-hidden transition-[margin] duration-200 ${
+          isCollapsed ? 'md:ml-[68px]' : 'md:ml-64'
+        }`}
+      >
         <TopBar 
           onMenuClick={() => setMobileMenuOpen(true)} 
           onSearchClick={() => setCommandPaletteOpen(true)}

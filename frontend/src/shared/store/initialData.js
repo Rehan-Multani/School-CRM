@@ -90,6 +90,13 @@ export const INITIAL_DATA = {
   // 8. FEES, TRANSACTIONS & RECEIPTS
   feeStructures: [],
   receipts: [],
+  expenses: [
+    { id: 'EXP-2026-001', voucherNo: 'VCH-1082', title: 'Monthly Campus Electricity Bill', category: 'Utilities & Bills', payee: 'BSES Rajdhani Power Ltd', amount: 48500, paymentMethod: 'Bank Transfer', date: '2026-08-25', status: 'Paid', notes: 'Campus electricity bill for academic blocks A & B' },
+    { id: 'EXP-2026-002', voucherNo: 'VCH-1083', title: 'High-Speed Optical Internet Lease', category: 'Utilities & Bills', payee: 'Airtel Broadband Enterprise', amount: 14200, paymentMethod: 'UPI', date: '2026-08-27', status: 'Paid', notes: 'Monthly 500Mbps optical leased line bill' },
+    { id: 'EXP-2026-003', voucherNo: 'VCH-1084', title: 'Science Laboratory Consumables', category: 'Science & Computer Labs', payee: 'Apex Scientific Suppliers', amount: 26800, paymentMethod: 'Cheque', date: '2026-08-28', status: 'Paid', notes: 'Chemistry and Biology lab supplies' },
+    { id: 'EXP-2026-004', voucherNo: 'VCH-1085', title: 'Examination Answer Sheets & Printing', category: 'Stationery & Printing', payee: 'Navodaya Printers & Stationers', amount: 32000, paymentMethod: 'Bank Transfer', date: '2026-08-29', status: 'Paid', notes: 'Mid-term answer booklets and stationery' },
+    { id: 'EXP-2026-005', voucherNo: 'VCH-1086', title: 'Campus HVAC & Generator Servicing', category: 'School Maintenance', payee: 'CoolTech Facilities Engineering', amount: 18500, paymentMethod: 'Cheque', date: '2026-08-30', status: 'Paid', notes: 'Quarterly DG set maintenance and filter replacements' }
+  ],
 
   // 9. LIBRARY & CIRCULATION
   books: [],
