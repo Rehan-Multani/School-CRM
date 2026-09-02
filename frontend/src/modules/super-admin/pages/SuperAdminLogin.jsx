@@ -45,7 +45,7 @@ export default function SuperAdminLogin() {
     setError('');
 
     try {
-      await login(email, password);
+      await login(email.trim(), password);
       navigate('/super-admin/dashboard');
     } catch (err) {
       const message =

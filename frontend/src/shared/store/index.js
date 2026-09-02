@@ -20,6 +20,21 @@ export const getMasterStore = () => {
         mutated = true;
       }
     });
+
+    // Ensure all seed users from INITIAL_DATA exist in auth.users
+    if (parsed.auth && Array.isArray(parsed.auth.users)) {
+      INITIAL_DATA.auth.users.forEach(initialUser => {
+        const exists = parsed.auth.users.some(
+          u => u.email?.toLowerCase() === initialUser.email?.toLowerCase() ||
+               u.username?.toLowerCase() === initialUser.username?.toLowerCase()
+        );
+        if (!exists) {
+          parsed.auth.users.push(initialUser);
+          mutated = true;
+        }
+      });
+    }
+
     if (mutated) {
       localStorage.setItem(STORE_KEY, JSON.stringify(parsed));
     }

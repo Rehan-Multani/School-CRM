@@ -13,6 +13,8 @@ import {
   ShieldAlert,
   Users,
   Wallet,
+  School,
+  LayoutGrid,
 } from 'lucide-react';
 import SchoolAdminBrandLogo from '../components/ui/SchoolAdminBrandLogo';
 import { SchoolAdminBrandingEffect } from '../components/layout/SchoolAdminBrandingEffect';
@@ -43,7 +45,7 @@ export const SchoolAdminLogin = () => {
   const [resetUrl, setResetUrl] = useState('');
   const [emailSent, setEmailSent] = useState(false);
   useEffect(() => {
-    document.title = 'School Admin Login | School CRM';
+    document.title = 'School Admin Portal Login | School CRM';
   }, []);
 
   const handleLoginSubmit = async (event) => {
@@ -96,14 +98,15 @@ export const SchoolAdminLogin = () => {
         />
 
         <div className="relative z-10 flex w-full max-w-md flex-col items-center text-center">
-          <span className="mb-4 rounded-full border border-indigo-400/20 bg-indigo-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-300">
+          <span className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-blue-400/30 bg-blue-500/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-300">
+            <School className="h-3.5 w-3.5" />
             School Admin Portal
           </span>
           <div className="rounded-3xl bg-slate-900/50 p-2.5 shadow-[0_0_80px_rgba(79,70,229,0.28)] ring-1 ring-white/10">
             <SchoolAdminBrandLogo className="h-40 w-40 rounded-[1.15rem]" useAuth={false} />
           </div>
           <h1 className="mt-5 text-3xl font-semibold tracking-tight text-white">
-            School CRM
+            School Administration
           </h1>
           <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-400">
             Sign in to run your school — students, staff, academics, and billing.
@@ -114,7 +117,7 @@ export const SchoolAdminLogin = () => {
                 key={text}
                 className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/[0.03] px-3.5 py-2.5"
               >
-                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-300">
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/15 text-blue-300">
                   <Icon className="h-4 w-4" />
                 </span>
                 <span className="text-sm text-slate-300">{text}</span>
@@ -125,22 +128,29 @@ export const SchoolAdminLogin = () => {
       </section>
 
       <section className="relative flex h-full items-center justify-center overflow-hidden border-slate-800 bg-slate-950 px-4 lg:border-l">
-        <div className="w-full max-w-[400px]">
+        <div className="w-full max-w-[420px]">
           <div className="mb-5 flex flex-col items-center text-center">
             <SchoolAdminBrandLogo className="mb-3 h-11 w-11 rounded-xl ring-1 ring-white/10" useAuth={false} />
-            <h2 className="text-2xl font-semibold tracking-tight text-white">
-              {view === 'login' && 'Welcome back'}
-              {view === 'forgot' && 'Reset password'}
-              {view === 'sent' && 'Check your email'}
+            
+            {/* Prominent Role Identifier Badge */}
+            <span className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-blue-500/20 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-blue-300 shadow-sm">
+              <School className="h-3.5 w-3.5 text-blue-400" />
+              SCHOOL ADMIN PANEL
+            </span>
+
+            <h2 className="text-2xl font-bold tracking-tight text-white">
+              {view === 'login' && 'School Admin Login'}
+              {view === 'forgot' && 'Reset Admin Password'}
+              {view === 'sent' && 'Check Your Email'}
             </h2>
-            <p className="mt-1.5 text-sm text-slate-400">
-              {view === 'login' && 'Sign in with your school admin email'}
+            <p className="mt-1 text-xs text-slate-400">
+              {view === 'login' && 'Sign in with your institutional administrator email'}
               {view === 'forgot' && 'We will send a secure link to your admin email'}
               {view === 'sent' && 'Follow the link to choose a new password'}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/75 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
+          <div className="rounded-2xl border border-slate-800 border-t-2 border-t-blue-500 bg-slate-900/75 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
             {error && (
               <div
                 role="alert"
@@ -230,16 +240,16 @@ export const SchoolAdminLogin = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-500 disabled:pointer-events-none disabled:opacity-50"
+                  className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 disabled:pointer-events-none disabled:opacity-50"
                 >
                   {loading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Signing in...
+                      Signing in to School Admin...
                     </>
                   ) : (
                     <>
-                      Sign in
+                      Sign In to School Admin
                       <ArrowRight className="h-4 w-4" />
                     </>
                   )}
@@ -276,7 +286,7 @@ export const SchoolAdminLogin = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-500 disabled:pointer-events-none disabled:opacity-50"
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 disabled:pointer-events-none disabled:opacity-50"
                 >
                   {loading ? (
                     <>
@@ -323,7 +333,7 @@ export const SchoolAdminLogin = () => {
                         return '/school-admin/login';
                       }
                     })()}
-                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-500"
+                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500"
                   >
                     Open reset link
                     <ArrowRight className="h-4 w-4" />
@@ -345,9 +355,17 @@ export const SchoolAdminLogin = () => {
             )}
           </div>
 
-          <p className="mt-4 text-center text-[11px] tracking-wide text-slate-500">
-            Authorized school administrators only · Encrypted sign-in
-          </p>
+          <div className="mt-4 flex flex-col items-center gap-1.5 text-center">
+            <p className="text-[11px] tracking-wide text-slate-500">
+              Authorized school administrators only · Encrypted sign-in
+            </p>
+            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+              <span>Looking for another panel?</span>
+              <Link to="/login" className="inline-flex items-center gap-1 font-semibold text-blue-400 hover:text-blue-300 hover:underline">
+                <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals →
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
     </div>

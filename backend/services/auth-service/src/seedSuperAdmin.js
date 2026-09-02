@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import mongoose from 'mongoose';
 import { connectDB } from '../../shared/connectDB.js';
 import { env } from './config/env.js';
 import { SuperAdminUser } from './models/SuperAdminUser.js';
@@ -7,8 +8,14 @@ const BCRYPT_ROUNDS = 12;
 
 export async function seedSuperAdmin() {
   const { email, password, name } = env.superAdmin;
-  const existing = await SuperAdminUser.findOne({ email });
+  const existing = await SuperAdminUser.findOne({ email }).select('+passwordHash');
   if (existing) {
+    const matches = await bcrypt.compare(password, existing.passwordHash);
+    if (!matches) {
+      existing.passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+      if (name) existing.name = name;
+      await existing.save();
+    }
     return existing.toSafeJSON();
   }
 
@@ -26,7 +33,7 @@ export async function seedSuperAdmin() {
 const isDirectRun = process.argv[1]?.replace(/\\/g, '/').endsWith('seedSuperAdmin.js');
 
 if (isDirectRun) {
-  connectDB(env.mongoUri)
+  connectDB(env.mongoUri, mongoose)
     .then(() => seedSuperAdmin())
     .then((admin) => {
       console.log('Super Admin seeded in auth-service');

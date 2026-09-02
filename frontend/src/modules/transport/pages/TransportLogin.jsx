@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTransportAuth } from '../context/TransportAuthContext';
-import { Lock, User as UserIcon, AlertCircle, ArrowRight, ArrowLeft, Eye, EyeOff, Loader2, Bus, CheckCircle2, Users, Mail } from 'lucide-react';
+import { Lock, User as UserIcon, AlertCircle, ArrowRight, ArrowLeft, Eye, EyeOff, Loader2, Bus, CheckCircle2, Users, Mail, LayoutGrid } from 'lucide-react';
 import BrandLogo from '../../../shared/ui/BrandLogo';
 
 export const TransportLogin = () => {
@@ -17,7 +17,7 @@ export const TransportLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    document.title = 'Transport Login | School CRM';
+    document.title = 'Transport Portal Login | School CRM';
   }, []);
 
   const handleSubmit = async (e) => {
@@ -63,31 +63,32 @@ export const TransportLogin = () => {
         />
 
         <div className="relative z-10 flex w-full max-w-md flex-col items-center text-center">
-          <span className="mb-4 rounded-full border border-indigo-400/20 bg-indigo-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-300">
+          <span className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-blue-400/30 bg-blue-500/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-300">
+            <Bus className="h-3.5 w-3.5" />
             Transport Management Portal
           </span>
           <div className="rounded-3xl bg-slate-900/50 p-2.5 shadow-[0_0_80px_rgba(79,70,229,0.28)] ring-1 ring-white/10">
             <BrandLogo className="h-40 w-40 rounded-[1.15rem]" />
           </div>
-          <h1 className="mt-5 text-3xl font-semibold tracking-tight text-white">School CRM</h1>
+          <h1 className="mt-5 text-3xl font-semibold tracking-tight text-white">Fleet & Transit</h1>
           <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-400">
             One place to track school buses, optimize routes, and oversee student daily transit.
           </p>
           <ul className="mt-6 w-full space-y-2.5 text-left">
             <li className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/[0.03] px-3.5 py-2.5">
-              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-300">
+              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/15 text-blue-300">
                 <Bus className="h-4 w-4" />
               </span>
               <span className="text-sm text-slate-300">Fleet Control: Manage vehicles, drivers, and safety logs</span>
             </li>
             <li className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/[0.03] px-3.5 py-2.5">
-              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-300">
+              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/15 text-blue-300">
                 <CheckCircle2 className="h-4 w-4" />
               </span>
               <span className="text-sm text-slate-300">Route Optimization: Configure pickup/drop boarding points, zones, and timing charts</span>
             </li>
             <li className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/[0.03] px-3.5 py-2.5">
-              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-300">
+              <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/15 text-blue-300">
                 <Users className="h-4 w-4" />
               </span>
               <span className="text-sm text-slate-300">Student Transit: Assign student bus slots and monitor daily transit status</span>
@@ -98,16 +99,25 @@ export const TransportLogin = () => {
 
       {/* Right section: form */}
       <section className="relative flex h-full items-center justify-center overflow-hidden border-slate-800 bg-slate-950 px-4 lg:border-l">
-        <div className="w-full max-w-[400px]">
+        <div className="w-full max-w-[420px]">
           <div className="mb-5 flex flex-col items-center text-center">
             <BrandLogo className="mb-3 h-11 w-11 rounded-xl ring-1 ring-white/10" />
-            <h2 className="text-2xl font-semibold tracking-tight text-white">Welcome back</h2>
-            <p className="mt-1.5 text-sm text-slate-400">
-              {view === 'login' ? 'Sign in with your transport account' : 'Reset your transport password'}
+            
+            {/* Prominent Role Identifier Badge */}
+            <span className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-blue-500/20 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-blue-300 shadow-sm">
+              <Bus className="h-3.5 w-3.5 text-blue-400" />
+              TRANSPORT & FLEET PANEL
+            </span>
+
+            <h2 className="text-2xl font-bold tracking-tight text-white">
+              {view === 'login' ? 'Transport Login' : 'Reset Transport Password'}
+            </h2>
+            <p className="mt-1 text-xs text-slate-400">
+              {view === 'login' ? 'Sign in to manage buses, drivers, transit routes, and student tracking' : 'Reset your transport account password'}
             </p>
           </div>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/75 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl space-y-4">
+          <div className="rounded-2xl border border-slate-800 border-t-2 border-t-blue-500 bg-slate-900/75 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl space-y-4">
             {error && (
               <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3.5 py-3 text-sm text-rose-300">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -118,7 +128,7 @@ export const TransportLogin = () => {
             {view === 'login' && (
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-300">Email</label>
+                  <label className="block text-sm font-medium text-slate-300">Transport Email</label>
                   <div className="relative">
                     <UserIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <input
@@ -127,7 +137,7 @@ export const TransportLogin = () => {
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       required
-                      className="h-12 w-full rounded-xl border border-slate-700/80 bg-slate-950/80 pl-11 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition hover:border-slate-600 focus:border-indigo-500 focus:bg-slate-950 focus:ring-4 focus:ring-indigo-500/15 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="h-12 w-full rounded-xl border border-slate-700/80 bg-slate-950/80 pl-11 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition hover:border-slate-600 focus:border-blue-500 focus:bg-slate-950 focus:ring-4 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:opacity-60"
                     />
                   </div>
                 </div>
@@ -141,7 +151,7 @@ export const TransportLogin = () => {
                         setError('');
                         setView('forgot');
                       }}
-                      className="text-xs font-semibold text-indigo-400 transition hover:text-indigo-300"
+                      className="text-xs font-semibold text-blue-400 transition hover:text-blue-300"
                     >
                       Forgot password?
                     </button>
@@ -154,7 +164,7 @@ export const TransportLogin = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="h-12 w-full rounded-xl border border-slate-700/80 bg-slate-950/80 pl-11 pr-11 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition hover:border-slate-600 focus:border-indigo-500 focus:bg-slate-950 focus:ring-4 focus:ring-indigo-500/15 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="h-12 w-full rounded-xl border border-slate-700/80 bg-slate-950/80 pl-11 pr-11 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition hover:border-slate-600 focus:border-blue-500 focus:bg-slate-950 focus:ring-4 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:opacity-60"
                     />
                     <button
                       type="button"
@@ -169,16 +179,16 @@ export const TransportLogin = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition disabled:pointer-events-none disabled:opacity-50"
+                  className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition disabled:pointer-events-none disabled:opacity-50"
                 >
                   {loading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Authenticating Fleet Console...
+                      Signing in to Fleet Console...
                     </>
                   ) : (
                     <>
-                      Sign In
+                      Sign In to Transport Portal
                       <ArrowRight className="h-4 w-4" />
                     </>
                   )}
@@ -198,7 +208,7 @@ export const TransportLogin = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="h-12 w-full rounded-xl border border-slate-700/80 bg-slate-950/80 pl-11 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition hover:border-slate-600 focus:border-indigo-500 focus:bg-slate-950 focus:ring-4 focus:ring-indigo-500/15 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="h-12 w-full rounded-xl border border-slate-700/80 bg-slate-950/80 pl-11 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition hover:border-slate-600 focus:border-blue-500 focus:bg-slate-950 focus:ring-4 focus:ring-blue-500/15 disabled:cursor-not-allowed disabled:opacity-60"
                     />
                   </div>
                 </div>
@@ -206,7 +216,7 @@ export const TransportLogin = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition disabled:pointer-events-none disabled:opacity-50"
+                  className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition disabled:pointer-events-none disabled:opacity-50"
                 >
                   {loading ? (
                     <>
@@ -251,9 +261,18 @@ export const TransportLogin = () => {
               </div>
             )}
           </div>
-          <p className="mt-4 text-center text-[11px] tracking-wide text-slate-500">
-            Authorized transport managers only · Secure fleet connection
-          </p>
+
+          <div className="mt-4 flex flex-col items-center gap-1.5 text-center">
+            <p className="text-[11px] tracking-wide text-slate-500">
+              Authorized transport managers only · Secure fleet connection
+            </p>
+            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+              <span>Looking for another panel?</span>
+              <Link to="/login" className="inline-flex items-center gap-1 font-semibold text-blue-400 hover:text-blue-300 hover:underline">
+                <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals →
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
     </div>

@@ -1,14 +1,17 @@
 import { createRequire } from 'module';
 import path from 'path';
 
-export async function connectDB(uri) {
-  const require = createRequire(path.join(process.cwd(), 'package.json'));
-  const mongoose = require('mongoose');
+export async function connectDB(uri, customMongoose) {
+  let mongooseInstance = customMongoose;
+  if (!mongooseInstance) {
+    const req = createRequire(path.join(process.cwd(), 'package.json'));
+    mongooseInstance = req('mongoose');
+  }
 
-  mongoose.set('strictQuery', true);
+  mongooseInstance.set('strictQuery', true);
 
   try {
-    await mongoose.connect(uri, {
+    await mongooseInstance.connect(uri, {
       maxPoolSize: 50,
       minPoolSize: 10,
       socketTimeoutMS: 45000,
@@ -17,11 +20,11 @@ export async function connectDB(uri) {
       heartbeatFrequencyMS: 10000,
     });
 
-    mongoose.connection.on('error', (err) => {
+    mongooseInstance.connection.on('error', (err) => {
       console.error('MongoDB connection error:', err.message);
     });
 
-    mongoose.connection.on('disconnected', () => {
+    mongooseInstance.connection.on('disconnected', () => {
       console.warn('MongoDB disconnected. Reconnecting...');
     });
   } catch (error) {
@@ -33,5 +36,5 @@ export async function connectDB(uri) {
     throw error;
   }
 
-  return mongoose.connection;
+  return mongooseInstance.connection;
 }

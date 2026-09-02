@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { 
   Lock, 
@@ -12,13 +12,20 @@ import {
   ShieldCheck,
   RotateCcw,
   Monitor,
-  Smartphone
+  Smartphone,
+  Globe,
+  ExternalLink
 } from 'lucide-react';
 import BrandLogo from '../ui/BrandLogo';
+import { platformAuthApi } from '../api/client';
 
 export const UniversalLogin = () => {
   const navigate = useNavigate();
   const { authenticateUser, resetPasswordByOTP } = useAppStore();
+
+  useEffect(() => {
+    document.title = 'Universal Login (All Panels) | School CRM';
+  }, []);
 
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -40,7 +47,7 @@ export const UniversalLogin = () => {
       id: 'superadmin@gmail.com', 
       pass: '123', 
       target: '/super-admin/dashboard', 
-      color: 'bg-slate-800/60 text-slate-200 border-slate-700/60 hover:bg-slate-800/90 hover:border-slate-500',
+      color: 'bg-blue-500/10 text-blue-200 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-400',
       isComplete: true 
     },
     { 
@@ -49,7 +56,7 @@ export const UniversalLogin = () => {
       id: 'admin', 
       pass: 'admin123', 
       target: '/school-admin/dashboard', 
-      color: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30 hover:bg-indigo-500/25 hover:border-indigo-400',
+      color: 'bg-blue-500/15 text-blue-200 border-blue-500/30 hover:bg-blue-500/25 hover:border-blue-400',
       isComplete: true 
     },
     { 
@@ -58,7 +65,7 @@ export const UniversalLogin = () => {
       id: 'accountant', 
       pass: 'accountant123', 
       target: '/accountant/dashboard', 
-      color: 'bg-teal-500/15 text-teal-300 border-teal-500/30 hover:bg-teal-500/25 hover:border-teal-400',
+      color: 'bg-blue-500/10 text-blue-200 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-400',
       isComplete: false 
     },
     { 
@@ -67,7 +74,7 @@ export const UniversalLogin = () => {
       id: 'librarian', 
       pass: 'lib123', 
       target: '/librarian/dashboard', 
-      color: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30 hover:bg-cyan-500/25 hover:border-cyan-400',
+      color: 'bg-blue-500/10 text-blue-200 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-400',
       isComplete: true 
     },
     { 
@@ -76,7 +83,7 @@ export const UniversalLogin = () => {
       id: 'hr', 
       pass: 'hr123', 
       target: '/hr/dashboard', 
-      color: 'bg-rose-500/15 text-rose-300 border-rose-500/30 hover:bg-rose-500/25 hover:border-rose-400',
+      color: 'bg-blue-500/10 text-blue-200 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-400',
       isComplete: false 
     },
     { 
@@ -85,7 +92,7 @@ export const UniversalLogin = () => {
       id: 'principal', 
       pass: 'principal123', 
       target: '/principal/dashboard', 
-      color: 'bg-amber-500/15 text-amber-300 border-amber-500/30 hover:bg-amber-500/25 hover:border-amber-400',
+      color: 'bg-blue-500/10 text-blue-200 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-400',
       isComplete: false 
     }
   ];
@@ -97,7 +104,7 @@ export const UniversalLogin = () => {
       id: 'rajesh.sharma@gmail.com', 
       pass: 'password123', 
       target: '/parent/dashboard', 
-      color: 'bg-purple-500/15 text-purple-300 border-purple-500/30 hover:bg-purple-500/25 hover:border-purple-400',
+      color: 'bg-blue-500/10 text-blue-200 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-400',
       isComplete: false 
     },
     { 
@@ -106,7 +113,7 @@ export const UniversalLogin = () => {
       id: 'STU108902', 
       pass: 'password123', 
       target: '/student/dashboard', 
-      color: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25 hover:border-emerald-400',
+      color: 'bg-blue-500/10 text-blue-200 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-400',
       isComplete: false 
     },
     { 
@@ -115,7 +122,7 @@ export const UniversalLogin = () => {
       id: 'EMP101', 
       pass: 'password123', 
       target: '/teacher/dashboard', 
-      color: 'bg-blue-500/15 text-blue-300 border-blue-500/30 hover:bg-blue-500/25 hover:border-blue-400',
+      color: 'bg-blue-500/15 text-blue-200 border-blue-500/30 hover:bg-blue-500/25 hover:border-blue-400',
       isComplete: false 
     },
     { 
@@ -124,17 +131,40 @@ export const UniversalLogin = () => {
       id: 'transport', 
       pass: 'transport123', 
       target: '/transport/dashboard', 
-      color: 'bg-orange-500/15 text-orange-300 border-orange-500/30 hover:bg-orange-500/25 hover:border-orange-400',
+      color: 'bg-blue-500/10 text-blue-200 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-400',
       isComplete: false 
     }
   ];
 
   const DEMO_PRESETS = [...WEB_PANELS, ...APK_PANELS];
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e?.preventDefault();
     setError('');
     setIsLoading(true);
+
+    const cleanId = (identifier || '').trim().toLowerCase();
+
+    // Direct backend authentication for Super Admin
+    if (cleanId === 'superadmin@gmail.com') {
+      try {
+        const apiRes = await platformAuthApi.login(cleanId, password);
+        if (apiRes?.token) {
+          localStorage.setItem('super_admin_token', apiRes.token);
+          if (apiRes.refreshToken) {
+            localStorage.setItem('super_admin_refresh_token', apiRes.refreshToken);
+          }
+          localStorage.setItem('super_admin_user', JSON.stringify(apiRes.user));
+          setIsLoading(false);
+          navigate('/super-admin/dashboard');
+          return;
+        }
+      } catch (err) {
+        setIsLoading(false);
+        setError(err.response?.data?.message || err.message || 'Invalid credentials');
+        return;
+      }
+    }
 
     setTimeout(() => {
       const res = authenticateUser(identifier, password);
@@ -183,12 +213,31 @@ export const UniversalLogin = () => {
     }, 300);
   };
 
-  const handleQuickDemo = (preset) => {
+  const handleQuickDemo = async (preset) => {
     setIdentifier(preset.id);
     setPassword(preset.pass);
     setError('');
 
     setIsLoading(true);
+
+    if (preset.role === 'Super Admin' || preset.id === 'superadmin@gmail.com') {
+      try {
+        const apiRes = await platformAuthApi.login(preset.id, preset.pass);
+        if (apiRes?.token) {
+          localStorage.setItem('super_admin_token', apiRes.token);
+          if (apiRes.refreshToken) {
+            localStorage.setItem('super_admin_refresh_token', apiRes.refreshToken);
+          }
+          localStorage.setItem('super_admin_user', JSON.stringify(apiRes.user));
+          setIsLoading(false);
+          navigate(preset.target);
+          return;
+        }
+      } catch (err) {
+        console.warn('Super Admin direct login error, using fallback:', err);
+      }
+    }
+
     setTimeout(() => {
       const res = authenticateUser(preset.id, preset.pass);
       setIsLoading(false);
@@ -348,8 +397,12 @@ export const UniversalLogin = () => {
       <div className="lg:w-1/2 p-8 lg:p-14 flex items-center justify-center bg-slate-950">
         <div className="w-full max-w-md space-y-6">
           <div>
-            <h3 className="text-2xl font-black text-white tracking-tight">Portal Authentication</h3>
-            <p className="text-xs text-slate-400 mt-1">Enter your registered institution credentials to proceed</p>
+            <span className="mb-2.5 inline-flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-blue-500/20 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-blue-300 shadow-sm">
+              <Globe className="h-3.5 w-3.5 text-blue-400" />
+              UNIVERSAL LOGIN (ALL ROLES)
+            </span>
+            <h3 className="text-2xl font-black text-white tracking-tight">Universal Multi-Role Login</h3>
+            <p className="text-xs text-slate-400 mt-1">Single Sign-On for all 6 Web Panels & Mobile Portals</p>
           </div>
 
           {error && (
@@ -372,7 +425,7 @@ export const UniversalLogin = () => {
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="e.g. STU108902, EMP101, or admin"
                   required
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
                 />
               </div>
             </div>
@@ -383,7 +436,7 @@ export const UniversalLogin = () => {
                 <button
                   type="button"
                   onClick={() => setForgotModalOpen(true)}
-                  className="text-xs font-semibold text-indigo-400 hover:underline"
+                  className="text-xs font-semibold text-blue-400 hover:underline"
                 >
                   Forgot Password?
                 </button>
@@ -396,7 +449,7 @@ export const UniversalLogin = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   required
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
                 />
               </div>
             </div>
@@ -404,7 +457,7 @@ export const UniversalLogin = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
+              className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
             >
               {isLoading ? (
                 <span>Authenticating Credentials...</span>
@@ -417,14 +470,54 @@ export const UniversalLogin = () => {
             </button>
           </form>
 
-          <div className="p-4 bg-slate-900/60 border border-slate-800/80 rounded-2xl space-y-2 text-xs text-slate-400">
-            <div className="flex items-center gap-2 text-indigo-400 font-bold">
-              <ShieldCheck className="w-4 h-4" />
-              <span>Role-Based Access Enforcement (RBAC)</span>
+          {/* Dedicated Panel Direct Links */}
+          <div className="p-4 bg-slate-900/70 border border-slate-800 rounded-2xl space-y-3 text-xs">
+            <div className="flex items-center justify-between text-slate-300">
+              <span className="font-bold uppercase tracking-wider text-[11px] text-slate-400">Direct Portal Login Pages:</span>
+              <span className="text-[10px] text-blue-400 font-semibold">Zero Confusion</span>
             </div>
-            <p className="text-[11px] leading-relaxed">
-              New accounts created by School Admin in User Management or HR Employee Wizard can be logged into directly using the assigned email/ID and password.
-            </p>
+            
+            <div className="space-y-1.5">
+              <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">6+ Web Panels:</div>
+              <div className="flex flex-wrap gap-1.5">
+                <Link to="/super-admin/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                  Super Admin
+                </Link>
+                <Link to="/school-admin/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                  School Admin
+                </Link>
+                <Link to="/principal/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                  Principal
+                </Link>
+                <Link to="/accountant/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                  Accountant
+                </Link>
+                <Link to="/hr/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                  HR & Staff
+                </Link>
+                <Link to="/librarian/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                  Librarian
+                </Link>
+                <Link to="/transport/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                  Transport
+                </Link>
+              </div>
+            </div>
+
+            <div className="space-y-1.5 pt-1 border-t border-slate-800/60">
+              <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Mobile App Portals:</div>
+              <div className="flex flex-wrap gap-1.5">
+                <Link to="/teacher/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                  Teacher Portal
+                </Link>
+                <Link to="/student/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                  Student Portal
+                </Link>
+                <Link to="/parent/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                  Parent Portal
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>

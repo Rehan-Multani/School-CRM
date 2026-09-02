@@ -62,7 +62,7 @@ export const SuperAdminAuthProvider = ({ children }) => {
 
     const user = persistUser(result.user);
     setAdmin(user);
-    return user;
+    return { success: true, ...user, user };
   };
 
   const logout = () => {

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTeacherAuth } from '../context/TeacherAuthContext';
-import { BookOpenCheck, ArrowRight, ShieldAlert, Eye, EyeOff } from 'lucide-react';
+import { BookOpenCheck, ArrowRight, ShieldAlert, Eye, EyeOff, LayoutGrid } from 'lucide-react';
 
 export const TeacherLogin = () => {
   const [employeeId, setEmployeeId] = useState('EMP-2019-045');
@@ -11,6 +11,10 @@ export const TeacherLogin = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useTeacherAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    document.title = 'Teacher Portal Login | School CRM';
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,7 +53,7 @@ export const TeacherLogin = () => {
           </div>
           <div>
             <h1 className="text-white font-bold text-xl tracking-tight leading-none">School Management</h1>
-            <span className="text-white/70 text-[11px] font-medium tracking-wider uppercase">School Management</span>
+            <span className="text-white/70 text-[11px] font-medium tracking-wider uppercase">Teacher Portal</span>
           </div>
         </div>
 
@@ -96,9 +100,14 @@ export const TeacherLogin = () => {
         </div>
 
         <div className="w-full max-w-md">
-          <div className="mb-8">
-            <h2 className="text-2xl font-black text-foreground mb-1.5">Welcome back 👋</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Sign in with your employee credentials to continue.</p>
+          <div className="mb-6">
+            {/* Prominent Role Identifier Badge */}
+            <span className="mb-2.5 inline-flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-blue-500/10 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 shadow-sm">
+              <BookOpenCheck className="h-3.5 w-3.5" />
+              TEACHER PORTAL
+            </span>
+            <h2 className="text-2xl font-black text-foreground mb-1">Teacher Portal Login</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Sign in with your employee ID to manage classroom & academics</p>
           </div>
 
           {error && (
@@ -111,7 +120,7 @@ export const TeacherLogin = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
-                Employee ID
+                Teacher Employee ID
               </label>
               <input
                 type="text"
@@ -161,7 +170,7 @@ export const TeacherLogin = () => {
                 <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>Sign In</span>
+                  <span>Sign In to Teacher Portal</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -183,11 +192,20 @@ export const TeacherLogin = () => {
             🚀 Quick Demo Login
           </button>
 
-          <p className="text-center text-[11px] text-slate-400 mt-6">
-            This portal is for authorized teachers only.<br />Contact admin for access issues.
-          </p>
+          <div className="mt-6 flex flex-col items-center gap-1.5 text-center">
+            <p className="text-[11px] text-slate-400">
+              This portal is for authorized teachers only.<br />Contact admin for access issues.
+            </p>
+            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+              <span>Looking for another panel?</span>
+              <Link to="/login" className="inline-flex items-center gap-1 font-semibold text-primary hover:underline">
+                <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals →
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 };
+

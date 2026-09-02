@@ -1,10 +1,11 @@
+import mongoose from 'mongoose';
 import app from './app.js';
 import { connectDB } from '../../shared/connectDB.js';
 import { env } from './config/env.js';
 import { seedSuperAdmin } from './seedSuperAdmin.js';
 
 async function start() {
-  await connectDB(env.mongoUri);
+  await connectDB(env.mongoUri, mongoose);
   await seedSuperAdmin();
 
   app.listen(env.port, () => {
