@@ -981,4 +981,32 @@ export const accountantApi = {
     accountantClient.patch('/platform/school-portal/accountant/settings', payload).then((r) => r.data),
 };
 
+// ===========================================================================
+// EVENTS — school-admin (write + read)
+// ===========================================================================
+export const eventsApi = {
+  list: (params) =>
+    schoolAdminClient.get('/platform/school-portal/events', { params }).then((r) => r.data),
+  stats: () =>
+    schoolAdminClient.get('/platform/school-portal/events/stats').then((r) => r.data),
+  get: (id) =>
+    schoolAdminClient.get(`/platform/school-portal/events/${id}`).then((r) => r.data),
+  create: (payload) =>
+    schoolAdminClient.post('/platform/school-portal/events', payload).then((r) => r.data),
+  update: (id, payload) =>
+    schoolAdminClient.patch(`/platform/school-portal/events/${id}`, payload).then((r) => r.data),
+  setCancelled: (id, cancelled) =>
+    schoolAdminClient.patch(`/platform/school-portal/events/${id}`, { cancelled }).then((r) => r.data),
+  remove: (id) =>
+    schoolAdminClient.delete(`/platform/school-portal/events/${id}`).then((r) => r.data),
+};
+
+// EVENTS — principal (read-only)
+export const principalEventApi = {
+  list: (params) =>
+    principalClient.get('/platform/school-portal/events', { params }).then((r) => r.data),
+  stats: () =>
+    principalClient.get('/platform/school-portal/events/stats').then((r) => r.data),
+};
+
 

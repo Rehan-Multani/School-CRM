@@ -18,6 +18,7 @@ import { TransportRoute } from '../models/TransportRoute.js';
 import { StudentTransportAssignment } from '../models/StudentTransportAssignment.js';
 import { Exam } from '../models/Exam.js';
 import { ExamResult } from '../models/ExamResult.js';
+import { Event } from '../models/Event.js';
 
 export const schoolDashboardService = {
   async getDashboardSummary(schoolId) {
@@ -190,6 +191,29 @@ export const schoolDashboardService = {
       });
     });
 
+    // Upcoming events (next 5, not cancelled)
+    let upcomingEvents = [];
+    try {
+      const evRows = await Event.find({
+        schoolId: targetObjId,
+        manualStatus: '',
+        startAt: { $gte: startOfToday },
+      })
+        .sort({ startAt: 1 })
+        .limit(5)
+        .lean();
+      upcomingEvents = evRows.map((e) => ({
+        id: String(e._id),
+        title: e.title,
+        category: e.category,
+        startAt: e.startAt,
+        endAt: e.endAt,
+        venue: e.venue || '',
+      }));
+    } catch {
+      upcomingEvents = [];
+    }
+
     return {
       kpi: {
         totalStudents,
@@ -218,6 +242,7 @@ export const schoolDashboardService = {
         examPerformance: [],
       },
       recentActivities: recentActivities.slice(0, 6),
+      upcomingEvents,
     };
   },
 };

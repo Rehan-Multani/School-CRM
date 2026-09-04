@@ -301,6 +301,14 @@ import {
 } from '../controllers/transport.controller.js';
 import { getSchoolAdminDashboardSummary } from '../controllers/schoolDashboard.controller.js';
 import { getSchoolReportsSummary, getCategoryReportData } from '../controllers/schoolReports.controller.js';
+import {
+  listEvents,
+  getEventStats,
+  getEvent,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+} from '../controllers/event.controller.js';
 import { requireSuperAdmin } from '../middleware/requireSuperAdmin.js';
 import { requireSchoolAdmin } from '../middleware/requireSchoolAdmin.js';
 import { requireLibrarian } from '../middleware/requireLibrarian.js';
@@ -830,6 +838,17 @@ router.delete('/school-portal/hr/performance/:id', requireHR, deletePerformanceR
 
 // Reports
 router.get('/school-portal/hr/reports/:category', requireHR, getHRReportData);
+
+// ==========================================================================
+// EVENTS — school-admin writes; principal + school-admin read (requirePrincipal
+// already lets SCHOOLADMIN through). Static routes before :id.
+// ==========================================================================
+router.get('/school-portal/events/stats', requirePrincipal, getEventStats);
+router.get('/school-portal/events', requirePrincipal, listEvents);
+router.get('/school-portal/events/:id', requirePrincipal, getEvent);
+router.post('/school-portal/events', requireSchoolAdmin, createEvent);
+router.patch('/school-portal/events/:id', requireSchoolAdmin, updateEvent);
+router.delete('/school-portal/events/:id', requireSchoolAdmin, deleteEvent);
 
 router.get('/subscriptions', requireSuperAdmin, listPlans);
 router.post('/subscriptions', requireSuperAdmin, createPlan);
