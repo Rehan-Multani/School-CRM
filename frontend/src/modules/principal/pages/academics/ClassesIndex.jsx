@@ -67,49 +67,46 @@ export const ClassesIndex = () => {
   const importRef = useRef();
   const [form, setForm] = useState({ name: '', description: '', status: 'ACTIVE', academicYearId: '' });
 
-  // Load academic years once
-  useEffect(() => {
-    principalAcademicApi
-      .years({ limit: 100 })
-      .then((res) => {
-        const yearList = res.data || [];
-        setYears(yearList);
-      })
-      .catch(() => {});
+  // Load reference academic years and their class mappings once on mount
+  const loadReferenceYearsAndMappings = useCallback(async () => {
+    try {
+      const yRes = await principalAcademicApi.years({ limit: 100 });
+      const activeYears = yRes.data || [];
+      setYears(activeYears);
+
+      if (activeYears.length > 0) {
+        const mappingsRes = await Promise.all(
+          activeYears.map(async (y) => {
+            try {
+              const res = await principalAcademicApi.yearClasses(y.id);
+              return { yearName: y.name, classIds: (res.data || []).map((item) => item.classId) };
+            } catch {
+              return { yearName: y.name, classIds: [] };
+            }
+          })
+        );
+
+        const classYearsLookup = {};
+        mappingsRes.forEach((m) => {
+          m.classIds.forEach((cid) => {
+            if (!classYearsLookup[cid]) classYearsLookup[cid] = [];
+            classYearsLookup[cid].push(m.yearName);
+          });
+        });
+        setClassMappings(classYearsLookup);
+      }
+    } catch {
+      // ignore
+    }
   }, []);
+
+  useEffect(() => {
+    loadReferenceYearsAndMappings();
+  }, [loadReferenceYearsAndMappings]);
 
   const loadClasses = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch years first if not loaded
-      let activeYears = years;
-      if (activeYears.length === 0) {
-        const yRes = await principalAcademicApi.years({ limit: 100 });
-        activeYears = yRes.data || [];
-        setYears(activeYears);
-      }
-
-      // Fetch mapping details for all academic years
-      const mappingsRes = await Promise.all(
-        activeYears.map(async (y) => {
-          try {
-            const res = await principalAcademicApi.yearClasses(y.id);
-            return { yearName: y.name, classIds: (res.data || []).map(item => item.classId) };
-          } catch {
-            return { yearName: y.name, classIds: [] };
-          }
-        })
-      );
-
-      const classYearsLookup = {};
-      mappingsRes.forEach(m => {
-        m.classIds.forEach(cid => {
-          if (!classYearsLookup[cid]) classYearsLookup[cid] = [];
-          classYearsLookup[cid].push(m.yearName);
-        });
-      });
-      setClassMappings(classYearsLookup);
-
       if (selectedYear) {
         const result = await principalAcademicApi.yearClasses(selectedYear);
         const mapped = (result.data || []).map((item) => ({
@@ -127,7 +124,7 @@ export const ClassesIndex = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedYear, years, showToast]);
+  }, [selectedYear, showToast]);
 
   useEffect(() => {
     loadClasses();
@@ -176,6 +173,7 @@ export const ClassesIndex = () => {
       setEditingClass(null);
       setForm({ name: '', description: '', status: 'ACTIVE', academicYearId: '' });
       loadClasses();
+      loadReferenceYearsAndMappings();
     } catch (error) {
       showToast(apiMessage(error, editingClass ? 'Unable to update class' : 'Unable to create class'), 'error');
     } finally {
@@ -204,6 +202,7 @@ export const ClassesIndex = () => {
       await principalAcademicApi.deleteClass(deleteTarget.id);
       showToast('Class deleted', 'success');
       loadClasses();
+      loadReferenceYearsAndMappings();
     } catch (error) {
       showToast(apiMessage(error, 'Unable to delete class'), 'error');
     } finally {
@@ -234,7 +233,10 @@ export const ClassesIndex = () => {
       }
       setImporting(false);
       showToast(`${success} imported${failed ? `, ${failed} failed` : ''}`, success > 0 ? 'success' : 'error');
-      if (success > 0) loadClasses();
+      if (success > 0) {
+        loadClasses();
+        loadReferenceYearsAndMappings();
+      }
     };
     reader.readAsText(file);
     e.target.value = '';

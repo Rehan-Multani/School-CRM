@@ -482,8 +482,10 @@ export const hrApi = {
   // Employees
   employees: (params) => hrClient.get('/platform/school-portal/hr/employees', { params }).then((r) => r.data),
   getEmployee: (id) => hrClient.get(`/platform/school-portal/hr/employees/${id}`).then((r) => r.data),
-  createEmployee: (payload) => hrClient.post('/platform/school-portal/hr/employees', payload).then((r) => r.data),
-  updateEmployee: (id, payload) => hrClient.patch(`/platform/school-portal/hr/employees/${id}`, payload).then((r) => r.data),
+  createEmployee: (payload) =>
+    hrClient.post('/platform/school-portal/hr/employees', payload, studentRequestConfig(payload)).then((r) => r.data),
+  updateEmployee: (id, payload) =>
+    hrClient.patch(`/platform/school-portal/hr/employees/${id}`, payload, studentRequestConfig(payload)).then((r) => r.data),
   updateEmployeeStatus: (id, status) => hrClient.patch(`/platform/school-portal/hr/employees/${id}/status`, { status }).then((r) => r.data),
   approveEmployee: (id) => hrClient.patch(`/platform/school-portal/hr/employees/${id}/approve`).then((r) => r.data),
   rejectEmployee: (id, reason) => hrClient.patch(`/platform/school-portal/hr/employees/${id}/reject`, { reason }).then((r) => r.data),
@@ -522,6 +524,7 @@ export const hrApi = {
   payrollEmployees: () => hrClient.get('/platform/school-portal/hr/payroll/employees').then((r) => r.data),
   createPayroll: (payload) => hrClient.post('/platform/school-portal/hr/payroll', payload).then((r) => r.data),
   getPayroll: (id) => hrClient.get(`/platform/school-portal/hr/payroll/${id}`).then((r) => r.data),
+  getSalarySlip: (id) => hrClient.get(`/platform/school-portal/hr/payroll/${id}/slip`).then((r) => r.data),
   updatePayrollStatus: (id, status, payload = {}) => hrClient.patch(`/platform/school-portal/hr/payroll/${id}/status`, { status, ...payload }).then((r) => r.data),
   releaseAllPayrolls: (month) => hrClient.post('/platform/school-portal/hr/payroll/release', { month }).then((r) => r.data),
   deletePayroll: (id) => hrClient.delete(`/platform/school-portal/hr/payroll/${id}`).then((r) => r.data),
@@ -546,6 +549,16 @@ export const hrApi = {
   deleteDocument: (id) => hrClient.delete(`/platform/school-portal/hr/documents/${id}`).then((r) => r.data),
   announcements: () => hrClient.get('/platform/school-portal/hr/announcements').then((r) => r.data),
   createAnnouncement: (payload) => hrClient.post('/platform/school-portal/hr/announcements', payload).then((r) => r.data),
+  deleteAnnouncement: (id) => hrClient.delete(`/platform/school-portal/hr/announcements/${id}`).then((r) => r.data),
+
+  // Notifications
+  notifications: () => hrClient.get('/platform/school-portal/hr/notifications').then((r) => r.data),
+
+  // Profile & Credentials
+  profile: () => hrClient.get('/platform/school-portal/hr/profile').then((r) => r.data),
+  updateProfile: (payload) =>
+    hrClient.patch('/platform/school-portal/hr/profile', payload, studentRequestConfig(payload)).then((r) => r.data),
+  changePassword: (payload) => hrClient.patch('/platform/school-portal/hr/password', payload).then((r) => r.data),
 
   // Reports
   report: (category, params) => hrClient.get(`/platform/school-portal/hr/reports/${category}`, { params }).then((r) => r.data),

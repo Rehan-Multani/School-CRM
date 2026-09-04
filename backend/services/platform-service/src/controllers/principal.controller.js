@@ -5,6 +5,7 @@ import { signAccessToken } from '../../../shared/generateToken.js';
 import { env } from '../config/env.js';
 import { AppError } from '../../../shared/AppError.js';
 import { escapeRegex } from '../../../shared/sanitize.js';
+import { schoolThemeSnapshot } from '../services/school.service.js';
 import { collectSchoolUserUploadFiles } from '../middleware/uploadSchoolUser.js';
 import { deleteUploadedFile } from '../utils/upload.utils.js';
 
@@ -82,6 +83,7 @@ export async function principalLogin(req, res, next) {
         ...publicUser,
         schoolName: school?.name || '',
         academicSession: school?.academicSession || '',
+        ...schoolThemeSnapshot(school),
       },
     });
   } catch (error) {
@@ -113,13 +115,15 @@ export async function getPrincipalProfile(req, res, next) {
           email: school.admin?.email || '',
           role: 'Principal',
           schoolName: school.name || '',
+          ...schoolThemeSnapshot(school),
         },
       });
     }
 
     const user = await SchoolUser.findOne({ _id: req.user?.sub, role: 'PRINCIPAL' });
     if (!user) throw new AppError('Principal profile not found', 404);
-    res.json({ user: user.toPublicJSON() });
+    const profileSchool = user.schoolId ? await School.findById(user.schoolId) : null;
+    res.json({ user: { ...user.toPublicJSON(), ...schoolThemeSnapshot(profileSchool) } });
   } catch (error) {
     next(error);
   }

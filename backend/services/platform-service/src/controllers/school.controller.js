@@ -117,6 +117,15 @@ export async function schoolBranding(req, res, next) {
   }
 }
 
+export async function schoolThemePublic(req, res, next) {
+  try {
+    const data = await schoolService.getPublicTheme(req.params.schoolId);
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function schoolAdminLogin(req, res, next) {
   try {
     const result = await schoolService.loginSchoolAdmin(req.body || {});

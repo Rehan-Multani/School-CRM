@@ -1147,6 +1147,18 @@ class HRService {
     });
     return notification.toPublicJSON();
   }
+
+  async deleteAnnouncement(schoolId, id) {
+    const sId = schoolId.toString();
+    const deleted = await PlatformNotification.findOneAndDelete({
+      _id: id,
+      schoolId: sId,
+    });
+    if (!deleted) {
+      throw new AppError('Announcement not found or access denied', 404);
+    }
+    return { success: true, message: 'Announcement deleted successfully' };
+  }
 }
 
 export const hrService = new HRService();

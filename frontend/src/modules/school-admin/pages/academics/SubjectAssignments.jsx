@@ -183,15 +183,15 @@ export const SubjectAssignments = () => {
       setAssignments(assignRes.data || []);
 
       const activeYear = yearsData.find((y) => y.isCurrent || y.status === 'ACTIVE');
-      if (activeYear && !assignForm.academicYearId) {
-        setAssignForm((prev) => ({ ...prev, academicYearId: activeYear.id }));
+      if (activeYear) {
+        setAssignForm((prev) => (prev.academicYearId ? prev : { ...prev, academicYearId: activeYear.id }));
       }
     } catch (error) {
       showToast(apiMessage(error, 'Failed to load subject assignments'), 'error');
     } finally {
       setLoading(false);
     }
-  }, [showToast, assignForm.academicYearId]);
+  }, [showToast]);
 
   useEffect(() => {
     loadData();

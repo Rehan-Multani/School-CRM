@@ -6,6 +6,7 @@ import { signAccessToken } from '../../../shared/generateToken.js';
 import { env } from '../config/env.js';
 import { AppError } from '../../../shared/AppError.js';
 import { escapeRegex } from '../../../shared/sanitize.js';
+import { schoolThemeSnapshot } from '../services/school.service.js';
 
 function schoolId(req) {
   const role = req.user?.role?.toUpperCase();
@@ -101,6 +102,7 @@ export async function librarianLogin(req, res, next) {
         ...publicUser,
         schoolName: school?.name || '',
         academicSession: school?.academicSession || '',
+        ...schoolThemeSnapshot(school),
       },
     });
   } catch (error) {

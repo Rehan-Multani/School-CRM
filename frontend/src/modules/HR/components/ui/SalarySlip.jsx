@@ -1,5 +1,6 @@
 import React from 'react';
-import { Printer, Download, Mail, Building, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Printer, Download, Building, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { useHRAuth } from '../../context/HRAuthContext';
 
 function numberToWords(num) {
   if (!num || isNaN(num)) return 'Zero Rupees Only';
@@ -48,6 +49,7 @@ function numberToWords(num) {
 }
 
 export const SalarySlip = ({ payroll, onPrint }) => {
+  const { user } = useHRAuth();
   if (!payroll) return null;
 
   const handlePrint = () => {
@@ -56,6 +58,8 @@ export const SalarySlip = ({ payroll, onPrint }) => {
   };
 
   const bank = payroll.bankDetails || {};
+  const schoolName = payroll.schoolDetails?.name || user?.schoolName || 'Greenfield Public School';
+  const schoolAddress = payroll.schoolDetails?.address || 'Affiliated to CBSE | Sector 14, Education Enclave';
   const gross = Number(payroll.grossEarnings || (payroll.basicSalary || 0) + (payroll.allowances || 0) + (payroll.incentive || 0) + (payroll.bonus || 0) + (payroll.overtime || 0));
   const deductions = Number(payroll.totalDeductions || (payroll.leaveDeduction || 0) + (payroll.advanceLoanDeduction || 0) + (payroll.otherDeduction || 0));
   const net = Number(payroll.netSalary || Math.max(0, gross - deductions));
@@ -67,7 +71,7 @@ export const SalarySlip = ({ payroll, onPrint }) => {
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500 font-medium">Voucher Reference:</span>
           <span className="font-mono font-bold text-slate-900 dark:text-white text-xs">
-            {payroll.transactionRef || `PAY-${payroll.id?.slice(-6).toUpperCase()}`}
+            {payroll.transactionRef || `PAY-${(payroll.id || '').slice(-6).toUpperCase()}`}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -77,7 +81,7 @@ export const SalarySlip = ({ payroll, onPrint }) => {
             className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-xs cursor-pointer text-xs transition-colors"
           >
             <Printer className="w-4 h-4" />
-            <span>Print Payslip / Save PDF</span>
+            <span>Print Payslip / Download PDF</span>
           </button>
         </div>
       </div>
@@ -91,13 +95,13 @@ export const SalarySlip = ({ payroll, onPrint }) => {
         <div className="flex justify-between items-start pb-5 border-b-2 border-slate-900">
           <div className="space-y-1">
             <h1 className="text-base font-black text-slate-900 uppercase tracking-wide">
-              Greenfield Public School
+              {schoolName}
             </h1>
             <p className="text-[10px] text-slate-500 font-medium">
-              Affiliated to CBSE | Sector 14, Education Enclave, New Delhi - 110001
+              {schoolAddress}
             </p>
             <p className="text-[10px] text-slate-500">
-              Tel: +91 11 2345 6789 | Email: accounts@greenfield.edu
+              Authorized Institutional Human Resources & Accounts Statement
             </p>
           </div>
           <div className="text-right space-y-1 shrink-0">

@@ -7,6 +7,7 @@ import { School } from '../models/School.js';
 import { signAccessToken } from '../../../shared/generateToken.js';
 import { env } from '../config/env.js';
 import { AppError } from '../../../shared/AppError.js';
+import { schoolThemeSnapshot } from '../services/school.service.js';
 
 function schoolId(req) {
   const role = req.user?.role?.toUpperCase();
@@ -149,6 +150,7 @@ export async function hrLogin(req, res, next) {
         ...publicUser,
         schoolName: school?.name || 'Greenfield Public School',
         academicSession: school?.academicSession || '2024-2025',
+        ...schoolThemeSnapshot(school),
       },
     });
   } catch (error) {
@@ -828,6 +830,194 @@ export async function createAnnouncement(req, res, next) {
       success: true,
       data,
       message: 'Announcement published successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteAnnouncement(req, res, next) {
+  try {
+    const result = await hrService.deleteAnnouncement(schoolId(req), req.params.id);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+// ----------------------------------------------------
+// HR Profile & Password Management
+// ----------------------------------------------------
+export async function getHRProfile(req, res, next) {
+  try {
+    const role = req.user?.role?.toUpperCase();
+    if (role === 'SCHOOLADMIN') {
+      const school = await School.findById(req.user?.sub);
+      return res.json({
+        success: true,
+        user: {
+          id: req.user?.sub,
+          name: school?.name || 'School Admin',
+          email: school?.email || '',
+          role: 'HR / School Admin',
+          department: 'Human Resources & Administration',
+        },
+      });
+    }
+
+    const user = await SchoolUser.findOne({
+      _id: req.user?.sub,
+      role: 'HR',
+      schoolId: schoolId(req),
+    });
+
+    if (!user) {
+      throw new AppError('HR profile not found', 404);
+    }
+
+    res.json({
+      success: true,
+      user: user.toPublicJSON(),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateHRProfile(req, res, next) {
+  const uploadFiles = req.files ? collectSchoolUserUploadFiles(req) : {};
+  try {
+    const user = await SchoolUser.findOne({
+      _id: req.user?.sub,
+      role: 'HR',
+      schoolId: schoolId(req),
+    });
+
+    if (!user) {
+      throw new AppError('HR profile not found', 404);
+    }
+
+    const allowed = ['firstName', 'lastName', 'phone'];
+    for (const key of allowed) {
+      if (req.body?.[key] !== undefined) {
+        user[key] = req.body[key];
+      }
+    }
+    if (req.body?.firstName !== undefined || req.body?.lastName !== undefined) {
+      user.name = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.name;
+    }
+
+    if (uploadFiles.photo) {
+      user.photo = uploadFiles.photo;
+    } else if (req.body?.removePhoto === true || req.body?.removePhoto === 'true') {
+      user.photo = '';
+    }
+
+    await user.save();
+    res.json({
+      success: true,
+      user: user.toPublicJSON(),
+      message: 'Profile updated successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function changeHRPassword(req, res, next) {
+  try {
+    const role = req.user?.role?.toUpperCase();
+    if (role === 'SCHOOLADMIN') {
+      throw new AppError('School Admin password should be changed in School Admin settings', 400);
+    }
+
+    const { currentPassword, newPassword } = req.body || {};
+    if (!currentPassword || !newPassword) {
+      throw new AppError('Current password and new password are required', 400);
+    }
+    if (String(newPassword).length < 6) {
+      throw new AppError('New password must be at least 6 characters', 400);
+    }
+
+    const user = await SchoolUser.findOne({
+      _id: req.user?.sub,
+      role: 'HR',
+      schoolId: schoolId(req),
+    }).select('+passwordHash');
+
+    if (!user) {
+      throw new AppError('HR profile not found', 404);
+    }
+
+    const valid = user.passwordHash ? await bcrypt.compare(currentPassword, user.passwordHash) : false;
+    if (!valid) {
+      throw new AppError('Current password is incorrect', 401);
+    }
+
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.json({ success: true, message: 'Password updated successfully' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// ----------------------------------------------------
+// HR Notifications (PlatformNotification Backend Integration)
+// ----------------------------------------------------
+export async function getHRNotifications(req, res, next) {
+  try {
+    const sId = schoolId(req);
+    const userId = req.user?.sub || '';
+    const school = await School.findById(sId);
+
+    const notifications = await PlatformNotification.find({
+      $and: [
+        { $or: [{ schoolId: sId ? sId.toString() : '' }, { schoolId: '' }, { schoolId: null }, ...(school?.schoolId ? [{ schoolId: school.schoolId }] : [])] },
+        { audiences: { $in: ['hr', 'staff', 'admin', 'school-admin'] } },
+        {
+          $or: [
+            { recipientRefIds: { $exists: false } },
+            { recipientRefIds: { $size: 0 } },
+            ...(userId ? [{ recipientRefIds: userId }] : []),
+          ],
+        },
+      ],
+    }).sort({ createdAt: -1 }).limit(50);
+
+    res.json({
+      success: true,
+      data: notifications.map((n) => n.toPublicJSON()),
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// ----------------------------------------------------
+// Official Verified Salary Slip Data
+// ----------------------------------------------------
+export async function getHRSalarySlip(req, res, next) {
+  try {
+    const sId = schoolId(req);
+    const payroll = await payrollService.getPayroll(sId, req.params.id);
+    const school = await School.findById(sId);
+
+    res.json({
+      success: true,
+      data: {
+        ...payroll,
+        schoolDetails: {
+          name: school?.name || 'School CRM Portal',
+          address: school?.address || 'Official Institutional Campus',
+          phone: school?.phone || school?.contactNumber || '',
+          email: school?.email || '',
+          affiliation: school?.board || school?.affiliation || 'Affiliated Educational Institution',
+          logo: school?.branding?.logo || school?.logo || '',
+        },
+        generatedAt: new Date().toISOString(),
+      },
     });
   } catch (error) {
     next(error);

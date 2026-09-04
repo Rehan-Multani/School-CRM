@@ -1,37 +1,82 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import { hrApi } from '../../../shared/api/client';
 
 const HRNotificationContext = createContext();
 
 export const HRNotificationProvider = ({ children }) => {
-  const [notifications, setNotifications] = useState([
-    { id: '1', title: 'New Leave Request', message: 'Mrs. Priya Nair applied for a 2-day Sick Leave starting July 20th.', type: 'Leave Update', read: false, time: '10 mins ago' },
-    { id: '2', title: 'Document Expiry Warning', message: 'Employment contract for GFS-EMP-001 is set to expire soon.', type: 'Document Expiry', read: false, time: '1 hour ago' },
-    { id: '3', title: 'Payroll Draft Generated', message: 'Monthly payroll spreadsheet generated for July 2026. Awaiting approval review.', type: 'Payroll Notification', read: true, time: '1 day ago' },
-    { id: '4', title: 'New Joining Registered', message: 'Vikram Kumar joined as Sports Instructor on August 1st contract basis.', type: 'Joining Alert', read: true, time: '2 days ago' }
-  ]);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const getReadSet = () => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem('hr_read_notifications') || '[]'));
+    } catch {
+      return new Set();
+    }
+  };
+
+  const saveReadSet = (set) => {
+    localStorage.setItem('hr_read_notifications', JSON.stringify([...set]));
+  };
+
+  const fetchNotifications = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await hrApi.notifications();
+      if (res?.success && Array.isArray(res.data)) {
+        const readSet = getReadSet();
+        const mapped = res.data.map((n) => ({
+          id: n.id || n._id,
+          title: n.title,
+          message: n.body,
+          type: (n.audiences && n.audiences[0]) || 'General Alert',
+          read: readSet.has(n.id || n._id),
+          createdAt: n.createdAt,
+          time: n.createdAt ? new Date(n.createdAt).toLocaleDateString() : 'Recent',
+        }));
+        setNotifications(mapped);
+      }
+    } catch {
+      // Graceful fallback if backend unavailable
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   const markAllAsRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
+    const allIds = notifications.map((n) => n.id);
+    const readSet = getReadSet();
+    allIds.forEach((id) => readSet.add(id));
+    saveReadSet(readSet);
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
   const markAsRead = (id) => {
-    setNotifications(notifications.map(n => n.id === id ? { ...n, read: true } : n));
+    const readSet = getReadSet();
+    readSet.add(id);
+    saveReadSet(readSet);
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
   };
 
   const addNotification = (n) => {
-    setNotifications(prev => [
+    setNotifications((prev) => [
       { id: Date.now().toString(), read: false, time: 'Just now', ...n },
-      ...prev
+      ...prev,
     ]);
   };
 
   const mergeInbox = (items) => {
     setNotifications((prev) => {
       const ids = new Set(prev.map((item) => item.id));
+      const readSet = getReadSet();
       const incoming = (items || [])
         .filter((item) => item?.id && !ids.has(item.id))
         .map((item) => ({
-          read: false,
+          read: readSet.has(item.id),
           time: item.time || 'Just now',
           ...item,
         }));
@@ -40,13 +85,28 @@ export const HRNotificationProvider = ({ children }) => {
   };
 
   const clearAll = () => {
+    const readSet = getReadSet();
+    notifications.forEach((n) => readSet.add(n.id));
+    saveReadSet(readSet);
     setNotifications([]);
   };
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
-    <HRNotificationContext.Provider value={{ notifications, unreadCount, markAllAsRead, markAsRead, addNotification, mergeInbox, clearAll }}>
+    <HRNotificationContext.Provider
+      value={{
+        notifications,
+        unreadCount,
+        loading,
+        fetchNotifications,
+        markAllAsRead,
+        markAsRead,
+        addNotification,
+        mergeInbox,
+        clearAll,
+      }}
+    >
       {children}
     </HRNotificationContext.Provider>
   );

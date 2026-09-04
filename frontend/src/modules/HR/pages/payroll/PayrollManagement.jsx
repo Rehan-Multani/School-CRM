@@ -181,6 +181,19 @@ export const PayrollManagement = () => {
     }
   };
 
+  const handleOpenSlip = async (p) => {
+    try {
+      const res = await hrApi.getSalarySlip(p.id);
+      if (res?.success && res.data) {
+        setSelectedSlip(res.data);
+      } else {
+        setSelectedSlip(p);
+      }
+    } catch {
+      setSelectedSlip(p);
+    }
+  };
+
   const handleDisburseAll = async () => {
     try {
       const pendingIds = payrolls.filter((p) => p.paymentStatus !== 'PAID').map((p) => p.id);
@@ -190,13 +203,9 @@ export const PayrollManagement = () => {
         return;
       }
 
-      await hrApi.disburseAllPayroll({
-        month: selectedMonth,
-        payrollIds: pendingIds,
-        paymentMethod: 'BANK_TRANSFER',
-      });
+      await hrApi.releaseAllPayrolls(selectedMonth);
 
-      showToast(`Successfully disbursed all ${pendingIds.length} payrolls!`, 'success');
+      showToast(`Successfully disbursed all payrolls for ${selectedMonth}!`, 'success');
       setShowDisburseAllConfirm(false);
       fetchData();
     } catch (err) {
@@ -453,7 +462,7 @@ export const PayrollManagement = () => {
                       <td className="p-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
-                            onClick={() => setSelectedSlip(p)}
+                            onClick={() => handleOpenSlip(p)}
                             className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-lg cursor-pointer"
                             title="View Salary Slip"
                           >

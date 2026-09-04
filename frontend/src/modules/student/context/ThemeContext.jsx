@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useLayoutEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
+import { usePanelAccent } from '../../../shared/theme/usePanelAccent';
+import '../styles/theme.css';
 
 const ThemeContext = createContext();
 
@@ -14,6 +16,13 @@ function applyThemeClass(isDark) {
 export const ThemeProvider = ({ children }) => {
   const location = useLocation();
   const isStudent = location.pathname.startsWith('/student');
+
+  const { primaryColor, setPrimaryColor } = usePanelAccent({
+    active: isStudent,
+    scope: 'student-theme',
+    storageKey: 'student',
+    pathname: location.pathname,
+  });
 
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('student-theme') || 'light';
@@ -35,7 +44,7 @@ export const ThemeProvider = ({ children }) => {
   }, [isStudent]);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, primaryColor, setAccentColor: setPrimaryColor }}>
       {children}
     </ThemeContext.Provider>
   );

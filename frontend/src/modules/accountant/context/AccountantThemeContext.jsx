@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useLayoutEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
+import { usePanelAccent } from '../../../shared/theme/usePanelAccent';
+import '../styles/theme.css';
 
 const AccountantThemeContext = createContext();
 
@@ -16,6 +18,13 @@ function applyThemeClass(isDark) {
 export const AccountantThemeProvider = ({ children }) => {
   const location = useLocation();
   const isAccountant = location.pathname.startsWith('/accountant');
+
+  const { primaryColor, setPrimaryColor } = usePanelAccent({
+    active: isAccountant,
+    scope: 'accountant-theme',
+    storageKey: 'accountant',
+    pathname: location.pathname,
+  });
 
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('accountant-theme');
@@ -37,7 +46,7 @@ export const AccountantThemeProvider = ({ children }) => {
   }, [isAccountant]);
 
   return (
-    <AccountantThemeContext.Provider value={{ darkMode, toggleTheme }}>
+    <AccountantThemeContext.Provider value={{ darkMode, toggleTheme, primaryColor, setAccentColor: setPrimaryColor }}>
       {children}
     </AccountantThemeContext.Provider>
   );

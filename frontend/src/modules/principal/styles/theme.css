@@ -1,0 +1,59 @@
+/* Principal portal hue aliases.
+ * Emerald is the principal portal's brand accent, so every emerald utility is
+ * remapped to the live per-school `--primary` when `.principal-theme` is active
+ * (set on <html> by usePanelAccent). The shared `.brand-accent` layer
+ * (shared/theme/accent.css) already handles the `primary` token itself. */
+
+.principal-theme .bg-emerald-50,
+.principal-theme .bg-emerald-100 { background-color: rgb(var(--primary) / 0.1) !important; }
+.principal-theme .bg-emerald-500,
+.principal-theme .bg-emerald-600,
+.principal-theme .bg-emerald-605,
+.principal-theme .bg-emerald-700 { background-color: rgb(var(--primary)) !important; }
+.principal-theme .hover\:bg-emerald-600:hover,
+.principal-theme .hover\:bg-emerald-700:hover { background-color: rgb(var(--primary-hover)) !important; }
+
+.principal-theme .bg-emerald-500\/5,
+.principal-theme .bg-emerald-600\/5 { background-color: rgb(var(--primary) / 0.05) !important; }
+.principal-theme .bg-emerald-500\/10,
+.principal-theme .bg-emerald-600\/10,
+.principal-theme .bg-emerald-500\/15 { background-color: rgb(var(--primary) / 0.12) !important; }
+.principal-theme .bg-emerald-950,
+.principal-theme .bg-emerald-950\/40,
+.principal-theme .bg-emerald-950\/50,
+.principal-theme .bg-emerald-950\/60 { background-color: rgb(var(--primary) / 0.14) !important; }
+
+.principal-theme .text-emerald-500,
+.principal-theme .text-emerald-600,
+.principal-theme .text-emerald-605,
+.principal-theme .text-emerald-700 { color: rgb(var(--primary)) !important; }
+.principal-theme .text-emerald-400,
+.principal-theme .dark\:text-emerald-400:is(.dark *) { color: rgb(var(--primary) / 0.85) !important; }
+.principal-theme .text-emerald-300,
+.principal-theme .text-emerald-200 { color: rgb(var(--primary) / 0.7) !important; }
+.principal-theme .hover\:text-emerald-600:hover,
+.principal-theme .hover\:text-emerald-400:hover { color: rgb(var(--primary)) !important; }
+
+.principal-theme .border-emerald-200,
+.principal-theme .border-emerald-300,
+.principal-theme .border-emerald-500,
+.principal-theme .border-emerald-600,
+.principal-theme .border-emerald-900,
+.principal-theme .dark\:border-emerald-800:is(.dark *) { border-color: rgb(var(--primary) / 0.4) !important; }
+.principal-theme .border-emerald-500,
+.principal-theme .border-emerald-600 { border-color: rgb(var(--primary)) !important; }
+
+.principal-theme .ring-emerald-500,
+.principal-theme .ring-emerald-500\/10,
+.principal-theme .ring-emerald-500\/20,
+.principal-theme .focus\:ring-emerald-500:focus { --tw-ring-color: rgb(var(--primary) / 0.4) !important; }
+
+.principal-theme .shadow-emerald-600\/10,
+.principal-theme .shadow-emerald-600\/20 { --tw-shadow-color: rgb(var(--primary) / 0.2) !important; }
+
+.principal-theme .from-emerald-500,
+.principal-theme .from-emerald-600 { --tw-gradient-from: rgb(var(--primary)) var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(var(--primary) / 0) var(--tw-gradient-to-position) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
+.principal-theme .to-emerald-500,
+.principal-theme .to-emerald-600 { --tw-gradient-to: rgb(var(--primary)) var(--tw-gradient-to-position) !important; }
+.principal-theme .via-emerald-500,
+.principal-theme .via-emerald-600 { --tw-gradient-stops: var(--tw-gradient-from), rgb(var(--primary)) var(--tw-gradient-via-position), var(--tw-gradient-to) !important; }

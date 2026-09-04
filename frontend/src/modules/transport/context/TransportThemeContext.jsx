@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useLayoutEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
+import { usePanelAccent } from '../../../shared/theme/usePanelAccent';
+import '../styles/theme.css';
 
 const TransportThemeContext = createContext();
 
@@ -16,6 +18,14 @@ function applyThemeClass(isDark) {
 export const TransportThemeProvider = ({ children }) => {
   const location = useLocation();
   const isTransport = location.pathname.startsWith('/transport');
+
+  const { primaryColor, setPrimaryColor } = usePanelAccent({
+    active: isTransport,
+    scope: 'transport-theme',
+    storageKey: 'transport',
+    userKey: 'transport_user',
+    pathname: location.pathname,
+  });
 
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('transport_darkMode');
@@ -37,7 +47,7 @@ export const TransportThemeProvider = ({ children }) => {
   }, [isTransport]);
 
   return (
-    <TransportThemeContext.Provider value={{ darkMode, toggleDarkMode }}>
+    <TransportThemeContext.Provider value={{ darkMode, toggleDarkMode, primaryColor, setAccentColor: setPrimaryColor }}>
       {children}
     </TransportThemeContext.Provider>
   );

@@ -5,20 +5,28 @@ import { Bell, Check, Eye, Trash2, CheckCircle2, AlertCircle, Calendar, Sparkles
 import { Badge } from '../../components/ui/Badge';
 
 export const Notifications = () => {
-  const { notifications, unreadCount, markAllAsRead, markAsRead, clearAll } = useHRNotifications();
+  const { notifications, unreadCount, loading, fetchNotifications, markAllAsRead, markAsRead, clearAll } = useHRNotifications();
   const [filterType, setFilterType] = useState('ALL');
 
   const filtered = filterType === 'ALL'
     ? notifications
-    : notifications.filter((n) => n.type === filterType);
+    : notifications.filter((n) => (n.type || '').toLowerCase().includes(filterType.toLowerCase()));
 
   return (
     <div className="space-y-6 pb-12">
       <PageHeader
         title="HR Notifications & Operational Alerts Feed"
-        subtitle="Stay updated on new faculty leave petitions, upcoming payroll deadlines, and institutional circulars."
+        subtitle="Live administrative circulars, staff alerts, and institutional broadcasts delivered from the central platform."
         actions={
           <div className="flex items-center gap-2">
+            <button
+              onClick={fetchNotifications}
+              disabled={loading}
+              className="p-2 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold transition-colors cursor-pointer"
+              title="Refresh Notifications"
+            >
+              <Sparkles className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
@@ -49,10 +57,10 @@ export const Notifications = () => {
           </span>
           {[
             { id: 'ALL', label: `All Alerts (${notifications.length})` },
-            { id: 'info', label: 'Info & Notice' },
-            { id: 'leave', label: 'Leave Requests' },
-            { id: 'payroll', label: 'Payroll Alerts' },
-            { id: 'attendance', label: 'Attendance' },
+            { id: 'hr', label: 'HR Directed' },
+            { id: 'staff', label: 'Staff Notices' },
+            { id: 'teacher', label: 'Faculty Notices' },
+            { id: 'admin', label: 'Administrative' },
           ].map((cat) => (
             <button
               key={cat.id}

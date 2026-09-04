@@ -1,7 +1,8 @@
 import React from 'react';
+import { readAccentColor } from '../../../../../shared/theme/accent';
 import { ResponsiveContainer, PieChart as RechartsPie, Pie, Cell, Tooltip, Legend } from 'recharts';
 
-export const PieChart = ({ data, dataKey, nameKey, height = 300, colors = ["#0d9488", "#14b8a6", "#2dd4bf", "#5eead4", "#99f6e4"] }) => {
+export const PieChart = ({ data, dataKey, nameKey, height = 300, colors = [readAccentColor(), "#14b8a6", "#2dd4bf", "#5eead4", "#99f6e4"] }) => {
   const validData = Array.isArray(data) ? data.filter((item) => Number(item?.[dataKey] || 0) > 0) : [];
 
   if (!validData || validData.length === 0) {

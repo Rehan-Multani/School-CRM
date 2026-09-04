@@ -19,6 +19,9 @@ import {
   CalendarDays,
   BadgeCent,
   Shield,
+  User,
+  Lock,
+  KeyRound,
 } from 'lucide-react';
 
 const WEEKDAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -103,6 +106,73 @@ export const Settings = () => {
     }
   };
 
+  // Profile & Password State
+  const [profileForm, setProfileForm] = useState({
+    firstName: user?.name?.split(' ')[0] || 'HR',
+    lastName: user?.name?.split(' ').slice(1).join(' ') || 'Manager',
+    phone: '',
+  });
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const [updatingPassword, setUpdatingPassword] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === 'profile') {
+      hrApi.profile().then((res) => {
+        if (res?.success && res.user) {
+          setProfileForm({
+            firstName: res.user.firstName || res.user.name?.split(' ')[0] || '',
+            lastName: res.user.lastName || '',
+            phone: res.user.phone || '',
+          });
+        }
+      }).catch(() => {});
+    }
+  }, [activeTab]);
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await hrApi.updateProfile(profileForm);
+      if (res?.success) {
+        showToast('Profile information updated successfully!', 'success');
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || err.message || 'Failed to update profile', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      showToast('New passwords do not match', 'error');
+      return;
+    }
+    if (passwordForm.newPassword.length < 6) {
+      showToast('New password must be at least 6 characters', 'error');
+      return;
+    }
+    setUpdatingPassword(true);
+    try {
+      await hrApi.changePassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword,
+      });
+      showToast('Account password updated successfully!', 'success');
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      showToast(err.response?.data?.message || err.message || 'Failed to update password', 'error');
+    } finally {
+      setUpdatingPassword(false);
+    }
+  };
+
   return (
     <div className="space-y-6 pb-12">
       <PageHeader
@@ -127,6 +197,7 @@ export const Settings = () => {
           { id: 'quotas', label: 'Annual Leave Quotas', icon: Calendar },
           { id: 'deductions', label: 'Payroll & Statutory Rules', icon: BadgeCent },
           { id: 'appearance', label: 'Theme & Institution Profile', icon: Shield },
+          { id: 'profile', label: 'HR Profile & Security', icon: User },
         ].map((t) => {
           const TabIcon = t.icon;
           return (
@@ -264,6 +335,26 @@ export const Settings = () => {
                 />
               </div>
             </div>
+
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between mt-4">
+              <div>
+                <span className="text-xs font-bold text-slate-900 dark:text-white block">Auto-Approve Quota-Compliant Leaves</span>
+                <p className="text-[11px] text-slate-400 mt-0.5">Automatically approve single-day casual leaves if staff has positive remaining balance</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSettings((prev) => ({ ...prev, autoApproveLeaves: !prev.autoApproveLeaves }))}
+                className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${
+                  settings.autoApproveLeaves ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-700'
+                }`}
+              >
+                <span
+                  className={`block w-4 h-4 rounded-full bg-white transition-transform absolute top-1 ${
+                    settings.autoApproveLeaves ? 'left-7' : 'left-1'
+                  }`}
+                />
+              </button>
+            </div>
           </div>
         )}
 
@@ -336,16 +427,116 @@ export const Settings = () => {
           </div>
         )}
 
-        <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex items-center gap-2 px-6 py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer"
-          >
-            <Save className="w-4 h-4" />
-            <span>{saving ? 'Saving Changes...' : 'Save Policy Settings'}</span>
-          </button>
-        </div>
+        {/* Tab 5: HR Profile & Security */}
+        {activeTab === 'profile' && (
+          <div className="space-y-6 text-xs font-semibold">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">HR Officer Profile</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Manage your personal credentials and login security</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">First Name</label>
+                <input
+                  type="text"
+                  value={profileForm.firstName}
+                  onChange={(e) => setProfileForm({ ...profileForm, firstName: e.target.value })}
+                  className="w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-950 text-slate-900 dark:text-white outline-none focus:border-indigo-500 font-bold"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Last Name</label>
+                <input
+                  type="text"
+                  value={profileForm.lastName}
+                  onChange={(e) => setProfileForm({ ...profileForm, lastName: e.target.value })}
+                  className="w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-950 text-slate-900 dark:text-white outline-none focus:border-indigo-500 font-bold"
+                />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Contact Phone</label>
+                <input
+                  type="text"
+                  value={profileForm.phone}
+                  onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                  placeholder="+91 98765 43210"
+                  className="w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-950 text-slate-900 dark:text-white outline-none focus:border-indigo-500 font-bold"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-start">
+              <button
+                type="button"
+                onClick={handleUpdateProfile}
+                disabled={saving}
+                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-xs cursor-pointer"
+              >
+                {saving ? 'Updating...' : 'Update Personal Details'}
+              </button>
+            </div>
+
+            <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+              <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">Update Security Password</h4>
+              <p className="text-xs text-slate-400 mb-4">Ensure your account uses a strong, protected passphrase</p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Current Password</label>
+                  <input
+                    type="password"
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                    className="w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-950 text-slate-900 dark:text-white outline-none focus:border-indigo-500 font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">New Password</label>
+                  <input
+                    type="password"
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                    className="w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-950 text-slate-900 dark:text-white outline-none focus:border-indigo-500 font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Confirm New Password</label>
+                  <input
+                    type="password"
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                    className="w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-950 text-slate-900 dark:text-white outline-none focus:border-indigo-500 font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-start mt-4">
+                <button
+                  type="button"
+                  onClick={handleChangePassword}
+                  disabled={updatingPassword}
+                  className="px-5 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold shadow-xs hover:bg-slate-800 cursor-pointer"
+                >
+                  {updatingPassword ? 'Changing Password...' : 'Change Password'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab !== 'profile' && (
+          <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex items-center gap-2 px-6 py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer"
+            >
+              <Save className="w-4 h-4" />
+              <span>{saving ? 'Saving Changes...' : 'Save Policy Settings'}</span>
+            </button>
+          </div>
+        )}
       </form>
 
       <ToastComponent />

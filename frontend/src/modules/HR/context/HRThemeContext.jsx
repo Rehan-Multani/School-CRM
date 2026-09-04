@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, useLayoutEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
+import { usePanelAccent } from '../../../shared/theme/usePanelAccent';
+import '../styles/theme.css';
 
 const HRThemeContext = createContext();
 
@@ -16,6 +18,14 @@ function applyThemeClass(isDark) {
 export const HRThemeProvider = ({ children }) => {
   const location = useLocation();
   const isHR = location.pathname.startsWith('/hr');
+
+  const { primaryColor, setPrimaryColor } = usePanelAccent({
+    active: isHR,
+    scope: 'hr-theme',
+    storageKey: 'hr',
+    userKey: 'hr_user',
+    pathname: location.pathname,
+  });
 
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('hr-theme');
@@ -39,7 +49,9 @@ export const HRThemeProvider = ({ children }) => {
   const toggleDarkMode = toggleTheme;
 
   return (
-    <HRThemeContext.Provider value={{ darkMode, toggleTheme, toggleDarkMode }}>
+    <HRThemeContext.Provider
+      value={{ darkMode, toggleTheme, toggleDarkMode, primaryColor, setAccentColor: setPrimaryColor }}
+    >
       {children}
     </HRThemeContext.Provider>
   );

@@ -1,0 +1,42 @@
+/* Shared brand-accent utility layer.
+ *
+ * Tailwind already wires the `primary` color scale to rgb(var(--primary) / …)
+ * (see tailwind.config.js). These rules only *harden* that against specificity
+ * conflicts from module CSS / dark: variants, so every portal renders the live
+ * per-school color consistently. Activated by the `.brand-accent` class that
+ * applyAccent() puts on <html>.
+ *
+ * Panel-specific hue aliasing (indigo-600 -> primary, cyan-500 -> primary, …)
+ * belongs in each module's own styles/theme.css, keyed by its scope class. */
+
+.brand-accent { transition: none; }
+
+.brand-accent .bg-primary { background-color: rgb(var(--primary)) !important; }
+.brand-accent .bg-primary\/5 { background-color: rgb(var(--primary) / 0.05) !important; }
+.brand-accent .bg-primary\/10 { background-color: rgb(var(--primary) / 0.1) !important; }
+.brand-accent .bg-primary\/15 { background-color: rgb(var(--primary) / 0.15) !important; }
+.brand-accent .bg-primary\/20 { background-color: rgb(var(--primary) / 0.2) !important; }
+.brand-accent .bg-primary\/25 { background-color: rgb(var(--primary) / 0.25) !important; }
+.brand-accent .bg-primary\/30 { background-color: rgb(var(--primary) / 0.3) !important; }
+.brand-accent .bg-primary-hover { background-color: rgb(var(--primary-hover)) !important; }
+.brand-accent .hover\:bg-primary:hover { background-color: rgb(var(--primary)) !important; }
+.brand-accent .hover\:bg-primary-hover:hover { background-color: rgb(var(--primary-hover)) !important; }
+
+.brand-accent .text-primary { color: rgb(var(--primary)) !important; }
+.brand-accent .hover\:text-primary:hover { color: rgb(var(--primary)) !important; }
+
+.brand-accent .border-primary { border-color: rgb(var(--primary)) !important; }
+.brand-accent .border-primary\/20 { border-color: rgb(var(--primary) / 0.2) !important; }
+.brand-accent .border-primary\/30 { border-color: rgb(var(--primary) / 0.3) !important; }
+.brand-accent .border-primary\/50 { border-color: rgb(var(--primary) / 0.5) !important; }
+.brand-accent .focus\:border-primary:focus { border-color: rgb(var(--primary)) !important; }
+
+.brand-accent .ring-primary\/10 { --tw-ring-color: rgb(var(--primary) / 0.1) !important; }
+.brand-accent .ring-primary\/20 { --tw-ring-color: rgb(var(--primary) / 0.2) !important; }
+.brand-accent .ring-primary\/30 { --tw-ring-color: rgb(var(--primary) / 0.3) !important; }
+.brand-accent .focus\:ring-primary\/10:focus { --tw-ring-color: rgb(var(--primary) / 0.1) !important; }
+.brand-accent .focus\:ring-primary\/20:focus { --tw-ring-color: rgb(var(--primary) / 0.2) !important; }
+
+.brand-accent .fill-primary { fill: rgb(var(--primary)) !important; }
+.brand-accent .stroke-primary { stroke: rgb(var(--primary)) !important; }
+.brand-accent .selection\:bg-primary::selection { background-color: rgb(var(--primary)) !important; }

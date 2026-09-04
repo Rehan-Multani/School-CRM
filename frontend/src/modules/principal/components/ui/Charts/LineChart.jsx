@@ -1,7 +1,8 @@
 import React from 'react';
+import { readAccentColor } from '../../../../../shared/theme/accent';
 import { ResponsiveContainer, LineChart as RechartsLine, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
-export const LineChart = ({ data, dataKey, xKey, height = 300, color = "#059669" }) => {
+export const LineChart = ({ data, dataKey, xKey, height = 300, color = readAccentColor() }) => {
   if (!data || data.length === 0) {
     return (
       <div

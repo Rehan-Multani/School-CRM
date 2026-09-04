@@ -17,6 +17,21 @@ const SCHOOL_STATUSES = ['Active', 'Inactive', 'Trial', 'Suspended'];
 const CLASS_OPTIONS = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 const WORKING_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
+const DEFAULT_PRIMARY_COLOR = '#4F46E5';
+
+// Shared brand-theme snapshot for any panel that resolves a School document.
+// Keeps the shape identical across school-admin, principal, librarian and HR payloads.
+export function schoolThemeSnapshot(school) {
+  return {
+    theme: school?.settings?.theme || 'light',
+    primaryColor: school?.settings?.primaryColor || DEFAULT_PRIMARY_COLOR,
+    branding: {
+      logo: school?.settings?.portalBranding?.logo || school?.logo || '',
+      favicon: school?.settings?.portalBranding?.favicon || '',
+    },
+  };
+}
+
 function requireText(value, label) {
   const text = typeof value === 'string' ? value.trim() : '';
   if (!text) {
@@ -523,6 +538,29 @@ export class SchoolService {
       throw new AppError('School not found', 404);
     }
     return this.toSettingsPayload(school);
+  }
+
+  // Public (no-auth) brand theme lookup used by every role portal + login screens.
+  // Accepts a school slug, code, or Mongo _id.
+  async getPublicTheme(idOrSlug) {
+    const raw = String(idOrSlug || '').trim();
+    // `schoolId` is stored lowercase and `code` uppercase; try the value as
+    // given, then normalized, so a caller's casing never misses.
+    let school = await schoolRepository.findById(raw);
+    if (!school && raw && raw.toLowerCase() !== raw) {
+      school = await schoolRepository.findById(raw.toLowerCase());
+    }
+    if (!school && raw && raw.toUpperCase() !== raw) {
+      school = await schoolRepository.findById(raw.toUpperCase());
+    }
+    if (!school) {
+      throw new AppError('School not found', 404);
+    }
+    return {
+      schoolId: school.schoolId,
+      schoolName: school.name,
+      ...schoolThemeSnapshot(school),
+    };
   }
 
   toSchoolConfigPayload(school) {

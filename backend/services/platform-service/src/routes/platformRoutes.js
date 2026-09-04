@@ -402,6 +402,12 @@ import {
   getHRReportData,
   listAnnouncements as hrListAnnouncements,
   createAnnouncement as hrCreateAnnouncement,
+  deleteAnnouncement as hrDeleteAnnouncement,
+  getHRProfile,
+  updateHRProfile,
+  changeHRPassword,
+  getHRNotifications,
+  getHRSalarySlip,
 } from '../controllers/hr.controller.js';
 import { assertSchoolAccess } from '../middleware/assertSchoolAccess.js';
 import { uploadStudentFiles, convertStudentImages } from '../middleware/uploadStudentPhoto.js';
@@ -754,27 +760,37 @@ router.get('/school-portal/hr/documents', requireHR, listHRDocuments);
 router.post('/school-portal/hr/documents/upload', requireHR, uploadSchoolUserFiles, convertSchoolUserImages, uploadHRDocument);
 router.patch('/school-portal/hr/documents/:id/verify', requireHR, verifyHRDocument);
 router.delete('/school-portal/hr/documents/:id', requireHR, deleteHRDocument);
+// Announcements
 router.get('/school-portal/hr/announcements', requireHR, hrListAnnouncements);
 router.post('/school-portal/hr/announcements', requireHR, hrCreateAnnouncement);
+router.delete('/school-portal/hr/announcements/:id', requireHR, hrDeleteAnnouncement);
+
+// HR Notifications
+router.get('/school-portal/hr/notifications', requireHR, getHRNotifications);
+
+// HR Profile & Credentials
+router.get('/school-portal/hr/profile', requireHR, getHRProfile);
+router.patch('/school-portal/hr/profile', requireHR, uploadSchoolUserFiles, convertSchoolUserImages, updateHRProfile);
+router.patch('/school-portal/hr/password', requireHR, changeHRPassword);
 
 // Employees
-router.get('/school-portal/hr/employees', requirePrincipal, hrListEmployees);
+router.get('/school-portal/hr/employees', requireHR, hrListEmployees);
 router.post('/school-portal/hr/employees', requireHR, uploadSchoolUserFiles, convertSchoolUserImages, hrCreateEmployee);
 router.get('/school-portal/hr/employees/:id', requireHR, hrGetEmployee);
 router.patch('/school-portal/hr/employees/:id', requireHR, uploadSchoolUserFiles, convertSchoolUserImages, hrUpdateEmployee);
 router.patch('/school-portal/hr/employees/:id/status', requireHR, hrUpdateEmployeeStatus);
-router.patch('/school-portal/hr/employees/:id/approve', requirePrincipal, hrApproveEmployee);
+router.patch('/school-portal/hr/employees/:id/approve', requireHR, hrApproveEmployee);
 router.patch('/school-portal/hr/employees/:id/reject', requireHR, hrRejectEmployee);
 router.delete('/school-portal/hr/employees/:id', requireHR, hrDeleteEmployee);
 
 // Departments
-router.get('/school-portal/hr/departments', requirePrincipal, hrListDepartments);
+router.get('/school-portal/hr/departments', requireHR, hrListDepartments);
 router.post('/school-portal/hr/departments', requireHR, hrCreateDepartment);
 router.patch('/school-portal/hr/departments/:id', requireHR, hrUpdateDepartment);
 router.delete('/school-portal/hr/departments/:id', requireHR, hrDeleteDepartment);
 
 // Designations
-router.get('/school-portal/hr/designations', requirePrincipal, hrListDesignations);
+router.get('/school-portal/hr/designations', requireHR, hrListDesignations);
 router.post('/school-portal/hr/designations', requireHR, hrCreateDesignation);
 router.patch('/school-portal/hr/designations/:id', requireHR, hrUpdateDesignation);
 router.delete('/school-portal/hr/designations/:id', requireHR, hrDeleteDesignation);
@@ -788,12 +804,12 @@ router.post('/school-portal/hr/attendance', requireHR, saveHRAttendance);
 router.patch('/school-portal/hr/attendance/:id', requireHR, updateSingleAttendance);
 
 // Leave Management (Static routes BEFORE dynamic routes)
-router.get('/school-portal/hr/leave/balance/:empId', requirePrincipal, getLeaveBalance);
-router.get('/school-portal/hr/leave', requirePrincipal, listLeaveRequests);
-router.post('/school-portal/hr/leave', requirePrincipal, createLeaveRequest);
-router.patch('/school-portal/hr/leave/:id/approve', requirePrincipal, approveLeave);
-router.patch('/school-portal/hr/leave/:id/reject', requirePrincipal, rejectLeave);
-router.patch('/school-portal/hr/leave/:id/cancel', requirePrincipal, cancelLeave);
+router.get('/school-portal/hr/leave/balance/:empId', requireHR, getLeaveBalance);
+router.get('/school-portal/hr/leave', requireHR, listLeaveRequests);
+router.post('/school-portal/hr/leave', requireHR, createLeaveRequest);
+router.patch('/school-portal/hr/leave/:id/approve', requireHR, approveLeave);
+router.patch('/school-portal/hr/leave/:id/reject', requireHR, rejectLeave);
+router.patch('/school-portal/hr/leave/:id/cancel', requireHR, cancelLeave);
 
 // Payroll (Static routes BEFORE dynamic routes)
 router.get('/school-portal/hr/payroll/employees', requireHR, getHREligiblePayrollEmployees);
@@ -801,6 +817,7 @@ router.post('/school-portal/hr/payroll/release', requireHR, releaseAllHRPayrolls
 router.get('/school-portal/hr/payroll', requireHR, listHRPayrolls);
 router.post('/school-portal/hr/payroll', requireHR, createHRPayroll);
 router.get('/school-portal/hr/payroll/:id', requireHR, getHRPayroll);
+router.get('/school-portal/hr/payroll/:id/slip', requireHR, getHRSalarySlip);
 router.patch('/school-portal/hr/payroll/:id/status', requireHR, updateHRPayrollStatus);
 router.delete('/school-portal/hr/payroll/:id', requireHR, deleteHRPayroll);
 

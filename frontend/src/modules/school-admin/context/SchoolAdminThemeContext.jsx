@@ -5,6 +5,7 @@ import {
   DEFAULT_PRIMARY,
   normalizeHex,
 } from '../utils/themeColors';
+import '../../../shared/theme/accent.css';
 import '../styles/theme.css';
 
 const SchoolAdminThemeContext = createContext();

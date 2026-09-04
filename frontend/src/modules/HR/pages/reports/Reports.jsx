@@ -46,14 +46,208 @@ export const Reports = () => {
 
   const handleExportCSV = () => {
     if (!data) return;
-    const jsonStr = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `hr_${activeTab}_${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    showToast('Report downloaded as JSON!', 'success');
+    let exportRows = [];
+
+    if (activeTab === 'employee-summary') {
+      exportRows = [
+        { Metric: 'Total Staff', Value: data.totalStaff || 0 },
+        { Metric: 'Total Faculty / Teachers', Value: data.totalTeachers || 0 },
+        { Metric: 'Active Personnel', Value: data.activeCount || 0 },
+        ...(data.departmentBreakdown || []).map((d) => ({
+          Metric: `Department: ${d.name}`,
+          Value: d.count,
+        })),
+      ];
+    } else if (activeTab === 'attendance-summary') {
+      const summary = data.summary || {};
+      exportRows = Object.entries(summary).map(([status, count]) => ({
+        Month: data.month || '',
+        Status: status,
+        Count: count,
+      }));
+    } else if (activeTab === 'leave-summary') {
+      const stats = data.stats || {};
+      exportRows = Object.entries(stats).map(([k, v]) => ({
+        Year: data.year || '',
+        LeaveType: k,
+        Count: v,
+      }));
+    } else if (activeTab === 'payroll-summary') {
+      exportRows = (data.monthlySummary || []).map((m) => ({
+        Month: m._id,
+        TotalEmployees: m.count,
+        GrossDisbursed: m.totalGross,
+        Deductions: m.totalDeductions,
+        NetDisbursed: m.totalNet,
+      }));
+    } else if (activeTab === 'department-wise') {
+      exportRows = (data.departments || []).map((d) => ({
+        Department: d.name,
+        Code: d.code,
+        Head: d.headEmployeeName || 'Not Appointed',
+        Status: d.status,
+        TotalEmployees: d.employeeCount || 0,
+      }));
+    } else if (Array.isArray(data)) {
+      exportRows = data;
+    } else {
+      exportRows = Object.entries(data).map(([key, val]) => ({
+        Metric: key,
+        Value: typeof val === 'object' ? JSON.stringify(val) : String(val),
+      }));
+    }
+
+    if (exportRows.length) {
+      exportToCSV(exportRows, `hr_${activeTab}_report_${new Date().toISOString().split('T')[0]}.csv`);
+      showToast('Report downloaded as CSV!', 'success');
+    }
+  };
+
+  const renderVisualReport = () => {
+    if (!data) return null;
+
+    if (activeTab === 'employee-summary') {
+      return (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 bg-indigo-50/60 dark:bg-indigo-950/40 rounded-2xl border border-indigo-100 dark:border-indigo-900/40">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Staff</span>
+              <div className="text-2xl font-black text-indigo-700 dark:text-indigo-300 mt-1">{data.totalStaff || 0}</div>
+            </div>
+            <div className="p-4 bg-blue-50/60 dark:bg-blue-950/40 rounded-2xl border border-blue-100 dark:border-blue-900/40">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Teachers</span>
+              <div className="text-2xl font-black text-blue-700 dark:text-blue-300 mt-1">{data.totalTeachers || 0}</div>
+            </div>
+            <div className="p-4 bg-emerald-50/60 dark:bg-emerald-950/40 rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Active Faculty & Staff</span>
+              <div className="text-2xl font-black text-emerald-700 dark:text-emerald-300 mt-1">{data.activeCount || 0}</div>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3">Department Placements</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {(data.departmentBreakdown || []).map((d, i) => (
+                <div key={i} className="p-3.5 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200/80 dark:border-slate-800 flex justify-between items-center">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{d.name}</span>
+                  <span className="px-2.5 py-1 bg-white dark:bg-slate-900 font-mono font-bold text-xs rounded-lg border border-slate-200 dark:border-slate-800 text-indigo-600 dark:text-indigo-400">{d.count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (activeTab === 'attendance-summary') {
+      const summary = data.summary || {};
+      return (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between text-xs text-slate-500">
+            <span>Audit Month: <strong>{data.month}</strong></span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            {Object.entries(summary).map(([status, count]) => (
+              <div key={status} className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 text-center">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{status}</span>
+                <div className="text-xl font-black text-slate-900 dark:text-white mt-1">{count}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (activeTab === 'payroll-summary') {
+      const list = data.monthlySummary || [];
+      return (
+        <div className="space-y-4">
+          <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <tr>
+                  <th className="p-3.5">Payroll Month</th>
+                  <th className="p-3.5 text-center">Beneficiaries</th>
+                  <th className="p-3.5 text-right">Gross Amount</th>
+                  <th className="p-3.5 text-right">Deductions</th>
+                  <th className="p-3.5 text-right">Net Disbursed</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-semibold text-slate-700 dark:text-slate-300">
+                {list.map((m, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-950/40">
+                    <td className="p-3.5 font-bold text-slate-900 dark:text-white">{m._id}</td>
+                    <td className="p-3.5 text-center font-mono">{m.count}</td>
+                    <td className="p-3.5 text-right">₹{Number(m.totalGross || 0).toLocaleString('en-IN')}</td>
+                    <td className="p-3.5 text-right text-rose-600">₹{Number(m.totalDeductions || 0).toLocaleString('en-IN')}</td>
+                    <td className="p-3.5 text-right font-black text-emerald-600 dark:text-emerald-400">₹{Number(m.totalNet || 0).toLocaleString('en-IN')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    if (activeTab === 'department-wise') {
+      const depts = data.departments || [];
+      return (
+        <div className="space-y-4">
+          <div className="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-2xl">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                <tr>
+                  <th className="p-3.5">Department Name</th>
+                  <th className="p-3.5">Code</th>
+                  <th className="p-3.5">Head of Dept</th>
+                  <th className="p-3.5 text-center">Status</th>
+                  <th className="p-3.5 text-right">Total Staff</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-semibold text-slate-700 dark:text-slate-300">
+                {depts.map((d, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-950/40">
+                    <td className="p-3.5 font-bold text-slate-900 dark:text-white">{d.name}</td>
+                    <td className="p-3.5 font-mono text-slate-500">{d.code || '—'}</td>
+                    <td className="p-3.5 text-slate-600 dark:text-slate-400">{d.headEmployeeName || 'Not Appointed'}</td>
+                    <td className="p-3.5 text-center">
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{d.status}</span>
+                    </td>
+                    <td className="p-3.5 text-right font-black text-indigo-600 dark:text-indigo-400">{d.employeeCount || 0}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="overflow-x-auto border border-slate-200/80 dark:border-slate-800 rounded-2xl">
+        <table className="w-full text-left text-xs">
+          <thead className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200/80 dark:border-slate-800 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <tr>
+              <th className="p-3.5">Metric Dimension</th>
+              <th className="p-3.5 text-right">Computed Value</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-semibold text-slate-700 dark:text-slate-300">
+            {Object.entries(data).map(([key, val]) => (
+              <tr key={key} className="hover:bg-slate-50/60 dark:hover:bg-slate-950/40">
+                <td className="p-3.5 font-bold text-slate-900 dark:text-white capitalize">
+                  {key.replace(/([A-Z])/g, ' $1')}
+                </td>
+                <td className="p-3.5 text-right text-indigo-650 dark:text-indigo-400 font-black">
+                  {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
   };
 
   return (
@@ -142,42 +336,8 @@ export const Reports = () => {
             </span>
           </div>
 
-          {/* Render formatted table or key metrics */}
-          <div className="overflow-x-auto border border-slate-200/80 dark:border-slate-800 rounded-2xl">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200/80 dark:border-slate-800 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                <tr>
-                  <th className="p-3.5">Metric Dimension</th>
-                  <th className="p-3.5 text-right">Computed Value</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-semibold text-slate-700 dark:text-slate-300">
-                {Array.isArray(data) ? (
-                  data.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-950/40">
-                      <td className="p-3.5 font-bold text-slate-900 dark:text-white">
-                        {item.name || item.title || item.department || item.period || `Record #${idx + 1}`}
-                      </td>
-                      <td className="p-3.5 text-right text-indigo-650 dark:text-indigo-400 font-black">
-                        {item.count ?? item.total ?? item.value ?? JSON.stringify(item)}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  Object.entries(data).map(([key, val]) => (
-                    <tr key={key} className="hover:bg-slate-50/60 dark:hover:bg-slate-950/40">
-                      <td className="p-3.5 font-bold text-slate-900 dark:text-white capitalize">
-                        {key.replace(/([A-Z])/g, ' $1')}
-                      </td>
-                      <td className="p-3.5 text-right text-indigo-650 dark:text-indigo-400 font-black">
-                        {typeof val === 'object' ? JSON.stringify(val) : String(val)}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+          {/* Render formatted visual metrics & tables */}
+          {renderVisualReport()}
         </div>
       )}
 

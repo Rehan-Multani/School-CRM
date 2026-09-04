@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useLayoutEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
+import { usePanelAccent } from '../../../shared/theme/usePanelAccent';
+import '../styles/theme.css';
 
 const PrincipalThemeContext = createContext();
 
@@ -16,6 +18,13 @@ function applyThemeClass(isDark) {
 export const PrincipalThemeProvider = ({ children }) => {
   const location = useLocation();
   const isPrincipal = location.pathname.startsWith('/principal');
+
+  const { primaryColor, setPrimaryColor } = usePanelAccent({
+    active: isPrincipal,
+    scope: 'principal-theme',
+    storageKey: 'principal',
+    pathname: location.pathname,
+  });
 
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('principal-theme');
@@ -37,7 +46,7 @@ export const PrincipalThemeProvider = ({ children }) => {
   }, [isPrincipal]);
 
   return (
-    <PrincipalThemeContext.Provider value={{ darkMode, toggleTheme }}>
+    <PrincipalThemeContext.Provider value={{ darkMode, toggleTheme, primaryColor, setAccentColor: setPrimaryColor }}>
       {children}
     </PrincipalThemeContext.Provider>
   );

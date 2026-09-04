@@ -3,9 +3,11 @@ import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
+import { readAccentColor } from '../theme/accent';
 
 // Canonical Chart widgets — byte-identical between teacher and parent.
-const COLORS = ['#4F46E5', '#06B6D4', '#10B981', '#F59E0B', '#F43F5E', '#8B5CF6'];
+// First slot tracks the active portal's live brand accent.
+const palette = () => [readAccentColor(), '#06B6D4', '#10B981', '#F59E0B', '#F43F5E', '#8B5CF6'];
 
 export const BarChartWidget = ({ data, xKey, bars, height = 220, className }) => (
   <div className={className}>
@@ -18,7 +20,7 @@ export const BarChartWidget = ({ data, xKey, bars, height = 220, className }) =>
           contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--border-color)', borderRadius: 12, fontSize: 11 }}
         />
         {bars.map((bar, i) => (
-          <Bar key={bar.key} dataKey={bar.key} fill={bar.color || COLORS[i % COLORS.length]} radius={[4, 4, 0, 0]} name={bar.label || bar.key} />
+          <Bar key={bar.key} dataKey={bar.key} fill={bar.color || palette()[i % 6]} radius={[4, 4, 0, 0]} name={bar.label || bar.key} />
         ))}
       </BarChart>
     </ResponsiveContainer>
@@ -39,7 +41,7 @@ export const LineChartWidget = ({ data, xKey, lines, height = 220, className }) 
           <Line
             key={line.key}
             dataKey={line.key}
-            stroke={line.color || COLORS[i % COLORS.length]}
+            stroke={line.color || palette()[i % 6]}
             strokeWidth={2}
             dot={{ r: 3 }}
             activeDot={{ r: 5 }}
@@ -57,7 +59,7 @@ export const PieChartWidget = ({ data, height = 200, className }) => (
       <PieChart>
         <Pie data={data} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="value">
           {data.map((_, i) => (
-            <Cell key={i} fill={COLORS[i % COLORS.length]} />
+            <Cell key={i} fill={palette()[i % 6]} />
           ))}
         </Pie>
         <Tooltip

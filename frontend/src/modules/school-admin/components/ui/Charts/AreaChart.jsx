@@ -1,7 +1,8 @@
 import React from 'react';
+import { readAccentColor } from '../../../../../shared/theme/accent';
 import { ResponsiveContainer, AreaChart as RechartsAreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
-export const AreaChart = ({ data, xKey, yKey, height = 300, strokeColor = '#4f46e5', fillColor = '#818cf8' }) => {
+export const AreaChart = ({ data, xKey, yKey, height = 300, strokeColor = readAccentColor(), fillColor = readAccentColor() }) => {
   if (!data || data.length === 0) {
     return (
       <div

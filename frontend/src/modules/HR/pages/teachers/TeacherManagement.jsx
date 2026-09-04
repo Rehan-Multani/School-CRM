@@ -3,6 +3,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
 import { hrApi } from '../../../../shared/api/client';
 import { EmployeeFormModal } from '../../components/employees/EmployeeFormModal';
+import { Modal } from '../../components/ui/Modal';
 import { DataTable } from '../../../../shared/ui/DataTable';
 import {
   GraduationCap,
@@ -26,6 +27,8 @@ export const TeacherManagement = () => {
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
+  const [rejectingTeacher, setRejectingTeacher] = useState(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   const navigate = useNavigate();
   const { showToast, ToastComponent } = useToast();
@@ -83,15 +86,22 @@ export const TeacherManagement = () => {
     }
   };
 
-  const handleReject = async (teacher) => {
-    const reason = window.prompt(`Please enter rejection reason for ${teacher.name}:`, 'Verification declined');
-    if (reason === null) return;
+  const handleOpenReject = (teacher) => {
+    setRejectingTeacher(teacher);
+    setRejectReason('');
+  };
+
+  const handleConfirmReject = async (e) => {
+    e?.preventDefault();
+    if (!rejectingTeacher) return;
+    const reason = rejectReason.trim() || 'Verification declined by HR Administration';
     try {
-      await hrApi.rejectEmployee(teacher.id, reason);
+      await hrApi.rejectEmployee(rejectingTeacher.id, reason);
       setTeachers((prev) =>
-        prev.map((t) => (t.id === teacher.id ? { ...t, status: 'REJECTED' } : t))
+        prev.map((t) => (t.id === rejectingTeacher.id ? { ...t, status: 'REJECTED' } : t))
       );
-      showToast(`Registration for ${teacher.name} rejected.`, 'info');
+      showToast(`Registration for ${rejectingTeacher.name} rejected.`, 'info');
+      setRejectingTeacher(null);
     } catch (err) {
       showToast(err.response?.data?.message || err.message || 'Failed to reject teacher', 'error');
     }
@@ -230,14 +240,24 @@ export const TeacherManagement = () => {
           return (
             <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
               {isPending && (
-                <button
-                  type="button"
-                  onClick={() => handleApprove(t)}
-                  className="rounded-lg bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white shadow-2xs transition hover:bg-emerald-700 cursor-pointer"
-                  title="Approve & Activate"
-                >
-                  Approve
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleApprove(t)}
+                    className="rounded-lg bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white shadow-2xs transition hover:bg-emerald-700 cursor-pointer"
+                    title="Approve & Activate"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleOpenReject(t)}
+                    className="rounded-lg bg-rose-600 px-2 py-1 text-[11px] font-bold text-white shadow-2xs transition hover:bg-rose-700 cursor-pointer"
+                    title="Reject Registration"
+                  >
+                    Reject
+                  </button>
+                </>
               )}
               <button
                 type="button"
@@ -394,6 +414,47 @@ export const TeacherManagement = () => {
         departments={departments}
         designations={designations}
       />
+
+      {/* Rejection Modal */}
+      {rejectingTeacher && (
+        <Modal
+          isOpen={!!rejectingTeacher}
+          onClose={() => setRejectingTeacher(null)}
+          title={`Reject Registration — ${rejectingTeacher.name}`}
+          size="sm"
+        >
+          <form onSubmit={handleConfirmReject} className="space-y-4 p-1">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                Reason for Rejection <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                required
+                rows={3}
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="e.g. Incomplete credentials, document verification failed, background check pending..."
+                className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setRejectingTeacher(null)}
+                className="px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer"
+              >
+                Confirm Rejection
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
 
       <ToastComponent />
     </div>

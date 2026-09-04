@@ -1,7 +1,8 @@
 import React from 'react';
+import { readAccentColor } from '../../../../../shared/theme/accent';
 import { ResponsiveContainer, BarChart as RechartsBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
-export const BarChart = ({ data, xKey, yKey, height = 300, barColor = '#4f46e5' }) => {
+export const BarChart = ({ data, xKey, yKey, height = 300, barColor = readAccentColor() }) => {
   if (!data || data.length === 0) {
     return (
       <div

@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useLayoutEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
+import { usePanelAccent } from '../../../shared/theme/usePanelAccent';
+import '../styles/theme.css';
 
 const LibrarianThemeContext = createContext();
 
@@ -16,6 +18,14 @@ function applyThemeClass(isDark) {
 export const LibrarianThemeProvider = ({ children }) => {
   const location = useLocation();
   const isLibrarian = location.pathname.startsWith('/librarian') || location.pathname.startsWith('/school-admin/library');
+
+  const { primaryColor, setPrimaryColor } = usePanelAccent({
+    active: isLibrarian,
+    scope: 'librarian-theme',
+    storageKey: 'librarian',
+    userKey: 'librarian_user',
+    pathname: location.pathname,
+  });
 
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('librarian_darkMode');
@@ -37,7 +47,9 @@ export const LibrarianThemeProvider = ({ children }) => {
   }, [isLibrarian]);
 
   return (
-    <LibrarianThemeContext.Provider value={{ darkMode, toggleDarkMode }}>
+    <LibrarianThemeContext.Provider
+      value={{ darkMode, toggleDarkMode, primaryColor, setAccentColor: setPrimaryColor }}
+    >
       {children}
     </LibrarianThemeContext.Provider>
   );

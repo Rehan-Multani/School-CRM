@@ -13,6 +13,7 @@ import {
   Calendar,
   CheckCircle2,
   BellRing,
+  Trash2,
 } from 'lucide-react';
 import { Badge } from '../../components/ui/Badge';
 
@@ -74,6 +75,17 @@ export const Announcements = () => {
       showToast(err.response?.data?.message || err.message || 'Failed to publish announcement', 'error');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDeleteNotice = async (id, noticeTitle) => {
+    if (!window.confirm(`Are you sure you want to delete announcement "${noticeTitle}"?`)) return;
+    try {
+      await hrApi.deleteAnnouncement(id);
+      setNotices((prev) => prev.filter((n) => n.id !== id));
+      showToast('Announcement removed successfully', 'success');
+    } catch (err) {
+      showToast(err.response?.data?.message || err.message || 'Failed to delete announcement', 'error');
     }
   };
 
@@ -199,9 +211,19 @@ export const Announcements = () => {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-tight">{n.title}</h4>
-                    <span className="text-[10px] text-slate-400 whitespace-nowrap">
-                      {n.createdAt ? new Date(n.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Today'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-slate-400 whitespace-nowrap">
+                        {n.createdAt ? new Date(n.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Today'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteNotice(n.id, n.title)}
+                        className="p-1 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer"
+                        title="Delete Announcement"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
 
                   <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed whitespace-pre-line">

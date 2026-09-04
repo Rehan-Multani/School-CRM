@@ -7,7 +7,7 @@ export function SchoolAdminThemeScope({ children, className = '' }) {
   const style = useMemo(() => accentCssVars(primaryColor), [primaryColor]);
 
   return (
-    <div className={`school-admin-theme ${className}`.trim()} style={style}>
+    <div className={`brand-accent school-admin-theme ${className}`.trim()} style={style}>
       {children}
     </div>
   );

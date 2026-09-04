@@ -1,0 +1,57 @@
+/* Parent portal hue aliases.
+ * Indigo is the librarian portal's brand accent -> remap to the live per-school
+ * `--primary` while `.parent-theme` is on <html> (set by usePanelAccent).
+ * The shared `.brand-accent` layer handles the `primary` token itself. */
+
+.parent-theme .bg-indigo-50,
+.parent-theme .bg-indigo-100 { background-color: rgb(var(--primary) / 0.1) !important; }
+.parent-theme .bg-indigo-500,
+.parent-theme .bg-indigo-600,
+.parent-theme .bg-indigo-650,
+.parent-theme .bg-indigo-700 { background-color: rgb(var(--primary)) !important; }
+.parent-theme .hover\:bg-indigo-600:hover,
+.parent-theme .hover\:bg-indigo-650:hover,
+.parent-theme .hover\:bg-indigo-700:hover { background-color: rgb(var(--primary-hover)) !important; }
+
+.parent-theme .bg-indigo-500\/5,
+.parent-theme .bg-indigo-600\/5 { background-color: rgb(var(--primary) / 0.05) !important; }
+.parent-theme .bg-indigo-500\/10,
+.parent-theme .bg-indigo-600\/10,
+.parent-theme .bg-indigo-500\/15 { background-color: rgb(var(--primary) / 0.12) !important; }
+.parent-theme .bg-indigo-950,
+.parent-theme .bg-indigo-950\/40,
+.parent-theme .bg-indigo-950\/50,
+.parent-theme .bg-indigo-950\/80 { background-color: rgb(var(--primary) / 0.14) !important; }
+
+.parent-theme .text-indigo-500,
+.parent-theme .text-indigo-600,
+.parent-theme .text-indigo-650,
+.parent-theme .text-indigo-700 { color: rgb(var(--primary)) !important; }
+.parent-theme .text-indigo-400,
+.parent-theme .dark\:text-indigo-400:is(.dark *) { color: rgb(var(--primary) / 0.85) !important; }
+.parent-theme .text-indigo-300,
+.parent-theme .text-indigo-200 { color: rgb(var(--primary) / 0.7) !important; }
+.parent-theme .hover\:text-indigo-600:hover,
+.parent-theme .hover\:text-indigo-400:hover { color: rgb(var(--primary)) !important; }
+
+.parent-theme .border-indigo-200,
+.parent-theme .border-indigo-300,
+.parent-theme .border-indigo-800,
+.parent-theme .dark\:border-indigo-800:is(.dark *) { border-color: rgb(var(--primary) / 0.4) !important; }
+.parent-theme .border-indigo-500,
+.parent-theme .border-indigo-600 { border-color: rgb(var(--primary)) !important; }
+
+.parent-theme .ring-indigo-500,
+.parent-theme .ring-indigo-500\/10,
+.parent-theme .ring-indigo-500\/20,
+.parent-theme .focus\:ring-indigo-500:focus { --tw-ring-color: rgb(var(--primary) / 0.4) !important; }
+
+.parent-theme .shadow-indigo-600\/10,
+.parent-theme .shadow-indigo-600\/20 { --tw-shadow-color: rgb(var(--primary) / 0.2) !important; }
+
+.parent-theme .from-indigo-500,
+.parent-theme .from-indigo-600 { --tw-gradient-from: rgb(var(--primary)) var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(var(--primary) / 0) var(--tw-gradient-to-position) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
+.parent-theme .to-indigo-500,
+.parent-theme .to-indigo-600 { --tw-gradient-to: rgb(var(--primary)) var(--tw-gradient-to-position) !important; }
+.parent-theme .via-indigo-500,
+.parent-theme .via-indigo-600 { --tw-gradient-stops: var(--tw-gradient-from), rgb(var(--primary)) var(--tw-gradient-via-position), var(--tw-gradient-to) !important; }

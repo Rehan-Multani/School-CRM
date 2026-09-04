@@ -81,20 +81,25 @@ export const SubjectsIndex = () => {
     status: 'ACTIVE',
   });
 
-  // Load reference classes and years
-  useEffect(() => {
-    Promise.all([
-      principalAcademicApi.classes({ limit: 100 }),
-      principalAcademicApi.years({ limit: 100 }),
-    ])
-      .then(([classesRes, yearsRes]) => {
-        const activeClasses = (classesRes.data || []).filter((c) => c.status === 'ACTIVE');
-        const yearList = yearsRes.data || [];
-        setClasses(activeClasses);
-        setYears(yearList);
-      })
-      .catch(() => {});
+  // Load reference classes and years once on mount
+  const loadReferenceData = useCallback(async () => {
+    try {
+      const [classesRes, yearsRes] = await Promise.all([
+        principalAcademicApi.classes({ limit: 100 }),
+        principalAcademicApi.years({ limit: 100 }),
+      ]);
+      const activeClasses = (classesRes.data || []).filter((c) => c.status === 'ACTIVE');
+      const yearList = yearsRes.data || [];
+      setClasses(activeClasses);
+      setYears(yearList);
+    } catch {
+      // ignore
+    }
   }, []);
+
+  useEffect(() => {
+    loadReferenceData();
+  }, [loadReferenceData]);
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -109,76 +114,49 @@ export const SubjectsIndex = () => {
     };
   }, []);
 
+  // Load subjects and their assigned class mappings in one clean request
   const loadSubjects = useCallback(async () => {
     setLoading(true);
     try {
-      // Ensure classes and years are loaded
-      let activeClasses = classes;
-      let activeYears = years;
-      if (activeClasses.length === 0 || activeYears.length === 0) {
-        const [cRes, yRes] = await Promise.all([
-          principalAcademicApi.classes({ limit: 100 }),
-          principalAcademicApi.years({ limit: 100 }),
-        ]);
-        activeClasses = (cRes.data || []).filter((c) => c.status === 'ACTIVE');
-        activeYears = yRes.data || [];
-        setClasses(activeClasses);
-        setYears(activeYears);
-      }
+      const [subjectsRes, assignmentsRes] = await Promise.all([
+        principalAcademicApi.subjects({ limit: 100 }),
+        principalAcademicApi.allSectionSubjects(selectedYear ? { academicYearId: selectedYear } : {}),
+      ]);
 
-      const classMap = new Map(activeClasses.map(c => [c.id, c]));
-
-      // Fetch all sections
-      const sectionsRes = await principalAcademicApi.sections({ limit: 1000 });
-      const currentSections = (sectionsRes.data || []).filter((s) => {
-        if (selectedYear && s.academicYearId !== selectedYear) return false;
-        return s.status === 'ACTIVE';
-      });
-
-      // Fetch subjects mapped for each active section in parallel
-      const mappingsRes = await Promise.all(
-        currentSections.map(async (sec) => {
-          try {
-            const res = await principalAcademicApi.sectionSubjects(sec.id);
-            return { classId: sec.classId, subjectIds: (res.data || []).map(item => item.subjectId) };
-          } catch {
-            return { classId: sec.classId, subjectIds: [] };
-          }
-        })
-      );
+      const subjectList = subjectsRes.data || [];
+      const assignments = assignmentsRes.data || [];
 
       const subjectClassNamesLookup = {};
       const subjectIdsToClassIds = {};
 
-      mappingsRes.forEach(m => {
-        const clsObj = classMap.get(m.classId);
-        if (clsObj) {
-          m.subjectIds.forEach(sid => {
-            if (!subjectClassNamesLookup[sid]) subjectClassNamesLookup[sid] = new Set();
-            if (!subjectIdsToClassIds[sid]) subjectIdsToClassIds[sid] = new Set();
-            subjectClassNamesLookup[sid].add(clsObj.name);
-            subjectIdsToClassIds[sid].add(m.classId);
-          });
+      assignments.forEach((item) => {
+        const sid = item.subjectId || item.subject?.id;
+        const cid = item.classId || item.class?.id;
+        const className = item.class?.name;
+
+        if (sid) {
+          if (!subjectClassNamesLookup[sid]) subjectClassNamesLookup[sid] = new Set();
+          if (!subjectIdsToClassIds[sid]) subjectIdsToClassIds[sid] = new Set();
+          if (className) subjectClassNamesLookup[sid].add(className);
+          if (cid) subjectIdsToClassIds[sid].add(cid);
         }
       });
 
       // Convert sets to arrays
       const lookup = {};
-      Object.keys(subjectClassNamesLookup).forEach(sid => {
+      Object.keys(subjectClassNamesLookup).forEach((sid) => {
         lookup[sid] = Array.from(subjectClassNamesLookup[sid]);
       });
+
       setSubjectMappings(lookup);
       setSubjectClassIdsLookup(subjectIdsToClassIds);
-
-      // Load subjects
-      const result = await principalAcademicApi.subjects({ limit: 100 });
-      setSubjects(result.data || []);
+      setSubjects(subjectList);
     } catch (error) {
       showToast(apiMessage(error, 'Unable to load subjects'), 'error');
     } finally {
       setLoading(false);
     }
-  }, [classes, years, selectedYear, showToast]);
+  }, [selectedYear, showToast]);
 
   useEffect(() => {
     loadSubjects();
