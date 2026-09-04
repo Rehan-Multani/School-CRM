@@ -1,4 +1,5 @@
 import { communicationService } from '../services/communication.service.js';
+import { auditLogService } from '../services/auditLog.service.js';
 
 function schoolId(req) {
   const role = req.user?.role?.toUpperCase();
@@ -28,6 +29,7 @@ export async function createAnnouncement(req, res, next) {
       performedBy(req),
       schoolId(req)
     );
+    auditLogService.record(req, { module: 'COMMUNICATION', action: data.status === 'PUBLISHED' ? 'ANNOUNCE_PUBLISH' : 'ANNOUNCE_DRAFT', entityType: 'Announcement', entityId: data.id, summary: `${data.status === 'PUBLISHED' ? 'Published' : 'Drafted'} announcement "${data.title}"` });
     res.status(201).json({ success: true, data, message: `Announcement "${data.title}" ${data.status === 'PUBLISHED' ? 'published' : 'saved'}` });
   } catch (error) {
     next(error);
@@ -44,6 +46,7 @@ export async function updateAnnouncement(req, res, next) {
 export async function publishAnnouncement(req, res, next) {
   try {
     const data = await communicationService.publishAnnouncement(schoolId(req), req.params.id, schoolId(req));
+    auditLogService.record(req, { module: 'COMMUNICATION', action: 'ANNOUNCE_PUBLISH', entityType: 'Announcement', entityId: data.id, summary: `Published announcement "${data.title}"` });
     res.json({ success: true, data, message: 'Announcement published' });
   } catch (error) {
     next(error);
@@ -75,6 +78,7 @@ export async function createBroadcast(req, res, next) {
       performedBy(req),
       schoolId(req)
     );
+    auditLogService.record(req, { module: 'COMMUNICATION', action: 'BROADCAST', entityType: 'BroadcastAlert', entityId: data.id, summary: `${data.channel} broadcast to ${data.audienceLabel}` });
     res.status(201).json({ success: true, data, message: `${data.channel} broadcast recorded` });
   } catch (error) {
     next(error);

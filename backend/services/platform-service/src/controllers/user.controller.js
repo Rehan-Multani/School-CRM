@@ -1,6 +1,7 @@
 import { userService } from '../services/user.service.js';
 import { collectSchoolUserUploadFiles } from '../middleware/uploadSchoolUser.js';
 import { deleteUploadedFile } from '../utils/upload.utils.js';
+import { auditLogService } from '../services/auditLog.service.js';
 
 function schoolId(req) {
   const role = req.user?.role?.toUpperCase();
@@ -45,6 +46,7 @@ export async function createUser(req, res, next) {
   const uploadFiles = collectSchoolUserUploadFiles(req);
   try {
     const data = await userService.createUser(schoolId(req), req.body, uploadFiles);
+    auditLogService.record(req, { module: 'USERS', action: 'CREATE', entityType: 'SchoolUser', entityId: data?.id, summary: `Created ${data?.role || 'staff'} account ${data?.email || ''}` });
     res.status(201).json({ success: true, data, message: 'User created successfully' });
   } catch (error) {
     cleanupUploadedFiles(uploadFiles);

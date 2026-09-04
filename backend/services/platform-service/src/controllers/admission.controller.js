@@ -1,4 +1,5 @@
 import { admissionService } from '../services/admission.service.js';
+import { auditLogService } from '../services/auditLog.service.js';
 
 function schoolId(req) {
   const role = req.user?.role?.toUpperCase();
@@ -42,6 +43,7 @@ export async function getAdmission(req, res, next) {
 export async function createAdmission(req, res, next) {
   try {
     const data = await admissionService.create(schoolId(req), req.body, performedBy(req));
+    auditLogService.record(req, { module: 'ADMISSIONS', action: 'CREATE', entityType: 'Admission', entityId: data.id, summary: `Registered application for ${data.applicantName}` });
     res.status(201).json({ success: true, data, message: `Application for ${data.applicantName} registered` });
   } catch (error) {
     next(error);
@@ -66,6 +68,7 @@ export async function updateAdmissionStatus(req, res, next) {
       req.body?.reason,
       performedBy(req)
     );
+    auditLogService.record(req, { module: 'ADMISSIONS', action: 'STATUS', entityType: 'Admission', entityId: req.params.id, summary: `Moved ${data.applicantName} to ${data.status}` });
     res.json({ success: true, data, message: `Application moved to ${data.status.replace('_', ' ').toLowerCase()}` });
   } catch (error) {
     next(error);
@@ -75,6 +78,15 @@ export async function updateAdmissionStatus(req, res, next) {
 export async function approveAdmission(req, res, next) {
   try {
     const result = await admissionService.approve(schoolId(req), req.params.id, req.body, performedBy(req));
+    auditLogService.record(req, {
+      module: 'ADMISSIONS',
+      action: result.alreadyEnrolled ? 'APPROVE_NOOP' : 'APPROVE',
+      entityType: 'Admission',
+      entityId: req.params.id,
+      summary: result.alreadyEnrolled
+        ? 'Re-approve (already enrolled)'
+        : `Approved admission — Student ${result.student?.id || ''} / ${result.admission?.admissionNo || ''}`,
+    });
     res.json({
       success: true,
       data: result,

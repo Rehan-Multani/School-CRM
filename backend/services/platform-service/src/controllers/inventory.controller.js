@@ -1,4 +1,5 @@
 import { inventoryService } from '../services/inventory.service.js';
+import { auditLogService } from '../services/auditLog.service.js';
 
 function schoolId(req) {
   const role = req.user?.role?.toUpperCase();
@@ -83,6 +84,7 @@ export async function getAsset(req, res, next) {
 export async function createAsset(req, res, next) {
   try {
     const data = await inventoryService.createAsset(schoolId(req), req.body);
+    auditLogService.record(req, { module: 'INVENTORY', action: 'CREATE', entityType: 'Asset', entityId: data.id, summary: `Added asset "${data.name}" (${data.assetCode})` });
     res.status(201).json({ success: true, data, message: `Asset "${data.name}" added` });
   } catch (error) {
     next(error);
@@ -99,6 +101,7 @@ export async function updateAsset(req, res, next) {
 export async function deleteAsset(req, res, next) {
   try {
     const result = await inventoryService.deleteAsset(schoolId(req), req.params.id);
+    auditLogService.record(req, { module: 'INVENTORY', action: 'DELETE', entityType: 'Asset', entityId: req.params.id, summary: 'Deleted an asset' });
     res.json(result);
   } catch (error) {
     next(error);
@@ -112,6 +115,13 @@ export async function recordAssetMovement(req, res, next) {
       req.body,
       performedBy(req)
     );
+    auditLogService.record(req, {
+      module: 'INVENTORY',
+      action: `STOCK_${String(req.body?.type || 'MOVE').toUpperCase()}`,
+      entityType: 'Asset',
+      entityId: req.params.id,
+      summary: `${String(req.body?.type || 'movement')} ${req.body?.qty ?? ''} × "${data.name}" (bal ${data.availableQuantity})`,
+    });
     res.json({ success: true, data, message: `Stock ${String(req.body?.type || '').toLowerCase()} recorded` });
   } catch (error) {
     next(error);

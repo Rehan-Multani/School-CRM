@@ -350,6 +350,7 @@ import {
   deleteAsset,
   recordAssetMovement,
 } from '../controllers/inventory.controller.js';
+import { listAuditLogs } from '../controllers/auditLog.controller.js';
 import {
   getPermissionCatalogue,
   listRoles,
@@ -1007,6 +1008,11 @@ router.get('/school-portal/roles/:id', requireSchoolAdmin, getRole);
 router.patch('/school-portal/roles/:id', requireSchoolAdmin, updateRole);
 router.delete('/school-portal/roles/:id', requireSchoolAdmin, deleteRole);
 router.patch('/school-portal/users/:id/role', requireSchoolAdmin, assignUserRole);
+
+// ==========================================================================
+// AUDIT LOGS — school-admin (read).
+// ==========================================================================
+router.get('/school-portal/audit-logs', requireSchoolAdmin, listAuditLogs);
 
 router.get('/subscriptions', requireSuperAdmin, listPlans);
 router.post('/subscriptions', requireSuperAdmin, createPlan);

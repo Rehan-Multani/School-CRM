@@ -1,4 +1,5 @@
 import { studentAttendanceService } from '../services/studentAttendance.service.js';
+import { auditLogService } from '../services/auditLog.service.js';
 
 function schoolId(req) {
   const role = req.user?.role?.toUpperCase();
@@ -23,6 +24,13 @@ export async function getStudentAttendanceDay(req, res, next) {
 export async function saveStudentAttendanceDay(req, res, next) {
   try {
     const data = await studentAttendanceService.saveDay(schoolId(req), req.body, performedBy(req));
+    auditLogService.record(req, {
+      module: 'ATTENDANCE',
+      action: 'STUDENT_SAVE',
+      entityType: 'StudentAttendance',
+      entityId: data.id,
+      summary: `Marked ${data.className || ''} ${data.sectionName || ''} for ${data.date} (${data.summary?.presentRate ?? 0}% present)`,
+    });
     res.json({ success: true, data, message: 'Attendance saved' });
   } catch (error) {
     next(error);

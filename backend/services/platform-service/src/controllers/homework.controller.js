@@ -1,4 +1,5 @@
 import { homeworkService } from '../services/homework.service.js';
+import { auditLogService } from '../services/auditLog.service.js';
 
 function schoolId(req) {
   const role = req.user?.role?.toUpperCase();
@@ -51,6 +52,7 @@ export async function getHomework(req, res, next) {
 export async function createHomework(req, res, next) {
   try {
     const data = await homeworkService.create(schoolId(req), req.body, performedBy(req));
+    auditLogService.record(req, { module: 'HOMEWORK', action: 'CREATE', entityType: 'Homework', entityId: data.id, summary: `Created homework "${data.title}"` });
     res.status(201).json({ success: true, data, message: `Homework "${data.title}" created` });
   } catch (error) {
     next(error);
@@ -69,6 +71,7 @@ export async function updateHomework(req, res, next) {
 export async function deleteHomework(req, res, next) {
   try {
     const result = await homeworkService.remove(schoolId(req), req.params.id);
+    auditLogService.record(req, { module: 'HOMEWORK', action: 'DELETE', entityType: 'Homework', entityId: req.params.id, summary: 'Deleted a homework assignment' });
     res.json(result);
   } catch (error) {
     next(error);

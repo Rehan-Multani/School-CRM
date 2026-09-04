@@ -456,6 +456,7 @@ export const librarianApi = {
 
 export const libraryPortalApi = librarianApi;
 
+
 const hrClient = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
@@ -1037,6 +1038,14 @@ export const principalHomeworkApi = {
     principalClient.get('/platform/school-portal/homework/stats', { params }).then((r) => r.data),
   monitor: (params) =>
     principalClient.get('/platform/school-portal/homework/monitor', { params }).then((r) => r.data),
+};
+
+// ===========================================================================
+// AUDIT LOGS — school-admin (read)
+// ===========================================================================
+export const auditApi = {
+  list: (params) =>
+    schoolAdminClient.get('/platform/school-portal/audit-logs', { params }).then((r) => r.data),
 };
 
 // ===========================================================================
