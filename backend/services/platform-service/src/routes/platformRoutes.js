@@ -336,6 +336,20 @@ import {
   approveAdmission,
   deleteAdmission,
 } from '../controllers/admission.controller.js';
+import {
+  listAssetCategories,
+  createAssetCategory,
+  updateAssetCategory,
+  deleteAssetCategory,
+  getInventoryStats,
+  listStockMovements,
+  listAssets,
+  getAsset,
+  createAsset,
+  updateAsset,
+  deleteAsset,
+  recordAssetMovement,
+} from '../controllers/inventory.controller.js';
 import { requireSuperAdmin } from '../middleware/requireSuperAdmin.js';
 import { requireSchoolAdmin } from '../middleware/requireSchoolAdmin.js';
 import { requireLibrarian } from '../middleware/requireLibrarian.js';
@@ -909,6 +923,22 @@ router.post('/school-portal/admissions/:id/approve', requireSchoolAdmin, approve
 router.patch('/school-portal/admissions/:id/status', requireSchoolAdmin, updateAdmissionStatus);
 router.patch('/school-portal/admissions/:id', requireSchoolAdmin, updateAdmission);
 router.delete('/school-portal/admissions/:id', requireSchoolAdmin, deleteAdmission);
+
+// ==========================================================================
+// INVENTORY / SCHOOL ASSETS — school-admin. Static routes before :id.
+// ==========================================================================
+router.get('/school-portal/inventory/stats', requireSchoolAdmin, getInventoryStats);
+router.get('/school-portal/inventory/movements', requireSchoolAdmin, listStockMovements);
+router.get('/school-portal/inventory/categories', requireSchoolAdmin, listAssetCategories);
+router.post('/school-portal/inventory/categories', requireSchoolAdmin, createAssetCategory);
+router.patch('/school-portal/inventory/categories/:id', requireSchoolAdmin, updateAssetCategory);
+router.delete('/school-portal/inventory/categories/:id', requireSchoolAdmin, deleteAssetCategory);
+router.get('/school-portal/inventory/assets', requireSchoolAdmin, listAssets);
+router.post('/school-portal/inventory/assets', requireSchoolAdmin, createAsset);
+router.get('/school-portal/inventory/assets/:id', requireSchoolAdmin, getAsset);
+router.post('/school-portal/inventory/assets/:id/movement', requireSchoolAdmin, recordAssetMovement);
+router.patch('/school-portal/inventory/assets/:id', requireSchoolAdmin, updateAsset);
+router.delete('/school-portal/inventory/assets/:id', requireSchoolAdmin, deleteAsset);
 
 router.get('/subscriptions', requireSuperAdmin, listPlans);
 router.post('/subscriptions', requireSuperAdmin, createPlan);

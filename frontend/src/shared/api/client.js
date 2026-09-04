@@ -1040,6 +1040,36 @@ export const principalHomeworkApi = {
 };
 
 // ===========================================================================
+// INVENTORY / SCHOOL ASSETS — school-admin
+// ===========================================================================
+export const inventoryApi = {
+  stats: () =>
+    schoolAdminClient.get('/platform/school-portal/inventory/stats').then((r) => r.data),
+  movements: (params) =>
+    schoolAdminClient.get('/platform/school-portal/inventory/movements', { params }).then((r) => r.data),
+  categories: () =>
+    schoolAdminClient.get('/platform/school-portal/inventory/categories').then((r) => r.data),
+  createCategory: (payload) =>
+    schoolAdminClient.post('/platform/school-portal/inventory/categories', payload).then((r) => r.data),
+  updateCategory: (id, payload) =>
+    schoolAdminClient.patch(`/platform/school-portal/inventory/categories/${id}`, payload).then((r) => r.data),
+  deleteCategory: (id) =>
+    schoolAdminClient.delete(`/platform/school-portal/inventory/categories/${id}`).then((r) => r.data),
+  assets: (params) =>
+    schoolAdminClient.get('/platform/school-portal/inventory/assets', { params }).then((r) => r.data),
+  getAsset: (id) =>
+    schoolAdminClient.get(`/platform/school-portal/inventory/assets/${id}`).then((r) => r.data),
+  createAsset: (payload) =>
+    schoolAdminClient.post('/platform/school-portal/inventory/assets', payload).then((r) => r.data),
+  updateAsset: (id, payload) =>
+    schoolAdminClient.patch(`/platform/school-portal/inventory/assets/${id}`, payload).then((r) => r.data),
+  deleteAsset: (id) =>
+    schoolAdminClient.delete(`/platform/school-portal/inventory/assets/${id}`).then((r) => r.data),
+  movement: (id, payload) =>
+    schoolAdminClient.post(`/platform/school-portal/inventory/assets/${id}/movement`, payload).then((r) => r.data),
+};
+
+// ===========================================================================
 // ADMISSIONS — school-admin
 // ===========================================================================
 export const admissionsApi = {
