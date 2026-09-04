@@ -30,6 +30,7 @@ import {
   schoolAdminLogin,
   schoolAdminResetPassword,
   schoolBranding,
+  schoolThemePublic,
   schoolPortalChangePassword,
   schoolPortalConfig,
   schoolPortalMe,
@@ -305,12 +306,19 @@ import { requireSchoolAdmin } from '../middleware/requireSchoolAdmin.js';
 import { requireLibrarian } from '../middleware/requireLibrarian.js';
 import { requireHR } from '../middleware/requireHR.js';
 import { requirePrincipal } from '../middleware/requirePrincipal.js';
+import { requireAccountant } from '../middleware/requireAccountant.js';
 import {
   principalLogin,
   getPrincipalProfile,
   updatePrincipalProfile,
   changePrincipalPassword,
 } from '../controllers/principal.controller.js';
+import {
+  accountantLogin,
+  getAccountantProfile,
+  updateAccountantProfile,
+  changeAccountantPassword,
+} from '../controllers/accountant.controller.js';
 import {
   hrLogin,
   getHRDashboard,
@@ -379,6 +387,7 @@ router.patch('/schools/:id/status', requireSuperAdmin, updateSchoolStatus);
 router.post('/schools/:id/reset-login', requireSuperAdmin, resetSchoolLogin);
 router.delete('/schools/:id', requireSuperAdmin, deleteSchool);
 router.get('/school-auth/branding', schoolBranding);
+router.get('/school-theme/:schoolId', schoolThemePublic);
 router.post('/school-auth/login', schoolAdminLogin);
 router.post('/school-auth/librarian-login', loginRateLimiter, librarianLogin);
 router.post('/school-portal/auth/librarian-login', loginRateLimiter, librarianLogin);
@@ -389,6 +398,11 @@ router.post('/school-portal/auth/principal-login', loginRateLimiter, principalLo
 router.get('/school-portal/principal/me', requirePrincipal, getPrincipalProfile);
 router.patch('/school-portal/principal/profile', requirePrincipal, uploadSchoolUserFiles, convertSchoolUserImages, updatePrincipalProfile);
 router.patch('/school-portal/principal/password', requirePrincipal, changePrincipalPassword);
+router.post('/school-auth/accountant-login', loginRateLimiter, accountantLogin);
+router.post('/school-portal/auth/accountant-login', loginRateLimiter, accountantLogin);
+router.get('/school-portal/accountant/profile', requireAccountant, getAccountantProfile);
+router.patch('/school-portal/accountant/profile', requireAccountant, uploadSchoolUserFiles, convertSchoolUserImages, updateAccountantProfile);
+router.patch('/school-portal/accountant/password', requireAccountant, changeAccountantPassword);
 router.post('/school-auth/forgot-password', schoolAdminForgotPassword);
 router.post('/school-auth/reset-password', schoolAdminResetPassword);
 router.get('/school-portal/dashboard/summary', requirePrincipal, getSchoolAdminDashboardSummary);

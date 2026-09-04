@@ -81,6 +81,15 @@ apiClient.interceptors.response.use(
   }
 );
 
+// Public (no-auth) brand theme lookup shared by every role portal + login screens.
+// `school` is a school slug, code, or Mongo _id.
+export const schoolThemeApi = {
+  get: (school) =>
+    apiClient
+      .get(`/platform/school-theme/${encodeURIComponent(school)}`)
+      .then((res) => res.data?.data || null),
+};
+
 export const platformAuthApi = {
   login: (email, password) =>
     apiClient.post('/platform/auth/login', { email, password }).then((res) => res.data),
@@ -831,6 +840,136 @@ export const transportPortalApi = {
   updateIncident: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/transport/incidents/${id}`, payload).then((r) => r.data),
 };
 
+// ============================================================
+// ACCOUNTANT PORTAL
+// ============================================================
+const accountantClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
 
+accountantClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('accountant_token') || localStorage.getItem('school_admin_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export const accountantAuthApi = {
+  login: (credentials) =>
+    apiClient.post('/platform/school-portal/auth/accountant-login', credentials).then((r) => r.data),
+  profile: () => accountantClient.get('/platform/school-portal/accountant/profile').then((r) => r.data),
+  updateProfile: (payload) =>
+    accountantClient
+      .patch('/platform/school-portal/accountant/profile', payload, studentRequestConfig(payload))
+      .then((r) => r.data),
+  changePassword: (payload) =>
+    accountantClient.patch('/platform/school-portal/accountant/password', payload).then((r) => r.data),
+};
+
+export const accountantApi = {
+  // Dashboard
+  dashboard: (params) =>
+    accountantClient.get('/platform/school-portal/accountant/dashboard', { params }).then((r) => r.data),
+
+  // Reference data (shared academic + student lookups)
+  academicYears: () =>
+    accountantClient.get('/platform/school-portal/accountant/academic-years').then((r) => r.data),
+  classes: (params) =>
+    accountantClient.get('/platform/school-portal/accountant/classes', { params }).then((r) => r.data),
+  sections: (params) =>
+    accountantClient.get('/platform/school-portal/accountant/sections', { params }).then((r) => r.data),
+  searchStudents: (params) =>
+    accountantClient.get('/platform/school-portal/accountant/students', { params }).then((r) => r.data),
+  getStudent: (id) =>
+    accountantClient.get(`/platform/school-portal/accountant/students/${id}`).then((r) => r.data),
+
+  // Fee Collection
+  studentFeeProfile: (studentId, params) =>
+    accountantClient
+      .get(`/platform/school-portal/accountant/fees/students/${studentId}/profile`, { params })
+      .then((r) => r.data),
+  generateInvoice: (payload) =>
+    accountantClient.post('/platform/school-portal/accountant/fees/invoices/generate', payload).then((r) => r.data),
+  collectPayment: (invoiceId, payload) =>
+    accountantClient
+      .post(`/platform/school-portal/accountant/fees/invoices/${invoiceId}/pay`, payload)
+      .then((r) => r.data),
+
+  // Fee Structure (read scope)
+  feeStructures: (params) =>
+    accountantClient.get('/platform/school-portal/accountant/fee-structures', { params }).then((r) => r.data),
+  feeStructure: (id) =>
+    accountantClient.get(`/platform/school-portal/accountant/fee-structures/${id}`).then((r) => r.data),
+
+  // Installments
+  installments: (params) =>
+    accountantClient.get('/platform/school-portal/accountant/installments', { params }).then((r) => r.data),
+
+  // Dues / Pending Fees
+  dues: (params) =>
+    accountantClient.get('/platform/school-portal/accountant/dues', { params }).then((r) => r.data),
+  studentDueHistory: (studentId) =>
+    accountantClient.get(`/platform/school-portal/accountant/dues/${studentId}/history`).then((r) => r.data),
+
+  // Expenses
+  expenses: (params) =>
+    accountantClient.get('/platform/school-portal/accountant/expenses', { params }).then((r) => r.data),
+  getExpense: (id) =>
+    accountantClient.get(`/platform/school-portal/accountant/expenses/${id}`).then((r) => r.data),
+  createExpense: (payload) =>
+    accountantClient
+      .post('/platform/school-portal/accountant/expenses', payload, studentRequestConfig(payload))
+      .then((r) => r.data),
+  updateExpense: (id, payload) =>
+    accountantClient
+      .patch(`/platform/school-portal/accountant/expenses/${id}`, payload, studentRequestConfig(payload))
+      .then((r) => r.data),
+  updateExpenseStatus: (id, payload) =>
+    accountantClient
+      .patch(`/platform/school-portal/accountant/expenses/${id}/status`, payload)
+      .then((r) => r.data),
+  deleteExpense: (id) =>
+    accountantClient.delete(`/platform/school-portal/accountant/expenses/${id}`).then((r) => r.data),
+  expenseCategories: () =>
+    accountantClient.get('/platform/school-portal/accountant/expenses/categories').then((r) => r.data),
+
+  // Receipts / Invoices
+  receipts: (params) =>
+    accountantClient.get('/platform/school-portal/accountant/receipts', { params }).then((r) => r.data),
+  getReceipt: (id) =>
+    accountantClient.get(`/platform/school-portal/accountant/receipts/${id}`).then((r) => r.data),
+  invoices: (params) =>
+    accountantClient.get('/platform/school-portal/accountant/invoices', { params }).then((r) => r.data),
+  getInvoice: (id) =>
+    accountantClient.get(`/platform/school-portal/accountant/invoices/${id}`).then((r) => r.data),
+
+  // Transactions
+  transactions: (params) =>
+    accountantClient.get('/platform/school-portal/accountant/transactions', { params }).then((r) => r.data),
+  getTransaction: (id) =>
+    accountantClient.get(`/platform/school-portal/accountant/transactions/${id}`).then((r) => r.data),
+
+  // Notifications
+  notifications: (params) =>
+    accountantClient.get('/platform/school-portal/accountant/notifications', { params }).then((r) => r.data),
+  markNotificationRead: (id) =>
+    accountantClient.patch(`/platform/school-portal/accountant/notifications/${id}/read`).then((r) => r.data),
+  markAllNotificationsRead: () =>
+    accountantClient.patch('/platform/school-portal/accountant/notifications/read-all').then((r) => r.data),
+
+  // Reports
+  report: (category, params) =>
+    accountantClient
+      .get(`/platform/school-portal/accountant/reports/${category}`, { params })
+      .then((r) => r.data),
+
+  // Settings
+  settings: () =>
+    accountantClient.get('/platform/school-portal/accountant/settings').then((r) => r.data),
+  updateSettings: (payload) =>
+    accountantClient.patch('/platform/school-portal/accountant/settings', payload).then((r) => r.data),
+};
 
 

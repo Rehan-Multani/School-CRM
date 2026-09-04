@@ -8,8 +8,8 @@ export const AccountantLogin = () => {
   const { login } = useAccountantAuth();
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState('accountant@greenfield.edu');
-  const [password, setPassword] = useState('accountant123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
   const [view, setView] = useState('login'); // 'login', 'forgot', 'sent'
   const [error, setError] = useState(null);
@@ -20,20 +20,23 @@ export const AccountantLogin = () => {
     document.title = 'Accountant Portal Login | School CRM';
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    setTimeout(() => {
-      const result = login(username, password);
-      setLoading(false);
+    try {
+      const result = await login(username.trim(), password);
       if (result.success) {
         navigate('/accountant/dashboard');
       } else {
-        setError(result.message);
+        setError(result.message || 'Invalid accountant credentials');
       }
-    }, 450);
+    } catch (err) {
+      setError(err?.message || 'Unable to sign in. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleForgotSubmit = (e) => {
