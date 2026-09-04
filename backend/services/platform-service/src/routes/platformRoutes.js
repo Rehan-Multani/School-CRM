@@ -351,6 +351,15 @@ import {
   recordAssetMovement,
 } from '../controllers/inventory.controller.js';
 import {
+  getPermissionCatalogue,
+  listRoles,
+  getRole,
+  createRole,
+  updateRole,
+  deleteRole,
+  assignUserRole,
+} from '../controllers/role.controller.js';
+import {
   getStudentAttendanceDay,
   saveStudentAttendanceDay,
   markSingleStudentAttendance,
@@ -377,6 +386,7 @@ import { requireLibrarian } from '../middleware/requireLibrarian.js';
 import { requireHR } from '../middleware/requireHR.js';
 import { requirePrincipal } from '../middleware/requirePrincipal.js';
 import { requireAccountant } from '../middleware/requireAccountant.js';
+import { requirePermission } from '../middleware/requirePermission.js';
 import {
   principalLogin,
   getPrincipalProfile,
@@ -908,9 +918,9 @@ router.get('/school-portal/hr/reports/:category', requireHR, getHRReportData);
 router.get('/school-portal/events/stats', requirePrincipal, getEventStats);
 router.get('/school-portal/events', requirePrincipal, listEvents);
 router.get('/school-portal/events/:id', requirePrincipal, getEvent);
-router.post('/school-portal/events', requireSchoolAdmin, createEvent);
-router.patch('/school-portal/events/:id', requireSchoolAdmin, updateEvent);
-router.delete('/school-portal/events/:id', requireSchoolAdmin, deleteEvent);
+router.post('/school-portal/events', requireSchoolAdmin, requirePermission('events.manage'), createEvent);
+router.patch('/school-portal/events/:id', requireSchoolAdmin, requirePermission('events.manage'), updateEvent);
+router.delete('/school-portal/events/:id', requireSchoolAdmin, requirePermission('events.manage'), deleteEvent);
 
 // ==========================================================================
 // HOMEWORK — school-admin writes; principal + school-admin read/monitor.
@@ -919,9 +929,9 @@ router.get('/school-portal/homework/stats', requirePrincipal, getHomeworkStats);
 router.get('/school-portal/homework/monitor', requirePrincipal, getHomeworkMonitor);
 router.get('/school-portal/homework', requirePrincipal, listHomework);
 router.get('/school-portal/homework/:id', requirePrincipal, getHomework);
-router.post('/school-portal/homework', requireSchoolAdmin, createHomework);
-router.patch('/school-portal/homework/:id', requireSchoolAdmin, updateHomework);
-router.delete('/school-portal/homework/:id', requireSchoolAdmin, deleteHomework);
+router.post('/school-portal/homework', requireSchoolAdmin, requirePermission('homework.manage'), createHomework);
+router.patch('/school-portal/homework/:id', requireSchoolAdmin, requirePermission('homework.manage'), updateHomework);
+router.delete('/school-portal/homework/:id', requireSchoolAdmin, requirePermission('homework.manage'), deleteHomework);
 
 // ==========================================================================
 // MEETINGS — principal only. Static routes before :id.
@@ -938,12 +948,12 @@ router.delete('/school-portal/principal/meetings/:id', requirePrincipal, deleteM
 // ==========================================================================
 router.get('/school-portal/admissions/stats', requireSchoolAdmin, getAdmissionStats);
 router.get('/school-portal/admissions', requireSchoolAdmin, listAdmissions);
-router.post('/school-portal/admissions', requireSchoolAdmin, createAdmission);
+router.post('/school-portal/admissions', requireSchoolAdmin, requirePermission('admissions.manage'), createAdmission);
 router.get('/school-portal/admissions/:id', requireSchoolAdmin, getAdmission);
-router.post('/school-portal/admissions/:id/approve', requireSchoolAdmin, approveAdmission);
-router.patch('/school-portal/admissions/:id/status', requireSchoolAdmin, updateAdmissionStatus);
-router.patch('/school-portal/admissions/:id', requireSchoolAdmin, updateAdmission);
-router.delete('/school-portal/admissions/:id', requireSchoolAdmin, deleteAdmission);
+router.post('/school-portal/admissions/:id/approve', requireSchoolAdmin, requirePermission('admissions.approve'), approveAdmission);
+router.patch('/school-portal/admissions/:id/status', requireSchoolAdmin, requirePermission('admissions.manage'), updateAdmissionStatus);
+router.patch('/school-portal/admissions/:id', requireSchoolAdmin, requirePermission('admissions.manage'), updateAdmission);
+router.delete('/school-portal/admissions/:id', requireSchoolAdmin, requirePermission('admissions.manage'), deleteAdmission);
 
 // ==========================================================================
 // INVENTORY / SCHOOL ASSETS — school-admin. Static routes before :id.
@@ -955,22 +965,22 @@ router.post('/school-portal/inventory/categories', requireSchoolAdmin, createAss
 router.patch('/school-portal/inventory/categories/:id', requireSchoolAdmin, updateAssetCategory);
 router.delete('/school-portal/inventory/categories/:id', requireSchoolAdmin, deleteAssetCategory);
 router.get('/school-portal/inventory/assets', requireSchoolAdmin, listAssets);
-router.post('/school-portal/inventory/assets', requireSchoolAdmin, createAsset);
+router.post('/school-portal/inventory/assets', requireSchoolAdmin, requirePermission('inventory.manage'), createAsset);
 router.get('/school-portal/inventory/assets/:id', requireSchoolAdmin, getAsset);
-router.post('/school-portal/inventory/assets/:id/movement', requireSchoolAdmin, recordAssetMovement);
-router.patch('/school-portal/inventory/assets/:id', requireSchoolAdmin, updateAsset);
-router.delete('/school-portal/inventory/assets/:id', requireSchoolAdmin, deleteAsset);
+router.post('/school-portal/inventory/assets/:id/movement', requireSchoolAdmin, requirePermission('inventory.manage'), recordAssetMovement);
+router.patch('/school-portal/inventory/assets/:id', requireSchoolAdmin, requirePermission('inventory.manage'), updateAsset);
+router.delete('/school-portal/inventory/assets/:id', requireSchoolAdmin, requirePermission('inventory.manage'), deleteAsset);
 
 // ==========================================================================
 // COMMUNICATION HUB — school-admin.
 // ==========================================================================
 router.get('/school-portal/communication/announcements', requireSchoolAdmin, commListAnnouncements);
-router.post('/school-portal/communication/announcements', requireSchoolAdmin, commCreateAnnouncement);
-router.post('/school-portal/communication/announcements/:id/publish', requireSchoolAdmin, commPublishAnnouncement);
-router.patch('/school-portal/communication/announcements/:id', requireSchoolAdmin, commUpdateAnnouncement);
-router.delete('/school-portal/communication/announcements/:id', requireSchoolAdmin, commDeleteAnnouncement);
+router.post('/school-portal/communication/announcements', requireSchoolAdmin, requirePermission('communication.manage'), commCreateAnnouncement);
+router.post('/school-portal/communication/announcements/:id/publish', requireSchoolAdmin, requirePermission('communication.manage'), commPublishAnnouncement);
+router.patch('/school-portal/communication/announcements/:id', requireSchoolAdmin, requirePermission('communication.manage'), commUpdateAnnouncement);
+router.delete('/school-portal/communication/announcements/:id', requireSchoolAdmin, requirePermission('communication.manage'), commDeleteAnnouncement);
 router.get('/school-portal/communication/broadcasts', requireSchoolAdmin, commListBroadcasts);
-router.post('/school-portal/communication/broadcasts', requireSchoolAdmin, commCreateBroadcast);
+router.post('/school-portal/communication/broadcasts', requireSchoolAdmin, requirePermission('communication.manage'), commCreateBroadcast);
 router.get('/school-portal/communication/threads', requireSchoolAdmin, commListThreads);
 router.post('/school-portal/communication/threads/inbound', requireSchoolAdmin, commInboundMessage);
 router.get('/school-portal/communication/threads/:key', requireSchoolAdmin, commGetThread);
@@ -983,9 +993,20 @@ router.post('/school-portal/communication/threads/:key/reply', requireSchoolAdmi
 router.get('/school-portal/attendance/students/monitor', requirePrincipal, getStudentAttendanceMonitor);
 router.get('/school-portal/attendance/students/report', requirePrincipal, getStudentAttendanceReport);
 router.get('/school-portal/attendance/students', requireSchoolAdmin, getStudentAttendanceDay);
-router.post('/school-portal/attendance/students', requireSchoolAdmin, saveStudentAttendanceDay);
-router.post('/school-portal/attendance/students/mark-all', requireSchoolAdmin, markAllStudentAttendance);
-router.patch('/school-portal/attendance/students/:sectionId/:studentId', requireSchoolAdmin, markSingleStudentAttendance);
+router.post('/school-portal/attendance/students', requireSchoolAdmin, requirePermission('attendance.mark'), saveStudentAttendanceDay);
+router.post('/school-portal/attendance/students/mark-all', requireSchoolAdmin, requirePermission('attendance.mark'), markAllStudentAttendance);
+router.patch('/school-portal/attendance/students/:sectionId/:studentId', requireSchoolAdmin, requirePermission('attendance.mark'), markSingleStudentAttendance);
+
+// ==========================================================================
+// ROLES & PERMISSIONS — school-admin.
+// ==========================================================================
+router.get('/school-portal/permissions', requireSchoolAdmin, getPermissionCatalogue);
+router.get('/school-portal/roles', requireSchoolAdmin, listRoles);
+router.post('/school-portal/roles', requireSchoolAdmin, createRole);
+router.get('/school-portal/roles/:id', requireSchoolAdmin, getRole);
+router.patch('/school-portal/roles/:id', requireSchoolAdmin, updateRole);
+router.delete('/school-portal/roles/:id', requireSchoolAdmin, deleteRole);
+router.patch('/school-portal/users/:id/role', requireSchoolAdmin, assignUserRole);
 
 router.get('/subscriptions', requireSuperAdmin, listPlans);
 router.post('/subscriptions', requireSuperAdmin, createPlan);

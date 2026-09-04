@@ -1040,6 +1040,26 @@ export const principalHomeworkApi = {
 };
 
 // ===========================================================================
+// ROLES & PERMISSIONS — school-admin
+// ===========================================================================
+export const rolesApi = {
+  catalogue: () =>
+    schoolAdminClient.get('/platform/school-portal/permissions').then((r) => r.data),
+  list: () =>
+    schoolAdminClient.get('/platform/school-portal/roles').then((r) => r.data),
+  get: (id) =>
+    schoolAdminClient.get(`/platform/school-portal/roles/${id}`).then((r) => r.data),
+  create: (payload) =>
+    schoolAdminClient.post('/platform/school-portal/roles', payload).then((r) => r.data),
+  update: (id, payload) =>
+    schoolAdminClient.patch(`/platform/school-portal/roles/${id}`, payload).then((r) => r.data),
+  remove: (id) =>
+    schoolAdminClient.delete(`/platform/school-portal/roles/${id}`).then((r) => r.data),
+  assignUser: (userId, roleId) =>
+    schoolAdminClient.patch(`/platform/school-portal/users/${userId}/role`, { roleId }).then((r) => r.data),
+};
+
+// ===========================================================================
 // STUDENT ATTENDANCE — capture (school-admin) + monitoring (principal)
 // ===========================================================================
 export const studentAttendanceApi = {

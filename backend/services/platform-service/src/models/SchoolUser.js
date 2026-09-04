@@ -90,6 +90,9 @@ const schoolUserSchema = new mongoose.Schema(
     lastLoginAt: { type: Date, default: null },
     credentialsSentAt: { type: Date, default: null },
     preferences: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
+    // Fine-grained RBAC (additive — empty means legacy role-based access only)
+    roleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Role', default: null },
+    roleName: { type: String, default: '', trim: true },
   },
   { timestamps: true }
 );

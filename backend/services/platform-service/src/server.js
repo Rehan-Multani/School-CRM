@@ -9,6 +9,7 @@ import { seedSupportTickets } from './seedSupport.js';
 import { seedAcademicTeachers } from './seedAcademic.js';
 import { seedStaffUsers } from './seedStaffUsers.js';
 import { seedLibraryData } from './seedLibrary.js';
+import { seedRoles } from './seedRoles.js';
 import { isFirebaseConfigured } from './config/firebase.js';
 
 async function start() {
@@ -22,6 +23,7 @@ async function start() {
   await seedAcademicTeachers();
   await seedStaffUsers();
   await seedLibraryData();
+  await seedRoles();
 
   app.listen(env.port, () => {
     console.log(`Platform service running on http://localhost:${env.port}`);
