@@ -452,7 +452,7 @@ export async function listAccountantExpenseCategories(req, res, next) {
 // ====================================================================
 export async function listAccountantReceipts(req, res, next) {
   try {
-    const result = await feeService.listPayments(accountantSchoolId(req), req.query);
+    const result = await accountantService.listReceipts(accountantSchoolId(req), req.query);
     res.json({ success: true, ...result });
   } catch (error) {
     next(error);
@@ -461,7 +461,7 @@ export async function listAccountantReceipts(req, res, next) {
 
 export async function getAccountantReceipt(req, res, next) {
   try {
-    const data = await feeService.getPayment(accountantSchoolId(req), req.params.id);
+    const data = await accountantService.getReceipt(accountantSchoolId(req), req.params.id);
     res.json({ success: true, data });
   } catch (error) {
     next(error);
@@ -470,7 +470,7 @@ export async function getAccountantReceipt(req, res, next) {
 
 export async function listAccountantInvoices(req, res, next) {
   try {
-    const result = await feeService.listInvoices(accountantSchoolId(req), req.query);
+    const result = await accountantService.listInvoicesView(accountantSchoolId(req), req.query);
     res.json({ success: true, ...result });
   } catch (error) {
     next(error);

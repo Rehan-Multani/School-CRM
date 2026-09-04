@@ -1,209 +1,232 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
 import { useAccountantAuth } from '../../context/AccountantAuthContext';
 import { useAccountantTheme } from '../../context/AccountantThemeContext';
 import { useToast } from '../../components/ui/Toast';
-import { Save, User, Lock, Moon, Sun, Receipt } from 'lucide-react';
+import { accountantAuthApi, accountantApi } from '../../../../shared/api/client';
+import { Save, Lock, Moon, Sun } from 'lucide-react';
+
+const TABS = [
+  { id: 'profile', label: 'Profile' },
+  { id: 'receipt', label: 'Receipt / Invoice Config' },
+  { id: 'notifications', label: 'Notification Preferences' },
+  { id: 'security', label: 'Security' },
+  { id: 'appearance', label: 'Appearance' },
+];
+
+const splitName = (name = '') => {
+  const parts = name.trim().split(/\s+/);
+  return { firstName: parts[0] || '', lastName: parts.slice(1).join(' ') };
+};
 
 export const Settings = () => {
-  const [activeTab, setActiveTab] = useState('profile');
+  const [tab, setTab] = useState('profile');
   const { user, updateProfile } = useAccountantAuth();
   const { darkMode, toggleTheme } = useAccountantTheme();
   const { showToast, ToastComponent } = useToast();
 
-  // Profile Form state
-  const [name, setName] = useState(user?.name || '');
-  const [email, setEmail] = useState(user?.email || '');
-  const [phone, setPhone] = useState(user?.phone || '');
+  const [profile, setProfile] = useState({ firstName: '', lastName: '', phone: '', email: '' });
+  const [prefs, setPrefs] = useState({
+    receipt: { header: '', footer: '' },
+    invoice: { header: '', footer: '' },
+    notifications: { payment: true, feeUpdates: true, expenses: true, invoices: true, system: true },
+  });
+  const [pw, setPw] = useState({ currentPassword: '', newPassword: '' });
+  const [saving, setSaving] = useState(false);
 
-  // Receipt template configurations state
-  const [headerText, setHeaderText] = useState('Greenfield Public School');
-  const [footerText, setFooterText] = useState('Thank you for choosing Greenfield Public School. Electronic verified copy.');
+  useEffect(() => {
+    accountantAuthApi
+      .profile()
+      .then((res) => {
+        const u = res?.user || {};
+        setProfile({
+          firstName: u.firstName || splitName(u.name).firstName,
+          lastName: u.lastName || splitName(u.name).lastName,
+          phone: u.phone || '',
+          email: u.email || '',
+        });
+      })
+      .catch(() => {
+        const { firstName, lastName } = splitName(user?.name);
+        setProfile({ firstName, lastName, phone: user?.phone || '', email: user?.email || '' });
+      });
 
-  // Password state
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+    accountantApi
+      .settings()
+      .then((res) => {
+        const p = res?.data?.preferences || {};
+        setPrefs((cur) => ({
+          receipt: { ...cur.receipt, ...(p.receipt || {}) },
+          invoice: { ...cur.invoice, ...(p.invoice || {}) },
+          notifications: { ...cur.notifications, ...(p.notifications || {}) },
+        }));
+      })
+      .catch(() => {});
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleSaveProfile = (e) => {
+  const saveProfile = (e) => {
     e.preventDefault();
-    updateProfile({ name, email, phone });
-    showToast('Accountant profile card updated successfully!', 'success');
+    setSaving(true);
+    accountantAuthApi
+      .updateProfile({ firstName: profile.firstName, lastName: profile.lastName, phone: profile.phone })
+      .then((res) => {
+        const u = res?.user || {};
+        updateProfile({ name: u.name || `${profile.firstName} ${profile.lastName}`.trim(), phone: profile.phone });
+        showToast('Profile updated', 'success');
+      })
+      .catch((err) => showToast(err?.response?.data?.message || 'Update failed', 'error'))
+      .finally(() => setSaving(false));
   };
 
-  const handleSaveReceiptTemplate = (e) => {
+  const savePrefs = (e) => {
     e.preventDefault();
-    showToast('Receipt template header & footers modified!', 'success');
+    setSaving(true);
+    accountantApi
+      .updateSettings({ preferences: prefs })
+      .then(() => showToast('Settings saved', 'success'))
+      .catch((err) => showToast(err?.response?.data?.message || 'Save failed', 'error'))
+      .finally(() => setSaving(false));
   };
 
-  const handleUpdatePassword = (e) => {
+  const savePassword = (e) => {
     e.preventDefault();
-    showToast('Accountant security credentials password updated!', 'success');
-    setCurrentPassword('');
-    setNewPassword('');
+    if (pw.newPassword.length < 8) return showToast('New password must be at least 8 characters', 'error');
+    setSaving(true);
+    accountantAuthApi
+      .changePassword(pw)
+      .then(() => {
+        showToast('Password updated', 'success');
+        setPw({ currentPassword: '', newPassword: '' });
+      })
+      .catch((err) => showToast(err?.response?.data?.message || 'Password change failed', 'error'))
+      .finally(() => setSaving(false));
   };
+
+  const inp = 'w-full bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-1 focus:ring-violet-500 text-xs';
 
   return (
     <div className="space-y-6 text-xs font-semibold">
-      <PageHeader 
-        title="Settings & Parameters" 
-        subtitle="Manage accountant profile info, customize printed receipt templates, and toggle themes." 
-      />
+      <PageHeader title="Settings" subtitle="Accountant profile, receipt/invoice configuration, notification preferences and security." />
+      <Tabs tabs={TABS} activeTab={tab} onChange={setTab} />
 
-      <Tabs 
-        tabs={[
-          { id: 'profile', label: 'Accountant Profile' },
-          { id: 'templates', label: 'Receipt Template Design' },
-          { id: 'security', label: 'Security & Password' },
-          { id: 'themes', label: 'Theme Toggles' }
-        ]} 
-        activeTab={activeTab} 
-        onChange={setActiveTab} 
-      />
-
-      {activeTab === 'profile' && (
-        <form onSubmit={handleSaveProfile} className="bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 bg-slate-50 dark:bg-slate-955 p-4 border border-slate-100 dark:border-slate-850 rounded-2xl">
-            <img src={user?.photo} alt={user?.name} className="w-16 h-16 rounded-xl object-cover border" />
-            <div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block font-sans">Accountant Photo</span>
-              <p className="text-[11px] text-slate-500 mt-1 font-semibold">PNG, JPG formats supported. Max size 2MB.</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-1">
-              <label>Authorized Name</label>
-              <input 
-                type="text" 
-                value={name} 
-                onChange={(e) => setName(e.target.value)} 
-                required 
-                className="w-full bg-slate-50 dark:bg-slate-950 p-2.5 rounded-xl border focus:outline-none focus:ring-1 focus:ring-violet-605" 
-              />
-            </div>
-            <div className="space-y-1">
-              <label>Official Email</label>
-              <input 
-                type="email" 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)} 
-                required 
-                className="w-full bg-slate-50 dark:bg-slate-955 p-2.5 rounded-xl border focus:outline-none focus:ring-1 focus:ring-violet-605" 
-              />
-            </div>
-            <div className="space-y-1">
-              <label>Direct Contact Phone</label>
-              <input 
-                type="text" 
-                value={phone} 
-                onChange={(e) => setPhone(e.target.value)} 
-                required 
-                className="w-full bg-slate-50 dark:bg-slate-955 p-2.5 rounded-xl border focus:outline-none focus:ring-1 focus:ring-violet-605" 
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end pt-3">
-            <button 
-              type="submit" 
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-violet-600 hover:bg-violet-750 text-white rounded-xl font-bold shadow-sm"
-            >
-              <Save className="w-3.5 h-3.5" />
-              <span>Save Profile Changes</span>
-            </button>
-          </div>
-        </form>
-      )}
-
-      {activeTab === 'templates' && (
-        <form onSubmit={handleSaveReceiptTemplate} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-805 rounded-3xl p-6 shadow-sm space-y-4">
-          <div className="space-y-1">
-            <label>Receipt Header School Title</label>
-            <input 
-              type="text" 
-              value={headerText} 
-              onChange={(e) => setHeaderText(e.target.value)} 
-              required 
-              className="w-full bg-slate-50 dark:bg-slate-955 p-2.5 rounded-xl border focus:outline-none focus:ring-1 focus:ring-violet-605" 
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label>Receipt Footer Terms Declaration</label>
-            <textarea 
-              rows={3}
-              value={footerText} 
-              onChange={(e) => setFooterText(e.target.value)} 
-              required 
-              className="w-full bg-slate-50 dark:bg-slate-955 p-2.5 rounded-xl border focus:outline-none focus:ring-1 focus:ring-violet-605" 
-            />
-          </div>
-
-          <div className="flex justify-end pt-3">
-            <button 
-              type="submit" 
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-violet-600 hover:bg-violet-750 text-white rounded-xl font-bold shadow-sm"
-            >
-              <Save className="w-3.5 h-3.5" />
-              <span>Save Template Configurations</span>
-            </button>
-          </div>
-        </form>
-      )}
-
-      {activeTab === 'security' && (
-        <form onSubmit={handleUpdatePassword} className="bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+      {tab === 'profile' && (
+        <form onSubmit={saveProfile} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label>Current Active Password</label>
-              <input 
-                type="password" 
-                value={currentPassword} 
-                onChange={(e) => setCurrentPassword(e.target.value)} 
-                required 
-                className="w-full bg-slate-50 dark:bg-slate-955 p-2.5 rounded-xl border focus:outline-none focus:ring-1 focus:ring-violet-605" 
-              />
-            </div>
-            <div className="space-y-1">
-              <label>New Target Password</label>
-              <input 
-                type="password" 
-                value={newPassword} 
-                onChange={(e) => setNewPassword(e.target.value)} 
-                required 
-                className="w-full bg-slate-50 dark:bg-slate-955 p-2.5 rounded-xl border focus:outline-none focus:ring-1 focus:ring-violet-605" 
-              />
-            </div>
+            <label className="space-y-1 block">
+              <span>First Name</span>
+              <input value={profile.firstName} onChange={(e) => setProfile((p) => ({ ...p, firstName: e.target.value }))} required className={inp} />
+            </label>
+            <label className="space-y-1 block">
+              <span>Last Name</span>
+              <input value={profile.lastName} onChange={(e) => setProfile((p) => ({ ...p, lastName: e.target.value }))} className={inp} />
+            </label>
+            <label className="space-y-1 block">
+              <span>Email (read-only)</span>
+              <input value={profile.email} readOnly className={`${inp} opacity-60`} />
+            </label>
+            <label className="space-y-1 block">
+              <span>Phone</span>
+              <input value={profile.phone} onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))} className={inp} />
+            </label>
           </div>
-
-          <div className="flex justify-end pt-3">
-            <button 
-              type="submit" 
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-violet-600 hover:bg-violet-750 text-white rounded-xl font-bold shadow-sm"
-            >
-              <Lock className="w-3.5 h-3.5" />
-              <span>Apply New Password</span>
+          <div className="flex justify-end pt-2">
+            <button type="submit" disabled={saving} className="flex items-center gap-1.5 px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-bold disabled:opacity-50">
+              <Save className="w-3.5 h-3.5" /> Save Profile
             </button>
           </div>
         </form>
       )}
 
-      {activeTab === 'themes' && (
+      {tab === 'receipt' && (
+        <form onSubmit={savePrefs} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-5">
+          <div className="space-y-3">
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Receipt</p>
+            <label className="space-y-1 block">
+              <span>Header Text</span>
+              <input value={prefs.receipt.header} onChange={(e) => setPrefs((p) => ({ ...p, receipt: { ...p.receipt, header: e.target.value } }))} className={inp} />
+            </label>
+            <label className="space-y-1 block">
+              <span>Footer Text</span>
+              <textarea rows={2} value={prefs.receipt.footer} onChange={(e) => setPrefs((p) => ({ ...p, receipt: { ...p.receipt, footer: e.target.value } }))} className={inp} />
+            </label>
+          </div>
+          <div className="space-y-3">
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Invoice</p>
+            <label className="space-y-1 block">
+              <span>Header Text</span>
+              <input value={prefs.invoice.header} onChange={(e) => setPrefs((p) => ({ ...p, invoice: { ...p.invoice, header: e.target.value } }))} className={inp} />
+            </label>
+            <label className="space-y-1 block">
+              <span>Footer Text</span>
+              <textarea rows={2} value={prefs.invoice.footer} onChange={(e) => setPrefs((p) => ({ ...p, invoice: { ...p.invoice, footer: e.target.value } }))} className={inp} />
+            </label>
+          </div>
+          <div className="flex justify-end">
+            <button type="submit" disabled={saving} className="flex items-center gap-1.5 px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-bold disabled:opacity-50">
+              <Save className="w-3.5 h-3.5" /> Save Configuration
+            </button>
+          </div>
+        </form>
+      )}
+
+      {tab === 'notifications' && (
+        <form onSubmit={savePrefs} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-3 max-w-md">
+          {[
+            ['payment', 'Payment notifications'],
+            ['feeUpdates', 'Fee updates'],
+            ['expenses', 'Expense updates'],
+            ['invoices', 'Invoice updates'],
+            ['system', 'System notifications'],
+          ].map(([key, label]) => (
+            <label key={key} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl">
+              <span>{label}</span>
+              <input
+                type="checkbox"
+                checked={Boolean(prefs.notifications[key])}
+                onChange={(e) => setPrefs((p) => ({ ...p, notifications: { ...p.notifications, [key]: e.target.checked } }))}
+              />
+            </label>
+          ))}
+          <div className="flex justify-end pt-1">
+            <button type="submit" disabled={saving} className="flex items-center gap-1.5 px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-bold disabled:opacity-50">
+              <Save className="w-3.5 h-3.5" /> Save Preferences
+            </button>
+          </div>
+        </form>
+      )}
+
+      {tab === 'security' && (
+        <form onSubmit={savePassword} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4 max-w-xl">
+          <label className="space-y-1 block">
+            <span>Current Password</span>
+            <input type="password" value={pw.currentPassword} onChange={(e) => setPw((p) => ({ ...p, currentPassword: e.target.value }))} required className={inp} />
+          </label>
+          <label className="space-y-1 block">
+            <span>New Password (min 8 chars)</span>
+            <input type="password" value={pw.newPassword} onChange={(e) => setPw((p) => ({ ...p, newPassword: e.target.value }))} required className={inp} />
+          </label>
+          <div className="flex justify-end">
+            <button type="submit" disabled={saving} className="flex items-center gap-1.5 px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-bold disabled:opacity-50">
+              <Lock className="w-3.5 h-3.5" /> Update Password
+            </button>
+          </div>
+        </form>
+      )}
+
+      {tab === 'appearance' && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
-          <span className="text-[10px] font-black uppercase text-slate-450 tracking-wider block border-b pb-2">Appearance Layout customization</span>
-          <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-955 border border-slate-100 rounded-2xl max-w-md">
+          <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl max-w-md">
             <div className="flex items-center gap-2">
-              {darkMode ? <Moon className="w-4 h-4 text-violet-405" /> : <Sun className="w-4 h-4 text-amber-500" />}
-              <span>Dark Mode Layout Theme</span>
+              {darkMode ? <Moon className="w-4 h-4 text-violet-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
+              <span>Dark Mode</span>
             </div>
             <button
+              type="button"
               onClick={toggleTheme}
-              className={`w-10 h-5 flex items-center rounded-full p-0.5 transition-all ${
-                darkMode ? 'bg-violet-605 justify-end' : 'bg-slate-300 justify-start'
-              }`}
+              className={`w-10 h-5 flex items-center rounded-full p-0.5 transition-all ${darkMode ? 'bg-violet-600 justify-end' : 'bg-slate-300 justify-start'}`}
             >
-              <div className="bg-white w-4 h-4 rounded-full shadow-sm"></div>
+              <div className="bg-white w-4 h-4 rounded-full shadow-sm" />
             </button>
           </div>
         </div>
@@ -213,4 +236,5 @@ export const Settings = () => {
     </div>
   );
 };
+
 export default Settings;

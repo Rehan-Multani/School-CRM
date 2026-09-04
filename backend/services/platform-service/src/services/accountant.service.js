@@ -325,6 +325,146 @@ export class AccountantService {
     };
   }
 
+  // ==========================================
+  // RECEIPTS  (fee payments, enriched)
+  // ==========================================
+  async listReceipts(schoolId, query = {}) {
+    const sid = toObjectId(schoolId);
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = clampLimit(query.limit);
+    const skip = (page - 1) * limit;
+
+    const match = { schoolId: sid };
+    if (query.paymentMethod) match.paymentMethod = query.paymentMethod;
+    if (query.status) match.status = query.status;
+    if (query.dateFrom || query.dateTo) {
+      match.paymentDate = {};
+      if (query.dateFrom) match.paymentDate.$gte = new Date(query.dateFrom);
+      if (query.dateTo) match.paymentDate.$lte = new Date(query.dateTo);
+    }
+
+    const postMatch = {};
+    if (query.search) {
+      const safe = escapeRegex(query.search);
+      postMatch.$or = [
+        { receiptNumber: { $regex: safe, $options: 'i' } },
+        { 'student.firstName': { $regex: safe, $options: 'i' } },
+        { 'student.lastName': { $regex: safe, $options: 'i' } },
+        { 'student.admissionNumber': { $regex: safe, $options: 'i' } },
+        { 'invoice.invoiceNumber': { $regex: safe, $options: 'i' } },
+      ];
+    }
+
+    const pipeline = [
+      { $match: match },
+      { $lookup: { from: 'students', localField: 'studentId', foreignField: '_id', as: 'student' } },
+      { $unwind: { path: '$student', preserveNullAndEmptyArrays: true } },
+      { $lookup: { from: 'feeinvoices', localField: 'invoiceId', foreignField: '_id', as: 'invoice' } },
+      { $unwind: { path: '$invoice', preserveNullAndEmptyArrays: true } },
+      ...(Object.keys(postMatch).length ? [{ $match: postMatch }] : []),
+      { $sort: { paymentDate: -1 } },
+      { $facet: { rows: [{ $skip: skip }, { $limit: limit }], total: [{ $count: 'count' }] } },
+    ];
+
+    const [result] = await FeePayment.aggregate(pipeline);
+    const total = result?.total?.[0]?.count || 0;
+    const rows = (result?.rows || []).map((r) => this._shapeReceipt(r));
+    return { data: rows, pagination: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) } };
+  }
+
+  _shapeReceipt(r) {
+    const s = r.student || {};
+    return {
+      id: r._id.toString(),
+      receiptNumber: r.receiptNumber,
+      studentId: r.studentId ? r.studentId.toString() : null,
+      studentName: [s.firstName, s.lastName].filter(Boolean).join(' ') || 'Unknown Student',
+      admissionNumber: s.admissionNumber || '',
+      invoiceId: r.invoiceId ? r.invoiceId.toString() : null,
+      invoiceNumber: r.invoice?.invoiceNumber || '',
+      periodLabel: r.invoice?.periodLabel || '',
+      amount: r.amount,
+      paymentMethod: r.paymentMethod,
+      paymentReference: r.paymentReference,
+      paymentDate: r.paymentDate,
+      remarks: r.remarks,
+      status: r.status,
+      collectedBy: r.collectedBy,
+      createdAt: r.createdAt,
+    };
+  }
+
+  async getReceipt(schoolId, id) {
+    const sid = toObjectId(schoolId);
+    const pay = await FeePayment.findOne({ _id: id, schoolId: sid })
+      .populate('studentId', 'firstName lastName admissionNumber')
+      .populate('invoiceId', 'invoiceNumber periodLabel totalAmount paidAmount balanceAmount dueDate');
+    if (!pay) throw new AppError('Receipt not found', 404);
+    return {
+      ...this._shapeReceipt({
+        ...pay.toObject(),
+        _id: pay._id,
+        student: pay.studentId,
+        invoice: pay.invoiceId,
+        studentId: pay.studentId?._id,
+        invoiceId: pay.invoiceId?._id,
+      }),
+      invoice: pay.invoiceId
+        ? {
+            id: pay.invoiceId._id.toString(),
+            invoiceNumber: pay.invoiceId.invoiceNumber,
+            periodLabel: pay.invoiceId.periodLabel,
+            totalAmount: pay.invoiceId.totalAmount,
+            paidAmount: pay.invoiceId.paidAmount,
+            balanceAmount: pay.invoiceId.balanceAmount,
+            dueDate: pay.invoiceId.dueDate,
+          }
+        : null,
+    };
+  }
+
+  // ==========================================
+  // INVOICES (enriched, paginated)
+  // ==========================================
+  async listInvoicesView(schoolId, query = {}) {
+    const sid = toObjectId(schoolId);
+    const page = Math.max(1, Number(query.page) || 1);
+    const limit = clampLimit(query.limit);
+    const skip = (page - 1) * limit;
+
+    const match = { schoolId: sid };
+    if (query.status) match.status = query.status;
+    if (query.academicYearId) match.academicYearId = toObjectId(query.academicYearId);
+    if (query.studentId) match.studentId = toObjectId(query.studentId);
+
+    const postMatch = {};
+    if (query.classId) postMatch['enrollment.classId'] = toObjectId(query.classId);
+    if (query.search) {
+      const safe = escapeRegex(query.search);
+      postMatch.$or = [
+        { invoiceNumber: { $regex: safe, $options: 'i' } },
+        { 'student.firstName': { $regex: safe, $options: 'i' } },
+        { 'student.lastName': { $regex: safe, $options: 'i' } },
+        { 'student.admissionNumber': { $regex: safe, $options: 'i' } },
+      ];
+    }
+
+    const pipeline = [
+      { $match: match },
+      ...INVOICE_JOIN_STAGES,
+      ...(Object.keys(postMatch).length ? [{ $match: postMatch }] : []),
+      { $sort: { createdAt: -1 } },
+      { $facet: { rows: [{ $skip: skip }, { $limit: limit }], total: [{ $count: 'count' }] } },
+    ];
+
+    const [result] = await FeeInvoice.aggregate(pipeline);
+    const total = result?.total?.[0]?.count || 0;
+    return {
+      data: (result?.rows || []).map(shapeInvoiceRow),
+      pagination: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
+    };
+  }
+
   async studentDueHistory(schoolId, studentId) {
     const sid = toObjectId(schoolId);
     const student = await Student.findOne({ _id: studentId, schoolId: sid });

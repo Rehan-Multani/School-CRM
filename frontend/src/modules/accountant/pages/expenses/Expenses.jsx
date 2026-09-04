@@ -1,384 +1,412 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
-import { DataTable } from '../../components/ui/DataTable';
+import { ServerTable } from '../../components/ui/ServerTable';
 import { Modal } from '../../components/ui/Modal';
 import { Badge } from '../../components/ui/Badge';
 import { StatCard } from '../../components/ui/StatCard';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
-import { useAppStore } from '../../../../shared/store/useAppStore';
+import { accountantApi } from '../../../../shared/api/client';
 import { formatCurrency, formatDate } from '../../utils/formatters';
-import { 
-  TrendingDown, 
-  Plus, 
-  Receipt, 
-  Trash2, 
-  Building, 
-  Zap, 
-  BookOpen, 
-  FileText,
-  CreditCard
-} from 'lucide-react';
+import { exportToCSV } from '../../../../shared/lib/exportHelpers';
+import { PAYMENT_METHODS } from '../../utils/constants';
+import { TrendingDown, Plus, Receipt, Trash2, Pencil, Download, Search } from 'lucide-react';
 
-const CATEGORIES = [
-  'All Categories',
-  'Utilities & Bills',
-  'School Maintenance',
-  'Stationery & Printing',
-  'Science & Computer Labs',
-  'Campus Sports & Events',
-  'Library Acquisitions',
-  'Administrative / Misc'
-];
+const PAYMENT_STATUSES = ['PAID', 'PENDING', 'PARTIAL'];
+const APPROVAL_STATUSES = ['APPROVED', 'PENDING', 'REJECTED'];
+
+const emptyForm = () => ({
+  title: '',
+  category: '',
+  vendorName: '',
+  amount: '',
+  paymentMethod: 'CASH',
+  paymentStatus: 'PAID',
+  approvalStatus: 'APPROVED',
+  expenseDate: new Date().toISOString().split('T')[0],
+  reference: '',
+  notes: '',
+});
 
 export const Expenses = () => {
-  const { store, addExpense, deleteExpense } = useAppStore();
   const { showToast, ToastComponent } = useToast();
-  const expenses = store?.expenses || [];
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('All Categories');
-  const [form, setForm] = useState({
-    title: '',
-    category: 'Utilities & Bills',
-    payee: '',
-    amount: '',
-    paymentMethod: 'Bank Transfer',
-    date: new Date().toISOString().split('T')[0],
-    voucherNo: '',
-    notes: ''
-  });
+  const [rows, setRows] = useState([]);
+  const [pagination, setPagination] = useState({ page: 1, limit: 15, total: 0, totalPages: 1 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [categories, setCategories] = useState([]);
 
-  const totalExpenses = expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
-  const utilitiesTotal = expenses
-    .filter((e) => e.category === 'Utilities & Bills')
-    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
-  const maintenanceTotal = expenses
-    .filter((e) => e.category === 'School Maintenance')
-    .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const [filters, setFilters] = useState({ search: '', category: '', paymentStatus: '', page: 1 });
+  const [modal, setModal] = useState(null); // { mode: 'create'|'edit', form }
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [saving, setSaving] = useState(false);
 
-  const filteredExpenses = selectedCategory === 'All Categories'
-    ? expenses
-    : expenses.filter((e) => e.category === selectedCategory);
+  const loadCategories = () =>
+    accountantApi.expenseCategories().then((res) => setCategories(res?.data || [])).catch(() => {});
 
-  const handleOpenModal = () => {
-    setForm({
-      title: '',
-      category: 'Utilities & Bills',
-      payee: '',
-      amount: '',
-      paymentMethod: 'Bank Transfer',
-      date: new Date().toISOString().split('T')[0],
-      voucherNo: `VCH-${Math.floor(1000 + Math.random() * 9000)}`,
-      notes: ''
-    });
-    setIsModalOpen(true);
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const fetchList = () => {
+    setLoading(true);
+    setError(null);
+    const params = { page: filters.page, limit: 15 };
+    if (filters.search) params.search = filters.search;
+    if (filters.category) params.category = filters.category;
+    if (filters.paymentStatus) params.paymentStatus = filters.paymentStatus;
+    accountantApi
+      .expenses(params)
+      .then((res) => {
+        setRows(res?.data || []);
+        setPagination(res?.pagination || { page: 1, limit: 15, total: 0, totalPages: 1 });
+      })
+      .catch((err) => setError(err?.response?.data?.message || 'Failed to load expenses'))
+      .finally(() => setLoading(false));
   };
 
-  const handleSubmit = (e) => {
+  useEffect(fetchList, [filters]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const totals = useMemo(() => {
+    const sum = rows.reduce((s, e) => s + (e.amount || 0), 0);
+    return { sum, count: pagination.total };
+  }, [rows, pagination.total]);
+
+  const set = (patch) => setFilters((f) => ({ ...f, ...patch, page: patch.page ?? 1 }));
+
+  const submit = (e) => {
     e.preventDefault();
-    if (!form.title || !form.amount || !form.payee) {
-      showToast('Please fill out title, payee, and amount.', 'error');
-      return;
+    const f = modal.form;
+    if (!f.title || !f.category || !f.amount) {
+      return showToast('Title, category and amount are required', 'error');
     }
-
-    addExpense({
-      title: form.title,
-      category: form.category,
-      payee: form.payee,
-      amount: Number(form.amount),
-      paymentMethod: form.paymentMethod,
-      date: form.date,
-      voucherNo: form.voucherNo,
-      notes: form.notes
-    });
-
-    showToast(`Expense voucher ${form.voucherNo} recorded successfully.`, 'success');
-    setIsModalOpen(false);
+    setSaving(true);
+    const payload = {
+      title: f.title,
+      category: f.category,
+      vendorName: f.vendorName,
+      amount: Number(f.amount),
+      paymentMethod: f.paymentMethod,
+      paymentStatus: f.paymentStatus,
+      approvalStatus: f.approvalStatus,
+      expenseDate: f.expenseDate,
+      reference: f.reference,
+      notes: f.notes,
+    };
+    const req =
+      modal.mode === 'edit'
+        ? accountantApi.updateExpense(modal.id, payload)
+        : accountantApi.createExpense(payload);
+    req
+      .then(() => {
+        showToast(modal.mode === 'edit' ? 'Expense updated' : 'Expense recorded', 'success');
+        setModal(null);
+        loadCategories();
+        fetchList();
+      })
+      .catch((err) => showToast(err?.response?.data?.message || 'Save failed', 'error'))
+      .finally(() => setSaving(false));
   };
 
-  const handleDelete = (id, voucherNo) => {
-    deleteExpense(id);
-    showToast(`Expense voucher ${voucherNo} removed.`, 'info');
+  const doDelete = () => {
+    accountantApi
+      .deleteExpense(confirmDelete.id)
+      .then(() => {
+        showToast(`Expense ${confirmDelete.expenseNumber} removed`, 'info');
+        setConfirmDelete(null);
+        fetchList();
+      })
+      .catch((err) => showToast(err?.response?.data?.message || 'Delete failed', 'error'));
   };
 
-  const columns = [
-    {
-      key: 'voucherNo',
-      title: 'Voucher No',
-      sortable: true,
-      render: (v) => <span className="font-mono font-bold text-violet-600 dark:text-violet-400">{v}</span>
-    },
-    {
-      key: 'title',
-      title: 'Expense Title & Payee',
-      sortable: true,
-      render: (v, row) => (
+  const columns = useMemo(
+    () => [
+      { key: 'expenseNumber', title: 'Voucher', render: (r) => (
+        <span className="font-mono font-bold text-violet-600 dark:text-violet-400">{r.expenseNumber}</span>
+      ) },
+      { key: 'title', title: 'Title & Vendor', render: (r) => (
         <div>
-          <div className="font-bold text-slate-850 dark:text-slate-100">{v}</div>
-          <div className="text-[11px] text-slate-400">Payee: {row.payee}</div>
+          <p className="font-bold text-slate-900 dark:text-white">{r.title}</p>
+          <p className="text-[10px] text-slate-400">{r.vendorName || '—'}</p>
         </div>
-      )
-    },
-    {
-      key: 'category',
-      title: 'Category',
-      render: (v) => (
-        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-          {v}
-        </span>
-      )
-    },
-    {
-      key: 'paymentMethod',
-      title: 'Payment Mode',
-      render: (v) => (
-        <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-          {v}
-        </span>
-      )
-    },
-    {
-      key: 'amount',
-      title: 'Amount',
-      sortable: true,
-      render: (v) => (
-        <span className="font-bold text-rose-600 dark:text-rose-400">
-          {formatCurrency(v || 0)}
-        </span>
-      )
-    },
-    {
-      key: 'date',
-      title: 'Date',
-      sortable: true,
-      render: (v) => formatDate(v)
-    },
-    {
-      key: 'status',
-      title: 'Status',
-      render: (v) => <Badge variant={v === 'Paid' ? 'success' : 'warning'}>{v || 'Paid'}</Badge>
-    },
-    {
-      key: 'actions',
-      title: 'Actions',
-      render: (_, row) => (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleDelete(row.id, row.voucherNo);
-          }}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
-          title="Delete Expense"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
-      )
-    }
-  ];
+      ) },
+      { key: 'category', title: 'Category' },
+      { key: 'paymentMethod', title: 'Method' },
+      { key: 'amount', title: 'Amount', align: 'right', render: (r) => (
+        <span className="font-bold text-rose-600 dark:text-rose-400">{formatCurrency(r.amount)}</span>
+      ) },
+      { key: 'expenseDate', title: 'Date', render: (r) => formatDate(r.expenseDate) },
+      { key: 'paymentStatus', title: 'Payment', render: (r) => (
+        <Badge variant={r.paymentStatus === 'PAID' ? 'success' : 'warning'}>{r.paymentStatus}</Badge>
+      ) },
+      { key: 'approvalStatus', title: 'Approval', render: (r) => (
+        <Badge variant={r.approvalStatus === 'APPROVED' ? 'success' : r.approvalStatus === 'REJECTED' ? 'danger' : 'warning'}>
+          {r.approvalStatus}
+        </Badge>
+      ) },
+      { key: 'actions', title: 'Actions', render: (r) => (
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() =>
+              setModal({
+                mode: 'edit',
+                id: r.id,
+                expenseNumber: r.expenseNumber,
+                form: {
+                  title: r.title,
+                  category: r.category,
+                  vendorName: r.vendorName || '',
+                  amount: String(r.amount),
+                  paymentMethod: r.paymentMethod,
+                  paymentStatus: r.paymentStatus,
+                  approvalStatus: r.approvalStatus,
+                  expenseDate: (r.expenseDate || '').split('T')[0],
+                  reference: r.reference || '',
+                  notes: r.notes || '',
+                },
+              })
+            }
+            className="p-1.5 rounded-lg text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-950/20"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => setConfirmDelete(r)}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      ) },
+    ],
+    []
+  );
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="School Expenses Management"
-        subtitle="Record operational costs, vendor invoices, utility bills, and track school expenditure history."
+        title="Expenses"
+        subtitle="Record operational costs, vendor bills and utilities. Categories & vendors are managed inline."
         actions={
-          <button
-            onClick={handleOpenModal}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs shadow-sm transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Expense</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (!rows.length) return showToast('Nothing to export', 'info');
+                exportToCSV(rows, `expenses_${new Date().toISOString().split('T')[0]}.csv`);
+                showToast('Current page exported to CSV', 'success');
+              }}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs"
+            >
+              <Download className="w-3.5 h-3.5" /> Export
+            </button>
+            <button
+              onClick={() => setModal({ mode: 'create', form: emptyForm() })}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs"
+            >
+              <Plus className="w-4 h-4" /> Add Expense
+            </button>
+          </div>
         }
       />
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard
-          title="Total Expenses"
-          value={formatCurrency(totalExpenses)}
-          subtitle="recorded in session"
-          icon={TrendingDown}
-        />
-        <StatCard
-          title="Utilities & Power"
-          value={formatCurrency(utilitiesTotal)}
-          subtitle="electricity, internet, water"
-          icon={Zap}
-        />
-        <StatCard
-          title="Campus Maintenance"
-          value={formatCurrency(maintenanceTotal)}
-          subtitle="repairs & facilities"
-          icon={Building}
-        />
-        <StatCard
-          title="Expense Vouchers"
-          value={`${expenses.length}`}
-          subtitle="cleared debit vouchers"
-          icon={Receipt}
-        />
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <StatCard title="Expenses (this page)" value={formatCurrency(totals.sum)} subtitle="sum of shown rows" icon={TrendingDown} />
+        <StatCard title="Total Vouchers" value={`${totals.count}`} subtitle="matching filters" icon={Receipt} />
+        <StatCard title="Categories" value={`${categories.length}`} subtitle="in use + defaults" icon={Receipt} />
       </div>
 
-      {/* Category Pills Filter */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-              selectedCategory === cat
-                ? 'bg-rose-600 text-white shadow-sm'
-                : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {/* DataTable */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm">
-        <DataTable
-          columns={columns}
-          data={filteredExpenses}
-          searchPlaceholder="Search expense by title, payee, or voucher number..."
-          searchKey="title"
-          emptyMessage="No expense records found for this category."
-        />
-      </div>
-
-      {/* Add Expense Modal */}
-      {isModalOpen && (
-        <Modal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          title="Record New School Expense"
+      <div className="flex flex-wrap gap-3">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            value={filters.search}
+            onChange={(e) => set({ search: e.target.value })}
+            placeholder="Search title, vendor, voucher…"
+            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold outline-none focus:border-violet-500"
+          />
+        </div>
+        <select
+          value={filters.category}
+          onChange={(e) => set({ category: e.target.value })}
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
         >
-          <form onSubmit={handleSubmit} className="space-y-4 text-xs font-semibold">
-            <div className="space-y-1">
-              <label className="block text-slate-600 dark:text-slate-400">Expense Title / Description *</label>
+          <option value="">All Categories</option>
+          {categories.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+        <select
+          value={filters.paymentStatus}
+          onChange={(e) => set({ paymentStatus: e.target.value })}
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
+        >
+          <option value="">All Payment Statuses</option>
+          {PAYMENT_STATUSES.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <ServerTable
+        columns={columns}
+        rows={rows}
+        loading={loading}
+        error={error}
+        pagination={pagination}
+        onPageChange={(p) => set({ page: p })}
+        emptyMessage="No expenses match the current filters."
+      />
+
+      {modal && (
+        <Modal isOpen onClose={() => setModal(null)} title={modal.mode === 'edit' ? 'Edit Expense' : 'Record New Expense'}>
+          <form onSubmit={submit} className="space-y-4 text-xs font-semibold">
+            <Field label="Title / Description *">
               <input
-                type="text"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="e.g. Science Laboratory Reagents & Supplies"
+                value={modal.form.title}
+                onChange={(e) => setModal((m) => ({ ...m, form: { ...m.form, title: e.target.value } }))}
                 required
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-rose-500"
+                className="inp"
               />
-            </div>
-
+            </Field>
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="block text-slate-600 dark:text-slate-400">Category *</label>
-                <select
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-rose-500"
-                >
-                  {CATEGORIES.filter((c) => c !== 'All Categories').map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-slate-600 dark:text-slate-400">Payee / Vendor Name *</label>
+              <Field label="Category *">
                 <input
-                  type="text"
-                  value={form.payee}
-                  onChange={(e) => setForm({ ...form, payee: e.target.value })}
-                  placeholder="e.g. Apex Scientific Supplies"
+                  list="expense-categories"
+                  value={modal.form.category}
+                  onChange={(e) => setModal((m) => ({ ...m, form: { ...m.form, category: e.target.value } }))}
                   required
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-rose-500"
+                  className="inp"
                 />
-              </div>
+                <datalist id="expense-categories">
+                  {categories.map((c) => (
+                    <option key={c} value={c} />
+                  ))}
+                </datalist>
+              </Field>
+              <Field label="Vendor / Payee">
+                <input
+                  value={modal.form.vendorName}
+                  onChange={(e) => setModal((m) => ({ ...m, form: { ...m.form, vendorName: e.target.value } }))}
+                  className="inp"
+                />
+              </Field>
             </div>
-
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="block text-slate-600 dark:text-slate-400">Amount (₹) *</label>
+              <Field label="Amount (₹) *">
                 <input
                   type="number"
-                  value={form.amount}
-                  onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                  placeholder="e.g. 25000"
-                  required
                   min="1"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-rose-500"
+                  value={modal.form.amount}
+                  onChange={(e) => setModal((m) => ({ ...m, form: { ...m.form, amount: e.target.value } }))}
+                  required
+                  className="inp"
                 />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-slate-600 dark:text-slate-400">Payment Method *</label>
-                <select
-                  value={form.paymentMethod}
-                  onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-rose-500"
-                >
-                  <option value="Bank Transfer">Bank Transfer (NEFT/RTGS)</option>
-                  <option value="UPI">UPI / QR</option>
-                  <option value="Cheque">Bank Cheque</option>
-                  <option value="Cash">Petty Cash</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="block text-slate-600 dark:text-slate-400">Voucher / Invoice Reference</label>
-                <input
-                  type="text"
-                  value={form.voucherNo}
-                  onChange={(e) => setForm({ ...form, voucherNo: e.target.value })}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-rose-500 font-mono"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="block text-slate-600 dark:text-slate-400">Expense Date</label>
+              </Field>
+              <Field label="Expense Date">
                 <input
                   type="date"
-                  value={form.date}
-                  onChange={(e) => setForm({ ...form, date: e.target.value })}
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-rose-500"
+                  value={modal.form.expenseDate}
+                  onChange={(e) => setModal((m) => ({ ...m, form: { ...m.form, expenseDate: e.target.value } }))}
+                  className="inp"
                 />
-              </div>
+              </Field>
             </div>
-
-            <div className="space-y-1">
-              <label className="block text-slate-600 dark:text-slate-400">Remarks / Notes</label>
-              <textarea
-                value={form.notes}
-                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                placeholder="Details of the purchase, sanction reference, or department bill approval"
-                rows={2}
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-rose-500"
+            <div className="grid grid-cols-3 gap-3">
+              <Field label="Method">
+                <select
+                  value={modal.form.paymentMethod}
+                  onChange={(e) => setModal((m) => ({ ...m, form: { ...m.form, paymentMethod: e.target.value } }))}
+                  className="inp"
+                >
+                  {PAYMENT_METHODS.map((v) => (
+                    <option key={v} value={v}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Payment Status">
+                <select
+                  value={modal.form.paymentStatus}
+                  onChange={(e) => setModal((m) => ({ ...m, form: { ...m.form, paymentStatus: e.target.value } }))}
+                  className="inp"
+                >
+                  {PAYMENT_STATUSES.map((v) => (
+                    <option key={v} value={v}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Approval">
+                <select
+                  value={modal.form.approvalStatus}
+                  onChange={(e) => setModal((m) => ({ ...m, form: { ...m.form, approvalStatus: e.target.value } }))}
+                  className="inp"
+                >
+                  {APPROVAL_STATUSES.map((v) => (
+                    <option key={v} value={v}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+            </div>
+            <Field label="Reference / Invoice No">
+              <input
+                value={modal.form.reference}
+                onChange={(e) => setModal((m) => ({ ...m, form: { ...m.form, reference: e.target.value } }))}
+                className="inp font-mono"
               />
-            </div>
-
+            </Field>
+            <Field label="Notes">
+              <textarea
+                rows={2}
+                value={modal.form.notes}
+                onChange={(e) => setModal((m) => ({ ...m, form: { ...m.form, notes: e.target.value } }))}
+                className="inp"
+              />
+            </Field>
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
+              <button type="button" onClick={() => setModal(null)} className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
                 Cancel
               </button>
-              <button
-                type="submit"
-                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-sm"
-              >
-                Record Expense
+              <button type="submit" disabled={saving} className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50">
+                {saving ? 'Saving…' : modal.mode === 'edit' ? 'Save Changes' : 'Record Expense'}
               </button>
             </div>
           </form>
         </Modal>
       )}
 
+      {confirmDelete && (
+        <ConfirmDialog
+          isOpen
+          onClose={() => setConfirmDelete(null)}
+          onConfirm={doDelete}
+          title="Delete expense"
+          message={`Permanently remove ${confirmDelete.expenseNumber} (${formatCurrency(confirmDelete.amount)})?`}
+          confirmText="Delete"
+          variant="danger"
+        />
+      )}
+
+      <style>{`.inp{width:100%;background:rgb(248 250 252);border:1px solid rgb(226 232 240);border-radius:.75rem;padding:.5rem .75rem;font-size:.75rem}.dark .inp{background:rgb(30 41 59);border-color:rgb(51 65 85)}`}</style>
       <ToastComponent />
     </div>
   );
 };
+
+const Field = ({ label, children }) => (
+  <label className="block space-y-1">
+    <span className="block text-slate-600 dark:text-slate-400">{label}</span>
+    {children}
+  </label>
+);
+
 export default Expenses;
