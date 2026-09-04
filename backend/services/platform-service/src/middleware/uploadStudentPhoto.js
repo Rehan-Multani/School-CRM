@@ -1,5 +1,6 @@
 import multer from 'multer';
 import path from 'path';
+import crypto from 'crypto';
 import { AppError } from '../../../shared/AppError.js';
 import {
   ensureUploadDirs,
@@ -25,7 +26,7 @@ const storage = multer.diskStorage({
       .replace(/-+/g, '-')
       .slice(0, 40)
       .toLowerCase() || prefix;
-    cb(null, `${safeBase}-${Date.now()}${ext}`);
+    cb(null, `${safeBase}-${crypto.randomBytes(12).toString('hex')}${ext}`);
   },
 });
 

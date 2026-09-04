@@ -38,6 +38,13 @@ export function requireUploadAccess(req, res, next) {
       throw new AppError('Not found', 404);
     }
 
+    // Block cross-site embedding / hotlinking (Sec-Fetch-Site is browser-set and
+    // cannot be forged by page JavaScript).
+    const fetchSite = req.headers['sec-fetch-site'];
+    if (fetchSite === 'cross-site') {
+      throw new AppError('Not found', 404);
+    }
+
     const header = req.headers.authorization || '';
     const bearer = header.startsWith('Bearer ') ? header.slice(7) : '';
     const token = bearer || (typeof req.query.t === 'string' ? req.query.t : '');

@@ -97,8 +97,41 @@ export function deleteMulterFiles(files) {
  * @param {Object} [options] - Sharp optimization options
  * @returns {Promise<Object>} - Updated Multer file object with .webp extension and mime
  */
+// P1: fail-fast on obviously non-image / executable payloads before they reach
+// sharp. sharp already rejects non-images, but this blocks polyglots and script
+// uploads (spoofed Content-Type) earlier and unambiguously.
+const DANGEROUS_SIGNATURES = [
+  Buffer.from('MZ'), // Windows PE / DOS executable
+  Buffer.from('\x7fELF', 'binary'), // Linux ELF
+  Buffer.from('#!'), // shell / script shebang
+  Buffer.from('PK\x03\x04', 'binary'), // zip / jar / office / apk
+  Buffer.from('<?php'),
+  Buffer.from('<%'), // asp / jsp
+  Buffer.from('\xca\xfe\xba\xbe', 'binary'), // java class / mach-o fat
+  Buffer.from('Rar!'),
+];
+
+function assertNotDangerousUpload(filePath) {
+  let head;
+  try {
+    const fd = fs.openSync(filePath, 'r');
+    head = Buffer.alloc(16);
+    fs.readSync(fd, head, 0, 16, 0);
+    fs.closeSync(fd);
+  } catch {
+    return; // let sharp deal with unreadable files
+  }
+  for (const sig of DANGEROUS_SIGNATURES) {
+    if (head.subarray(0, sig.length).equals(sig)) {
+      throw new AppError('This file type is not allowed.', 400);
+    }
+  }
+}
+
 export async function convertUploadedImageToWebp(file, options = {}) {
   if (!file?.path) return file;
+
+  assertNotDangerousUpload(file.path);
 
   const parsed = path.parse(file.path);
   const tempDestPath = path.join(parsed.dir, `${parsed.name}-optimized.webp`);

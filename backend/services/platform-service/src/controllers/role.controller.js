@@ -1,13 +1,6 @@
 import { roleService } from '../services/role.service.js';
+import { schoolId, performedBy } from '../utils/tenant.js';
 import { auditLogService } from '../services/auditLog.service.js';
-
-function schoolId(req) {
-  const role = req.user?.role?.toUpperCase();
-  if (role === 'SCHOOLADMIN') {
-    return req.user?.sub;
-  }
-  return req.user?.schoolId || req.user?.sub || req.schoolAdmin?.schoolId;
-}
 
 export async function getPermissionCatalogue(req, res, next) {
   try {

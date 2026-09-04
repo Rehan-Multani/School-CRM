@@ -1,16 +1,6 @@
 import { communicationService } from '../services/communication.service.js';
+import { schoolId, performedBy } from '../utils/tenant.js';
 import { auditLogService } from '../services/auditLog.service.js';
-
-function schoolId(req) {
-  const role = req.user?.role?.toUpperCase();
-  if (role === 'SCHOOLADMIN') {
-    return req.user?.sub;
-  }
-  return req.user?.schoolId || req.user?.sub || req.schoolAdmin?.schoolId;
-}
-function performedBy(req) {
-  return req.user?.name || req.user?.email || 'School Admin';
-}
 
 // announcements
 export async function listAnnouncements(req, res, next) {

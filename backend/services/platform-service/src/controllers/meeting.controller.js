@@ -1,17 +1,6 @@
 import { meetingService } from '../services/meeting.service.js';
+import { schoolId, performedBy } from '../utils/tenant.js';
 import { auditLogService } from '../services/auditLog.service.js';
-
-function schoolId(req) {
-  const role = req.user?.role?.toUpperCase();
-  if (role === 'SCHOOLADMIN') {
-    return req.user?.sub;
-  }
-  return req.user?.schoolId || req.user?.sub || req.schoolAdmin?.schoolId;
-}
-
-function performedBy(req) {
-  return req.user?.name || req.user?.email || 'Principal';
-}
 
 export async function listMeetings(req, res, next) {
   try {
