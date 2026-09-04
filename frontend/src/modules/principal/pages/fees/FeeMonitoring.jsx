@@ -1,82 +1,138 @@
-import React from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
 import { AreaChart } from '../../components/ui/Charts/AreaChart';
 import { BarChart } from '../../components/ui/Charts/BarChart';
-import { useAppStore } from '../../../../shared/store/useAppStore';
 import { IndianRupee, TrendingUp, AlertTriangle, Percent } from 'lucide-react';
+import { principalReportApi } from '../../../../shared/api/client';
+import { apiMessage } from '../academics/utils';
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function parseAmount(str) {
+  if (typeof str === 'number') return str;
+  if (!str) return 0;
+  const n = Number(String(str).replace(/[^0-9.-]/g, ''));
+  return Number.isFinite(n) ? n : 0;
+}
+function parseInDate(str) {
+  // "DD/MM/YYYY" from toLocaleDateString('en-IN')
+  if (!str || str === 'N/A') return null;
+  const m = String(str).match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if (!m) {
+    const d = new Date(str);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+}
+function inr(n) {
+  return `₹${Number(n || 0).toLocaleString('en-IN')}`;
+}
 
 export const FeeMonitoring = () => {
-  const { receipts = [], students = [] } = useAppStore();
+  const [summary, setSummary] = useState(null);
+  const [payments, setPayments] = useState([]);
+  const [dues, setDues] = useState([]);
+  const [duesStats, setDuesStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock charts/data if store is not populated
-  const monthlyCollections = [
-    { name: 'April', amount: 450000 },
-    { name: 'May', amount: 520000 },
-    { name: 'June', amount: 490000 },
-    { name: 'July', amount: 610000 },
-    { name: 'Aug', amount: 580000 }
-  ];
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [sumRes, feesRes, duesRes] = await Promise.all([
+        principalReportApi.summary(),
+        principalReportApi.data('fees', { limit: 1000 }).catch(() => ({ data: [] })),
+        principalReportApi.data('fee_dues', { limit: 1000 }).catch(() => ({ data: [] })),
+      ]);
+      setSummary(sumRes || null);
+      setPayments(feesRes?.data || []);
+      setDues(duesRes?.data || []);
+      setDuesStats(duesRes?.stats || null);
+    } catch (err) {
+      setError(apiMessage(err, 'Unable to load fee monitoring data'));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const duesByClass = [
-    { name: 'Class 8', dues: 45000 },
-    { name: 'Class 9', dues: 60000 },
-    { name: 'Class 10', dues: 85000 },
-    { name: 'Class 11', dues: 30000 },
-    { name: 'Class 12', dues: 95000 }
-  ];
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const totalCollected = summary?.totalCollected ?? 0;
+  const totalOutstanding = duesStats?.totalDue ?? summary?.totalDue ?? 0;
+  const collectionRate =
+    totalCollected + totalOutstanding > 0
+      ? Math.round((totalCollected / (totalCollected + totalOutstanding)) * 100)
+      : 0;
+
+  const monthlyCollections = useMemo(() => {
+    const buckets = new Map();
+    payments.forEach((p) => {
+      const d = parseInDate(p['Transaction Date']);
+      if (!d) return;
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      buckets.set(key, (buckets.get(key) || 0) + parseAmount(p['Amount Paid']));
+    });
+    return Array.from(buckets.entries())
+      .sort((a, b) => {
+        const [ay, am] = a[0].split('-').map(Number);
+        const [by, bm] = b[0].split('-').map(Number);
+        return ay - by || am - bm;
+      })
+      .slice(-8)
+      .map(([key, amount]) => {
+        const [y, m] = key.split('-').map(Number);
+        return { name: `${MONTHS[m]} ${String(y).slice(2)}`, amount };
+      });
+  }, [payments]);
+
+  const duesByClass = useMemo(() => {
+    const buckets = new Map();
+    dues.forEach((d) => {
+      const cls = (d.Class || 'Unknown').split(' - ')[0] || 'Unknown';
+      buckets.set(cls, (buckets.get(cls) || 0) + parseAmount(d['Pending Due']));
+    });
+    return Array.from(buckets.entries())
+      .map(([name, duesAmt]) => ({ name, dues: duesAmt }))
+      .sort((a, b) => b.dues - a.dues)
+      .slice(0, 10);
+  }, [dues]);
+
+  const defaulterRows = useMemo(
+    () =>
+      dues.map((d, i) => ({
+        id: `${d['Invoice No'] || i}`,
+        invoiceNo: d['Invoice No'],
+        name: d['Student Name'],
+        class: d.Class,
+        pending: parseAmount(d['Pending Due']),
+        dueDate: d['Due Date'],
+        status: d.Status,
+      })),
+    [dues]
+  );
 
   const columns = [
-    { key: 'admissionNo', title: 'Admn No' },
-    {
-      key: 'name',
-      title: 'Student Name',
-      sortable: true,
-      render: (val) => <span className="font-bold">{val}</span>
-    },
+    { key: 'invoiceNo', title: 'Invoice No' },
+    { key: 'name', title: 'Student Name', sortable: true, render: (v) => <span className="font-bold">{v}</span> },
     { key: 'class', title: 'Class', sortable: true },
-    { key: 'section', title: 'Section' },
     {
-      key: 'pendingFees',
-      title: 'Pending Fee (₹)',
+      key: 'pending',
+      title: 'Pending Due',
       sortable: true,
-      render: (val) => <span className="font-bold text-rose-600">₹{val}</span>
+      render: (v) => <span className="font-bold text-rose-600">{inr(v)}</span>,
     },
+    { key: 'dueDate', title: 'Due Date' },
     {
       key: 'status',
-      title: 'Fee Status',
-      render: (val, row) => (
-        <Badge variant={row.pendingFees > 0 ? 'warning' : 'success'}>
-          {row.pendingFees > 0 ? 'Deficit' : 'Paid'}
-        </Badge>
-      )
-    }
+      title: 'Status',
+      render: (v) => <Badge variant={v === 'OVERDUE' ? 'danger' : 'warning'}>{v || 'PENDING'}</Badge>,
+    },
   ];
-
-  // Map students with dues
-  const studentsWithDues = students
-    .filter(s => s.pendingFees > 0)
-    .map(s => ({
-      id: s.id,
-      admissionNo: s.admissionNo,
-      name: s.name,
-      class: `Class ${s.class}`,
-      section: s.section,
-      pendingFees: s.pendingFees
-    }));
-
-  const displayStudents = studentsWithDues.length > 0 ? studentsWithDues : [
-    { id: '1', admissionNo: 'GPS202601', name: 'Aarav Mehta', class: 'Class 10', section: 'A', pendingFees: 15000 },
-    { id: '2', admissionNo: 'GPS202612', name: 'Ishita Sharma', class: 'Class 12', section: 'B', pendingFees: 22000 },
-    { id: '3', admissionNo: 'GPS202615', name: 'Kabir Verma', class: 'Class 9', section: 'C', pendingFees: 12500 },
-    { id: '4', admissionNo: 'GPS202619', name: 'Riya Sen', class: 'Class 8', section: 'A', pendingFees: 9000 },
-    { id: '5', admissionNo: 'GPS202622', name: 'Aditya Roy', class: 'Class 12', section: 'A', pendingFees: 27000 }
-  ];
-
-  const totalCollected = receipts.reduce((sum, r) => sum + (Number(r.amount) || 0), 0) || 2650000;
-  const totalOutstanding = displayStudents.reduce((sum, s) => sum + s.pendingFees, 0);
-  const collectionPercentage = Math.round((totalCollected / (totalCollected + totalOutstanding)) * 100) || 96;
 
   return (
     <div className="space-y-6">
@@ -85,90 +141,94 @@ export const FeeMonitoring = () => {
         subtitle="Track school tuition collections, outstanding deficits, and student ledger summaries."
       />
 
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm flex items-center gap-4">
-          <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 rounded-2xl">
-            <IndianRupee className="w-5 h-5 shrink-0" />
-          </div>
-          <div>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Total Fee Collected</span>
-            <span className="text-xl font-extrabold text-emerald-600 mt-1 block">
-              ₹{totalCollected.toLocaleString('en-IN')}
-            </span>
-          </div>
+      {error ? (
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-rose-200 bg-rose-50/60 p-10 text-center dark:border-rose-900/40 dark:bg-rose-950/20">
+          <p className="text-sm font-semibold text-rose-600">{error}</p>
+          <button type="button" onClick={load} className="rounded-xl border border-rose-300 px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-100">
+            Retry
+          </button>
         </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="rounded-2xl bg-emerald-50 p-3.5 text-emerald-600 dark:bg-emerald-950/40">
+                <IndianRupee className="h-5 w-5 shrink-0" />
+              </div>
+              <div>
+                <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">Total Fee Collected</span>
+                <span className="mt-1 block text-xl font-extrabold text-emerald-600">{loading ? '…' : inr(totalCollected)}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="rounded-2xl bg-rose-50 p-3.5 text-rose-600 dark:bg-rose-950/40">
+                <AlertTriangle className="h-5 w-5 shrink-0" />
+              </div>
+              <div>
+                <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">Outstanding Deficit</span>
+                <span className="mt-1 block text-xl font-extrabold text-rose-600">{loading ? '…' : inr(totalOutstanding)}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="rounded-2xl bg-indigo-50 p-3.5 text-indigo-600 dark:bg-indigo-950/40">
+                <Percent className="h-5 w-5 shrink-0" />
+              </div>
+              <div>
+                <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">Collection Rate</span>
+                <span className="mt-1 block text-xl font-extrabold text-indigo-600">{loading ? '…' : `${collectionRate}%`}</span>
+              </div>
+            </div>
+          </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm flex items-center gap-4">
-          <div className="p-3.5 bg-rose-50 dark:bg-rose-950/40 text-rose-600 rounded-2xl">
-            <AlertTriangle className="w-5 h-5 shrink-0" />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white">
+                <TrendingUp className="h-4 w-4 text-emerald-500" />
+                <span>Monthly Tuition Revenue (Trend)</span>
+              </h4>
+              <div className="h-56">
+                {monthlyCollections.length > 0 ? (
+                  <AreaChart data={monthlyCollections} dataKey="amount" xKey="name" height={220} color="#10b981" />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-xs font-semibold text-slate-400">
+                    {loading ? 'Loading…' : 'No payments recorded yet.'}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white">
+                <AlertTriangle className="h-4 w-4 text-rose-500" />
+                <span>Outstanding Dues by Class Grade</span>
+              </h4>
+              <div className="h-56">
+                {duesByClass.length > 0 ? (
+                  <BarChart data={duesByClass} dataKey="dues" xKey="name" height={220} color="#f43f5e" />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-xs font-semibold text-slate-400">
+                    {loading ? 'Loading…' : 'No outstanding dues.'}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-          <div>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Outstanding Deficit</span>
-            <span className="text-xl font-extrabold text-rose-600 mt-1 block">
-              ₹{totalOutstanding.toLocaleString('en-IN')}
-            </span>
-          </div>
-        </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm flex items-center gap-4">
-          <div className="p-3.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 rounded-2xl">
-            <Percent className="w-5 h-5 shrink-0" />
-          </div>
-          <div>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Collection Rate</span>
-            <span className="text-xl font-extrabold text-indigo-600 mt-1 block">
-              {collectionPercentage}%
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Analytics Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4">
-          <h4 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-emerald-500" />
-            <span>Monthly Tuition Revenue (Trend)</span>
-          </h4>
-          <div className="h-56">
-            <AreaChart
-              data={monthlyCollections}
-              dataKey="amount"
-              xKey="name"
-              height={220}
-              color="#10b981"
+          <div className="space-y-3">
+            <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white">
+              Deficit Accounts Roster{duesStats?.defaultersCount ? ` (${duesStats.defaultersCount})` : ''}
+            </h4>
+            <DataTable
+              columns={columns}
+              data={defaulterRows}
+              loading={loading}
+              searchPlaceholder="Search students with pending fees..."
+              searchKeys={['name', 'class', 'invoiceNo']}
+              emptyMessage="No outstanding fee dues."
+              csvFilename="principal_fee_dues.csv"
             />
           </div>
-        </div>
-
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4">
-          <h4 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-rose-500" />
-            <span>Outstanding Dues by Class Grade</span>
-          </h4>
-          <div className="h-56">
-            <BarChart
-              data={duesByClass}
-              dataKey="dues"
-              xKey="name"
-              height={220}
-              color="#f43f5e"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Outstanding Dues List */}
-      <div className="space-y-3">
-        <h4 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">Deficit Accounts Roster</h4>
-        <DataTable
-          columns={columns}
-          data={displayStudents}
-          searchPlaceholder="Search students with pending fees..."
-          searchKey="name"
-        />
-      </div>
+        </>
+      )}
     </div>
   );
 };

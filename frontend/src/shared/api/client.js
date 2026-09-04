@@ -1039,4 +1039,24 @@ export const principalHomeworkApi = {
     principalClient.get('/platform/school-portal/homework/monitor', { params }).then((r) => r.data),
 };
 
+// ===========================================================================
+// MEETINGS — principal
+// ===========================================================================
+export const principalMeetingApi = {
+  list: (params) =>
+    principalClient.get('/platform/school-portal/principal/meetings', { params }).then((r) => r.data),
+  get: (id) =>
+    principalClient.get(`/platform/school-portal/principal/meetings/${id}`).then((r) => r.data),
+  create: (payload) =>
+    principalClient.post('/platform/school-portal/principal/meetings', payload).then((r) => r.data),
+  update: (id, payload) =>
+    principalClient.patch(`/platform/school-portal/principal/meetings/${id}`, payload).then((r) => r.data),
+  setStatus: (id, status, minutes) =>
+    principalClient
+      .patch(`/platform/school-portal/principal/meetings/${id}/status`, { status, minutes })
+      .then((r) => r.data),
+  remove: (id) =>
+    principalClient.delete(`/platform/school-portal/principal/meetings/${id}`).then((r) => r.data),
+};
+
 

@@ -318,6 +318,14 @@ import {
   updateHomework,
   deleteHomework,
 } from '../controllers/homework.controller.js';
+import {
+  listMeetings,
+  getMeeting,
+  createMeeting,
+  updateMeeting,
+  updateMeetingStatus,
+  deleteMeeting,
+} from '../controllers/meeting.controller.js';
 import { requireSuperAdmin } from '../middleware/requireSuperAdmin.js';
 import { requireSchoolAdmin } from '../middleware/requireSchoolAdmin.js';
 import { requireLibrarian } from '../middleware/requireLibrarian.js';
@@ -869,6 +877,16 @@ router.get('/school-portal/homework/:id', requirePrincipal, getHomework);
 router.post('/school-portal/homework', requireSchoolAdmin, createHomework);
 router.patch('/school-portal/homework/:id', requireSchoolAdmin, updateHomework);
 router.delete('/school-portal/homework/:id', requireSchoolAdmin, deleteHomework);
+
+// ==========================================================================
+// MEETINGS — principal only. Static routes before :id.
+// ==========================================================================
+router.get('/school-portal/principal/meetings', requirePrincipal, listMeetings);
+router.post('/school-portal/principal/meetings', requirePrincipal, createMeeting);
+router.get('/school-portal/principal/meetings/:id', requirePrincipal, getMeeting);
+router.patch('/school-portal/principal/meetings/:id/status', requirePrincipal, updateMeetingStatus);
+router.patch('/school-portal/principal/meetings/:id', requirePrincipal, updateMeeting);
+router.delete('/school-portal/principal/meetings/:id', requirePrincipal, deleteMeeting);
 
 router.get('/subscriptions', requireSuperAdmin, listPlans);
 router.post('/subscriptions', requireSuperAdmin, createPlan);
