@@ -1,309 +1,503 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
-import { 
-  Megaphone, 
-  Mail, 
-  MessageSquare, 
-  Send, 
-  Users, 
-  Plus, 
-  ChevronRight 
-} from 'lucide-react';
+import { communicationApi } from '../../../../shared/api/client';
+import { apiMessage } from '../academics/utils';
+import { Megaphone, Send, Plus, Pencil, Trash2, Pin, Archive, ChevronRight } from 'lucide-react';
+
+const inputCls =
+  'w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-xs font-semibold outline-none focus:border-primary dark:border-slate-800 dark:bg-slate-950 dark:text-white';
+
+const AUDIENCES = ['ALL', 'TEACHERS', 'STUDENTS', 'PARENTS', 'STAFF'];
+const STATUS_VARIANT = { DRAFT: 'default', PUBLISHED: 'success', ARCHIVED: 'warning' };
+
+function fmt(v) {
+  if (!v) return '—';
+  return new Date(v).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
 
 export const CommunicationHub = () => {
-  const [activeTab, setActiveTab] = useState('announcements');
   const { showToast, ToastComponent } = useToast();
+  const [activeTab, setActiveTab] = useState('announcements');
 
-  const [announcements, setAnnouncements] = useState([
-    { id: '1', title: 'Half Yearly Examination Timetable Out', target: 'All Users', date: '2026-07-16', author: 'Principal' },
-    { id: '2', title: 'Independence Day Celebrations Schedule', target: 'Students & Parents', date: '2026-07-14', author: 'Cultural Head' },
-    { id: '3', title: 'Important Staff Meeting regarding Syllabus Review', target: 'Teachers', date: '2026-07-10', author: 'Principal' }
-  ]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [broadcasts, setBroadcasts] = useState([]);
+  const [threads, setThreads] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const [alerts, setAlerts] = useState([
-    { id: '1', type: 'SMS', recipient: 'All Parents', content: 'School holiday declared on 18th July due to weather conditions.', status: 'Sent', date: '2026-07-17 07:30 AM' },
-    { id: '2', type: 'Email', recipient: 'Teachers', content: 'Draft syllabus submission form deadlines set.', status: 'Sent', date: '2026-07-15 04:00 PM' },
-    { id: '3', type: 'Push', recipient: 'Class 10 Students', content: 'Math home assignment due tomorrow. Upload now.', status: 'Delivered', date: '2026-07-16 06:15 PM' }
-  ]);
+  // announcement modal
+  const [annModal, setAnnModal] = useState(false);
+  const [editingAnn, setEditingAnn] = useState(null);
+  const [annForm, setAnnForm] = useState({ title: '', body: '', audiences: ['ALL'], pinned: false });
+  const [annSaving, setAnnSaving] = useState(false);
+  const [deleteAnn, setDeleteAnn] = useState(null);
+  const [annStatusFilter, setAnnStatusFilter] = useState('ALL');
 
-  const [chats, setChats] = useState([
-    { id: '1', sender: 'Dr. Ramesh Kumar', message: 'Hello Admin, I have submitted the Science lab inventory requirements.', date: 'Today, 10:15 AM' },
-    { id: '2', sender: 'Mrs. Sunita Rao', message: 'Can you please verify my medical leave request?', date: 'Yesterday, 04:30 PM' },
-    { id: '3', sender: 'Mr. David D\'souza', message: 'English curriculum syllabus is uploaded to dashboard.', date: '2 days ago' }
-  ]);
+  // broadcast modal
+  const [bcModal, setBcModal] = useState(false);
+  const [bcForm, setBcForm] = useState({ channel: 'SMS', audienceLabel: 'All Parents', content: '' });
+  const [bcSaving, setBcSaving] = useState(false);
 
-  const [selectedChat, setSelectedChat] = useState('1');
-  const [replyMessage, setReplyMessage] = useState('');
+  // messaging
+  const [activeThread, setActiveThread] = useState(null);
+  const [threadMsgs, setThreadMsgs] = useState([]);
+  const [threadLoading, setThreadLoading] = useState(false);
+  const [reply, setReply] = useState('');
+  const [replySending, setReplySending] = useState(false);
 
-  // Announcements Modal
-  const [annModalOpen, setAnnModalOpen] = useState(false);
-  const [newAnn, setNewAnn] = useState({ title: '', target: 'All Users', content: '' });
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [aRes, bRes, tRes] = await Promise.all([
+        communicationApi.announcements({ status: annStatusFilter, limit: 200 }),
+        communicationApi.broadcasts({ limit: 200 }).catch(() => ({ data: [] })),
+        communicationApi.threads().catch(() => ({ data: [] })),
+      ]);
+      setAnnouncements(aRes?.data || []);
+      setBroadcasts(bRes?.data || []);
+      setThreads(tRes?.data || []);
+    } catch (err) {
+      setError(apiMessage(err, 'Unable to load communication data'));
+    } finally {
+      setLoading(false);
+    }
+  }, [annStatusFilter]);
 
-  // Broadcast Modal
-  const [broadcastModalOpen, setBroadcastModalOpen] = useState(false);
-  const [newBroadcast, setNewBroadcast] = useState({ type: 'SMS', target: 'All Parents', content: '' });
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  const handleCreateAnnouncement = (e) => {
-    e.preventDefault();
-    setAnnouncements(prev => [{
-      id: Date.now().toString(),
-      title: newAnn.title,
-      target: newAnn.target,
-      date: new Date().toISOString().split('T')[0],
-      author: 'Principal Office'
-    }, ...prev]);
-    setAnnModalOpen(false);
-    showToast('Broadcast Announcement published!', 'success');
+  // ---- announcements ----
+  const openAnnCreate = () => {
+    setEditingAnn(null);
+    setAnnForm({ title: '', body: '', audiences: ['ALL'], pinned: false });
+    setAnnModal(true);
+  };
+  const openAnnEdit = (row) => {
+    setEditingAnn(row);
+    setAnnForm({
+      title: row.title || '',
+      body: row.body || '',
+      audiences: row.audiences?.length ? row.audiences : ['ALL'],
+      pinned: Boolean(row.pinned),
+    });
+    setAnnModal(true);
+  };
+  const toggleAud = (a) => {
+    setAnnForm((f) => {
+      const has = f.audiences.includes(a);
+      let next = has ? f.audiences.filter((x) => x !== a) : [...f.audiences, a];
+      if (a === 'ALL' && !has) next = ['ALL'];
+      else if (a !== 'ALL') next = next.filter((x) => x !== 'ALL');
+      if (!next.length) next = ['ALL'];
+      return { ...f, audiences: next };
+    });
+  };
+  const submitAnn = async (publish) => {
+    if (!annForm.title.trim()) return showToast('Title is required', 'error');
+    setAnnSaving(true);
+    try {
+      if (editingAnn) {
+        await communicationApi.updateAnnouncement(editingAnn.id, annForm);
+        if (publish && editingAnn.status !== 'PUBLISHED') await communicationApi.publishAnnouncement(editingAnn.id);
+        showToast('Announcement updated', 'success');
+      } else {
+        await communicationApi.createAnnouncement({ ...annForm, publish });
+        showToast(publish ? 'Announcement published' : 'Draft saved', 'success');
+      }
+      setAnnModal(false);
+      load();
+    } catch (err) {
+      showToast(apiMessage(err, 'Unable to save announcement'), 'error');
+    } finally {
+      setAnnSaving(false);
+    }
+  };
+  const doPublish = async (row) => {
+    try {
+      await communicationApi.publishAnnouncement(row.id);
+      showToast('Published', 'success');
+      load();
+    } catch (err) {
+      showToast(apiMessage(err, 'Unable to publish'), 'error');
+    }
+  };
+  const doPinArchive = async (row, patch) => {
+    try {
+      await communicationApi.updateAnnouncement(row.id, patch);
+      load();
+    } catch (err) {
+      showToast(apiMessage(err, 'Unable to update'), 'error');
+    }
+  };
+  const confirmDeleteAnn = async () => {
+    if (!deleteAnn) return;
+    try {
+      await communicationApi.deleteAnnouncement(deleteAnn.id);
+      showToast('Announcement deleted', 'success');
+      load();
+    } catch (err) {
+      showToast(apiMessage(err, 'Unable to delete'), 'error');
+    } finally {
+      setDeleteAnn(null);
+    }
   };
 
-  const handleSendBroadcast = (e) => {
+  // ---- broadcast ----
+  const submitBroadcast = async (e) => {
     e.preventDefault();
-    setAlerts(prev => [{
-      id: Date.now().toString(),
-      type: newBroadcast.type,
-      recipient: newBroadcast.target,
-      content: newBroadcast.content,
-      status: 'Sent',
-      date: 'Just now'
-    }, ...prev]);
-    setBroadcastModalOpen(false);
-    showToast('Direct alert broadcasts pushed to recipients!', 'success');
+    if (!bcForm.content.trim()) return showToast('Message content is required', 'error');
+    if (bcForm.channel === 'SMS' && bcForm.content.length > 160) {
+      showToast('SMS is over 160 chars — it will be sent as multiple parts', 'warning');
+    }
+    setBcSaving(true);
+    try {
+      await communicationApi.createBroadcast(bcForm);
+      showToast('Broadcast recorded', 'success');
+      setBcModal(false);
+      setBcForm({ channel: 'SMS', audienceLabel: 'All Parents', content: '' });
+      load();
+    } catch (err) {
+      showToast(apiMessage(err, 'Unable to send broadcast'), 'error');
+    } finally {
+      setBcSaving(false);
+    }
   };
 
-  const handleSendChatReply = (e) => {
+  // ---- messaging ----
+  const openThread = async (t) => {
+    setActiveThread(t);
+    setThreadLoading(true);
+    try {
+      const res = await communicationApi.thread(t.threadKey);
+      setThreadMsgs(res?.data || []);
+      setThreads((prev) => prev.map((x) => (x.threadKey === t.threadKey ? { ...x, unread: 0 } : x)));
+    } catch (err) {
+      showToast(apiMessage(err, 'Unable to open conversation'), 'error');
+    } finally {
+      setThreadLoading(false);
+    }
+  };
+  const sendReply = async (e) => {
     e.preventDefault();
-    if (!replyMessage.trim()) return;
-    showToast('Message sent successfully!', 'success');
-    setReplyMessage('');
+    if (!reply.trim() || !activeThread) return;
+    setReplySending(true);
+    try {
+      await communicationApi.reply(activeThread.threadKey, reply.trim());
+      const res = await communicationApi.thread(activeThread.threadKey);
+      setThreadMsgs(res?.data || []);
+      setReply('');
+      load();
+    } catch (err) {
+      showToast(apiMessage(err, 'Unable to send reply'), 'error');
+    } finally {
+      setReplySending(false);
+    }
   };
 
-  // Columns Definitions
-  const announcementColumns = [
-    { header: 'Announcement Title', key: 'title', render: (val) => <span className="font-bold text-slate-900 dark:text-white">{val}</span> },
-    { header: 'Target Audience', key: 'target', render: (val) => <Badge variant="primary">{val}</Badge> },
-    { header: 'Publish Date', key: 'date' },
-    { header: 'Author', key: 'author' }
-  ];
+  const annColumns = useMemo(
+    () => [
+      {
+        key: 'title',
+        title: 'Announcement',
+        sortable: true,
+        render: (v, row) => (
+          <div className="flex items-center gap-1.5">
+            {row.pinned && <Pin className="h-3 w-3 text-amber-500" />}
+            <span className="font-bold text-slate-900 dark:text-white">{v}</span>
+          </div>
+        ),
+      },
+      { key: 'audiences', title: 'Audience', render: (v) => <Badge variant="primary">{(v || []).join(', ')}</Badge> },
+      { key: 'publishedByName', title: 'Author', render: (v) => v || '—' },
+      { key: 'publishAt', title: 'Published', render: (v) => fmt(v) },
+      { key: 'status', title: 'Status', render: (v) => <Badge variant={STATUS_VARIANT[v] || 'default'}>{v}</Badge> },
+      {
+        key: '_actions',
+        title: 'Actions',
+        align: 'right',
+        render: (_v, row) => (
+          <div className="flex items-center justify-end gap-1">
+            {row.status === 'DRAFT' && (
+              <button type="button" onClick={() => doPublish(row)} className="rounded-lg px-2 py-1 text-[11px] font-bold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30">
+                Publish
+              </button>
+            )}
+            <button type="button" onClick={() => doPinArchive(row, { pinned: !row.pinned })} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-amber-600 dark:hover:bg-slate-800" title={row.pinned ? 'Unpin' : 'Pin'}>
+              <Pin size={14} />
+            </button>
+            {row.status !== 'ARCHIVED' && (
+              <button type="button" onClick={() => doPinArchive(row, { status: 'ARCHIVED' })} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800" title="Archive">
+                <Archive size={14} />
+              </button>
+            )}
+            <button type="button" onClick={() => openAnnEdit(row)} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800" title="Edit">
+              <Pencil size={14} />
+            </button>
+            <button type="button" onClick={() => setDeleteAnn(row)} className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30" title="Delete">
+              <Trash2 size={14} />
+            </button>
+          </div>
+        ),
+      },
+    ],
+    []
+  );
 
-  const alertColumns = [
-    { header: 'Alert Channel', key: 'type', render: (val) => <Badge variant={val === 'Email' ? 'info' : val === 'SMS' ? 'warning' : 'success'}>{val}</Badge> },
-    { header: 'Target Recipient', key: 'recipient' },
-    { header: 'Broadcast Content', key: 'content' },
-    { header: 'Status', key: 'status', render: (val) => <Badge variant="success">{val}</Badge> },
-    { header: 'Dispatch Time', key: 'date' }
-  ];
-
-  const activeChatMessage = chats.find(c => c.id === selectedChat);
+  const bcColumns = useMemo(
+    () => [
+      { key: 'channel', title: 'Channel', render: (v) => <Badge variant={v === 'EMAIL' ? 'info' : v === 'SMS' ? 'warning' : 'success'}>{v}</Badge> },
+      { key: 'audienceLabel', title: 'Recipient' },
+      { key: 'content', title: 'Content', render: (v) => <span className="line-clamp-2 max-w-md text-xs">{v}</span> },
+      { key: 'status', title: 'Status', render: (v) => <Badge variant="success">{v}</Badge> },
+      { key: 'sentByName', title: 'Sent By', render: (v) => v || '—' },
+      { key: 'createdAt', title: 'When', render: (v) => fmt(v) },
+    ],
+    []
+  );
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-        title="Communication Hub" 
+      <PageHeader
+        title="Communication Hub"
         subtitle="Broadcast school announcements, send targeted SMS/Email alerts, and message staff directly."
         actions={
           <div className="flex gap-2">
-            <button
-              onClick={() => setBroadcastModalOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold rounded-xl"
-            >
-              <Send className="w-3.5 h-3.5" />
-              <span>Broadcast Alert</span>
+            <button onClick={() => setBcModal(true)} className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-bold hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800">
+              <Send className="h-3.5 w-3.5" /> Broadcast Alert
             </button>
-            <button
-              onClick={() => setAnnModalOpen(true)}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Create Announcement</span>
+            <button onClick={openAnnCreate} className="flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-white shadow-sm">
+              <Plus className="h-3.5 w-3.5" /> Create Announcement
             </button>
           </div>
         }
       />
 
-      <Tabs 
+      <Tabs
         tabs={[
-          { id: 'announcements', label: 'Broadcasting Announcements', count: announcements.length },
-          { id: 'alerts', label: 'Broadcast Log Dispatch', count: alerts.length },
-          { id: 'messaging', label: 'Internal Messages Box', count: chats.length }
+          { id: 'announcements', label: 'Announcements', count: announcements.length },
+          { id: 'alerts', label: 'Broadcast Log', count: broadcasts.length },
+          { id: 'messaging', label: 'Internal Messages', count: threads.length },
         ]}
         activeTab={activeTab}
         onChange={setActiveTab}
       />
 
-      {activeTab === 'announcements' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
-          <DataTable columns={announcementColumns} data={announcements} searchPlaceholder="Search announcements..." />
+      {error ? (
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-rose-200 bg-rose-50/60 p-10 text-center dark:border-rose-900/40 dark:bg-rose-950/20">
+          <p className="text-sm font-semibold text-rose-600">{error}</p>
+          <button type="button" onClick={load} className="rounded-xl border border-rose-300 px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-100">
+            Retry
+          </button>
         </div>
-      )}
-
-      {activeTab === 'alerts' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
-          <DataTable columns={alertColumns} data={alerts} searchPlaceholder="Search alert history..." />
-        </div>
-      )}
-
-      {activeTab === 'messaging' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Chats Sidebar List */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm flex flex-col divide-y divide-slate-100 dark:divide-slate-850">
-            <span className="p-4 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Conversations List</span>
-            {chats.map((c) => (
-              <div
-                key={c.id}
-                onClick={() => setSelectedChat(c.id)}
-                className={`p-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-950/20 transition-colors flex items-center justify-between text-xs font-semibold ${
-                  selectedChat === c.id ? 'bg-indigo-50/40 dark:bg-indigo-950/20 border-l-4 border-indigo-650' : 'text-slate-655'
+      ) : activeTab === 'announcements' ? (
+        <>
+          <div className="flex gap-2">
+            {['ALL', 'PUBLISHED', 'DRAFT', 'ARCHIVED'].map((s) => (
+              <button
+                key={s}
+                onClick={() => setAnnStatusFilter(s)}
+                className={`rounded-xl px-3 py-1.5 text-xs font-bold ${
+                  annStatusFilter === s ? 'bg-primary text-white' : 'border border-slate-200 bg-white text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
+                }`}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+          <DataTable
+            columns={annColumns}
+            data={announcements}
+            loading={loading}
+            searchPlaceholder="Search announcements..."
+            searchKeys={['title', 'body']}
+            emptyMessage="No announcements yet."
+            csvFilename="announcements.csv"
+          />
+        </>
+      ) : activeTab === 'alerts' ? (
+        <DataTable
+          columns={bcColumns}
+          data={broadcasts}
+          loading={loading}
+          searchPlaceholder="Search broadcast history..."
+          searchKeys={['content', 'audienceLabel', 'sentByName']}
+          emptyMessage="No broadcasts sent yet."
+          csvFilename="broadcast_log.csv"
+        />
+      ) : (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="flex flex-col divide-y divide-slate-100 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
+            <span className="p-4 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Conversations</span>
+            {threads.length === 0 && (
+              <div className="p-6 text-center text-xs font-semibold text-slate-400">No conversations yet.</div>
+            )}
+            {threads.map((t) => (
+              <button
+                key={t.threadKey}
+                onClick={() => openThread(t)}
+                className={`flex items-center justify-between p-4 text-left text-xs transition-colors hover:bg-slate-50 dark:hover:bg-slate-950/20 ${
+                  activeThread?.threadKey === t.threadKey ? 'border-l-4 border-primary bg-primary/5' : ''
                 }`}
               >
                 <div className="space-y-1">
-                  <span className="font-extrabold text-slate-900 dark:text-white block">{c.sender}</span>
-                  <span className="text-slate-400 truncate max-w-[180px] block font-medium">{c.message}</span>
+                  <span className="flex items-center gap-2 font-extrabold text-slate-900 dark:text-white">
+                    {t.fromName}
+                    {t.unread > 0 && <span className="rounded-full bg-primary px-1.5 text-[9px] text-white">{t.unread}</span>}
+                  </span>
+                  <span className="block max-w-[180px] truncate font-medium text-slate-400">{t.lastBody}</span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-350" />
-              </div>
+                <ChevronRight className="h-4 w-4 text-slate-300" />
+              </button>
             ))}
           </div>
 
-          {/* Active Chat Conversation Details */}
-          <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex flex-col justify-between min-h-[360px]">
-            {activeChatMessage ? (
-              <div className="flex-1 flex flex-col justify-between">
-                <div className="space-y-4">
-                  {/* Sender details */}
-                  <div className="pb-4 border-b border-slate-100 flex items-center gap-2 text-xs font-bold text-slate-900">
-                    <Megaphone className="w-5 h-5 text-indigo-650" />
-                    <span>Sender: {activeChatMessage.sender}</span>
-                  </div>
-
-                  {/* Message bubble */}
-                  <div className="space-y-2">
-                    <span className="text-[10px] font-semibold text-slate-400 block">{activeChatMessage.date}</span>
-                    <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl text-xs font-semibold text-slate-700 max-w-lg leading-relaxed">
-                      {activeChatMessage.message}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Reply Composer */}
-                <form onSubmit={handleSendChatReply} className="mt-6 flex gap-3 pt-4 border-t">
-                  <input
-                    type="text"
-                    placeholder={`Reply to ${activeChatMessage.sender}...`}
-                    value={replyMessage}
-                    onChange={(e) => setReplyMessage(e.target.value)}
-                    className="flex-1 bg-slate-50 dark:bg-slate-950 px-4 py-2.5 text-xs font-semibold rounded-xl border focus:outline-none"
-                  />
-                  <button type="submit" className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm">
-                    <Megaphone className="w-3.5 h-3.5" />
-                    <span>Send Message</span>
-                  </button>
-                </form>
+          <div className="flex min-h-[360px] flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:col-span-2">
+            {!activeThread ? (
+              <div className="flex h-full items-center justify-center text-xs font-semibold text-slate-400">
+                Select a conversation
               </div>
             ) : (
-              <div className="flex items-center justify-center h-full text-xs font-semibold text-slate-400">
-                Select a message thread from the panel
-              </div>
+              <>
+                <div className="flex-1 space-y-3 overflow-y-auto">
+                  <div className="flex items-center gap-2 border-b border-slate-100 pb-3 text-xs font-bold text-slate-900 dark:border-slate-800 dark:text-white">
+                    <Megaphone className="h-5 w-5 text-primary" />
+                    <span>{activeThread.fromName}</span>
+                  </div>
+                  {threadLoading ? (
+                    <div className="py-8 text-center text-xs text-slate-400">Loading…</div>
+                  ) : (
+                    threadMsgs.map((m) => (
+                      <div key={m.id} className={`flex ${m.direction === 'OUT' ? 'justify-end' : 'justify-start'}`}>
+                        <div
+                          className={`max-w-sm rounded-2xl px-3.5 py-2 text-xs font-semibold ${
+                            m.direction === 'OUT'
+                              ? 'bg-primary text-white'
+                              : 'bg-slate-50 text-slate-700 dark:bg-slate-950 dark:text-slate-200'
+                          }`}
+                        >
+                          <div>{m.body}</div>
+                          <div className={`mt-1 text-[9px] ${m.direction === 'OUT' ? 'text-white/70' : 'text-slate-400'}`}>{fmt(m.createdAt)}</div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <form onSubmit={sendReply} className="mt-4 flex gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+                  <input
+                    className={inputCls}
+                    placeholder={`Reply to ${activeThread.fromName}...`}
+                    value={reply}
+                    onChange={(e) => setReply(e.target.value)}
+                  />
+                  <button
+                    type="submit"
+                    disabled={replySending}
+                    className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-white disabled:opacity-60"
+                  >
+                    <Send className="h-3.5 w-3.5" /> {replySending ? 'Sending…' : 'Send'}
+                  </button>
+                </form>
+              </>
             )}
           </div>
         </div>
       )}
 
-      {/* CREATE ANNOUNCEMENT MODAL */}
-      <Modal isOpen={annModalOpen} onClose={() => setAnnModalOpen(false)} title="Create Broadcast Announcement">
-        <form onSubmit={handleCreateAnnouncement} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-400">Announcement Title</label>
-            <input 
-              type="text" 
-              required
-              placeholder="e.g. Winter Holiday Schedule Notice" 
-              value={newAnn.title} 
-              onChange={(e) => setNewAnn({...newAnn, title: e.target.value})} 
-              className="w-full bg-slate-50 dark:bg-slate-950 px-3.5 py-2.5 text-xs font-semibold rounded-xl border focus:outline-none"
-            />
+      {/* ANNOUNCEMENT MODAL */}
+      <Modal isOpen={annModal} onClose={() => setAnnModal(false)} title={editingAnn ? 'Edit Announcement' : 'Create Announcement'} size="lg">
+        <div className="space-y-4">
+          <div>
+            <label className="mb-1 block text-[11px] font-bold text-slate-400">Title *</label>
+            <input className={inputCls} value={annForm.title} onChange={(e) => setAnnForm({ ...annForm, title: e.target.value })} placeholder="e.g. Winter Holiday Schedule Notice" />
           </div>
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-400">Target Audience</label>
-            <select
-              value={newAnn.target}
-              onChange={(e) => setNewAnn({...newAnn, target: e.target.value})}
-              className="w-full bg-slate-50 dark:bg-slate-950 px-3.5 py-2.5 text-xs font-semibold rounded-xl border focus:outline-none"
-            >
-              <option value="All Users">All Users (Parents, Students, Teachers)</option>
-              <option value="Teachers">Teachers & Staff Only</option>
-              <option value="Students & Parents">Students & Parents Only</option>
-            </select>
+          <div>
+            <label className="mb-1 block text-[11px] font-bold text-slate-400">Message</label>
+            <textarea rows={4} className={`${inputCls} resize-y`} value={annForm.body} onChange={(e) => setAnnForm({ ...annForm, body: e.target.value })} />
           </div>
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-400">Message Content</label>
-            <textarea 
-              rows={4}
-              placeholder="Type announcement copy here..." 
-              value={newAnn.content} 
-              onChange={(e) => setNewAnn({...newAnn, content: e.target.value})} 
-              className="w-full bg-slate-50 dark:bg-slate-950 px-3.5 py-2.5 text-xs font-semibold rounded-xl border focus:outline-none"
-            />
+          <div>
+            <label className="mb-1.5 block text-[11px] font-bold text-slate-400">Audience</label>
+            <div className="flex flex-wrap gap-2">
+              {AUDIENCES.map((a) => (
+                <button
+                  key={a}
+                  type="button"
+                  onClick={() => toggleAud(a)}
+                  className={`rounded-xl px-3 py-1.5 text-xs font-bold ${
+                    annForm.audiences.includes(a) ? 'bg-primary text-white' : 'border border-slate-200 bg-white text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300'
+                  }`}
+                >
+                  {a}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <button type="button" onClick={() => setAnnModalOpen(false)} className="px-4 py-2 text-xs font-semibold rounded-xl hover:bg-slate-100">Cancel</button>
-            <button type="submit" className="px-4 py-2 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Publish Announcement</button>
+          <label className="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
+            <input type="checkbox" checked={annForm.pinned} onChange={(e) => setAnnForm({ ...annForm, pinned: e.target.checked })} className="h-4 w-4 rounded text-primary" />
+            Pin to top
+          </label>
+          <div className="flex justify-end gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+            <button type="button" onClick={() => setAnnModal(false)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>
+            <button type="button" disabled={annSaving} onClick={() => submitAnn(false)} className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 disabled:opacity-60 dark:border-slate-700 dark:text-slate-200">
+              Save Draft
+            </button>
+            <button type="button" disabled={annSaving} onClick={() => submitAnn(true)} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
+              {annSaving ? 'Saving…' : 'Publish'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* BROADCAST MODAL */}
+      <Modal isOpen={bcModal} onClose={() => setBcModal(false)} title="Broadcast SMS / Email / Push Alert">
+        <form onSubmit={submitBroadcast} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1 block text-[11px] font-bold text-slate-400">Channel</label>
+              <select className={inputCls} value={bcForm.channel} onChange={(e) => setBcForm({ ...bcForm, channel: e.target.value })}>
+                <option value="SMS">SMS</option>
+                <option value="EMAIL">Email</option>
+                <option value="PUSH">App Push</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-[11px] font-bold text-slate-400">Recipient Group</label>
+              <input className={inputCls} value={bcForm.audienceLabel} onChange={(e) => setBcForm({ ...bcForm, audienceLabel: e.target.value })} />
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-[11px] font-bold text-slate-400">Message ({bcForm.content.length} chars)</label>
+            <textarea rows={4} className={`${inputCls} resize-y`} value={bcForm.content} onChange={(e) => setBcForm({ ...bcForm, content: e.target.value })} placeholder="Keep below 160 chars for a single SMS…" />
+          </div>
+          <div className="flex justify-end gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
+            <button type="button" onClick={() => setBcModal(false)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>
+            <button type="submit" disabled={bcSaving} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
+              {bcSaving ? 'Sending…' : 'Send Alert'}
+            </button>
           </div>
         </form>
       </Modal>
 
-      {/* BROADCAST ALERT MODAL */}
-      <Modal isOpen={broadcastModalOpen} onClose={() => setBroadcastModalOpen(false)} title="Broadcast SMS / Email Alerts">
-        <form onSubmit={handleSendBroadcast} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Dispatch Channel</label>
-              <select
-                value={newBroadcast.type}
-                onChange={(e) => setNewBroadcast({...newBroadcast, type: e.target.value})}
-                className="w-full bg-slate-50 dark:bg-slate-950 px-3.5 py-2.5 text-xs font-semibold rounded-xl border focus:outline-none"
-              >
-                <option value="SMS">SMS Message Broadcast</option>
-                <option value="Email">Email Letter Broadcast</option>
-                <option value="Push">App Push Notification</option>
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Target Recipient Group</label>
-              <select
-                value={newBroadcast.target}
-                onChange={(e) => setNewBroadcast({...newBroadcast, target: e.target.value})}
-                className="w-full bg-slate-50 dark:bg-slate-950 px-3.5 py-2.5 text-xs font-semibold rounded-xl border focus:outline-none"
-              >
-                <option value="All Parents">All Parents</option>
-                <option value="Teachers">Teachers</option>
-                <option value="Class 10 Students">Class 10 Students</option>
-              </select>
-            </div>
-          </div>
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-400">Message Content</label>
-            <textarea 
-              rows={4}
-              placeholder="Keep character count below 160 for SMS broadcasts..." 
-              value={newBroadcast.content} 
-              onChange={(e) => setNewBroadcast({...newBroadcast, content: e.target.value})} 
-              className="w-full bg-slate-50 dark:bg-slate-950 px-3.5 py-2.5 text-xs font-semibold rounded-xl border focus:outline-none"
-            />
-          </div>
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <button type="button" onClick={() => setBroadcastModalOpen(false)} className="px-4 py-2 text-xs font-semibold rounded-xl hover:bg-slate-100">Cancel</button>
-            <button type="submit" className="px-4 py-2 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">Send Alert</button>
-          </div>
-        </form>
-      </Modal>
+      <ConfirmDialog
+        isOpen={Boolean(deleteAnn)}
+        onClose={() => setDeleteAnn(null)}
+        onConfirm={confirmDeleteAnn}
+        title="Delete Announcement"
+        message={`Delete "${deleteAnn?.title}"?`}
+        confirmText="Delete"
+        variant="danger"
+      />
 
       <ToastComponent />
     </div>
   );
 };
+
 export default CommunicationHub;

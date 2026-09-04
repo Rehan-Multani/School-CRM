@@ -350,6 +350,19 @@ import {
   deleteAsset,
   recordAssetMovement,
 } from '../controllers/inventory.controller.js';
+import {
+  listAnnouncements as commListAnnouncements,
+  createAnnouncement as commCreateAnnouncement,
+  updateAnnouncement as commUpdateAnnouncement,
+  publishAnnouncement as commPublishAnnouncement,
+  deleteAnnouncement as commDeleteAnnouncement,
+  listBroadcasts as commListBroadcasts,
+  createBroadcast as commCreateBroadcast,
+  listThreads as commListThreads,
+  getThread as commGetThread,
+  replyThread as commReplyThread,
+  inboundMessage as commInboundMessage,
+} from '../controllers/communication.controller.js';
 import { requireSuperAdmin } from '../middleware/requireSuperAdmin.js';
 import { requireSchoolAdmin } from '../middleware/requireSchoolAdmin.js';
 import { requireLibrarian } from '../middleware/requireLibrarian.js';
@@ -939,6 +952,21 @@ router.get('/school-portal/inventory/assets/:id', requireSchoolAdmin, getAsset);
 router.post('/school-portal/inventory/assets/:id/movement', requireSchoolAdmin, recordAssetMovement);
 router.patch('/school-portal/inventory/assets/:id', requireSchoolAdmin, updateAsset);
 router.delete('/school-portal/inventory/assets/:id', requireSchoolAdmin, deleteAsset);
+
+// ==========================================================================
+// COMMUNICATION HUB — school-admin.
+// ==========================================================================
+router.get('/school-portal/communication/announcements', requireSchoolAdmin, commListAnnouncements);
+router.post('/school-portal/communication/announcements', requireSchoolAdmin, commCreateAnnouncement);
+router.post('/school-portal/communication/announcements/:id/publish', requireSchoolAdmin, commPublishAnnouncement);
+router.patch('/school-portal/communication/announcements/:id', requireSchoolAdmin, commUpdateAnnouncement);
+router.delete('/school-portal/communication/announcements/:id', requireSchoolAdmin, commDeleteAnnouncement);
+router.get('/school-portal/communication/broadcasts', requireSchoolAdmin, commListBroadcasts);
+router.post('/school-portal/communication/broadcasts', requireSchoolAdmin, commCreateBroadcast);
+router.get('/school-portal/communication/threads', requireSchoolAdmin, commListThreads);
+router.post('/school-portal/communication/threads/inbound', requireSchoolAdmin, commInboundMessage);
+router.get('/school-portal/communication/threads/:key', requireSchoolAdmin, commGetThread);
+router.post('/school-portal/communication/threads/:key/reply', requireSchoolAdmin, commReplyThread);
 
 router.get('/subscriptions', requireSuperAdmin, listPlans);
 router.post('/subscriptions', requireSuperAdmin, createPlan);

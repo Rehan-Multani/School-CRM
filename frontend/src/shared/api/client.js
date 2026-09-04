@@ -1040,6 +1040,32 @@ export const principalHomeworkApi = {
 };
 
 // ===========================================================================
+// COMMUNICATION HUB — school-admin
+// ===========================================================================
+export const communicationApi = {
+  announcements: (params) =>
+    schoolAdminClient.get('/platform/school-portal/communication/announcements', { params }).then((r) => r.data),
+  createAnnouncement: (payload) =>
+    schoolAdminClient.post('/platform/school-portal/communication/announcements', payload).then((r) => r.data),
+  updateAnnouncement: (id, payload) =>
+    schoolAdminClient.patch(`/platform/school-portal/communication/announcements/${id}`, payload).then((r) => r.data),
+  publishAnnouncement: (id) =>
+    schoolAdminClient.post(`/platform/school-portal/communication/announcements/${id}/publish`).then((r) => r.data),
+  deleteAnnouncement: (id) =>
+    schoolAdminClient.delete(`/platform/school-portal/communication/announcements/${id}`).then((r) => r.data),
+  broadcasts: (params) =>
+    schoolAdminClient.get('/platform/school-portal/communication/broadcasts', { params }).then((r) => r.data),
+  createBroadcast: (payload) =>
+    schoolAdminClient.post('/platform/school-portal/communication/broadcasts', payload).then((r) => r.data),
+  threads: () =>
+    schoolAdminClient.get('/platform/school-portal/communication/threads').then((r) => r.data),
+  thread: (key) =>
+    schoolAdminClient.get(`/platform/school-portal/communication/threads/${key}`).then((r) => r.data),
+  reply: (key, body) =>
+    schoolAdminClient.post(`/platform/school-portal/communication/threads/${key}/reply`, { body }).then((r) => r.data),
+};
+
+// ===========================================================================
 // INVENTORY / SCHOOL ASSETS — school-admin
 // ===========================================================================
 export const inventoryApi = {
