@@ -15,7 +15,11 @@ export function errorHandler(err, req, res, next) {
   const code = err.code || (statusCode === 404 ? 'NOT_FOUND' : statusCode === 401 ? 'UNAUTHORIZED' : statusCode === 403 ? 'FORBIDDEN' : 'SERVER_ERROR');
 
   if (env.nodeEnv !== 'test') {
-    console.error(`[Auth Error] [${req.method} ${req.originalUrl}]:`, err.message || err);
+    const detail = err?.message || err?.name || 'Unknown error';
+    console.error(`[Auth Error] ${statusCode} [${req.method} ${req.originalUrl}]: ${detail}`);
+    if (!err?.isOperational && statusCode >= 500 && env.nodeEnv !== 'production') {
+      console.error(err?.stack || err);
+    }
   }
 
   res.status(statusCode).json({
