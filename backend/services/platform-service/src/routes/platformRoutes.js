@@ -351,6 +351,14 @@ import {
   recordAssetMovement,
 } from '../controllers/inventory.controller.js';
 import {
+  getStudentAttendanceDay,
+  saveStudentAttendanceDay,
+  markSingleStudentAttendance,
+  markAllStudentAttendance,
+  getStudentAttendanceMonitor,
+  getStudentAttendanceReport,
+} from '../controllers/studentAttendance.controller.js';
+import {
   listAnnouncements as commListAnnouncements,
   createAnnouncement as commCreateAnnouncement,
   updateAnnouncement as commUpdateAnnouncement,
@@ -967,6 +975,17 @@ router.get('/school-portal/communication/threads', requireSchoolAdmin, commListT
 router.post('/school-portal/communication/threads/inbound', requireSchoolAdmin, commInboundMessage);
 router.get('/school-portal/communication/threads/:key', requireSchoolAdmin, commGetThread);
 router.post('/school-portal/communication/threads/:key/reply', requireSchoolAdmin, commReplyThread);
+
+// ==========================================================================
+// STUDENT ATTENDANCE — capture (school-admin) + monitoring (principal).
+// Static routes before :param.
+// ==========================================================================
+router.get('/school-portal/attendance/students/monitor', requirePrincipal, getStudentAttendanceMonitor);
+router.get('/school-portal/attendance/students/report', requirePrincipal, getStudentAttendanceReport);
+router.get('/school-portal/attendance/students', requireSchoolAdmin, getStudentAttendanceDay);
+router.post('/school-portal/attendance/students', requireSchoolAdmin, saveStudentAttendanceDay);
+router.post('/school-portal/attendance/students/mark-all', requireSchoolAdmin, markAllStudentAttendance);
+router.patch('/school-portal/attendance/students/:sectionId/:studentId', requireSchoolAdmin, markSingleStudentAttendance);
 
 router.get('/subscriptions', requireSuperAdmin, listPlans);
 router.post('/subscriptions', requireSuperAdmin, createPlan);

@@ -20,6 +20,7 @@ import { Exam } from '../models/Exam.js';
 import { ExamResult } from '../models/ExamResult.js';
 import { Event } from '../models/Event.js';
 import { Homework } from '../models/Homework.js';
+import { StudentAttendance } from '../models/StudentAttendance.js';
 
 export const schoolDashboardService = {
   async getDashboardSummary(schoolId) {
@@ -240,6 +241,30 @@ export const schoolDashboardService = {
       activeHomework = 0;
     }
 
+    // Student attendance rate (today)
+    let studentAttendanceRate = 0;
+    try {
+      const saAgg = await StudentAttendance.aggregate([
+        { $match: { schoolId: targetObjId, date: todayStr } },
+        { $unwind: '$entries' },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            present: {
+              $sum: {
+                $cond: [{ $in: ['$entries.status', ['PRESENT', 'LATE', 'HALF_DAY']] }, 1, 0],
+              },
+            },
+          },
+        },
+      ]);
+      const sa = saAgg[0];
+      if (sa && sa.total > 0) studentAttendanceRate = Math.round((sa.present / sa.total) * 100);
+    } catch {
+      studentAttendanceRate = 0;
+    }
+
     return {
       kpi: {
         totalStudents,
@@ -260,6 +285,7 @@ export const schoolDashboardService = {
         upcomingExams: totalExams,
         activeHomework,
         homeworkSubmissionRate,
+        studentAttendanceRate,
       },
       charts: {
         admissionsTrend: admissionsTrend.some((a) => a.admissions > 0) ? admissionsTrend : [],

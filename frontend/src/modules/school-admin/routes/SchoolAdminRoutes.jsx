@@ -15,7 +15,7 @@ import SubjectsIndex from '../pages/academics/SubjectsIndex';
 import SectionDetail from '../pages/academics/SectionDetail';
 import { SubjectAssignments } from '../pages/academics/SubjectAssignments';
 import { ClassTeachers } from '../pages/academics/ClassTeachers';
-import { AttendanceManagement } from '../pages/attendance/AttendanceManagement';
+import { AttendanceHub } from '../pages/attendance/AttendanceHub';
 import { ExamManagement } from '../pages/exams/ExamManagement';
 import { ExamDetail } from '../pages/exams/ExamDetail';
 import { FeeManagement } from '../pages/fees/FeeManagement';
@@ -68,7 +68,7 @@ export const SchoolAdminRoutes = () => {
       <Route path="academics/subject-assignments" element={<SubjectAssignments />} />
       <Route path="academics/class-teachers" element={<ClassTeachers />} />
       <Route path="academics/legacy" element={<AcademicManagement />} />
-      <Route path="attendance" element={<AttendanceManagement />} />
+      <Route path="attendance" element={<AttendanceHub />} />
       <Route path="exams" element={<ExamManagement />} />
       <Route path="exams/:examId" element={<ExamDetail />} />
       <Route path="fees" element={<FeeManagement />} />

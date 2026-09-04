@@ -1,127 +1,173 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
 import { AreaChart } from '../../components/ui/Charts/AreaChart';
-import { 
-  MOCK_STUDENTS,
-  MOCK_TEACHERS,
-  MOCK_STAFF,
-  STUDENT_ATTENDANCE_TREND
-} from '../../utils/constants';
+import { principalAttendanceApi } from '../../../../shared/api/client';
+import { apiMessage } from '../academics/utils';
+
+function today() {
+  const d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+function daysAgo(n) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
 
 export const AttendanceMonitoring = () => {
   const [activeTab, setActiveTab] = useState('students');
+  const [monitor, setMonitor] = useState(null);
+  const [staffRows, setStaffRows] = useState([]);
+  const [trend, setTrend] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Student Attendance Grid
-  const studentColumns = [
-    { key: 'admissionNo', title: 'Admn No' },
-    { key: 'name', title: 'Student Name', sortable: true },
-    { key: 'class', title: 'Class' },
-    { key: 'section', title: 'Sec' },
-    { 
-      key: 'attendanceRate', 
-      title: 'Roll Call Status Today',
-      render: (val) => (
-        <Badge variant={val >= 90 ? 'success' : val >= 75 ? 'warning' : 'danger'}>
-          {val >= 90 ? 'Present' : val >= 75 ? 'Late Arrival' : 'Absent'}
-        </Badge>
-      )
-    },
-    { key: 'phone', title: 'Parent Contact' }
-  ];
-
-  // Staff Attendance Grid
-  const staffColumns = [
-    { key: 'name', title: 'Staff Member Name', sortable: true },
-    { key: 'department', title: 'Department / Role' },
-    { 
-      key: 'attendanceRate', 
-      title: 'Attendance Status Today',
-      render: (val) => (
-        <Badge variant={val >= 95 ? 'success' : 'danger'}>
-          {val >= 95 ? 'Present (On Time)' : 'On Leave'}
-        </Badge>
-      )
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [mon, staff, rep] = await Promise.all([
+        principalAttendanceApi.studentMonitor(today()).catch(() => null),
+        principalAttendanceApi.staffReport({ limit: 60 }).catch(() => ({ data: [] })),
+        principalAttendanceApi.studentReport(daysAgo(30), today()).catch(() => null),
+      ]);
+      setMonitor(mon?.data || null);
+      setStaffRows(staff?.data || []);
+      setTrend(rep?.data?.trend || []);
+    } catch (err) {
+      setError(apiMessage(err, 'Unable to load attendance data'));
+    } finally {
+      setLoading(false);
     }
-  ];
+  }, []);
 
-  // Combine Teachers and Support Staff for staff overview
-  const combinedStaff = [
-    ...MOCK_TEACHERS.map(t => ({ id: t.id, name: t.name, department: `${t.department} Dept`, attendanceRate: t.attendanceRate })),
-    ...MOCK_STAFF.map(s => ({ id: s.id, name: s.name, department: `${s.role} (${s.department})`, attendanceRate: s.attendanceRate }))
-  ];
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const sectionColumns = useMemo(
+    () => [
+      { key: 'label', title: 'Class / Section', sortable: true, render: (v) => <span className="font-bold">{v}</span> },
+      { key: 'total', title: 'Students', align: 'center' },
+      { key: 'present', title: 'Present', align: 'center', render: (v) => <span className="font-bold text-emerald-600">{v}</span> },
+      { key: 'absent', title: 'Absent', align: 'center', render: (v) => <span className="font-bold text-rose-600">{v}</span> },
+      {
+        key: 'presentRate',
+        title: 'Attendance %',
+        sortable: true,
+        render: (v) => <Badge variant={v >= 90 ? 'success' : v >= 75 ? 'warning' : 'danger'}>{v}%</Badge>,
+      },
+    ],
+    []
+  );
+
+  const staffColumns = useMemo(
+    () => [
+      { key: 'Date', title: 'Date', sortable: true },
+      { key: 'Total Staff', title: 'Total Staff', align: 'center' },
+      { key: 'Present Count', title: 'Present', align: 'center', render: (v) => <span className="font-bold text-emerald-600">{v}</span> },
+      { key: 'Absent Count', title: 'Absent', align: 'center', render: (v) => <span className="font-bold text-rose-600">{v}</span> },
+      { key: 'Attendance %', title: 'Attendance %' },
+    ],
+    []
+  );
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-        title="Attendance Monitoring" 
-        subtitle="Observe daily student roll calls, teacher clock-ins, leaves frequency, and monthly reports." 
+      <PageHeader
+        title="Attendance Monitoring"
+        subtitle="Observe daily student roll calls, staff clock-ins, and monthly attendance trends."
       />
 
-      <Tabs 
+      {monitor?.totals && (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {[
+            { label: 'Students (marked)', value: monitor.totals.totalStudents },
+            { label: 'Present Today', value: monitor.totals.present },
+            { label: 'Absent Today', value: monitor.totals.absent },
+            { label: 'Attendance Rate', value: `${monitor.totals.presentRate}%` },
+          ].map((c) => (
+            <div key={c.label} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">{c.label}</div>
+              <div className="mt-0.5 text-xl font-extrabold text-slate-900 dark:text-white">{c.value}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <Tabs
         tabs={[
           { id: 'students', label: 'Student Daily Roll Call' },
-          { id: 'staff', label: 'Academic & Admin Staff Log' },
-          { id: 'trends', label: 'Attendance Trends (Recharts)' }
-        ]} 
-        activeTab={activeTab} 
-        onChange={setActiveTab} 
+          { id: 'staff', label: 'Staff Attendance Log' },
+          { id: 'trends', label: 'Attendance Trends' },
+        ]}
+        activeTab={activeTab}
+        onChange={setActiveTab}
       />
 
-      {activeTab === 'students' && (
-        <DataTable 
-          columns={studentColumns} 
-          data={MOCK_STUDENTS} 
-          searchPlaceholder="Search students by name..."
-          searchKey="name"
-          filterOptions={[
-            {
-              key: 'class',
-              label: 'Class',
-              options: [
-                { value: '8', label: 'Class 8' },
-                { value: '9', label: 'Class 9' },
-                { value: '10', label: 'Class 10' },
-                { value: '11', label: 'Class 11' },
-                { value: '12', label: 'Class 12' }
-              ]
-            }
-          ]}
-        />
-      )}
-
-      {activeTab === 'staff' && (
-        <DataTable 
-          columns={staffColumns} 
-          data={combinedStaff} 
-          searchPlaceholder="Search staff by name..."
-          searchKey="name"
-        />
-      )}
-
-      {activeTab === 'trends' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-3">
-            <span className="text-[10px] font-black uppercase text-slate-450 tracking-wider block">Student Attendance Rate (%)</span>
-            <AreaChart data={STUDENT_ATTENDANCE_TREND} dataKey="attendance" xKey="month" height={245} color="#059669" />
+      {error ? (
+        <div className="flex flex-col items-center gap-3 rounded-3xl border border-rose-200 bg-rose-50/60 p-10 text-center dark:border-rose-900/40 dark:bg-rose-950/20">
+          <p className="text-sm font-semibold text-rose-600">{error}</p>
+          <button type="button" onClick={load} className="rounded-xl border border-rose-300 px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-100">
+            Retry
+          </button>
+        </div>
+      ) : activeTab === 'students' ? (
+        !loading && (!monitor || !monitor.marked) ? (
+          <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-slate-900">
+            No section has been marked for {today()} yet. Roll-call is captured by the School Admin.
           </div>
-
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4 text-xs font-semibold">
-            <span className="text-[10px] font-black uppercase text-slate-450 tracking-wider block border-b pb-2">Absences Analytics Breakdown</span>
-            <div className="space-y-4">
-              <div className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-100 rounded-2xl">
-                <span className="text-[10px] font-bold text-slate-400">Total Unexcused Absences Today</span>
-                <h4 className="text-xl font-extrabold text-slate-805 mt-1">56 Students</h4>
-                <p className="text-[10px] text-slate-400 mt-1">Automatic notifications sent to parents of all absent students.</p>
+        ) : (
+          <DataTable
+            columns={sectionColumns}
+            data={monitor?.sections || []}
+            loading={loading}
+            searchPlaceholder="Search sections..."
+            searchKeys={['label']}
+            emptyMessage="No student attendance for today yet."
+            csvFilename="student_rollcall_today.csv"
+          />
+        )
+      ) : activeTab === 'staff' ? (
+        <DataTable
+          columns={staffColumns}
+          data={staffRows}
+          loading={loading}
+          searchPlaceholder="Search by date..."
+          searchKeys={['Date']}
+          emptyMessage="No staff attendance records."
+          csvFilename="staff_attendance_log.csv"
+        />
+      ) : (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="space-y-3 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+              Student Attendance Rate — last 30 days (%)
+            </span>
+            {trend.length > 0 ? (
+              <AreaChart data={trend} dataKey="attendance" xKey="date" height={245} color="#059669" />
+            ) : (
+              <div className="py-16 text-center text-xs font-semibold text-slate-400">
+                {loading ? 'Loading…' : 'No attendance history yet.'}
               </div>
-
-              <div className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-100 rounded-2xl">
-                <span className="text-[10px] font-bold text-slate-400">Staff Present Ratio</span>
-                <h4 className="text-xl font-extrabold text-emerald-600 mt-1">94.3%</h4>
-                <p className="text-[10px] text-slate-400 mt-1">Average staff presence level complies with state requirements.</p>
-              </div>
+            )}
+          </div>
+          <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 text-xs font-semibold shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <span className="block border-b pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400">
+              Today at a glance
+            </span>
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950">
+              <span className="text-[10px] font-bold text-slate-400">Sections marked today</span>
+              <h4 className="mt-1 text-xl font-extrabold text-slate-800 dark:text-white">
+                {monitor?.sections?.length ?? 0}
+              </h4>
+            </div>
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950">
+              <span className="text-[10px] font-bold text-slate-400">Absent students today</span>
+              <h4 className="mt-1 text-xl font-extrabold text-rose-600">{monitor?.totals?.absent ?? 0}</h4>
             </div>
           </div>
         </div>
@@ -129,4 +175,5 @@ export const AttendanceMonitoring = () => {
     </div>
   );
 };
+
 export default AttendanceMonitoring;

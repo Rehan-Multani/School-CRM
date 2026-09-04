@@ -1040,6 +1040,39 @@ export const principalHomeworkApi = {
 };
 
 // ===========================================================================
+// STUDENT ATTENDANCE — capture (school-admin) + monitoring (principal)
+// ===========================================================================
+export const studentAttendanceApi = {
+  getDay: (sectionId, date) =>
+    schoolAdminClient
+      .get('/platform/school-portal/attendance/students', { params: { sectionId, date } })
+      .then((r) => r.data),
+  saveDay: (payload) =>
+    schoolAdminClient.post('/platform/school-portal/attendance/students', payload).then((r) => r.data),
+  markAll: (payload) =>
+    schoolAdminClient.post('/platform/school-portal/attendance/students/mark-all', payload).then((r) => r.data),
+  markSingle: (sectionId, studentId, payload) =>
+    schoolAdminClient
+      .patch(`/platform/school-portal/attendance/students/${sectionId}/${studentId}`, payload)
+      .then((r) => r.data),
+};
+
+export const principalAttendanceApi = {
+  studentMonitor: (date) =>
+    principalClient
+      .get('/platform/school-portal/attendance/students/monitor', { params: { date } })
+      .then((r) => r.data),
+  studentReport: (from, to) =>
+    principalClient
+      .get('/platform/school-portal/attendance/students/report', { params: { from, to } })
+      .then((r) => r.data),
+  staffReport: (params) =>
+    principalClient
+      .get('/platform/school-portal/reports/data', { params: { category: 'attendance', ...params } })
+      .then((r) => r.data),
+};
+
+// ===========================================================================
 // COMMUNICATION HUB — school-admin
 // ===========================================================================
 export const communicationApi = {
