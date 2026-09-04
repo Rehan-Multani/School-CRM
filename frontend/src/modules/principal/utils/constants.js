@@ -47,24 +47,7 @@ export const NAVIGATION_ITEMS = [
   { name: 'Settings', path: '/principal/settings', icon: Settings, category: 'System' }
 ];
 
-export const MOCK_STUDENTS = [];
-export const MOCK_TEACHERS = [];
-export const MOCK_STAFF = [];
-export const MOCK_LEAVE_REQUESTS = [];
-export const MOCK_SYLLABUS = [];
-export const MOCK_EXAMS = [];
-export const MOCK_HOMEWORK = [];
-export const MOCK_COMMUNICATIONS = [];
-export const MOCK_MEETINGS = [];
-export const MOCK_AUDIT_LOGS = [];
-export const MOCK_EVENTS = [];
-
-// DASHBOARD CHART ARRAYS
-export const STUDENT_ATTENDANCE_TREND = [];
-export const TEACHER_ATTENDANCE_TREND = [];
-export const ADMISSIONS_TREND = [];
-export const FEE_COLLECTION_TREND = [];
-export const EXAM_PERFORMANCE = [];
-export const CLASS_PERFORMANCE = [];
-export const DEPT_PERFORMANCE = [];
-export const GENDER_RATIO = [];
+// NOTE: all principal monitoring pages are now wired to the real backend
+// (see shared/api/client.js — principalEventApi / principalHomeworkApi /
+// principalMeetingApi / principalReportApi / principalAttendanceApi).
+// The former MOCK_* / *_TREND placeholder arrays have been removed.

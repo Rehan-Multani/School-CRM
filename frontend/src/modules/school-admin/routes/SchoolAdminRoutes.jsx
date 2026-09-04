@@ -6,7 +6,6 @@ import { RolesAndPermissions } from '../pages/roles/RolesAndPermissions';
 import { UserManagement } from '../pages/users/UserManagement';
 import UserDetail from '../pages/users/UserDetail';
 import { AdmissionManagement } from '../pages/admissions/AdmissionManagement';
-import { AcademicManagement } from '../pages/academics/AcademicManagement';
 import AcademicIndex from '../pages/academics/AcademicIndex';
 import AcademicYearsIndex from '../pages/academics/AcademicYearsIndex';
 import AcademicYearDetail from '../pages/academics/AcademicYearDetail';
@@ -67,7 +66,6 @@ export const SchoolAdminRoutes = () => {
       <Route path="academics/subjects" element={<SubjectsIndex />} />
       <Route path="academics/subject-assignments" element={<SubjectAssignments />} />
       <Route path="academics/class-teachers" element={<ClassTeachers />} />
-      <Route path="academics/legacy" element={<AcademicManagement />} />
       <Route path="attendance" element={<AttendanceHub />} />
       <Route path="exams" element={<ExamManagement />} />
       <Route path="exams/:examId" element={<ExamDetail />} />
