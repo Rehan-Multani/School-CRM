@@ -1040,6 +1040,30 @@ export const principalHomeworkApi = {
 };
 
 // ===========================================================================
+// ADMISSIONS — school-admin
+// ===========================================================================
+export const admissionsApi = {
+  list: (params) =>
+    schoolAdminClient.get('/platform/school-portal/admissions', { params }).then((r) => r.data),
+  stats: () =>
+    schoolAdminClient.get('/platform/school-portal/admissions/stats').then((r) => r.data),
+  get: (id) =>
+    schoolAdminClient.get(`/platform/school-portal/admissions/${id}`).then((r) => r.data),
+  create: (payload) =>
+    schoolAdminClient.post('/platform/school-portal/admissions', payload).then((r) => r.data),
+  update: (id, payload) =>
+    schoolAdminClient.patch(`/platform/school-portal/admissions/${id}`, payload).then((r) => r.data),
+  setStatus: (id, status, reason) =>
+    schoolAdminClient
+      .patch(`/platform/school-portal/admissions/${id}/status`, { status, reason })
+      .then((r) => r.data),
+  approve: (id, payload = {}) =>
+    schoolAdminClient.post(`/platform/school-portal/admissions/${id}/approve`, payload).then((r) => r.data),
+  remove: (id) =>
+    schoolAdminClient.delete(`/platform/school-portal/admissions/${id}`).then((r) => r.data),
+};
+
+// ===========================================================================
 // MEETINGS — principal
 // ===========================================================================
 export const principalMeetingApi = {

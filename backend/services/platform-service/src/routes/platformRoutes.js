@@ -326,6 +326,16 @@ import {
   updateMeetingStatus,
   deleteMeeting,
 } from '../controllers/meeting.controller.js';
+import {
+  listAdmissions,
+  getAdmissionStats,
+  getAdmission,
+  createAdmission,
+  updateAdmission,
+  updateAdmissionStatus,
+  approveAdmission,
+  deleteAdmission,
+} from '../controllers/admission.controller.js';
 import { requireSuperAdmin } from '../middleware/requireSuperAdmin.js';
 import { requireSchoolAdmin } from '../middleware/requireSchoolAdmin.js';
 import { requireLibrarian } from '../middleware/requireLibrarian.js';
@@ -887,6 +897,18 @@ router.get('/school-portal/principal/meetings/:id', requirePrincipal, getMeeting
 router.patch('/school-portal/principal/meetings/:id/status', requirePrincipal, updateMeetingStatus);
 router.patch('/school-portal/principal/meetings/:id', requirePrincipal, updateMeeting);
 router.delete('/school-portal/principal/meetings/:id', requirePrincipal, deleteMeeting);
+
+// ==========================================================================
+// ADMISSIONS — school-admin. Static routes before :id.
+// ==========================================================================
+router.get('/school-portal/admissions/stats', requireSchoolAdmin, getAdmissionStats);
+router.get('/school-portal/admissions', requireSchoolAdmin, listAdmissions);
+router.post('/school-portal/admissions', requireSchoolAdmin, createAdmission);
+router.get('/school-portal/admissions/:id', requireSchoolAdmin, getAdmission);
+router.post('/school-portal/admissions/:id/approve', requireSchoolAdmin, approveAdmission);
+router.patch('/school-portal/admissions/:id/status', requireSchoolAdmin, updateAdmissionStatus);
+router.patch('/school-portal/admissions/:id', requireSchoolAdmin, updateAdmission);
+router.delete('/school-portal/admissions/:id', requireSchoolAdmin, deleteAdmission);
 
 router.get('/subscriptions', requireSuperAdmin, listPlans);
 router.post('/subscriptions', requireSuperAdmin, createPlan);
