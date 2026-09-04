@@ -22,7 +22,8 @@ function applyThemeClass(isDark) {
 
 export const SchoolAdminThemeProvider = ({ children }) => {
   const location = useLocation();
-  const isSchoolAdmin = location.pathname.startsWith('/school-admin');
+  const isAuthPage = location.pathname === '/school-admin/login' || location.pathname === '/school-admin/reset-password';
+  const isSchoolAdmin = location.pathname.startsWith('/school-admin') && !isAuthPage;
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('school-admin-theme');
     return saved

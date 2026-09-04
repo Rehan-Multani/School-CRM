@@ -6,7 +6,7 @@ import SchoolAdminBrandLogo from '../components/ui/SchoolAdminBrandLogo';
 import { schoolAdminAuthApi } from '../../../shared/api/client';
 
 const inputClass =
-  'h-12 w-full rounded-xl border border-slate-700/80 bg-slate-950/80 pl-11 pr-11 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition hover:border-slate-600 focus:border-indigo-500 focus:bg-slate-950 focus:ring-4 focus:ring-indigo-500/15 disabled:cursor-not-allowed disabled:opacity-60';
+  'h-12 w-full rounded-xl border border-slate-700/80 bg-slate-950/80 pl-11 pr-11 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition hover:border-slate-600 focus:border-blue-500 focus:bg-slate-950 focus:ring-4 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-60';
 
 export default function SchoolAdminResetPassword() {
   const navigate = useNavigate();
@@ -136,7 +136,7 @@ export default function SchoolAdminResetPassword() {
               <button
                 type="submit"
                 disabled={loading || !token}
-                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-500 disabled:pointer-events-none disabled:opacity-50"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 disabled:pointer-events-none disabled:opacity-50"
               >
                 {loading ? (
                   <>
@@ -155,7 +155,7 @@ export default function SchoolAdminResetPassword() {
         </div>
 
         <p className="mt-4 text-center">
-          <Link to="/school-admin/login" className="text-sm font-medium text-slate-400 transition hover:text-indigo-300">
+          <Link to="/school-admin/login" className="text-sm font-medium text-slate-400 transition hover:text-blue-300">
             Back to sign in
           </Link>
         </p>

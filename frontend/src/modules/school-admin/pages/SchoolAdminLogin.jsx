@@ -28,7 +28,7 @@ const HIGHLIGHTS = [
 ];
 
 const inputClass =
-  'h-12 w-full rounded-xl border border-slate-700/80 bg-slate-950/80 pl-11 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition hover:border-slate-600 focus:border-indigo-500 focus:bg-slate-950 focus:ring-4 focus:ring-indigo-500/15 disabled:cursor-not-allowed disabled:opacity-60';
+  'h-12 w-full rounded-xl border border-slate-700/80 bg-slate-950/80 pl-11 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition hover:border-slate-600 focus:border-blue-500 focus:bg-slate-950 focus:ring-4 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-60';
 
 export const SchoolAdminLogin = () => {
   const { login } = useSchoolAdminAuth();
@@ -205,7 +205,7 @@ export const SchoolAdminLogin = () => {
                         setError('');
                         setView('forgot');
                       }}
-                      className="text-xs font-semibold text-indigo-400 transition hover:text-indigo-300"
+                      className="text-xs font-semibold text-blue-400 transition hover:text-blue-300"
                     >
                       Forgot password?
                     </button>
