@@ -89,6 +89,7 @@ const schoolUserSchema = new mongoose.Schema(
     },
     lastLoginAt: { type: Date, default: null },
     credentialsSentAt: { type: Date, default: null },
+    preferences: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
   },
   { timestamps: true }
 );
@@ -140,6 +141,7 @@ schoolUserSchema.methods.toPublicJSON = function toPublicJSON() {
     documents: Array.isArray(this.documents) ? this.documents : [],
     photo: this.photo || '',
     status: this.status,
+    preferences: this.preferences || {},
     lastLoginAt: this.lastLoginAt,
     credentialsSentAt: this.credentialsSentAt,
     createdAt: this.createdAt,

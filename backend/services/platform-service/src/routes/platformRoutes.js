@@ -318,6 +318,37 @@ import {
   getAccountantProfile,
   updateAccountantProfile,
   changeAccountantPassword,
+  getAccountantDashboard,
+  listAccountantAcademicYears,
+  listAccountantClasses,
+  listAccountantSections,
+  searchAccountantStudents,
+  getAccountantStudent,
+  getStudentFeeProfile,
+  accountantGenerateInvoice,
+  accountantCollectPayment,
+  listAccountantFeeStructures,
+  getAccountantFeeStructure,
+  listAccountantInstallments,
+  listAccountantDues,
+  getAccountantStudentDueHistory,
+  listAccountantExpenses,
+  getAccountantExpense,
+  createAccountantExpense,
+  updateAccountantExpense,
+  updateAccountantExpenseStatus,
+  deleteAccountantExpense,
+  listAccountantExpenseCategories,
+  listAccountantReceipts,
+  getAccountantReceipt,
+  listAccountantInvoices,
+  getAccountantInvoice,
+  listAccountantTransactions,
+  getAccountantTransaction,
+  listAccountantNotifications,
+  getAccountantReport,
+  getAccountantSettings,
+  updateAccountantSettings,
 } from '../controllers/accountant.controller.js';
 import {
   hrLogin,
@@ -403,6 +434,50 @@ router.post('/school-portal/auth/accountant-login', loginRateLimiter, accountant
 router.get('/school-portal/accountant/profile', requireAccountant, getAccountantProfile);
 router.patch('/school-portal/accountant/profile', requireAccountant, uploadSchoolUserFiles, convertSchoolUserImages, updateAccountantProfile);
 router.patch('/school-portal/accountant/password', requireAccountant, changeAccountantPassword);
+
+// ----- Accountant Portal (all behind requireAccountant) -----
+router.get('/school-portal/accountant/dashboard', requireAccountant, getAccountantDashboard);
+
+router.get('/school-portal/accountant/academic-years', requireAccountant, listAccountantAcademicYears);
+router.get('/school-portal/accountant/classes', requireAccountant, listAccountantClasses);
+router.get('/school-portal/accountant/sections', requireAccountant, listAccountantSections);
+router.get('/school-portal/accountant/students', requireAccountant, searchAccountantStudents);
+router.get('/school-portal/accountant/students/:id', requireAccountant, getAccountantStudent);
+
+router.get('/school-portal/accountant/fees/students/:studentId/profile', requireAccountant, getStudentFeeProfile);
+router.post('/school-portal/accountant/fees/invoices/generate', requireAccountant, accountantGenerateInvoice);
+router.post('/school-portal/accountant/fees/invoices/:invoiceId/pay', requireAccountant, accountantCollectPayment);
+
+router.get('/school-portal/accountant/fee-structures', requireAccountant, listAccountantFeeStructures);
+router.get('/school-portal/accountant/fee-structures/:id', requireAccountant, getAccountantFeeStructure);
+
+router.get('/school-portal/accountant/installments', requireAccountant, listAccountantInstallments);
+
+router.get('/school-portal/accountant/dues', requireAccountant, listAccountantDues);
+router.get('/school-portal/accountant/dues/:studentId/history', requireAccountant, getAccountantStudentDueHistory);
+
+router.get('/school-portal/accountant/expenses/categories', requireAccountant, listAccountantExpenseCategories);
+router.get('/school-portal/accountant/expenses', requireAccountant, listAccountantExpenses);
+router.post('/school-portal/accountant/expenses', requireAccountant, uploadSchoolUserFiles, convertSchoolUserImages, createAccountantExpense);
+router.get('/school-portal/accountant/expenses/:id', requireAccountant, getAccountantExpense);
+router.patch('/school-portal/accountant/expenses/:id', requireAccountant, uploadSchoolUserFiles, convertSchoolUserImages, updateAccountantExpense);
+router.patch('/school-portal/accountant/expenses/:id/status', requireAccountant, updateAccountantExpenseStatus);
+router.delete('/school-portal/accountant/expenses/:id', requireAccountant, deleteAccountantExpense);
+
+router.get('/school-portal/accountant/receipts', requireAccountant, listAccountantReceipts);
+router.get('/school-portal/accountant/receipts/:id', requireAccountant, getAccountantReceipt);
+router.get('/school-portal/accountant/invoices', requireAccountant, listAccountantInvoices);
+router.get('/school-portal/accountant/invoices/:id', requireAccountant, getAccountantInvoice);
+
+router.get('/school-portal/accountant/transactions', requireAccountant, listAccountantTransactions);
+router.get('/school-portal/accountant/transactions/:id', requireAccountant, getAccountantTransaction);
+
+router.get('/school-portal/accountant/notifications', requireAccountant, listAccountantNotifications);
+
+router.get('/school-portal/accountant/reports/:category', requireAccountant, getAccountantReport);
+
+router.get('/school-portal/accountant/settings', requireAccountant, getAccountantSettings);
+router.patch('/school-portal/accountant/settings', requireAccountant, updateAccountantSettings);
 router.post('/school-auth/forgot-password', schoolAdminForgotPassword);
 router.post('/school-auth/reset-password', schoolAdminResetPassword);
 router.get('/school-portal/dashboard/summary', requirePrincipal, getSchoolAdminDashboardSummary);
