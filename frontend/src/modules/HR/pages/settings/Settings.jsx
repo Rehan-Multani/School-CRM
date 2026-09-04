@@ -133,6 +133,7 @@ export const Settings = () => {
     }
   }, [activeTab]);
 
+  
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     setSaving(true);
