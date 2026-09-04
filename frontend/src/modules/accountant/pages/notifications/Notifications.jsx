@@ -5,8 +5,13 @@ import { Badge } from '../../components/ui/Badge';
 import { Eye, Bell } from 'lucide-react';
 
 export const Notifications = () => {
-  const { notifications, unreadCount, markAllAsRead, markAsRead } = useAccountantNotifications();
+  const { notifications, unreadCount, markAllAsRead, markAsRead, loading } = useAccountantNotifications();
   const [filterType, setFilterType] = useState('ALL');
+
+  const categories = [
+    { id: 'ALL', label: 'All Alerts' },
+    ...[...new Set(notifications.map((n) => n.type).filter(Boolean))].map((t) => ({ id: t, label: t })),
+  ];
 
   const filtered = filterType === 'ALL'
     ? notifications
@@ -34,13 +39,7 @@ export const Notifications = () => {
         {/* Category Filters */}
         <div className="bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-800 rounded-3xl p-4 shadow-sm space-y-1.5 text-xs font-semibold shrink-0">
           <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block px-2 pb-1 border-b">Filter Alerts</span>
-          {[
-            { id: 'ALL', label: 'All Alerts' },
-            { id: 'Payment Success', label: 'Payment Success' },
-            { id: 'Refund Requested', label: 'Refund Requests' },
-            { id: 'Due Fee Reminder', label: 'Due Fee Reminders' },
-            { id: 'Refund Approved', label: 'Refund Approvals' }
-          ].map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat.id}
               onClick={() => setFilterType(cat.id)}
@@ -78,7 +77,9 @@ export const Notifications = () => {
             ))}
 
             {filtered.length === 0 && (
-              <p className="text-center py-12 text-slate-450">No notifications found in this alert filter category.</p>
+              <p className="text-center py-12 text-slate-450">
+                {loading ? 'Loading notifications…' : 'No notifications found in this alert filter category.'}
+              </p>
             )}
           </div>
         </div>
