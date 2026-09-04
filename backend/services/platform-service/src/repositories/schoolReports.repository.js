@@ -14,6 +14,7 @@ import { LibraryIssue } from '../models/LibraryIssue.js';
 import { Exam } from '../models/Exam.js';
 import { ExamResult } from '../models/ExamResult.js';
 import { SupportTicket } from '../models/SupportTicket.js';
+import { Homework } from '../models/Homework.js';
 import { escapeRegex, sanitizePagination } from '../../../shared/sanitize.js';
 
 export class SchoolReportsRepository {
@@ -453,6 +454,27 @@ export class SchoolReportsRepository {
     const [items, total] = await Promise.all([
       Exam.find(filter).sort({ startDate: -1 }).skip(skip).limit(limit).lean(),
       Exam.countDocuments(filter),
+    ]);
+
+    return { items, total, page, limit };
+  }
+
+  // 13. Homework
+  async getHomeworkReport(schoolId, query = {}) {
+    const filter = { schoolId };
+    if (query.status && query.status !== 'ALL') filter.status = String(query.status).toUpperCase();
+    if (query.classId) filter.classId = query.classId;
+
+    const { page, limit, skip } = sanitizePagination({
+      page: query.page,
+      limit: query.limit,
+      maxLimit: 200,
+      defaultLimit: 50,
+    });
+
+    const [items, total] = await Promise.all([
+      Homework.find(filter).sort({ assignedDate: -1 }).skip(skip).limit(limit).lean(),
+      Homework.countDocuments(filter),
     ]);
 
     return { items, total, page, limit };

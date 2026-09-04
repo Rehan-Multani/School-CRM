@@ -309,6 +309,15 @@ import {
   updateEvent,
   deleteEvent,
 } from '../controllers/event.controller.js';
+import {
+  listHomework,
+  getHomeworkStats,
+  getHomeworkMonitor,
+  getHomework,
+  createHomework,
+  updateHomework,
+  deleteHomework,
+} from '../controllers/homework.controller.js';
 import { requireSuperAdmin } from '../middleware/requireSuperAdmin.js';
 import { requireSchoolAdmin } from '../middleware/requireSchoolAdmin.js';
 import { requireLibrarian } from '../middleware/requireLibrarian.js';
@@ -849,6 +858,17 @@ router.get('/school-portal/events/:id', requirePrincipal, getEvent);
 router.post('/school-portal/events', requireSchoolAdmin, createEvent);
 router.patch('/school-portal/events/:id', requireSchoolAdmin, updateEvent);
 router.delete('/school-portal/events/:id', requireSchoolAdmin, deleteEvent);
+
+// ==========================================================================
+// HOMEWORK — school-admin writes; principal + school-admin read/monitor.
+// ==========================================================================
+router.get('/school-portal/homework/stats', requirePrincipal, getHomeworkStats);
+router.get('/school-portal/homework/monitor', requirePrincipal, getHomeworkMonitor);
+router.get('/school-portal/homework', requirePrincipal, listHomework);
+router.get('/school-portal/homework/:id', requirePrincipal, getHomework);
+router.post('/school-portal/homework', requireSchoolAdmin, createHomework);
+router.patch('/school-portal/homework/:id', requireSchoolAdmin, updateHomework);
+router.delete('/school-portal/homework/:id', requireSchoolAdmin, deleteHomework);
 
 router.get('/subscriptions', requireSuperAdmin, listPlans);
 router.post('/subscriptions', requireSuperAdmin, createPlan);

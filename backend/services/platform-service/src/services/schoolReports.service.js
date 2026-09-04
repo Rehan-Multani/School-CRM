@@ -168,6 +168,23 @@ export const schoolReportsService = {
         return { data: rows, total, page, limit };
       }
 
+      case 'homework': {
+        const { items, total, page, limit } = await schoolReportsRepository.getHomeworkReport(schoolId, query);
+        const rows = items.map((h) => ({
+          'Title': h.title || 'Homework',
+          'Class / Section': `${h.className || '—'} ${h.sectionName || ''}`.trim(),
+          'Subject': h.subjectName || '—',
+          'Assigned By': h.teacherName || '—',
+          'Assigned': h.assignedDate ? new Date(h.assignedDate).toLocaleDateString('en-IN') : 'N/A',
+          'Due': h.dueDate ? new Date(h.dueDate).toLocaleDateString('en-IN') : 'N/A',
+          'Submission %':
+            h.totalStudents > 0 ? `${Math.round(((h.submittedCount || 0) / h.totalStudents) * 100)}%` : '—',
+          'Pending Eval': Math.max(0, (h.submittedCount || 0) - (h.evaluatedCount || 0)),
+          'Status': h.status || 'ASSIGNED',
+        }));
+        return { data: rows, total, page, limit };
+      }
+
       case 'support': {
         const { items, total, page, limit } = await schoolReportsRepository.getSupportReport(schoolId, query);
         const rows = items.map((t) => ({

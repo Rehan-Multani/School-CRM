@@ -19,6 +19,7 @@ import { StudentTransportAssignment } from '../models/StudentTransportAssignment
 import { Exam } from '../models/Exam.js';
 import { ExamResult } from '../models/ExamResult.js';
 import { Event } from '../models/Event.js';
+import { Homework } from '../models/Homework.js';
 
 export const schoolDashboardService = {
   async getDashboardSummary(schoolId) {
@@ -214,6 +215,31 @@ export const schoolDashboardService = {
       upcomingEvents = [];
     }
 
+    // Homework KPIs
+    let activeHomework = 0;
+    let homeworkSubmissionRate = 0;
+    try {
+      const hwAgg = await Homework.aggregate([
+        { $match: { schoolId: targetObjId } },
+        {
+          $group: {
+            _id: null,
+            active: { $sum: { $cond: [{ $eq: ['$status', 'ASSIGNED'] }, 1, 0] } },
+            totalStudents: { $sum: '$totalStudents' },
+            submitted: { $sum: '$submittedCount' },
+          },
+        },
+      ]);
+      const h = hwAgg[0];
+      if (h) {
+        activeHomework = h.active;
+        homeworkSubmissionRate =
+          h.totalStudents > 0 ? Math.round((h.submitted / h.totalStudents) * 100) : 0;
+      }
+    } catch {
+      activeHomework = 0;
+    }
+
     return {
       kpi: {
         totalStudents,
@@ -232,6 +258,8 @@ export const schoolDashboardService = {
         fleetVehicles: totalVehicles,
         transportStudents: activeTransportStudents,
         upcomingExams: totalExams,
+        activeHomework,
+        homeworkSubmissionRate,
       },
       charts: {
         admissionsTrend: admissionsTrend.some((a) => a.admissions > 0) ? admissionsTrend : [],

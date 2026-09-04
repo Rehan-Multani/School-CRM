@@ -1009,4 +1009,34 @@ export const principalEventApi = {
     principalClient.get('/platform/school-portal/events/stats').then((r) => r.data),
 };
 
+// ===========================================================================
+// HOMEWORK — school-admin (write + read + monitor)
+// ===========================================================================
+export const homeworkApi = {
+  list: (params) =>
+    schoolAdminClient.get('/platform/school-portal/homework', { params }).then((r) => r.data),
+  stats: (params) =>
+    schoolAdminClient.get('/platform/school-portal/homework/stats', { params }).then((r) => r.data),
+  monitor: (params) =>
+    schoolAdminClient.get('/platform/school-portal/homework/monitor', { params }).then((r) => r.data),
+  get: (id) =>
+    schoolAdminClient.get(`/platform/school-portal/homework/${id}`).then((r) => r.data),
+  create: (payload) =>
+    schoolAdminClient.post('/platform/school-portal/homework', payload).then((r) => r.data),
+  update: (id, payload) =>
+    schoolAdminClient.patch(`/platform/school-portal/homework/${id}`, payload).then((r) => r.data),
+  remove: (id) =>
+    schoolAdminClient.delete(`/platform/school-portal/homework/${id}`).then((r) => r.data),
+};
+
+// HOMEWORK — principal (read-only monitor)
+export const principalHomeworkApi = {
+  list: (params) =>
+    principalClient.get('/platform/school-portal/homework', { params }).then((r) => r.data),
+  stats: (params) =>
+    principalClient.get('/platform/school-portal/homework/stats', { params }).then((r) => r.data),
+  monitor: (params) =>
+    principalClient.get('/platform/school-portal/homework/monitor', { params }).then((r) => r.data),
+};
+
 

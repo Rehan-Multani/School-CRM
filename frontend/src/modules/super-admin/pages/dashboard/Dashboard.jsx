@@ -12,7 +12,7 @@ import { Card, Badge } from '../../components/ui/Button';
 import { StatCard } from '../../components/dashboard/StatCard';
 import { AnalyticsCharts } from '../../components/charts/AnalyticsCharts';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
-import { Pulse } from '../../components/ui/SkeletonLoader';
+import { Pulse, TableSkeleton, ActivitySkeleton } from '../../components/ui/SkeletonLoader';
 import { useSuperAdminNotifications } from '../../context/SuperAdminNotificationContext';
 import {
   platformNotificationApi,
@@ -127,24 +127,40 @@ export default function Dashboard() {
         <p className="text-xs text-slate-400">Live schools, billing, notifications, and support across the platform.</p>
       </div>
 
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <Card key={index} className="space-y-3">
-              <Pulse className="h-3 w-24" />
-              <Pulse className="h-8 w-20" />
-              <Pulse className="h-3 w-32" />
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard title="Total Schools" value={formatCount(stats.totalSchools)} icon={Building} tone="indigo" to="/super-admin/schools" />
-          <StatCard title="Platform Users" value={formatCount((stats.totalStudents || 0) + (stats.totalStaff || 0))} icon={Users} tone="violet" to="/super-admin/reports" />
-          <StatCard title="Collected" value={formatInr(stats.collectedAmount)} icon={IndianRupee} tone="emerald" to="/super-admin/billing" />
-          <StatCard title="Est. Monthly Revenue" value={formatInr(stats.estimatedMonthlyRevenue)} icon={CreditCard} tone="sky" to="/super-admin/revenue" />
-        </div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          title="Total Schools"
+          value={formatCount(stats.totalSchools)}
+          icon={Building}
+          tone="indigo"
+          to="/super-admin/schools"
+          loading={loading}
+        />
+        <StatCard
+          title="Platform Users"
+          value={formatCount((stats.totalStudents || 0) + (stats.totalStaff || 0))}
+          icon={Users}
+          tone="violet"
+          to="/super-admin/reports"
+          loading={loading}
+        />
+        <StatCard
+          title="Collected"
+          value={formatInr(stats.collectedAmount)}
+          icon={IndianRupee}
+          tone="emerald"
+          to="/super-admin/billing"
+          loading={loading}
+        />
+        <StatCard
+          title="Est. Monthly Revenue"
+          value={formatInr(stats.estimatedMonthlyRevenue)}
+          icon={CreditCard}
+          tone="sky"
+          to="/super-admin/revenue"
+          loading={loading}
+        />
+      </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 bg-slate-100 dark:bg-slate-900/40 p-4 border border-slate-200 dark:border-slate-800/80 rounded-xl">
         {[
@@ -161,22 +177,22 @@ export default function Dashboard() {
             className="text-center md:text-left space-y-1 rounded-lg p-1.5 -m-1.5 hover:bg-white/70 dark:hover:bg-slate-800/50 transition-colors"
           >
             <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest block">{item.label}</span>
-            <span className="text-lg font-bold text-slate-800 dark:text-slate-200">{loading ? '—' : item.val}</span>
+            {loading ? (
+              <Pulse className="h-6 w-14 rounded-lg mt-1" />
+            ) : (
+              <span className="text-lg font-bold text-slate-800 dark:text-slate-200">{item.val}</span>
+            )}
           </Link>
         ))}
       </div>
 
-      <AnalyticsCharts revenueData={revenueData} growthData={growthData} />
+      <AnalyticsCharts revenueData={revenueData} growthData={growthData} loading={loading} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="space-y-4">
           <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider">New school registrations</h3>
           {loading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <Pulse key={index} className="h-10 w-full" />
-              ))}
-            </div>
+            <TableSkeleton rows={5} />
           ) : (summary?.recentSchools || []).length === 0 ? (
             <p className="text-sm text-slate-400 py-8 text-center">No schools registered yet.</p>
           ) : (
@@ -213,11 +229,7 @@ export default function Dashboard() {
             Recent activity
           </h3>
           {loading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 5 }).map((_, index) => (
-                <Pulse key={index} className="h-16 w-full" />
-              ))}
-            </div>
+            <ActivitySkeleton count={5} />
           ) : activity.length === 0 ? (
             <p className="text-sm text-slate-400 py-8 text-center">No recent activity yet.</p>
           ) : (

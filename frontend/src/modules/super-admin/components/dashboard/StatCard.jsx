@@ -34,12 +34,16 @@ export const StatCard = ({ title, value, change, trend = 'up', hint, icon: Icon,
         to && 'cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-500/50'
       )}
     >
-      <div className="min-w-0 space-y-2">
+      <div className="min-w-0 space-y-2 flex-1">
         <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{title}</p>
         {loading ? (
-          <div className="space-y-1.5">
-            <Pulse className="h-7 w-20" />
-            {(hint || change) && <Pulse className="h-3 w-28" />}
+          <div className="space-y-2 pt-0.5">
+            <Pulse className="h-7 w-28 rounded-xl" />
+            {(hint || change) ? (
+              <Pulse className="h-3 w-20 rounded" />
+            ) : (
+              <Pulse className="h-2.5 w-16 rounded opacity-50" />
+            )}
           </div>
         ) : (
           <>
@@ -57,7 +61,15 @@ export const StatCard = ({ title, value, change, trend = 'up', hint, icon: Icon,
           </>
         )}
       </div>
-      {Icon && <KpiIcon icon={Icon} tone={tone} />}
+      {Icon && (
+        loading ? (
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800/70 text-slate-400 dark:text-slate-500 animate-pulse">
+            <Icon className="h-5 w-5 opacity-30" strokeWidth={2} />
+          </div>
+        ) : (
+          <KpiIcon icon={Icon} tone={tone} />
+        )
+      )}
     </Card>
   );
 
