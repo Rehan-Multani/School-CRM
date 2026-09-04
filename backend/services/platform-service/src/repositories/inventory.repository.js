@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-import { Asset, AssetCategory, StockMovement } from '../models/Asset.js';
+import { Asset, StockMovement } from '../models/Asset.js';
+import { AssetCategory } from '../models/AssetCategory.js';
 import { escapeRegex, sanitizePagination } from '../../../shared/sanitize.js';
 
 class InventoryRepository {
