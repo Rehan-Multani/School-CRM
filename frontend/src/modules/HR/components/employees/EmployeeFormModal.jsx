@@ -80,7 +80,9 @@ const createEmptyForm = (initialType = 'TEACHER') => ({
 function buildPhotoUrl(photo) {
   if (!photo) return '';
   if (/^(https?:|data:|blob:)/.test(photo)) return photo;
-  return `${API_BASE_URL}/platform${photo.startsWith('/') ? photo : `/${photo}`}`;
+  const _rel = photo.startsWith('/') ? photo : `/${photo}`;
+  const _tok = ['school_admin_token','principal_token','accountant_token','hr_token','librarian_token','transport_token','super_admin_token'].reduce((a, k) => a || localStorage.getItem(k), '');
+  return `${API_BASE_URL}/platform${_rel}${_tok ? `?t=${encodeURIComponent(_tok)}` : ''}`;
 }
 
 function SectionBlock({ title, subtitle, icon: Icon, children, action }) {

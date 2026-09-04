@@ -34,80 +34,35 @@ export async function hrLogin(req, res, next) {
       throw new AppError('Username/email and password are required', 400);
     }
 
-    // 1. Try finding HR user by email or employeeId
+    // Find the HR user by email or employee id. The generic "hr" alias resolves
+    // to a real seeded HR account but still requires that account's password.
     let user = await SchoolUser.findOne({
-      $or: [
-        { email: identifier },
-        { employeeId: new RegExp(`^${identifier}$`, 'i') },
-        { role: 'HR', email: 'rohan.hr@greenfield.edu' },
-      ],
+      role: 'HR',
+      $or: [{ email: identifier }, { employeeId: new RegExp(`^${identifier}$`, 'i') }],
     }).select('+passwordHash');
 
-    // 2. If identifier is 'hr' or 'hr@school.com', find any active HR
     if (!user && (identifier === 'hr' || identifier === 'hr@school.com' || identifier === 'hr-201' || identifier === 'hr201')) {
-      user = await SchoolUser.findOne({ role: 'HR' }).select('+passwordHash');
+      user = await SchoolUser.findOne({ role: 'HR', status: 'ACTIVE' }).sort({ createdAt: 1 }).select('+passwordHash');
     }
 
-    // 3. Auto-provision default HR account if none exists
-    if (!user) {
-      let activeSchool = await School.findOne({ status: { $ne: 'Suspended' } }).sort({ createdAt: -1 });
-      if (!activeSchool) {
-        activeSchool = await School.findOne().sort({ createdAt: -1 });
-      }
-
-      if (activeSchool) {
-        const passwordHash = await bcrypt.hash('hr123', 10);
-        try {
-          user = await SchoolUser.findOneAndUpdate(
-            { schoolId: activeSchool._id, email: 'rohan.hr@greenfield.edu' },
-            {
-              $setOnInsert: {
-                schoolId: activeSchool._id,
-                employeeId: 'HR-201',
-                firstName: 'Rohan',
-                lastName: 'Verma',
-                name: 'Rohan Verma',
-                email: 'rohan.hr@greenfield.edu',
-                role: 'HR',
-                designation: 'HR & Operations Lead',
-                department: 'Human Resources & Admin',
-                basicSalary: 45000,
-                status: 'ACTIVE',
-              },
-              $set: {
-                passwordHash,
-                status: 'ACTIVE',
-                role: 'HR',
-              },
-            },
-            { new: true, upsert: true }
-          ).select('+passwordHash');
-        } catch {
-          user = await SchoolUser.findOne({ schoolId: activeSchool._id, role: 'HR' }).select('+passwordHash');
-        }
-      }
+    if (!user || !user.passwordHash) {
+      throw new AppError('Invalid username or password', 401);
     }
 
-    if (!user) {
-      throw new AppError('No HR account or registered school found in system', 401);
-    }
-
-    // Verify Password
+    // P0: real bcrypt verification only — no plaintext fallback, no auto-provision.
     let passwordValid = false;
-    if (user.passwordHash) {
-      try {
-        passwordValid = await bcrypt.compare(rawPassword, user.passwordHash);
-      } catch {
-        passwordValid = false;
-      }
-    }
-    // Allow standard fallback passwords for demo/testing
-    if (!passwordValid && (rawPassword === 'hr123' || rawPassword === 'Password@123' || rawPassword === 'Admin@123')) {
-      passwordValid = true;
+    try {
+      passwordValid = await bcrypt.compare(rawPassword, user.passwordHash);
+    } catch {
+      passwordValid = false;
     }
 
     if (!passwordValid) {
       throw new AppError('Invalid username or password', 401);
+    }
+
+    if (user.status && user.status !== 'ACTIVE') {
+      throw new AppError('This account is not active. Contact your administrator.', 403);
     }
 
     // Fetch school info

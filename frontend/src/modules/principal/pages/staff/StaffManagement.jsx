@@ -96,7 +96,9 @@ const defaultForm = {
 function buildFileUrl(path) {
   if (!path) return '';
   if (/^(https?:|data:|blob:)/.test(path)) return path;
-  return `${API_BASE_URL}/platform${path.startsWith('/') ? path : `/${path}`}`;
+  const _rel = path.startsWith('/') ? path : `/${path}`;
+  const _tok = ['school_admin_token','principal_token','accountant_token','hr_token','librarian_token','transport_token','super_admin_token'].reduce((a, k) => a || localStorage.getItem(k), '');
+  return `${API_BASE_URL}/platform${_rel}${_tok ? `?t=${encodeURIComponent(_tok)}` : ''}`;
 }
 
 function getInitials(name) {

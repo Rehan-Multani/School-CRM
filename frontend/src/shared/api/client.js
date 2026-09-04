@@ -2,6 +2,47 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
+// Tokens for every panel — used by assetUrl() so <img>/<a> requests to the
+// now-authenticated /uploads mount carry a credential via ?t= query param.
+const PANEL_TOKEN_KEYS = [
+  'school_admin_token',
+  'principal_token',
+  'accountant_token',
+  'hr_token',
+  'librarian_token',
+  'transport_token',
+  'super_admin_token',
+];
+
+function currentPanelToken() {
+  try {
+    for (const key of PANEL_TOKEN_KEYS) {
+      const v = localStorage.getItem(key);
+      if (v) return v;
+    }
+  } catch {
+    /* localStorage unavailable */
+  }
+  return '';
+}
+
+/**
+ * Build a URL for a file stored under the platform-service /uploads mount.
+ * Accepts an absolute URL (returned as-is), or a stored relative path like
+ * `students/images-123.webp` / `/uploads/users/avatar-1.webp`.
+ * Appends `?t=<token>` so the authenticated /uploads route accepts <img>/<a>.
+ */
+export function assetUrl(pathOrUrl) {
+  if (!pathOrUrl) return '';
+  if (/^(https?:|data:|blob:)/i.test(pathOrUrl)) return pathOrUrl;
+  const base = API_BASE_URL.replace(/\/$/, '');
+  let rel = String(pathOrUrl).trim();
+  if (!rel.startsWith('/')) rel = `/${rel}`;
+  const token = currentPanelToken();
+  const sep = rel.includes('?') ? '&' : '?';
+  return `${base}/platform${rel}${token ? `${sep}t=${encodeURIComponent(token)}` : ''}`;
+}
+
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },

@@ -3,7 +3,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
-import { hrApi } from '../../../../shared/api/client';
+import { hrApi, assetUrl } from '../../../../shared/api/client';
 import {
   FolderOpen,
   FileText,
@@ -548,7 +548,7 @@ export const DocumentManagement = () => {
           <div className="space-y-4">
             <div className="bg-slate-950 rounded-2xl p-4 flex items-center justify-center min-h-[320px] max-h-[500px] overflow-auto">
               <img
-                src={previewDoc.fileUrl}
+                src={assetUrl(previewDoc.fileUrl)}
                 alt={previewDoc.documentName}
                 className="max-h-[480px] object-contain rounded-xl"
               />
@@ -556,7 +556,7 @@ export const DocumentManagement = () => {
             <div className="flex items-center justify-between text-xs text-slate-500 font-semibold">
               <span>Staff: <strong>{previewDoc.employeeName}</strong> ({previewDoc.employeeId})</span>
               <a
-                href={previewDoc.fileUrl}
+                href={assetUrl(previewDoc.fileUrl)}
                 target="_blank"
                 rel="noreferrer"
                 className="flex items-center gap-1 text-indigo-650 dark:text-indigo-400 hover:underline font-bold"
