@@ -41,7 +41,13 @@ const invoiceSchema = new mongoose.Schema(
 invoiceSchema.index({ schoolName: 1 });
 invoiceSchema.index({ status: 1, issuedAt: -1 });
 invoiceSchema.index({ school: 1, issuedAt: -1 });
-invoiceSchema.index({ razorpayInvoiceId: 1 }, { unique: true, sparse: true });
+// Defaults to '' for every manually-created invoice, so plain `sparse` would
+// NOT exclude it (sparse only skips truly-absent fields, not empty strings) —
+// every existing manual invoice would collide on a bare sparse-unique index.
+invoiceSchema.index(
+  { razorpayInvoiceId: 1 },
+  { unique: true, partialFilterExpression: { razorpayInvoiceId: { $type: 'string', $gt: '' } } }
+);
 invoiceSchema.index({ subscriptionId: 1, issuedAt: -1 });
 
 invoiceSchema.methods.toPublicJSON = function toPublicJSON() {

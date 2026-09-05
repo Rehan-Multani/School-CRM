@@ -35,8 +35,19 @@ const subscriptionPlanSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-subscriptionPlanSchema.index({ razorpayPlanId: 1 }, { unique: true, sparse: true });
-subscriptionPlanSchema.index({ code: 1 }, { unique: true, sparse: true });
+// NOTE: these fields default to '' (not undefined), so a plain `sparse` index
+// does NOT exclude them from the uniqueness check — Mongo's `sparse` only
+// skips documents where the field is truly absent, and every plan has this
+// field present (as ''). A partial filter excluding empty strings is what
+// actually allows multiple non-recurring / non-coded plans to coexist.
+subscriptionPlanSchema.index(
+  { razorpayPlanId: 1 },
+  { unique: true, partialFilterExpression: { razorpayPlanId: { $type: 'string', $gt: '' } } }
+);
+subscriptionPlanSchema.index(
+  { code: 1 },
+  { unique: true, partialFilterExpression: { code: { $type: 'string', $gt: '' } } }
+);
 
 subscriptionPlanSchema.methods.isRecurring = function isRecurring() {
   return Boolean(this.razorpayPlanId);

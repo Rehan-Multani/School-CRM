@@ -16,8 +16,19 @@ function getClient() {
 
 function wrap(promise, action) {
   return promise.catch((error) => {
-    const desc = error?.error?.description || error?.message || 'Razorpay request failed';
+    // The SDK's error shape varies: validation errors are usually
+    // { error: { description, code } }, auth errors can be { error: "Unauthorized" }
+    // (a plain string), and some failures only set statusCode/message.
+    const rzpError = error?.error;
+    const desc =
+      (typeof rzpError === 'string' && rzpError) ||
+      rzpError?.description ||
+      error?.message ||
+      (error?.statusCode === 401 ? 'Unauthorized — check RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET' : '') ||
+      'Razorpay request failed';
     const statusCode = error?.statusCode && error.statusCode >= 400 && error.statusCode < 500 ? 400 : 502;
+    // eslint-disable-next-line no-console
+    console.error(`[razorpay] ${action} failed (${error?.statusCode || '?'}): ${desc}`);
     throw new AppError(`Razorpay ${action} failed: ${desc}`, statusCode);
   });
 }

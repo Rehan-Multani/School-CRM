@@ -70,7 +70,13 @@ const schoolSubscriptionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-schoolSubscriptionSchema.index({ razorpaySubscriptionId: 1 }, { unique: true, sparse: true });
+// Defaults to '' (not undefined), so a plain `sparse` index would NOT exclude
+// it from uniqueness (sparse only skips truly-absent fields). Partial filter
+// on non-empty strings is what actually lets multiple docs share ''.
+schoolSubscriptionSchema.index(
+  { razorpaySubscriptionId: 1 },
+  { unique: true, partialFilterExpression: { razorpaySubscriptionId: { $type: 'string', $gt: '' } } }
+);
 schoolSubscriptionSchema.index({ status: 1, nextBillingAt: 1 });
 schoolSubscriptionSchema.index({ status: 1, currentPeriodEnd: 1 });
 schoolSubscriptionSchema.index({ status: 1, gracePeriodEndsAt: 1 });
