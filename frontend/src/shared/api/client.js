@@ -364,9 +364,40 @@ export const platformSchoolApi = {
 
 export const platformSubscriptionApi = {
   list: () => apiClient.get('/platform/subscriptions').then((res) => res.data),
+  get: (id) => apiClient.get(`/platform/subscriptions/${id}`).then((res) => res.data),
   create: (payload) => apiClient.post('/platform/subscriptions', payload).then((res) => res.data),
   update: (id, payload) => apiClient.put(`/platform/subscriptions/${id}`, payload).then((res) => res.data),
+  archive: (id) => apiClient.post(`/platform/subscriptions/${id}/archive`).then((res) => res.data),
   remove: (id) => apiClient.delete(`/platform/subscriptions/${id}`).then((res) => res.data),
+};
+
+// ===========================================================================
+// SCHOOL SUBSCRIPTIONS (Razorpay recurring) — Super Admin
+// ===========================================================================
+export const platformSchoolSubscriptionApi = {
+  stats: () => apiClient.get('/platform/school-subscriptions/stats').then((r) => r.data),
+  list: (params) => apiClient.get('/platform/school-subscriptions', { params }).then((r) => r.data),
+  get: (id) => apiClient.get(`/platform/school-subscriptions/${id}`).then((r) => r.data),
+  create: (schoolId, payload) => apiClient.post(`/platform/schools/${schoolId}/subscription`, payload).then((r) => r.data),
+  cancel: (id, payload) => apiClient.post(`/platform/school-subscriptions/${id}/cancel`, payload).then((r) => r.data),
+  changePlan: (id, planId) => apiClient.post(`/platform/school-subscriptions/${id}/change-plan`, { planId }).then((r) => r.data),
+  override: (id, payload) => apiClient.post(`/platform/school-subscriptions/${id}/override`, payload).then((r) => r.data),
+  payments: (id, params) => apiClient.get(`/platform/school-subscriptions/${id}/payments`, { params }).then((r) => r.data),
+  invoices: (id, params) => apiClient.get(`/platform/school-subscriptions/${id}/invoices`, { params }).then((r) => r.data),
+  history: (id, params) => apiClient.get(`/platform/school-subscriptions/${id}/history`, { params }).then((r) => r.data),
+};
+
+// SCHOOL SUBSCRIPTION — School Admin (own school only, schoolId from JWT)
+export const schoolSubscriptionApi = {
+  checkoutInfo: () => schoolAdminClient.get('/platform/school-portal/subscription/checkout-info').then((r) => r.data),
+  get: () => schoolAdminClient.get('/platform/school-portal/subscription').then((r) => r.data),
+  entitlement: () => schoolAdminClient.get('/platform/school-portal/subscription/entitlement').then((r) => r.data),
+  checkout: (planId) => schoolAdminClient.post('/platform/school-portal/subscription/checkout', { planId }).then((r) => r.data),
+  changePlan: (planId) => schoolAdminClient.post('/platform/school-portal/subscription/change-plan', { planId }).then((r) => r.data),
+  cancel: (reason) => schoolAdminClient.post('/platform/school-portal/subscription/cancel', { reason }).then((r) => r.data),
+  payments: (params) => schoolAdminClient.get('/platform/school-portal/subscription/payments', { params }).then((r) => r.data),
+  invoices: (params) => schoolAdminClient.get('/platform/school-portal/subscription/invoices', { params }).then((r) => r.data),
+  history: (params) => schoolAdminClient.get('/platform/school-portal/subscription/history', { params }).then((r) => r.data),
 };
 
 export const platformBillingApi = {

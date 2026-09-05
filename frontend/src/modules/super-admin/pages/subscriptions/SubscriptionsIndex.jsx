@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useSuperAdminNotifications } from '../../context/SuperAdminNotificationContext';
 import { platformSubscriptionApi } from '../../../../shared/api/client';
 import { Plus, Trash2, CheckCircle2, Loader2, X, Pencil, AlertTriangle } from 'lucide-react';
+import SchoolSubscriptionsPanel from './SchoolSubscriptionsPanel';
 
 const PLAN_TYPES = ['Weekly', 'Monthly', 'Yearly'];
 
@@ -37,10 +38,13 @@ const emptyForm = () => ({
   planType: 'Monthly',
   features: [],
   featureDraft: '',
+  makeRecurring: false,
+  trialDays: '0',
 });
 
 export default function SubscriptionsIndex() {
   const { addNotification } = useSuperAdminNotifications();
+  const [activeTab, setActiveTab] = useState('plans');
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -84,9 +88,13 @@ export default function SubscriptionsIndex() {
       planType: plan.planType,
       features: plan.features || [],
       featureDraft: '',
+      makeRecurring: Boolean(plan.isRecurring),
+      trialDays: String(plan.trialDays ?? 0),
     });
     setDialogOpen(true);
   };
+
+  const canBeRecurring = form.planType === 'Monthly' || form.planType === 'Yearly';
 
   const addFeature = () => {
     const value = form.featureDraft.trim();
@@ -119,6 +127,12 @@ export default function SubscriptionsIndex() {
       planType: form.planType,
       features: form.features,
     };
+    // Recurring linkage is immutable after creation — Razorpay plan amount/interval
+    // cannot be edited in place, so this only applies when creating a new plan.
+    if (!editingPlan && canBeRecurring && form.makeRecurring) {
+      payload.makeRecurring = true;
+      payload.trialDays = Number(form.trialDays) || 0;
+    }
 
     setSaving(true);
     try {
@@ -160,6 +174,25 @@ export default function SubscriptionsIndex() {
 
   return (
     <div className="space-y-6">
+      <div className="flex gap-2 border-b border-slate-200 pb-3 dark:border-slate-800">
+        <button
+          onClick={() => setActiveTab('plans')}
+          className={`rounded-lg px-3.5 py-2 text-xs font-bold ${activeTab === 'plans' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-900'}`}
+        >
+          Plans
+        </button>
+        <button
+          onClick={() => setActiveTab('schools')}
+          className={`rounded-lg px-3.5 py-2 text-xs font-bold ${activeTab === 'schools' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-900'}`}
+        >
+          School Subscriptions
+        </button>
+      </div>
+
+      {activeTab === 'schools' ? (
+        <SchoolSubscriptionsPanel />
+      ) : (
+        <>
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">SaaS Subscription Plans</h1>
@@ -257,6 +290,38 @@ export default function SubscriptionsIndex() {
                 <p className="text-[11px] text-slate-500">Press Enter to add multiple features.</p>
               </div>
 
+              {!editingPlan && canBeRecurring && (
+                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3.5 dark:border-slate-800 dark:bg-slate-900/50">
+                  <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    <input
+                      type="checkbox"
+                      checked={form.makeRecurring}
+                      onChange={(e) => setForm((prev) => ({ ...prev, makeRecurring: e.target.checked }))}
+                      className="h-4 w-4 rounded text-indigo-600"
+                    />
+                    Enable Razorpay recurring billing for this plan
+                  </label>
+                  {form.makeRecurring && (
+                    <Input
+                      label="Trial Days (0 = no trial)"
+                      type="number"
+                      min="0"
+                      value={form.trialDays}
+                      onChange={(e) => setForm((prev) => ({ ...prev, trialDays: e.target.value }))}
+                    />
+                  )}
+                  <p className="text-[11px] text-slate-500">
+                    Creates a matching Razorpay recurring plan. This cannot be changed after the plan is created —
+                    a price/interval change requires a new plan.
+                  </p>
+                </div>
+              )}
+              {editingPlan?.isRecurring && (
+                <p className="rounded-lg bg-indigo-50 px-3 py-2 text-[11px] font-medium text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">
+                  This plan is linked to Razorpay ({editingPlan.razorpayPlanId}). Price/interval are immutable.
+                </p>
+              )}
+
               <Button type="submit" className="w-full gap-2" disabled={saving}>
                 {saving ? (
                   <>
@@ -288,6 +353,7 @@ export default function SubscriptionsIndex() {
                 <div className="flex justify-between items-start gap-3">
                   <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{plan.name}</h3>
                   <div className="flex items-center gap-1">
+                    {plan.isRecurring && <Badge variant="success">Recurring</Badge>}
                     <Badge variant="info">{plan.planType}</Badge>
                     <button
                       type="button"
@@ -385,6 +451,8 @@ export default function SubscriptionsIndex() {
           </div>
         </DialogContent>
       </Dialog>
+        </>
+      )}
     </div>
   );
 }

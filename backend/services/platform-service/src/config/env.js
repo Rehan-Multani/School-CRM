@@ -41,6 +41,10 @@ export const env = {
   razorpay: {
     keyId: process.env.RAZORPAY_KEY_ID || '',
     keySecret: process.env.RAZORPAY_KEY_SECRET || '',
+    // Required only for recurring subscriptions (webhook signature verification).
+    // Missing in dev just disables webhook processing with a clear log line —
+    // never a hardcoded fallback for something that authenticates money events.
+    webhookSecret: process.env.RAZORPAY_WEBHOOK_SECRET || '',
   },
   firebase: {
     serviceAccountBase64: (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64 || '').replace(/\s/g, ''),

@@ -13,6 +13,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { useSchoolAdminAuth } from '../../context/SchoolAdminAuthContext';
 import { schoolPortalApi } from '../../../../shared/api/client';
 import { SkeletonLoader } from '../../components/ui/SkeletonLoader';
+import RecurringSubscriptionSection from './RecurringSubscriptionSection';
 
 function formatInr(value) {
   return new Intl.NumberFormat('en-IN', {
@@ -383,6 +384,8 @@ export default function SubscriptionPlans() {
       ) : (
         <>
           {hasPlan && activeSubscription && <CurrentSubscriptionCard subscription={activeSubscription} />}
+
+          {hasPlan && <RecurringSubscriptionSection schoolName={user?.schoolName} />}
 
           <div>
             {hasPlan && (

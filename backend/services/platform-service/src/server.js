@@ -11,6 +11,8 @@ import { seedStaffUsers } from './seedStaffUsers.js';
 import { seedLibraryData } from './seedLibrary.js';
 import { seedRoles } from './seedRoles.js';
 import { isFirebaseConfigured } from './config/firebase.js';
+import { startSubscriptionCronJobs } from './cron/index.js';
+import { razorpaySubscriptionService } from './services/razorpaySubscription.service.js';
 
 async function start() {
   await connectDB(env.mongoUri);
@@ -33,7 +35,13 @@ async function start() {
     console.log(`Support tickets seeded: ${ticketCount}`);
     console.log(`Invoices ${invoices.length ? `seeded: ${invoices.map((invoice) => invoice.invoiceNumber).join(', ')}` : 'already present'}`);
     console.log(`Firebase messaging: ${isFirebaseConfigured() ? 'configured' : 'not configured'}`);
+    console.log(
+      `Razorpay recurring subscriptions: ${razorpaySubscriptionService.isConfigured() ? 'configured' : 'NOT configured (set RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET)'}` +
+        (razorpaySubscriptionService.webhookConfigured() ? '' : ' — RAZORPAY_WEBHOOK_SECRET not set, webhooks will 503')
+    );
   });
+
+  startSubscriptionCronJobs();
 }
 
 start().catch((error) => {

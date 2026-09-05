@@ -7,6 +7,7 @@ import platformRoutes from './routes/platformRoutes.js';
 import { ensureUploadDirs, uploadsRoot } from './utils/upload.utils.js';
 import { requireUploadAccess } from './middleware/requireUploadAccess.js';
 import { securityHeaders } from '../../shared/securityHeaders.js';
+import { receiveRazorpayWebhook } from './controllers/razorpayWebhook.controller.js';
 
 const app = express();
 
@@ -32,6 +33,13 @@ app.use((req, res, next) => {
   if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next();
   return mutationLimiter(req, res, next);
 });
+
+// Razorpay webhook: MUST see the exact raw bytes for HMAC signature
+// verification, so it is mounted with express.raw() before the global
+// express.json() below (which would otherwise re-serialize the body and
+// break every signature check). No auth guard — Razorpay calls this
+// server-to-server; the signature check IS the authentication.
+app.post('/webhooks/razorpay', express.raw({ type: '*/*', limit: '1mb' }), receiveRazorpayWebhook);
 
 // P2: 5mb JSON on every route was a payload-DoS surface. Real uploads use
 // multipart/multer and are unaffected; 1mb is ample for any form/base64 avatar.

@@ -50,3 +50,21 @@ export async function deletePlan(req, res, next) {
     next(error);
   }
 }
+
+export async function getPlan(req, res, next) {
+  try {
+    const doc = await subscriptionService.getPlan(req.params.id);
+    res.json({ success: true, data: doc.toPublicJSON() });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function archivePlan(req, res, next) {
+  try {
+    const data = await subscriptionService.archivePlan(req.params.id);
+    res.json({ success: true, data, message: 'Plan archived' });
+  } catch (error) {
+    next(error);
+  }
+}

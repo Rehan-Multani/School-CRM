@@ -24,6 +24,16 @@ const invoiceSchema = new mongoose.Schema(
     razorpayOrderId: { type: String, default: '', trim: true },
     notes: { type: String, default: '', trim: true },
     createdBy: { type: String, default: null },
+
+    // --- Recurring-subscription linkage (additive; manual invoices leave these empty) ---
+    source: { type: String, enum: ['MANUAL', 'RAZORPAY_SUBSCRIPTION'], default: 'MANUAL' },
+    subscriptionId: { type: mongoose.Schema.Types.ObjectId, ref: 'SchoolSubscription', default: null },
+    razorpaySubscriptionId: { type: String, default: '', trim: true },
+    razorpayInvoiceId: { type: String, default: '', trim: true },
+    tax: { type: Number, default: 0, min: 0 },
+    billingPeriodStart: { type: Date, default: null },
+    billingPeriodEnd: { type: Date, default: null },
+    pdfUrl: { type: String, default: '', trim: true },
   },
   { timestamps: true }
 );
@@ -31,6 +41,8 @@ const invoiceSchema = new mongoose.Schema(
 invoiceSchema.index({ schoolName: 1 });
 invoiceSchema.index({ status: 1, issuedAt: -1 });
 invoiceSchema.index({ school: 1, issuedAt: -1 });
+invoiceSchema.index({ razorpayInvoiceId: 1 }, { unique: true, sparse: true });
+invoiceSchema.index({ subscriptionId: 1, issuedAt: -1 });
 
 invoiceSchema.methods.toPublicJSON = function toPublicJSON() {
   return {
@@ -53,6 +65,14 @@ invoiceSchema.methods.toPublicJSON = function toPublicJSON() {
     razorpayOrderId: this.razorpayOrderId || '',
     notes: this.notes || '',
     createdBy: this.createdBy,
+    source: this.source || 'MANUAL',
+    subscriptionId: this.subscriptionId?.toString?.() || null,
+    razorpaySubscriptionId: this.razorpaySubscriptionId || '',
+    razorpayInvoiceId: this.razorpayInvoiceId || '',
+    tax: this.tax || 0,
+    billingPeriodStart: this.billingPeriodStart,
+    billingPeriodEnd: this.billingPeriodEnd,
+    pdfUrl: this.pdfUrl || '',
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

@@ -49,7 +49,30 @@ import {
   deletePlan,
   listPlans,
   updatePlan,
+  getPlan,
+  archivePlan,
 } from '../controllers/subscription.controller.js';
+import {
+  createSchoolSubscription,
+  listSchoolSubscriptions,
+  getSubscriptionStats,
+  getSchoolSubscriptionById,
+  cancelSchoolSubscription,
+  changeSchoolSubscriptionPlan,
+  overrideSchoolSubscription,
+  listSubscriptionPayments,
+  listSubscriptionInvoices,
+  listSubscriptionHistory,
+  getMySubscription,
+  getMyEntitlement,
+  checkoutMySubscription,
+  changeMySubscriptionPlan,
+  cancelMySubscription,
+  listMySubscriptionPayments,
+  listMySubscriptionInvoices,
+  listMySubscriptionHistory,
+  getSubscriptionCheckoutInfo,
+} from '../controllers/schoolSubscription.controller.js';
 import {
   inboxNotifications,
   listNotifications,
@@ -1016,8 +1039,35 @@ router.get('/school-portal/audit-logs', requireSchoolAdmin, listAuditLogs);
 
 router.get('/subscriptions', requireSuperAdmin, listPlans);
 router.post('/subscriptions', requireSuperAdmin, createPlan);
+router.get('/subscriptions/:id', requireSuperAdmin, getPlan);
 router.put('/subscriptions/:id', requireSuperAdmin, updatePlan);
+router.post('/subscriptions/:id/archive', requireSuperAdmin, archivePlan);
 router.delete('/subscriptions/:id', requireSuperAdmin, deletePlan);
+
+// ==========================================================================
+// SCHOOL SUBSCRIPTIONS (Razorpay recurring) — Super Admin. Static before :id.
+// ==========================================================================
+router.get('/school-subscriptions/stats', requireSuperAdmin, getSubscriptionStats);
+router.get('/school-subscriptions', requireSuperAdmin, listSchoolSubscriptions);
+router.post('/schools/:schoolId/subscription', requireSuperAdmin, createSchoolSubscription);
+router.get('/school-subscriptions/:id', requireSuperAdmin, getSchoolSubscriptionById);
+router.post('/school-subscriptions/:id/cancel', requireSuperAdmin, cancelSchoolSubscription);
+router.post('/school-subscriptions/:id/change-plan', requireSuperAdmin, changeSchoolSubscriptionPlan);
+router.post('/school-subscriptions/:id/override', requireSuperAdmin, overrideSchoolSubscription);
+router.get('/school-subscriptions/:id/payments', requireSuperAdmin, listSubscriptionPayments);
+router.get('/school-subscriptions/:id/invoices', requireSuperAdmin, listSubscriptionInvoices);
+router.get('/school-subscriptions/:id/history', requireSuperAdmin, listSubscriptionHistory);
+
+// SCHOOL SUBSCRIPTION — School Admin, always scoped to req.user's own school.
+router.get('/school-portal/subscription/checkout-info', requireSchoolAdmin, getSubscriptionCheckoutInfo);
+router.get('/school-portal/subscription', requireSchoolAdmin, getMySubscription);
+router.get('/school-portal/subscription/entitlement', requireSchoolAdmin, getMyEntitlement);
+router.post('/school-portal/subscription/checkout', requireSchoolAdmin, checkoutMySubscription);
+router.post('/school-portal/subscription/change-plan', requireSchoolAdmin, changeMySubscriptionPlan);
+router.post('/school-portal/subscription/cancel', requireSchoolAdmin, cancelMySubscription);
+router.get('/school-portal/subscription/payments', requireSchoolAdmin, listMySubscriptionPayments);
+router.get('/school-portal/subscription/invoices', requireSchoolAdmin, listMySubscriptionInvoices);
+router.get('/school-portal/subscription/history', requireSchoolAdmin, listMySubscriptionHistory);
 router.post('/device-tokens', registerDevice);
 router.get('/notifications/inbox', inboxNotifications);
 router.get('/notifications', requireSuperAdmin, listNotifications);
