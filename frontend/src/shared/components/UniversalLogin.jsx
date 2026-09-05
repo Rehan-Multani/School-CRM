@@ -17,7 +17,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import BrandLogo from '../ui/BrandLogo';
-import { platformAuthApi } from '../api/client';
+import { platformAuthApi, schoolAdminAuthApi } from '../api/client';
 
 export const UniversalLogin = () => {
   const navigate = useNavigate();
@@ -163,6 +163,36 @@ export const UniversalLogin = () => {
         setIsLoading(false);
         setError(err.response?.data?.message || err.message || 'Invalid credentials');
         return;
+      }
+    }
+
+    // Direct backend authentication for School Admin
+    if (cleanId.includes('@')) {
+      try {
+        const schoolAdminRes = await schoolAdminAuthApi.login(cleanId, password);
+        if (schoolAdminRes?.token) {
+          localStorage.setItem('school_admin_token', schoolAdminRes.token);
+          localStorage.setItem('school-admin-user', JSON.stringify(schoolAdminRes.user));
+          localStorage.setItem(
+            'school-admin-branding',
+            JSON.stringify({
+              logo: schoolAdminRes.user?.brandingLogo || '',
+              favicon: schoolAdminRes.user?.brandingFavicon || '',
+              schoolName: schoolAdminRes.user?.schoolName || '',
+            })
+          );
+          setIsLoading(false);
+          navigate(schoolAdminRes.user?.hasPlan ? '/school-admin/dashboard' : '/school-admin/plans');
+          return;
+        }
+      } catch (err) {
+        // If credentials failed for an explicit email, display error
+        const msg = err.response?.data?.message || err.message;
+        if (msg && msg !== 'Invalid email or password' && msg !== 'Invalid credentials') {
+          setIsLoading(false);
+          setError(msg);
+          return;
+        }
       }
     }
 

@@ -163,6 +163,21 @@ schoolAdminClient.interceptors.request.use((config) => {
   return config;
 });
 
+// Backend returns 402 once a school's subscription has expired past its
+// grace period. Bounce to the plans page so the block is never just a
+// generic error toast on whatever page the admin happened to be on.
+schoolAdminClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 402 && typeof window !== 'undefined') {
+      if (!window.location.pathname.startsWith('/school-admin/plans')) {
+        window.location.href = '/school-admin/plans';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 function studentRequestConfig(payload) {
   if (payload instanceof FormData) {
     return {

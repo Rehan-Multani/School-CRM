@@ -890,11 +890,14 @@ export class SchoolService {
    * creates one (Monthly/Yearly only — Weekly plans can't be recurring).
    */
   async initiateSubscriptionCheckout(schoolId, planId, req) {
+    console.log(`[subscription-flow] checkout requested — school=${schoolId} plan=${planId}`);
+
     const school = await schoolRepository.findById(schoolId);
     if (!school) {
       throw new AppError('School not found', 404);
     }
     if (school.subscriptionPlan) {
+      console.log(`[subscription-flow] rejected — school=${schoolId} already has plan "${school.subscriptionPlan}"`);
       throw new AppError('A subscription plan is already selected for this school', 400);
     }
 
@@ -902,10 +905,12 @@ export class SchoolService {
     if (existing) {
       const stuck = ['created', 'authenticated'].includes(existing.status);
       if (!stuck) {
+        console.log(`[subscription-flow] rejected — school=${schoolId} already has subscription status=${existing.status}`);
         throw new AppError('This school already has an active or pending subscription', 409);
       }
       if (String(existing.planId?._id || existing.planId) === String(planId)) {
         // Resume the same not-yet-paid attempt instead of blocking the school forever.
+        console.log(`[subscription-flow] resuming stuck checkout — school=${schoolId} razorpaySubscriptionId=${existing.razorpaySubscriptionId} status=${existing.status}`);
         const plan = await subscriptionRepository.findById(planId);
         return {
           subscription: existing.toPublicJSON({ plan: plan?.toPublicJSON?.() }),
@@ -914,7 +919,10 @@ export class SchoolService {
         };
       }
       // Switched plan before finishing checkout — abandon the stale attempt and start fresh.
-      await razorpaySubscriptionService.cancelSubscription(existing.razorpaySubscriptionId, { atCycleEnd: false }).catch(() => {});
+      console.log(`[subscription-flow] plan switched mid-checkout — school=${schoolId} cancelling stale razorpaySubscriptionId=${existing.razorpaySubscriptionId}`);
+      await razorpaySubscriptionService.cancelSubscription(existing.razorpaySubscriptionId, { atCycleEnd: false }).catch((err) => {
+        console.error(`[subscription-flow] failed to cancel stale razorpaySubscriptionId=${existing.razorpaySubscriptionId} on plan switch (school=${schoolId}): ${err?.message} — it will keep showing on Razorpay's side even though we're marking it cancelled locally`);
+      });
       await schoolSubscriptionRepository.updateById(existing._id, {
         status: 'cancelled',
         cancelledAt: new Date(),
@@ -922,7 +930,10 @@ export class SchoolService {
       });
     }
 
-    return schoolSubscriptionService.checkoutForSchool(schoolId, { planId }, { name: school.name, req });
+    console.log(`[subscription-flow] creating fresh Razorpay subscription — school=${schoolId} plan=${planId}`);
+    const result = await schoolSubscriptionService.checkoutForSchool(schoolId, { planId }, { name: school.name, req });
+    console.log(`[subscription-flow] checkout created — school=${schoolId} razorpaySubscriptionId=${result.razorpaySubscriptionId} status=${result.subscription?.status}`);
+    return result;
   }
 }
 

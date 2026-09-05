@@ -2,8 +2,9 @@ import os from 'os';
 import { acquireCronLock, releaseCronLock } from '../models/CronLock.js';
 import { RazorpayWebhookEvent } from '../models/RazorpayWebhookEvent.js';
 import { schoolSubscriptionRepository } from '../repositories/schoolSubscription.repository.js';
+import { subscriptionRepository } from '../repositories/subscription.repository.js';
 import { razorpaySubscriptionService } from '../services/razorpaySubscription.service.js';
-import { razorpayWebhookService } from '../services/razorpayWebhook.service.js';
+import { razorpayWebhookService, grantSchoolPlanIfNeeded } from '../services/razorpayWebhook.service.js';
 import { GRACE_PERIOD_DAYS, toDate } from '../services/schoolSubscription.service.js';
 import { notificationService } from '../services/notification.service.js';
 
@@ -88,6 +89,18 @@ export async function runReconciliationJob() {
             source: 'cron',
           });
         }
+        // Safety net for a webhook that never arrived at all (not just one that
+        // failed after being received — runWebhookRecoveryJob covers that case).
+        // Without this, a school that Razorpay confirms as paid could stay
+        // locked out forever if subscription.activated/charged was never
+        // delivered. grantSchoolPlanIfNeeded no-ops once already granted, so
+        // this is safe to call on every reconciled-active tick, not just
+        // on the tick where the status actually changed.
+        if (sub.status === 'active') {
+          await grantSchoolPlanIfNeeded(sub).catch((err) => {
+            log('reconciliation', `grantSchoolPlanIfNeeded failed for school ${sub.schoolId}: ${err.message}`);
+          });
+        }
       } catch (error) {
         // Fetch failed (network/Razorpay outage) — leave local state untouched, try again next tick.
         log('reconciliation', `fetch failed for ${sub.razorpaySubscriptionId}: ${error.message}`);
@@ -127,6 +140,51 @@ export async function runExpiryCheckJob() {
 }
 
 // ---------------------------------------------------------------------------
+// Job 2b — Pending plan change: changePlan() schedules a downgrade on Razorpay
+// for cycle-end (schoolSubscription.service.js), but Razorpay's webhooks only
+// ever report status/period changes, never a plan change — so nothing else
+// applies the local plan swap. Without this, `planId`/`totalAmount` would
+// stay on the old (more expensive) plan forever after the downgrade takes
+// effect on Razorpay's side.
+// ---------------------------------------------------------------------------
+export async function runPendingPlanChangeJob() {
+  await withLock('subscription-pending-plan-change', 15 * 60 * 1000, async () => {
+    const now = new Date();
+    const due = await schoolSubscriptionRepository.findPendingDowngradesDue(now);
+    for (const sub of due) {
+      const fromPlanId = sub.planId;
+      const newPlan = await subscriptionRepository.findById(sub.pendingPlanId);
+      if (!newPlan) {
+        // Plan was deleted after the downgrade was scheduled — clear the
+        // pending change rather than retrying it forever; current plan stands.
+        sub.pendingPlanId = null;
+        sub.pendingChangeType = '';
+        sub.pendingChangeEffectiveAt = null;
+        await schoolSubscriptionRepository.save(sub);
+        continue;
+      }
+      sub.planId = newPlan._id;
+      sub.totalAmount = Math.round(newPlan.price * sub.quantity * 100) / 100;
+      sub.pendingPlanId = null;
+      sub.pendingChangeType = '';
+      sub.pendingChangeEffectiveAt = null;
+      await schoolSubscriptionRepository.save(sub);
+      await schoolSubscriptionRepository.recordHistory({
+        schoolId: sub.schoolId,
+        subscriptionId: sub._id,
+        action: 'downgraded',
+        fromPlan: fromPlanId,
+        toPlan: newPlan._id,
+        performedBy: 'Cron',
+        source: 'cron',
+        reason: 'Scheduled downgrade applied at cycle end',
+      });
+    }
+    log('pending-plan-change', `applied ${due.length} scheduled downgrade(s)`);
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Job 3 — Grace period: once gracePeriodEndsAt has passed for a still-failing
 // subscription, flip to 'expired' (restricts premium access — never deletes data).
 // ---------------------------------------------------------------------------
@@ -155,7 +213,7 @@ export async function runGracePeriodJob() {
           'Billing System',
           { schoolId: String(sub.schoolId) }
         )
-        .catch(() => {});
+        .catch((err) => log('grace-period', `notification failed for school ${sub.schoolId}: ${err?.message}`));
     }
     log('grace-period', `expired ${overdue.length} subscription(s) past grace period`);
   });
@@ -179,7 +237,7 @@ export async function runFailedPaymentRecoveryJob() {
           'Billing System',
           { schoolId: String(sub.schoolId) }
         )
-        .catch(() => {});
+        .catch((err) => log('failed-payment-recovery', `notification failed for school ${sub.schoolId}: ${err?.message}`));
       sub.lastFailureNotifiedAt = new Date();
       await schoolSubscriptionRepository.save(sub);
     }

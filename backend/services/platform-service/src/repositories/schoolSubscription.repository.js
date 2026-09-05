@@ -182,6 +182,14 @@ class SchoolSubscriptionRepository {
     }).limit(200);
   }
 
+  findPendingDowngradesDue(now) {
+    return SchoolSubscription.find({
+      pendingChangeType: 'downgrade',
+      pendingPlanId: { $ne: null },
+      pendingChangeEffectiveAt: { $ne: null, $lte: now },
+    });
+  }
+
   findFailuresPendingNotification() {
     return SchoolSubscription.find({
       status: { $in: ['pending', 'halted'] },

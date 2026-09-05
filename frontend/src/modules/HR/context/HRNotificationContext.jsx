@@ -1,9 +1,11 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { hrApi } from '../../../shared/api/client';
+import { useHRAuth } from './HRAuthContext';
 
 const HRNotificationContext = createContext();
 
 export const HRNotificationProvider = ({ children }) => {
+  const { user } = useHRAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -20,6 +22,9 @@ export const HRNotificationProvider = ({ children }) => {
   };
 
   const fetchNotifications = useCallback(async () => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('hr_token') : null;
+    if (!token) return;
+
     setLoading(true);
     try {
       const res = await hrApi.notifications();
@@ -44,8 +49,13 @@ export const HRNotificationProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+    const token = typeof window !== 'undefined' ? localStorage.getItem('hr_token') : null;
+    if (user && token) {
+      fetchNotifications();
+    } else {
+      setNotifications([]);
+    }
+  }, [user, fetchNotifications]);
 
   const markAllAsRead = () => {
     const allIds = notifications.map((n) => n.id);

@@ -20,10 +20,20 @@ async function grantSchoolPlanIfNeeded(sub) {
   if (!sub?.schoolId) return;
   const schoolId = sub.schoolId?._id || sub.schoolId;
   const school = await School.findById(schoolId);
-  if (!school || school.subscriptionPlan) return;
+  if (!school) {
+    console.log(`[subscription-flow] grantSchoolPlanIfNeeded: school ${schoolId} not found — skipping`);
+    return;
+  }
+  if (school.subscriptionPlan) {
+    console.log(`[subscription-flow] grantSchoolPlanIfNeeded: school "${school.name}" already has plan "${school.subscriptionPlan}" — no-op`);
+    return;
+  }
 
   const plan = await subscriptionRepository.findById(sub.planId?._id || sub.planId);
-  if (!plan) return;
+  if (!plan) {
+    console.log(`[subscription-flow] grantSchoolPlanIfNeeded: plan not found for subscription ${sub._id} — skipping`);
+    return;
+  }
 
   const startedAt = new Date();
   school.subscriptionPlan = plan.name;
@@ -35,6 +45,7 @@ async function grantSchoolPlanIfNeeded(sub) {
     status: 'Active',
   };
   await school.save();
+  console.log(`[subscription-flow] PLAN GRANTED — school="${school.name}" plan="${plan.name}" (payment confirmed via webhook)`);
 }
 
 function deriveEventId(headerEventId, body) {
@@ -60,7 +71,7 @@ function notifySchool(sub, title, body) {
   if (!sub?.schoolId) return;
   notificationService
     .send({ title, body, audiences: ['school-admin'] }, 'Billing System', { schoolId: String(sub.schoolId) })
-    .catch(() => {});
+    .catch((err) => console.error(`[subscription-flow] notification "${title}" failed for school ${sub.schoolId}: ${err?.message}`));
 }
 
 // ---------------------------------------------------------------------------
@@ -72,11 +83,13 @@ function notifySchool(sub, title, body) {
 // ---------------------------------------------------------------------------
 
 async function handleSubscriptionAuthenticated(sub, entity) {
+  console.log(`[subscription-flow] subscription.authenticated — razorpaySubscriptionId=${sub.razorpaySubscriptionId}`);
   sub.status = 'authenticated';
   await schoolSubscriptionRepository.save(sub);
 }
 
 async function handleSubscriptionActivated(sub, entity) {
+  console.log(`[subscription-flow] subscription.activated — razorpaySubscriptionId=${sub.razorpaySubscriptionId} newStatus=${entity.status || 'active'}`);
   const fromStatus = sub.status;
   sub.status = entity.status || 'active';
   sub.currentPeriodStart = toDate(entity.current_start);
@@ -99,6 +112,7 @@ async function handleSubscriptionActivated(sub, entity) {
 }
 
 async function handleSubscriptionCharged(sub, entity, paymentEntity, invoiceEntity) {
+  console.log(`[subscription-flow] subscription.charged — razorpaySubscriptionId=${sub.razorpaySubscriptionId} paymentId=${paymentEntity?.id} amount=₹${(paymentEntity?.amount || 0) / 100} captured=${paymentEntity?.captured}`);
   const fromStatus = sub.status;
   sub.status = 'active';
   sub.currentPeriodStart = toDate(entity.current_start);
@@ -284,6 +298,7 @@ class RazorpayWebhookService {
   async receive(rawBody, signatureHeader, headerEventId) {
     const valid = razorpaySubscriptionService.verifyWebhookSignature(rawBody, signatureHeader);
     if (!valid) {
+      console.log('[subscription-flow] webhook REJECTED — invalid signature');
       throw new AppError('Invalid webhook signature', 401);
     }
 
@@ -294,9 +309,12 @@ class RazorpayWebhookService {
       throw new AppError('Malformed webhook payload', 400);
     }
 
+    console.log(`[subscription-flow] webhook received — event="${body.event}" (signature verified)`);
+
     const eventId = deriveEventId(headerEventId, body);
     const existing = await RazorpayWebhookEvent.findOne({ eventId });
     if (existing) {
+      console.log(`[subscription-flow] webhook eventId=${eventId} already seen — processed=${existing.processed}`);
       return { event: existing, alreadyProcessed: existing.processed };
     }
 
@@ -319,6 +337,8 @@ class RazorpayWebhookService {
     const body = webhookEventDoc.payload;
     const eventName = body.event;
 
+    console.log(`[subscription-flow] processing webhook event="${eventName}"`);
+
     try {
       const subEntity = body?.payload?.subscription?.entity;
       const paymentEntity = body?.payload?.payment?.entity;
@@ -326,6 +346,10 @@ class RazorpayWebhookService {
 
       const razorpaySubscriptionId = subEntity?.id || paymentEntity?.subscription_id || invoiceEntity?.subscription_id;
       const sub = razorpaySubscriptionId ? await findSubscriptionByRazorpayId(razorpaySubscriptionId) : null;
+
+      if (razorpaySubscriptionId && !sub) {
+        console.log(`[subscription-flow] event="${eventName}" — no local SchoolSubscription found for razorpaySubscriptionId=${razorpaySubscriptionId}, ignoring`);
+      }
 
       switch (eventName) {
         case 'subscription.authenticated':
@@ -399,3 +423,4 @@ class RazorpayWebhookService {
 }
 
 export const razorpayWebhookService = new RazorpayWebhookService();
+export { grantSchoolPlanIfNeeded };

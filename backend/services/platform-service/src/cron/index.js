@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import {
   runReconciliationJob,
   runExpiryCheckJob,
+  runPendingPlanChangeJob,
   runGracePeriodJob,
   runFailedPaymentRecoveryJob,
   runWebhookRecoveryJob,
@@ -19,6 +20,7 @@ export function startSubscriptionCronJobs() {
   cron.schedule('*/30 * * * *', () => runReconciliationJob());
   // Every 15 min — expiry / grace-period / failed-payment jobs act on time-sensitive access.
   cron.schedule('*/15 * * * *', () => runExpiryCheckJob());
+  cron.schedule('*/15 * * * *', () => runPendingPlanChangeJob());
   cron.schedule('7,22,37,52 * * * *', () => runGracePeriodJob());
   cron.schedule('*/15 * * * *', () => runFailedPaymentRecoveryJob());
   // Every 10 min — webhook recovery should catch up quickly after a transient failure.

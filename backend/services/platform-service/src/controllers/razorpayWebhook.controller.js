@@ -23,7 +23,11 @@ export async function receiveRazorpayWebhook(req, res, next) {
     if (!alreadyProcessed) {
       // Process after responding — Razorpay's timeout budget is short, and our
       // own idempotent storage already guarantees at-most-once effects.
-      razorpayWebhookService.process(event).catch(() => {});
+      razorpayWebhookService.process(event).catch((err) => {
+        // process() already records failure on the event doc for the retry
+        // cron to pick up — this only fires if that itself somehow threw.
+        console.error(`[subscription-flow] webhook post-response processing crashed for event ${event._id}: ${err?.message}`);
+      });
     }
   } catch (error) {
     if (error instanceof AppError && error.statusCode === 401) {

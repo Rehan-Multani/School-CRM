@@ -1,6 +1,7 @@
 import { AppError } from '../../../shared/AppError.js';
 import { verifyToken } from '../../../shared/generateToken.js';
 import { env } from '../config/env.js';
+import { enforceSubscriptionAccess } from './requireSubscription.js';
 
 export function requireSchoolAdmin(req, res, next) {
   try {
@@ -17,7 +18,7 @@ export function requireSchoolAdmin(req, res, next) {
     }
 
     req.user = payload;
-    next();
+    enforceSubscriptionAccess(req, res, next);
   } catch (error) {
     if (error instanceof AppError) {
       next(error);

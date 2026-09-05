@@ -34,11 +34,13 @@ async function assertPlanUsable(planId) {
   if (!plan.razorpayPlanId) {
     const interval = mapPlanTypeToInterval(plan.planType);
     if (!interval) {
+      console.log(`[subscription-flow] plan "${plan.name}" (${plan.planType}) cannot be recurring — no interval mapping`);
       throw new AppError(
         'This plan does not support recurring billing — only Monthly or Yearly plans can be subscribed to. Ask your Super Admin to adjust it.',
         400
       );
     }
+    console.log(`[subscription-flow] lazily creating Razorpay Plan for "${plan.name}" — interval=${interval} amount=₹${plan.price}`);
     const rzpPlan = await razorpaySubscriptionService.createPlan({
       interval,
       intervalCount: 1,
@@ -47,6 +49,7 @@ async function assertPlanUsable(planId) {
       name: plan.name,
       description: plan.description,
     });
+    console.log(`[subscription-flow] Razorpay Plan created — razorpayPlanId=${rzpPlan.id}`);
     plan.razorpayPlanId = rzpPlan.id;
     plan.billingInterval = interval;
     plan.billingIntervalCount = 1;
@@ -75,12 +78,14 @@ class SchoolSubscriptionService {
     const qty = Math.max(1, Number(quantity) || 1);
     const effectiveTrialDays = trialDays !== undefined && trialDays !== null ? Number(trialDays) : plan.trialDays || 0;
 
+    console.log(`[subscription-flow] finding/creating Razorpay customer — school="${school.name}"`);
     const customer = await razorpaySubscriptionService.findOrCreateCustomer({
       name: school.name,
       email: school.contact?.email || school.email || undefined,
       contact: school.contact?.phone || school.phone || undefined,
       notes: { schoolId: String(schoolId), schoolCode: school.schoolId || '' },
     });
+    console.log(`[subscription-flow] Razorpay customer ready — razorpayCustomerId=${customer.id}`);
 
     // Standard 10-year recurring count:
     // Monthly: 10 years * 12 months = 120 cycles
@@ -88,6 +93,7 @@ class SchoolSubscriptionService {
     // Weekly: 10 years * 52 weeks = 520 cycles
     const standard10YearCount = plan.billingInterval === 'yearly' ? 10 : (plan.billingInterval === 'weekly' ? 520 : 120);
 
+    console.log(`[subscription-flow] creating Razorpay Subscription — razorpayPlanId=${plan.razorpayPlanId} cycles=${standard10YearCount} qty=${qty} trialDays=${effectiveTrialDays}`);
     let rzpSub;
     try {
       rzpSub = await razorpaySubscriptionService.createSubscription({
@@ -98,8 +104,10 @@ class SchoolSubscriptionService {
         notes: { schoolId: String(schoolId), planId: String(planId) },
       });
     } catch (error) {
+      console.log(`[subscription-flow] Razorpay Subscription creation FAILED — school=${schoolId}: ${error?.message}`);
       throw error; // razorpaySubscriptionService already wraps this as an AppError
     }
+    console.log(`[subscription-flow] Razorpay Subscription created — razorpaySubscriptionId=${rzpSub.id} status=${rzpSub.status}`);
 
     const doc = await schoolSubscriptionRepository.create({
       schoolId,
@@ -367,13 +375,10 @@ class SchoolSubscriptionService {
   // ---------------------------------------------------------------
   _notify(doc, title, body) {
     if (!doc.schoolId) return;
+    const schoolId = String(doc.schoolId._id || doc.schoolId);
     notificationService
-      .send(
-        { title, body, audiences: ['school-admin'] },
-        'Billing System',
-        { schoolId: String(doc.schoolId._id || doc.schoolId) }
-      )
-      .catch(() => {});
+      .send({ title, body, audiences: ['school-admin'] }, 'Billing System', { schoolId })
+      .catch((err) => console.error(`[subscription-flow] notification "${title}" failed for school ${schoolId}: ${err?.message}`));
   }
 }
 
