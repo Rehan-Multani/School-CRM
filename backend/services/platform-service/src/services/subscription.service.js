@@ -2,6 +2,7 @@ import { AppError } from '../../../shared/AppError.js';
 import { PLAN_TYPES, BILLING_INTERVALS, PLAN_STATUSES } from '../models/SubscriptionPlan.js';
 import { subscriptionRepository } from '../repositories/subscription.repository.js';
 import { razorpaySubscriptionService } from './razorpaySubscription.service.js';
+import { schoolSubscriptionRepository } from '../repositories/schoolSubscription.repository.js';
 
 function requireText(value, label) {
   const text = typeof value === 'string' ? value.trim() : '';
@@ -13,8 +14,8 @@ function requireText(value, label) {
 
 function normalizePrice(value) {
   const price = Number(value);
-  if (Number.isNaN(price) || price < 0) {
-    throw new AppError('Price must be a valid amount', 400);
+  if (Number.isNaN(price) || price <= 0) {
+    throw new AppError('Price must be greater than 0', 400);
   }
   return Math.round(price * 100) / 100;
 }
@@ -165,13 +166,72 @@ export class SubscriptionService {
     }
   }
 
+  /**
+   * Recurring billing CAN be turned on or off later, but only while no
+   * school is actually subscribed to this plan yet — once a Razorpay
+   * subscription references this plan, its amount/interval are frozen
+   * (that's a Razorpay constraint, not a UI restriction), because changing
+   * them out from under a live subscription would desync billing from
+   * what schools are actually being charged.
+   */
   async updatePlan(id, payload) {
+    const existing = await subscriptionRepository.findById(id);
+    if (!existing) throw new AppError('Subscription plan not found', 404);
+
+    const next = normalizePayload(payload);
+    delete next.createdBy;
+
+    const wantsToEnableRecurring = payload?.makeRecurring === true && !existing.razorpayPlanId;
+    const wantsToDisableRecurring = payload?.removeRecurring === true && Boolean(existing.razorpayPlanId);
+
+    if (wantsToEnableRecurring || wantsToDisableRecurring) {
+      const linkedCount = await schoolSubscriptionRepository.countByPlan(id);
+      if (linkedCount > 0) {
+        throw new AppError(
+          `Cannot change recurring billing — ${linkedCount} school subscription(s) already use this plan. Create a new plan instead.`,
+          409
+        );
+      }
+    }
+
+    const staysRecurring = existing.razorpayPlanId && !wantsToDisableRecurring;
+    if (staysRecurring && (next.price !== existing.price || next.planType !== existing.planType)) {
+      throw new AppError(
+        'This plan is linked to a Razorpay recurring plan — price and billing interval cannot change while it stays recurring. Disable recurring billing first (only possible while no school is subscribed), or create a new plan.',
+        400
+      );
+    }
+
+    if (wantsToEnableRecurring) {
+      const interval = mapPlanTypeToInterval(next.planType || existing.planType);
+      if (!interval) throw new AppError('Only Monthly or Yearly plans can be made recurring', 400);
+      const rzpPlan = await razorpaySubscriptionService.createPlan({
+        interval,
+        intervalCount: 1,
+        amountPaise: Math.round((next.price ?? existing.price) * 100),
+        currency: 'INR',
+        name: next.name || existing.name,
+        description: next.description ?? existing.description,
+      });
+      next.razorpayPlanId = rzpPlan.id;
+      next.billingInterval = interval;
+      next.billingIntervalCount = 1;
+      next.trialDays = Number(payload?.trialDays) || 0;
+    } else if (wantsToDisableRecurring) {
+      // Razorpay has no plan-deletion endpoint — the orphaned Razorpay-side
+      // plan is simply left unused. Only the local link is cleared.
+      next.razorpayPlanId = '';
+      next.billingInterval = '';
+      next.billingIntervalCount = 1;
+      next.trialDays = 0;
+    } else if (existing.razorpayPlanId && payload?.trialDays !== undefined) {
+      // Staying recurring — trial length is local-only (Razorpay itself is told
+      // the delayed start_at per subscription, not stored on the Plan), so it's
+      // always safe to adjust even with schools already subscribed.
+      next.trialDays = Math.max(0, Number(payload.trialDays) || 0);
+    }
+
     try {
-      const next = normalizePayload(payload);
-      delete next.createdBy;
-      // Razorpay plan amount/interval are immutable once created — a real price
-      // change requires creating a new plan and migrating subscriptions, not a
-      // silent edit of the linked Razorpay plan.
       const plan = await subscriptionRepository.updateById(id, next);
       if (!plan) {
         throw new AppError('Subscription plan not found', 404);

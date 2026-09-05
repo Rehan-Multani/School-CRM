@@ -6,6 +6,10 @@ import { Invoice } from '../models/Invoice.js';
 import { sanitizePagination } from '../../../shared/sanitize.js';
 
 class SchoolSubscriptionRepository {
+  countByPlan(planId) {
+    return SchoolSubscription.countDocuments({ $or: [{ planId }, { pendingPlanId: planId }] });
+  }
+
   findActiveLikeForSchool(schoolId) {
     return SchoolSubscription.findOne({
       schoolId,

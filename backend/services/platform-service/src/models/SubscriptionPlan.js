@@ -13,7 +13,7 @@ const subscriptionPlanSchema = new mongoose.Schema(
     code: { type: String, default: '', trim: true, uppercase: true },
     description: { type: String, default: '', trim: true },
 
-    price: { type: Number, required: true, min: 0 },
+    price: { type: Number, required: true, min: [0.01, 'Price must be greater than 0'] },
     planType: { type: String, required: true, enum: PLAN_TYPES, default: 'Monthly' },
     features: [{ type: String, trim: true }],
 

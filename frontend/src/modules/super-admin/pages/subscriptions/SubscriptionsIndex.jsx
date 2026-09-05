@@ -53,6 +53,7 @@ export default function SubscriptionsIndex() {
   const [planToDelete, setPlanToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [priceError, setPriceError] = useState('');
 
   const loadPlans = async () => {
     setLoading(true);
@@ -73,6 +74,7 @@ export default function SubscriptionsIndex() {
   const resetForm = () => {
     setForm(emptyForm());
     setEditingPlan(null);
+    setPriceError('');
   };
 
   const openCreate = () => {
@@ -82,6 +84,7 @@ export default function SubscriptionsIndex() {
 
   const openEdit = (plan) => {
     setEditingPlan(plan);
+    setPriceError('');
     setForm({
       name: plan.name,
       price: String(plan.price),
@@ -119,18 +122,36 @@ export default function SubscriptionsIndex() {
 
   const handleSavePlan = async (e) => {
     e.preventDefault();
-    if (!form.name.trim() || form.price === '') return;
+    if (!form.name.trim()) return;
+
+    if (form.price === '') {
+      setPriceError('Price is required');
+      return;
+    }
+
+    const priceNum = Number(form.price);
+    if (Number.isNaN(priceNum) || priceNum <= 0) {
+      setPriceError('Price must be greater than 0');
+      addNotification('error', 'Price must be greater than 0 and cannot be negative or zero.');
+      return;
+    }
 
     const payload = {
       name: form.name.trim(),
-      price: Number(form.price),
+      price: priceNum,
       planType: form.planType,
       features: form.features,
     };
-    // Recurring linkage is immutable after creation — Razorpay plan amount/interval
-    // cannot be edited in place, so this only applies when creating a new plan.
-    if (!editingPlan && canBeRecurring && form.makeRecurring) {
+    // Recurring can be toggled on or off later too (backend only allows it while
+    // no school is subscribed yet — price/interval stay frozen once someone is).
+    const wasRecurring = Boolean(editingPlan?.isRecurring);
+    if (canBeRecurring && form.makeRecurring && !wasRecurring) {
       payload.makeRecurring = true;
+      payload.trialDays = Number(form.trialDays) || 0;
+    } else if (editingPlan && wasRecurring && !form.makeRecurring) {
+      payload.removeRecurring = true;
+    } else if (editingPlan && wasRecurring && form.makeRecurring) {
+      // Staying recurring — trial length can still be adjusted freely (Razorpay-side amount/interval don't change).
       payload.trialDays = Number(form.trialDays) || 0;
     }
 
@@ -228,11 +249,33 @@ export default function SubscriptionsIndex() {
                 <Input
                   label="Price"
                   type="number"
-                  min="0"
+                  min="0.01"
                   step="0.01"
                   placeholder="299"
                   value={form.price}
-                  onChange={(e) => setForm((prev) => ({ ...prev, price: e.target.value }))}
+                  error={priceError}
+                  onKeyDown={(e) => {
+                    if (e.key === '-' || e.key === '+' || e.key === 'e' || e.key === 'E') {
+                      e.preventDefault();
+                    }
+                  }}
+                  onChange={(e) => {
+                    let val = e.target.value;
+                    if (val.includes('-')) {
+                      val = val.replace(/-/g, '');
+                    }
+                    setForm((prev) => ({ ...prev, price: val }));
+                    if (val !== '') {
+                      const num = Number(val);
+                      if (Number.isNaN(num) || num <= 0) {
+                        setPriceError('Price must be greater than 0');
+                      } else {
+                        setPriceError('');
+                      }
+                    } else {
+                      setPriceError('');
+                    }
+                  }}
                   required
                 />
                 <Select
@@ -290,7 +333,7 @@ export default function SubscriptionsIndex() {
                 <p className="text-[11px] text-slate-500">Press Enter to add multiple features.</p>
               </div>
 
-              {!editingPlan && canBeRecurring && (
+              {canBeRecurring && (
                 <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3.5 dark:border-slate-800 dark:bg-slate-900/50">
                   <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
                     <input
@@ -311,15 +354,11 @@ export default function SubscriptionsIndex() {
                     />
                   )}
                   <p className="text-[11px] text-slate-500">
-                    Creates a matching Razorpay recurring plan. This cannot be changed after the plan is created —
-                    a price/interval change requires a new plan.
+                    {editingPlan?.isRecurring
+                      ? `Linked to Razorpay plan ${editingPlan.razorpayPlanId}. You can turn recurring off (or adjust trial days) any time — but only while no school is subscribed to it yet. Price/interval can't change while it stays recurring; unchecking this and creating a new plan is the way to change them.`
+                      : 'Creates a matching Razorpay recurring plan. Price/interval are locked in once created — turn recurring off first (only possible before any school subscribes) if you need to redo them, or create a new plan.'}
                   </p>
                 </div>
-              )}
-              {editingPlan?.isRecurring && (
-                <p className="rounded-lg bg-indigo-50 px-3 py-2 text-[11px] font-medium text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">
-                  This plan is linked to Razorpay ({editingPlan.razorpayPlanId}). Price/interval are immutable.
-                </p>
               )}
 
               <Button type="submit" className="w-full gap-2" disabled={saving}>
