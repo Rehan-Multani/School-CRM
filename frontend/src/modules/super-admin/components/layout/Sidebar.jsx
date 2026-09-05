@@ -20,16 +20,18 @@ import { useSuperAdminAuth } from '../../context/SuperAdminAuthContext';
 import { cn } from '../ui/Button';
 import BrandLogo from '../../../../shared/ui/BrandLogo';
 
+// Grouped in the order an operator actually works: overview -> tenants ->
+// commercial (plan/billing/revenue) -> insights -> ops -> legal/config.
 const menuItems = [
   { name: 'Dashboard', path: '/super-admin/dashboard', icon: LayoutDashboard },
   { name: 'Schools', path: '/super-admin/schools', icon: School },
   { name: 'Subscription', path: '/super-admin/subscriptions', icon: CreditCard },
-  { name: 'Notifications', path: '/super-admin/notifications', icon: Bell },
-  { name: 'Revenue', path: '/super-admin/revenue', icon: DollarSign },
   { name: 'Billings', path: '/super-admin/billing', icon: Receipt },
+  { name: 'Revenue', path: '/super-admin/revenue', icon: DollarSign },
   { name: 'Reports', path: '/super-admin/reports', icon: FileText },
-  { name: 'Privacy & Policy', path: '/super-admin/privacy-policy', icon: Scale },
+  { name: 'Notifications', path: '/super-admin/notifications', icon: Bell },
   { name: 'Help & Support', path: '/super-admin/support', icon: LifeBuoy },
+  { name: 'Privacy & Policy', path: '/super-admin/privacy-policy', icon: Scale },
   { name: 'Settings', path: '/super-admin/settings', icon: Settings },
 ];
 
