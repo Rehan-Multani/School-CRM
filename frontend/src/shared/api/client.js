@@ -181,8 +181,10 @@ export const schoolPortalApi = {
     schoolAdminClient.get('/platform/school-portal/reports/data', { params: { category, ...params } }).then((res) => res.data),
   me: () => schoolAdminClient.get('/platform/school-portal/me').then((res) => res.data),
   plans: () => schoolAdminClient.get('/platform/school-portal/plans').then((res) => res.data),
-  selectPlan: (planId) =>
-    schoolAdminClient.post('/platform/school-portal/select-plan', { planId }).then((res) => res.data),
+  initiatePlanSelection: (planId) =>
+    schoolAdminClient.post('/platform/school-portal/select-plan/checkout', { planId }).then((res) => res.data),
+  confirmPlanSelection: (planId, paymentPayload) =>
+    schoolAdminClient.post('/platform/school-portal/select-plan/confirm', { planId, ...paymentPayload }).then((res) => res.data),
   config: () => schoolAdminClient.get('/platform/school-portal/config').then((res) => res.data),
   updateConfig: (payload) =>
     schoolAdminClient.patch('/platform/school-portal/config', payload).then((res) => res.data),

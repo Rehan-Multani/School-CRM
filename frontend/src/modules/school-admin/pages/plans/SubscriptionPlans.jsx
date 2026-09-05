@@ -15,6 +15,20 @@ import { schoolPortalApi } from '../../../../shared/api/client';
 import { SkeletonLoader } from '../../components/ui/SkeletonLoader';
 import RecurringSubscriptionSection from './RecurringSubscriptionSection';
 
+function loadRazorpayScript() {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(window.Razorpay);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(window.Razorpay);
+    script.onerror = () => resolve(null);
+    document.body.appendChild(script);
+  });
+}
+
 function formatInr(value) {
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
@@ -332,12 +346,50 @@ export default function SubscriptionPlans() {
     setSelectingId(plan.id);
     setError('');
     try {
-      const result = await schoolPortalApi.selectPlan(plan.id);
-      applyUser(result.user);
-      navigate('/school-admin/dashboard', { replace: true });
+      const order = await schoolPortalApi.initiatePlanSelection(plan.id);
+      const RazorpayCtor = await loadRazorpayScript();
+      if (!RazorpayCtor) {
+        setError('Could not load the payment gateway. Check your connection and try again.');
+        setSelectingId('');
+        return;
+      }
+
+      const rzp = new RazorpayCtor({
+        key: order.keyId,
+        order_id: order.orderId,
+        amount: order.amount,
+        currency: order.currency,
+        name: user?.schoolName || 'School Subscription',
+        description: `${plan.name} plan subscription`,
+        prefill: { email: user?.email || '' },
+        theme: { color: '#4f46e5' },
+        handler: async (response) => {
+          try {
+            const result = await schoolPortalApi.confirmPlanSelection(plan.id, {
+              invoiceId: order.invoice.id,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            });
+            applyUser(result.user);
+            navigate('/school-admin/dashboard', { replace: true });
+          } catch (err) {
+            setError(err.response?.data?.message || err.message || 'Payment succeeded but activation failed — contact support with your payment id.');
+          } finally {
+            setSelectingId('');
+          }
+        },
+        modal: {
+          ondismiss: () => setSelectingId(''),
+        },
+      });
+      rzp.on('payment.failed', () => {
+        setError('Payment failed or was cancelled. You can try again.');
+        setSelectingId('');
+      });
+      rzp.open();
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Unable to select this plan.');
-    } finally {
+      setError(err.response?.data?.message || err.message || 'Unable to start payment for this plan.');
       setSelectingId('');
     }
   };
@@ -362,7 +414,7 @@ export default function SubscriptionPlans() {
         subtitle={
           hasPlan
             ? `Full details of ${user?.schoolName || 'your school'}'s current plan — when it started and when it ends.`
-            : `${user?.schoolName || 'Your school'} needs a plan before the rest of the admin portal is unlocked. Super Admin will update billing status after you select one.`
+            : `${user?.schoolName || 'Your school'} needs a plan before the rest of the admin portal is unlocked. Payment is collected securely via Razorpay when you choose a plan.`
         }
       />
 
