@@ -21,6 +21,7 @@ export const DataTable = ({
   columns = [],
   data = [],
   initialData,
+  defaultPageSize = 10,
   searchPlaceholder = 'Search records...',
   searchKey,
   searchKeys,
@@ -51,7 +52,7 @@ export const DataTable = ({
   const [selectedFilters, setSelectedFilters] = useState({});
   const [sortConfig, setSortConfig] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(defaultPageSize);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [visibleColumns, setVisibleColumns] = useState(() => new Set(columns.map(getKey)));
   const [showFilterDrawer, setShowFilterDrawer] = useState(false);

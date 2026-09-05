@@ -445,7 +445,7 @@ export const FeeStructuresIndex = ({ hideHeader = false }) => {
                         <button
                           type="button"
                           onClick={() => navigate(`/school-admin/fees/structures/${st.id}`)}
-                          className="inline-flex items-center gap-1 rounded-xl bg-primary/10 px-2.5 py-1.5 text-xs font-bold text-primary transition hover:bg-primary hover:text-white"
+                          className="inline-flex h-8 items-center gap-1.5 rounded-xl bg-primary/10 px-2.5 text-xs font-bold text-primary transition hover:bg-primary hover:text-white"
                           title="Configure Fee Line Items"
                         >
                           <Settings className="h-3.5 w-3.5" />

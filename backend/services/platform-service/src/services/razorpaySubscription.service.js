@@ -74,23 +74,33 @@ export const razorpaySubscriptionService = {
   },
 
   // ---- Customers ----
+  /**
+   * IMPORTANT: Razorpay's API only honors `fail_existing` as the STRING '0'
+   * or '1' — passing the number 0 is silently treated as truthy (same as
+   * '1'), so it ALWAYS throws "Customer already exists" instead of handing
+   * back the existing record. That was the bug here: every second call for
+   * the same email/contact hit the catch branch below, which used to paper
+   * over it by grabbing `customers.all({ count: 1 })` — the single most
+   * recently created customer *in the whole merchant account*, with no
+   * filter at all. That can (and, in this project's dev data, did) hand one
+   * school's subscription a completely unrelated school's customer record.
+   * With the string fixed, Razorpay returns the correct existing customer
+   * directly from `create()` and the catch branch should never fire in
+   * normal operation — it now fails loudly instead of guessing if it ever
+   * does, since a wrong guess here is worse than an error.
+   */
   async findOrCreateCustomer({ name, email, contact, notes }) {
     const client = getClient();
     try {
-      return await client.customers.create({ name, email, contact, notes, fail_existing: 0 });
+      return await client.customers.create({ name, email, contact, notes, fail_existing: '0' });
     } catch (error) {
       const desc = error?.error?.description || '';
-      if (String(desc).toLowerCase().includes('already exists')) {
-        // fail_existing: 0 should already return the existing customer, but guard anyway.
-        const list = await client.customers.all({ count: 1 });
-        if (list?.items?.[0]) return list.items[0];
-      }
       throw new AppError(`Razorpay customer creation failed: ${desc || error.message}`, 502);
     }
   },
 
   // ---- Subscriptions ----
-  async createSubscription({ razorpayPlanId, totalCount, quantity, startAt, customerNotify, notes, addons }) {
+  async createSubscription({ razorpayPlanId, customerId, totalCount, quantity, startAt, customerNotify, notes, addons }) {
     const client = getClient();
     const payload = {
       plan_id: razorpayPlanId,
@@ -98,6 +108,12 @@ export const razorpaySubscriptionService = {
       quantity: quantity || 1,
       notes: notes || {},
     };
+    // Without this, Razorpay leaves customer_id null on the subscription and
+    // decides the customer solely from whatever gets entered at checkout —
+    // the customer we just found/created via findOrCreateCustomer was never
+    // actually attached to anything. Confirmed against live subscriptions in
+    // this project's own dev data before this fix.
+    if (customerId) payload.customer_id = customerId;
     if (totalCount) payload.total_count = totalCount;
     if (startAt) payload.start_at = Math.floor(new Date(startAt).getTime() / 1000);
     if (Array.isArray(addons) && addons.length) payload.addons = addons;

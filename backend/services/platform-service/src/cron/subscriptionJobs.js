@@ -7,6 +7,7 @@ import { razorpaySubscriptionService } from '../services/razorpaySubscription.se
 import { razorpayWebhookService, grantSchoolPlanIfNeeded } from '../services/razorpayWebhook.service.js';
 import { GRACE_PERIOD_DAYS, toDate } from '../services/schoolSubscription.service.js';
 import { notificationService } from '../services/notification.service.js';
+import { School } from '../models/School.js';
 
 const HOLDER = `${os.hostname()}:${process.pid}`;
 
@@ -135,6 +136,21 @@ export async function runExpiryCheckJob() {
         source: 'cron',
       });
     }
+    if (expired.length > 0) {
+      const schoolIds = expired.map((s) => s.schoolId?._id || s.schoolId).filter(Boolean);
+      if (schoolIds.length > 0) {
+        await School.updateMany(
+          { _id: { $in: schoolIds } },
+          {
+            $set: {
+              subscriptionPlan: '',
+              'subscription.status': 'Expired',
+              'subscription.endsAt': now,
+            },
+          }
+        );
+      }
+    }
     log('expiry-check', `finalized ${expired.length} period-end cancellation(s)`);
   });
 }
@@ -214,6 +230,21 @@ export async function runGracePeriodJob() {
           { schoolId: String(sub.schoolId) }
         )
         .catch((err) => log('grace-period', `notification failed for school ${sub.schoolId}: ${err?.message}`));
+    }
+    if (overdue.length > 0) {
+      const schoolIds = overdue.map((s) => s.schoolId?._id || s.schoolId).filter(Boolean);
+      if (schoolIds.length > 0) {
+        await School.updateMany(
+          { _id: { $in: schoolIds } },
+          {
+            $set: {
+              subscriptionPlan: '',
+              'subscription.status': 'Expired',
+              'subscription.endsAt': now,
+            },
+          }
+        );
+      }
     }
     log('grace-period', `expired ${overdue.length} subscription(s) past grace period`);
   });

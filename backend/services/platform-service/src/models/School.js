@@ -43,6 +43,12 @@ const schoolSchema = new mongoose.Schema(
       resetPasswordExpiresAt: { type: Date, default: null, select: false },
     },
     subscriptionPlan: { type: String, trim: true, default: '' },
+    // Set once, the first time this school ever gets a Razorpay Customer
+    // record, and reused for every subsequent subscription attempt (retry,
+    // re-subscribe after cancellation, plan switch mid-checkout, ...) so we
+    // never depend on Razorpay's own email/contact matching to avoid
+    // creating (or worse, misattributing to another school's) a duplicate.
+    razorpayCustomerId: { type: String, trim: true, default: '' },
     subscription: {
       planId: { type: mongoose.Schema.Types.ObjectId, ref: 'SubscriptionPlan', default: null },
       planType: { type: String, trim: true, default: '' },

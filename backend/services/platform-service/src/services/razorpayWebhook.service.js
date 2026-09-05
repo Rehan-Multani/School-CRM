@@ -24,28 +24,49 @@ async function grantSchoolPlanIfNeeded(sub) {
     console.log(`[subscription-flow] grantSchoolPlanIfNeeded: school ${schoolId} not found — skipping`);
     return;
   }
-  if (school.subscriptionPlan) {
-    console.log(`[subscription-flow] grantSchoolPlanIfNeeded: school "${school.name}" already has plan "${school.subscriptionPlan}" — no-op`);
-    return;
-  }
 
   const plan = await subscriptionRepository.findById(sub.planId?._id || sub.planId);
-  if (!plan) {
+  if (!plan && !school.subscriptionPlan) {
     console.log(`[subscription-flow] grantSchoolPlanIfNeeded: plan not found for subscription ${sub._id} — skipping`);
     return;
   }
 
-  const startedAt = new Date();
-  school.subscriptionPlan = plan.name;
+  const planName = plan?.name || school.subscriptionPlan;
+  const planType = plan?.planType || school.subscription?.planType || 'Monthly';
+  const startedAt = sub.currentPeriodStart || school.subscription?.startedAt || new Date();
+  const endsAt = sub.currentPeriodEnd || (plan ? planEndDate(startedAt, planType) : school.subscription?.endsAt);
+
+  const wasEmpty = !school.subscriptionPlan;
+  school.subscriptionPlan = planName;
   school.subscription = {
-    planId: plan._id,
-    planType: plan.planType,
+    planId: plan?._id || school.subscription?.planId,
+    planType,
     startedAt,
-    endsAt: sub.currentPeriodEnd || planEndDate(startedAt, plan.planType),
+    endsAt,
     status: 'Active',
   };
   await school.save();
-  console.log(`[subscription-flow] PLAN GRANTED — school="${school.name}" plan="${plan.name}" (payment confirmed via webhook)`);
+
+  if (wasEmpty) {
+    console.log(`[subscription-flow] PLAN GRANTED — school="${school.name}" plan="${planName}" endsAt="${endsAt}" (payment confirmed via webhook)`);
+  } else {
+    console.log(`[subscription-flow] PLAN CYCLE UPDATED — school="${school.name}" plan="${planName}" endsAt="${endsAt}"`);
+  }
+}
+
+async function revokeSchoolPlan(sub) {
+  if (!sub?.schoolId) return;
+  const schoolId = sub.schoolId?._id || sub.schoolId;
+  const school = await School.findById(schoolId);
+  if (!school) return;
+
+  school.subscriptionPlan = '';
+  if (school.subscription) {
+    school.subscription.status = 'Expired';
+    school.subscription.endsAt = new Date();
+  }
+  await school.save();
+  console.log(`[subscription-flow] PLAN REVOKED — school="${school.name}" (subscription ended/cancelled)`);
 }
 
 function deriveEventId(headerEventId, body) {
@@ -223,6 +244,7 @@ async function handleSubscriptionCancelled(sub) {
   sub.endedAt = new Date();
   await schoolSubscriptionRepository.save(sub);
   await schoolSubscriptionRepository.recordHistory({ schoolId: sub.schoolId, subscriptionId: sub._id, action: 'cancelled', fromStatus, toStatus: sub.status, performedBy: 'Razorpay', source: 'webhook' });
+  await revokeSchoolPlan(sub);
   notifySchool(sub, 'Subscription cancelled', 'Your subscription has ended.');
 }
 
@@ -232,6 +254,7 @@ async function handleSubscriptionCompleted(sub) {
   sub.endedAt = new Date();
   await schoolSubscriptionRepository.save(sub);
   await schoolSubscriptionRepository.recordHistory({ schoolId: sub.schoolId, subscriptionId: sub._id, action: 'expired', fromStatus, toStatus: sub.status, performedBy: 'Razorpay', source: 'webhook' });
+  await revokeSchoolPlan(sub);
 }
 
 async function handlePaymentFailed(sub, paymentEntity) {
@@ -423,4 +446,4 @@ class RazorpayWebhookService {
 }
 
 export const razorpayWebhookService = new RazorpayWebhookService();
-export { grantSchoolPlanIfNeeded };
+export { grantSchoolPlanIfNeeded, revokeSchoolPlan };

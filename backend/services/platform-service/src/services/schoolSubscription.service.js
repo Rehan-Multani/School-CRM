@@ -78,14 +78,28 @@ class SchoolSubscriptionService {
     const qty = Math.max(1, Number(quantity) || 1);
     const effectiveTrialDays = trialDays !== undefined && trialDays !== null ? Number(trialDays) : plan.trialDays || 0;
 
-    console.log(`[subscription-flow] finding/creating Razorpay customer — school="${school.name}"`);
-    const customer = await razorpaySubscriptionService.findOrCreateCustomer({
-      name: school.name,
-      email: school.contact?.email || school.email || undefined,
-      contact: school.contact?.phone || school.phone || undefined,
-      notes: { schoolId: String(schoolId), schoolCode: school.schoolId || '' },
-    });
-    console.log(`[subscription-flow] Razorpay customer ready — razorpayCustomerId=${customer.id}`);
+    // Reuse the school's own Razorpay customer once it exists — deterministic
+    // from our own record, not dependent on Razorpay matching this attempt's
+    // email/contact against whatever it saw last time (see findOrCreateCustomer
+    // for the bug this used to hit: every retry/re-subscribe called Razorpay's
+    // customer API again and could come back with a DIFFERENT, even a wrong
+    // *other school's*, customer id).
+    let razorpayCustomerId = school.razorpayCustomerId || '';
+    if (razorpayCustomerId) {
+      console.log(`[subscription-flow] reusing known Razorpay customer — school="${school.name}" razorpayCustomerId=${razorpayCustomerId}`);
+    } else {
+      console.log(`[subscription-flow] finding/creating Razorpay customer — school="${school.name}"`);
+      const customer = await razorpaySubscriptionService.findOrCreateCustomer({
+        name: school.name,
+        email: school.contact?.email || school.email || undefined,
+        contact: school.contact?.phone || school.phone || undefined,
+        notes: { schoolId: String(schoolId), schoolCode: school.schoolId || '' },
+      });
+      razorpayCustomerId = customer.id;
+      school.razorpayCustomerId = razorpayCustomerId;
+      await school.save();
+      console.log(`[subscription-flow] Razorpay customer ready — razorpayCustomerId=${razorpayCustomerId} (saved on School for reuse)`);
+    }
 
     // Standard 10-year recurring count:
     // Monthly: 10 years * 12 months = 120 cycles
@@ -98,6 +112,7 @@ class SchoolSubscriptionService {
     try {
       rzpSub = await razorpaySubscriptionService.createSubscription({
         razorpayPlanId: plan.razorpayPlanId,
+        customerId: razorpayCustomerId,
         totalCount: standard10YearCount,
         quantity: qty,
         startAt: effectiveTrialDays > 0 ? new Date(Date.now() + effectiveTrialDays * 86400000) : startDate,
@@ -113,7 +128,7 @@ class SchoolSubscriptionService {
       schoolId,
       planId,
       razorpaySubscriptionId: rzpSub.id,
-      razorpayCustomerId: customer.id,
+      razorpayCustomerId,
       status: rzpSub.status || 'created',
       quantity: qty,
       totalAmount: planAmountRupees(plan, qty),
@@ -214,6 +229,17 @@ class SchoolSubscriptionService {
       doc.status = 'cancelled';
       doc.cancelledAt = new Date();
       doc.endedAt = new Date();
+      const schoolId = doc.schoolId?._id || doc.schoolId;
+      await School.updateOne(
+        { _id: schoolId },
+        {
+          $set: {
+            subscriptionPlan: '',
+            'subscription.status': 'Expired',
+            'subscription.endsAt': new Date(),
+          },
+        }
+      );
     } else {
       doc.cancelAtPeriodEnd = true;
       // Razorpay keeps status 'active' until the period actually ends; webhook/cron flips it then.

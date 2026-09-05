@@ -630,17 +630,17 @@ export const HostelManagement = () => {
         title="Hostel & Residential Life Management"
         subtitle="Manage student hostel infrastructure, room inventories, bed matrices, night roll calls, gate passes, and maintenance tickets."
         actions={
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex items-center gap-2.5 shrink-0 flex-nowrap">
             <button
               onClick={() => handleOpenAllocateModal()}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all whitespace-nowrap"
             >
               <UserPlus className="w-4 h-4" />
               <span>Allocate Bed</span>
             </button>
             <button
               onClick={handleOpenRoomModal}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all"
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all whitespace-nowrap"
             >
               <Plus className="w-4 h-4" />
               <span>Add Room</span>
@@ -650,8 +650,8 @@ export const HostelManagement = () => {
       />
 
       {/* TABS NAVIGATION */}
-      <div className="flex items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-2 min-w-max">
           {[
             { id: 'dashboard', label: 'Overview & Analytics', icon: LayoutGrid },
             { id: 'hostels', label: 'Hostels & Buildings', icon: Building2, count: hostels.length },

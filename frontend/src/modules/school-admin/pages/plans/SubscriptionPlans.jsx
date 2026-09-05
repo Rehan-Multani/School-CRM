@@ -1,19 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  AlertCircle,
+  ArrowRight,
+  Ban,
+  Building2,
   Calendar,
   Check,
   Clock,
   CreditCard,
-  FileText,
   Loader2,
+  Lock,
   Sparkles,
+  Users,
 } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useSchoolAdminAuth } from '../../context/SchoolAdminAuthContext';
-import { schoolPortalApi } from '../../../../shared/api/client';
-import { SkeletonLoader } from '../../components/ui/SkeletonLoader';
-import RecurringSubscriptionSection from './RecurringSubscriptionSection';
+import { schoolPortalApi, schoolSubscriptionApi } from '../../../../shared/api/client';
 
 function loadRazorpayScript() {
   return new Promise((resolve) => {
@@ -37,300 +40,324 @@ function formatInr(value) {
   }).format(Number(value) || 0);
 }
 
-function formatDateTime(value) {
+function formatDate(value) {
   if (!value) return '—';
   return new Intl.DateTimeFormat('en-IN', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
   }).format(new Date(value));
 }
 
-function formatDate(value) {
-  if (!value) return '—';
-  return new Intl.DateTimeFormat('en-IN', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
-  }).format(new Date(value));
-}
-
-const STATUS_STYLES = {
-  Active: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400',
-  'Pending Payment': 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400',
-  Expired: 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400',
-};
-
-const BILLING_STATUS_STYLES = {
-  Paid: 'text-emerald-600 dark:text-emerald-400',
-  Pending: 'text-amber-600 dark:text-amber-400',
-  Overdue: 'text-rose-600 dark:text-rose-400',
-  Refunded: 'text-slate-500 dark:text-slate-400',
-  Failed: 'text-rose-600 dark:text-rose-400',
-  Cancelled: 'text-slate-500 dark:text-slate-400',
-};
-
-function CurrentSubscriptionCard({ subscription }) {
-  if (!subscription) return null;
-
-  const statusClass = STATUS_STYLES[subscription.status] || STATUS_STYLES['Pending Payment'];
-  const billing = subscription.billing;
+// ============================================================================
+// Active Plan Details Card (User's required simple view)
+// Only shows: Plan name/price, Started date (kb liya), End date (kab tak chalega), Cancel button
+// ============================================================================
+function ActivePlanCard({
+  planName,
+  price,
+  planType,
+  startedAt,
+  endsAt,
+  daysRemaining,
+  cancelAtPeriodEnd,
+  onCancel,
+  cancelling,
+}) {
+  const [confirmCancel, setConfirmCancel] = useState(false);
 
   return (
-    <section className="overflow-hidden rounded-3xl border border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-white shadow-sm dark:border-indigo-500/20 dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900">
-      <div className="border-b border-indigo-100 px-6 py-5 dark:border-indigo-500/10">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+    <div className="mx-auto max-w-2xl">
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
+        {/* Decorative subtle ambient blur */}
+        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-indigo-500/10 blur-3xl dark:bg-indigo-500/5" />
+
+        {/* Plan Header */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-6 dark:border-slate-800">
           <div>
-            <p className="text-xs font-extrabold uppercase tracking-widest text-indigo-600 dark:text-indigo-400">
-              Current subscription
-            </p>
-            <h2 className="mt-1 text-2xl font-black text-slate-900 dark:text-white">
-              {subscription.planName}
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Active Subscription
+            </span>
+            <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+              {planName}
             </h2>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              {subscription.planType} plan · {formatInr(subscription.price)} /{' '}
-              {subscription.planType.toLowerCase()}
+            <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
+              {formatInr(price)} / {planType?.toLowerCase() || 'month'}
             </p>
           </div>
-          <span className={`rounded-full px-3 py-1 text-xs font-bold ${statusClass}`}>
-            {subscription.status}
-          </span>
-        </div>
-      </div>
-
-      <div className="grid gap-4 p-6 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950/40">
-          <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-            <Calendar className="h-4 w-4" />
-            Plan selected on
-          </div>
-          <p className="text-sm font-bold text-slate-900 dark:text-white">
-            {formatDate(subscription.startedAt)}
-          </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            {formatDateTime(subscription.startedAt)}
-          </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950/40">
-          <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-            <Clock className="h-4 w-4" />
-            Valid until
-          </div>
-          <p className="text-sm font-bold text-slate-900 dark:text-white">
-            {formatDate(subscription.endsAt)}
-          </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            {formatDateTime(subscription.endsAt)}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950/40">
-          <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-            <Sparkles className="h-4 w-4" />
-            Days remaining
-          </div>
-          <p className="text-2xl font-black text-slate-900 dark:text-white">
-            {subscription.status === 'Expired' ? 0 : subscription.daysRemaining}
-          </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            {subscription.status === 'Expired' ? 'Plan has expired' : 'until renewal'}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950/40">
-          <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
-            <CreditCard className="h-4 w-4" />
-            Billing status
-          </div>
-          <p
-            className={`text-sm font-bold ${
-              BILLING_STATUS_STYLES[billing?.status] || 'text-slate-700 dark:text-slate-300'
-            }`}
-          >
-            {billing?.status || 'No invoice'}
-          </p>
-          {billing?.paidAt && (
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Paid on {formatDate(billing.paidAt)}
+        {/* 2 Core Details:
+            1. Plan Started On
+            2. Valid Until */}
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {/* 1. Plan Started On */}
+          <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-5 dark:border-slate-800 dark:bg-slate-950/40">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+              <div className="rounded-lg bg-indigo-50 p-1.5 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400">
+                <Calendar className="h-4 w-4" />
+              </div>
+              Plan Started On
+            </div>
+            <p className="mt-3 text-lg font-black text-slate-900 dark:text-white">
+              {formatDate(startedAt)}
             </p>
-          )}
-          {!billing?.paidAt && billing?.dueAt && (
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Due by {formatDate(billing.dueAt)}
-            </p>
-          )}
-        </div>
-      </div>
+            <p className="mt-0.5 text-xs text-slate-400">Subscription start date</p>
+          </div>
 
-      {billing && (
-        <div className="border-t border-indigo-100 px-6 py-4 dark:border-indigo-500/10">
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-600 dark:text-slate-300">
-            <span className="inline-flex items-center gap-2">
-              <FileText className="h-4 w-4 text-indigo-500" />
-              Invoice: <strong className="text-slate-900 dark:text-white">{billing.invoiceNumber}</strong>
-            </span>
-            <span>
-              Amount: <strong className="text-slate-900 dark:text-white">{formatInr(billing.amount)}</strong>
-            </span>
-            <span>
-              Issued: <strong className="text-slate-900 dark:text-white">{formatDate(billing.issuedAt)}</strong>
-            </span>
-            {billing.paymentMethod && (
-              <span>
-                Method: <strong className="text-slate-900 dark:text-white">{billing.paymentMethod}</strong>
-              </span>
+          {/* 2. Valid Until */}
+          <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-5 dark:border-slate-800 dark:bg-slate-950/40">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+              <div className="rounded-lg bg-emerald-50 p-1.5 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
+                <Clock className="h-4 w-4" />
+              </div>
+              Valid Until
+            </div>
+            <p className="mt-3 text-lg font-black text-slate-900 dark:text-white">
+              {formatDate(endsAt)}
+            </p>
+            {daysRemaining !== undefined && daysRemaining !== null && (
+              <p className="mt-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining
+              </p>
             )}
           </div>
         </div>
-      )}
 
-      {(subscription.features || []).length > 0 && (
-        <div className="border-t border-indigo-100 px-6 py-4 dark:border-indigo-500/10">
-          <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">Included features</p>
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {subscription.features.map((feature) => (
-              <li key={feature} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                {feature}
-              </li>
-            ))}
-          </ul>
+        {/* Cancellation Notice if already scheduled */}
+        {cancelAtPeriodEnd && (
+          <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs font-semibold text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-300">
+            Cancellation scheduled. Your subscription remains active until <strong>{formatDate(endsAt)}</strong>, after which auto-renewal will stop.
+          </div>
+        )}
+
+        {/* Cancel Option (User requested: cancel option bs) */}
+        {!cancelAtPeriodEnd && (
+          <div className="mt-8 border-t border-slate-100 pt-6 dark:border-slate-800">
+            {!confirmCancel ? (
+              <button
+                type="button"
+                onClick={() => setConfirmCancel(true)}
+                className="flex items-center gap-2 rounded-2xl border border-rose-200 bg-white px-5 py-3 text-xs font-bold text-rose-600 shadow-sm transition hover:bg-rose-50 dark:border-rose-900/40 dark:bg-slate-900 dark:text-rose-400 dark:hover:bg-rose-950/20"
+              >
+                <Ban className="h-4 w-4" />
+                <span>Cancel Subscription</span>
+              </button>
+            ) : (
+              <div className="rounded-2xl border border-rose-200 bg-rose-50/90 p-5 dark:border-rose-900/40 dark:bg-rose-950/30">
+                <p className="text-xs font-bold text-rose-900 dark:text-rose-200">
+                  Are you sure you want to cancel your subscription?
+                </p>
+                <p className="mt-1 text-xs text-rose-700 dark:text-rose-300">
+                  Your portal access will remain active until <strong>{formatDate(endsAt)}</strong>. After this date, auto-renewal will stop.
+                </p>
+                <div className="mt-4 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmCancel(false)}
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  >
+                    Keep Subscription
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onCancel()}
+                    disabled={cancelling}
+                    className="flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-rose-700 disabled:opacity-60"
+                  >
+                    {cancelling ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                    <span>{cancelling ? 'Cancelling…' : 'Yes, Cancel Subscription'}</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Onboarding Banner (for Schools Without a Plan)
+// ============================================================================
+function OnboardingBanner({ user }) {
+  return (
+    <section className="relative overflow-hidden rounded-3xl border border-indigo-200/80 bg-gradient-to-br from-indigo-900/90 via-blue-900/95 to-slate-900 p-6 text-white shadow-xl shadow-indigo-950/20 sm:p-8">
+      <div className="relative z-10">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <div className="rounded-xl bg-white/10 p-2 backdrop-blur-md">
+              <Building2 className="h-5 w-5 text-indigo-200" />
+            </div>
+            <div>
+              <span className="text-xs font-extrabold uppercase tracking-widest text-indigo-300">
+                School Onboarding Portal
+              </span>
+              <h2 className="text-xl font-black text-white sm:text-2xl">
+                {user?.schoolName || 'Your School Institution'}
+              </h2>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {user?.schoolCode && (
+              <span className="rounded-full bg-white/10 px-3 py-1 font-mono text-xs font-semibold text-indigo-200 backdrop-blur-md">
+                Code: {user.schoolCode}
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 px-3 py-1 text-xs font-bold text-amber-300 backdrop-blur-md">
+              <AlertCircle className="h-3.5 w-3.5" />
+              Plan Required
+            </span>
+          </div>
         </div>
-      )}
+
+        <p className="mt-4 max-w-2xl text-sm leading-relaxed text-indigo-100/90">
+          Your institution portal account is verified and ready. To unlock all administrative modules—including
+          student admissions, teacher records, fee processing, and examinations—please choose a subscription tier below.
+        </p>
+      </div>
     </section>
   );
 }
 
-function SubscriptionPlansSkeleton({ hasPlan }) {
+// ============================================================================
+// Pricing Card (shown ONLY to schools without a plan during onboarding)
+// ============================================================================
+function InitialPricingCard({ plan, onSelect, selectingId, confirming }) {
+  const isSelectingThis = selectingId === plan.id;
+  const isPopular =
+    plan.name?.toLowerCase().includes('growth') ||
+    plan.name?.toLowerCase().includes('popular') ||
+    plan.planType === 'Monthly';
+
   return (
-    <div className="space-y-6 animate-pulse">
-      {hasPlan && (
-        <section className="overflow-hidden rounded-3xl border border-indigo-200 bg-gradient-to-br from-indigo-50/50 via-white to-white shadow-sm dark:border-indigo-500/20 dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900">
-          {/* Top banner header */}
-          <div className="border-b border-indigo-100 px-6 py-5 dark:border-indigo-500/10">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="space-y-2">
-                <div className="h-3 w-36 rounded-full bg-indigo-200/70 dark:bg-indigo-900/50" />
-                <div className="h-7 w-48 rounded-xl bg-slate-200 dark:bg-slate-800" />
-                <div className="h-4 w-52 rounded-lg bg-slate-200/80 dark:bg-slate-800" />
-              </div>
-              <div className="h-7 w-28 rounded-full bg-amber-100/80 dark:bg-amber-950/40" />
-            </div>
-          </div>
-
-          {/* 4 metric cards */}
-          <div className="grid gap-4 p-6 sm:grid-cols-2 xl:grid-cols-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-950/40 space-y-2.5"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 rounded bg-slate-200 dark:bg-slate-800" />
-                  <div className="h-3 w-24 rounded bg-slate-200 dark:bg-slate-800" />
-                </div>
-                <div className="h-6 w-32 rounded-lg bg-slate-200 dark:bg-slate-800" />
-                <div className="h-3 w-28 rounded bg-slate-200/70 dark:bg-slate-800" />
-              </div>
-            ))}
-          </div>
-
-          {/* Invoice bar */}
-          <div className="border-t border-indigo-100 px-6 py-4 dark:border-indigo-500/10">
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-              <div className="h-4 w-36 rounded bg-slate-200 dark:bg-slate-800" />
-              <div className="h-4 w-24 rounded bg-slate-200 dark:bg-slate-800" />
-              <div className="h-4 w-32 rounded bg-slate-200 dark:bg-slate-800" />
-            </div>
-          </div>
-
-          {/* Features section */}
-          <div className="border-t border-indigo-100 px-6 py-4 dark:border-indigo-500/10 space-y-3">
-            <div className="h-3 w-32 rounded bg-slate-200 dark:bg-slate-800" />
-            <div className="grid gap-3 sm:grid-cols-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="h-4 w-4 shrink-0 rounded-full bg-emerald-100 dark:bg-emerald-950/50" />
-                  <div className="h-3.5 w-48 rounded bg-slate-200 dark:bg-slate-800" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+    <div
+      className={`group relative flex flex-col justify-between rounded-3xl border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-xl dark:bg-slate-900 ${
+        isPopular
+          ? 'border-indigo-400/80 shadow-indigo-500/5 ring-2 ring-indigo-500/20 hover:border-indigo-500 dark:border-indigo-500/40'
+          : 'border-slate-200 hover:border-slate-300 dark:border-slate-800 dark:hover:border-slate-700'
+      }`}
+    >
+      {isPopular && (
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-600 via-indigo-700 to-blue-600 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white shadow-md shadow-indigo-600/30">
+            <Sparkles className="h-3 w-3" />
+            Most Popular
+          </span>
+        </div>
       )}
 
       <div>
-        {hasPlan && (
-          <div className="mb-4 h-4 w-36 rounded bg-slate-200 dark:bg-slate-800" />
-        )}
+        <div className="flex items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">
+            <Calendar className="h-3 w-3" />
+            {plan.planType} Billing
+          </span>
+        </div>
 
-        {/* 3 Available Plan Cards */}
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {[1, 2, 3].map((idx) => (
-            <div
-              key={idx}
-              className={`flex flex-col rounded-3xl border bg-white p-6 shadow-sm dark:bg-slate-900 ${
-                idx === 1 && hasPlan
-                  ? 'border-indigo-300 ring-4 ring-indigo-500/10 dark:border-indigo-500/30'
-                  : 'border-slate-200 dark:border-slate-800'
-              }`}
-            >
-              {/* Badge row */}
-              <div className="mb-4 flex items-center justify-between">
-                <div className="h-5 w-16 rounded-full bg-indigo-100 dark:bg-indigo-950/60" />
-                {idx === 1 && hasPlan && (
-                  <div className="h-4 w-16 rounded bg-emerald-100 dark:bg-emerald-950/50" />
-                )}
-              </div>
+        <h3 className="mt-4 text-xl font-black text-slate-900 dark:text-white">
+          {plan.name}
+        </h3>
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          {plan.description || 'Full-featured suite designed for institutional excellence.'}
+        </p>
 
-              {/* Title & Price */}
-              <div className="h-6 w-36 rounded-xl bg-slate-200 dark:bg-slate-800" />
-              <div className="mt-3 flex items-baseline gap-2">
-                <div className="h-9 w-28 rounded-xl bg-slate-200 dark:bg-slate-800" />
-                <div className="h-4 w-16 rounded bg-slate-200 dark:bg-slate-800" />
-              </div>
+        <div className="mt-5 flex items-baseline gap-1.5 border-y border-slate-100 py-4 dark:border-slate-800/80">
+          <span className="text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+            {formatInr(plan.price)}
+          </span>
+          <span className="text-sm font-semibold text-slate-400 dark:text-slate-500">
+            / {plan.planType.toLowerCase()}
+          </span>
+        </div>
 
-              {/* Features list */}
-              <div className="mt-6 flex-1 space-y-3">
-                {[1, 2, 3, 4, 5].map((f) => (
-                  <div key={f} className="flex items-center gap-2.5">
-                    <div className="h-4 w-4 shrink-0 rounded-full bg-indigo-100 dark:bg-indigo-950/50" />
-                    <div className="h-3.5 w-full rounded bg-slate-200 dark:bg-slate-800" />
-                  </div>
-                ))}
-              </div>
+        <div className="mt-5 space-y-2.5">
+          <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
+            What&apos;s Included
+          </p>
+          <ul className="space-y-2">
+            {(plan.features || []).map((feature) => (
+              <li key={feature} className="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-300">
+                <div className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100/80 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
+                  <Check className="h-2.5 w-2.5 stroke-[3]" />
+                </div>
+                <span className="leading-snug">{feature}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
 
-              {/* Action button */}
-              <div className="mt-6 h-11 w-full rounded-2xl bg-indigo-100/80 dark:bg-indigo-950/60" />
-            </div>
-          ))}
+      <div className="mt-8 pt-4">
+        <button
+          type="button"
+          disabled={Boolean(selectingId)}
+          onClick={() => onSelect(plan)}
+          className="group/btn relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-blue-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-600/25 transition-all duration-200 hover:from-indigo-500 hover:to-blue-500 hover:shadow-indigo-600/35 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSelectingThis ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>{confirming ? 'Confirming with Razorpay…' : 'Opening Checkout…'}</span>
+            </>
+          ) : (
+            <>
+              <CreditCard className="h-4 w-4" />
+              <span>Subscribe & Activate</span>
+              <ArrowRight className="h-4 w-4 transition-transform group-hover/btn:translate-x-1" />
+            </>
+          )}
+        </button>
+
+        <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] font-medium text-slate-400">
+          <Lock className="h-3 w-3" />
+          <span>Instant activation via Razorpay</span>
         </div>
       </div>
     </div>
   );
 }
 
+// ============================================================================
+// Main Page Component
+// ============================================================================
 export default function SubscriptionPlans() {
   const navigate = useNavigate();
-  const { user, hasPlan, applyUser } = useSchoolAdminAuth();
+  const { user, hasPlan, applyUser, refreshUser } = useSchoolAdminAuth();
   const [plans, setPlans] = useState([]);
   const [subscription, setSubscription] = useState(null);
+  const [recurringSub, setRecurringSub] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectingId, setSelectingId] = useState('');
   const [confirming, setConfirming] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [error, setError] = useState('');
 
   const loadPlans = async () => {
     setLoading(true);
     setError('');
     try {
-      const result = await schoolPortalApi.plans();
+      const [result, subRes] = await Promise.all([
+        schoolPortalApi.plans().catch(() => ({ data: [] })),
+        schoolSubscriptionApi.get().catch((err) => {
+          if (err?.response?.status === 402) {
+            refreshUser?.();
+          }
+          return { data: null };
+        }),
+      ]);
       setPlans(result.data || []);
       setSubscription(result.subscription || null);
+      if (subRes?.data) {
+        setRecurringSub(subRes.data);
+        if (subRes.data.cancelAtPeriodEnd) {
+          setCancelAtPeriodEnd(true);
+        }
+      }
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Unable to load plans.');
     } finally {
@@ -342,9 +369,6 @@ export default function SubscriptionPlans() {
     loadPlans();
   }, []);
 
-  // Subscription activation is confirmed by Razorpay's webhook, not by this
-  // browser tab — poll /school-portal/me for a few seconds after checkout
-  // closes so the admin lands on the dashboard as soon as it's actually granted.
   const pollForActivation = async (maxAttempts = 12, intervalMs = 2500) => {
     for (let i = 0; i < maxAttempts; i += 1) {
       // eslint-disable-next-line no-await-in-loop
@@ -354,14 +378,13 @@ export default function SubscriptionPlans() {
         const res = await schoolPortalApi.me();
         if (res?.user?.hasPlan) return res.user;
       } catch {
-        // transient — keep polling
+        // transient retry
       }
     }
     return null;
   };
 
   const handleSelect = async (plan) => {
-    if (hasPlan) return;
     setSelectingId(plan.id);
     setError('');
     try {
@@ -390,7 +413,7 @@ export default function SubscriptionPlans() {
             applyUser(activatedUser);
             navigate('/school-admin/dashboard', { replace: true });
           } else {
-            setError('Payment received — Razorpay is confirming it, which can take a minute. Refresh this page shortly.');
+            setError('Payment received — Razorpay is confirming it. Refresh shortly.');
           }
         },
         modal: {
@@ -408,44 +431,119 @@ export default function SubscriptionPlans() {
     }
   };
 
-  // Resolved current subscription object
-  const activeSubscription = subscription || (hasPlan && user?.subscriptionPlan ? {
-    planName: user.subscriptionPlan,
-    planType: user.subscription?.planType || 'Monthly',
-    price: user.subscription?.price || 0,
-    status: user.subscription?.status || 'Active',
-    startedAt: user.subscription?.startedAt || user.createdAt,
-    endsAt: user.subscription?.endsAt,
-    daysRemaining: user.subscription?.daysRemaining ?? 30,
-    features: user.subscription?.features || [],
-    billing: null,
-  } : null);
+  const handleCancelSubscription = async () => {
+    setCancelling(true);
+    setError('');
+    try {
+      await schoolSubscriptionApi.cancel('Requested by school admin');
+      setCancelAtPeriodEnd(true);
+      await loadPlans();
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Unable to cancel subscription');
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  // Real-time active status check handling all statuses and period-end cancellation
+  const isPlanActive = useMemo(() => {
+    const now = Date.now();
+
+    if (recurringSub) {
+      const status = recurringSub.status;
+      if (['active', 'authenticated', 'pending', 'halted'].includes(status)) {
+        if (recurringSub.cancelAtPeriodEnd && recurringSub.currentPeriodEnd) {
+          return new Date(recurringSub.currentPeriodEnd).getTime() > now;
+        }
+        return true;
+      }
+      if (['cancelled', 'expired', 'completed', 'failed'].includes(status)) {
+        return false;
+      }
+    }
+
+    if (subscription) {
+      if (subscription.status === 'Expired' || subscription.status === 'Pending Payment') {
+        return false;
+      }
+      if (subscription.endsAt) {
+        return new Date(subscription.endsAt).getTime() > now;
+      }
+      return true;
+    }
+
+    return Boolean(hasPlan);
+  }, [recurringSub, subscription, hasPlan]);
+
+  // Active plan details
+  const activePlanName =
+    recurringSub?.plan?.name ||
+    subscription?.planName ||
+    user?.subscriptionPlan ||
+    'School Plan';
+
+  const activePrice =
+    recurringSub?.totalAmount ||
+    subscription?.price ||
+    user?.subscription?.price ||
+    0;
+
+  const activePlanType =
+    subscription?.planType ||
+    user?.subscription?.planType ||
+    (recurringSub?.billingInterval === 'yearly' ? 'Yearly' : 'Monthly');
+
+  const activeStartedAt =
+    recurringSub?.currentPeriodStart ||
+    recurringSub?.createdAt ||
+    subscription?.startedAt ||
+    user?.subscription?.startedAt ||
+    user?.createdAt;
+
+  const activeEndsAt =
+    recurringSub?.currentPeriodEnd ||
+    subscription?.endsAt ||
+    user?.subscription?.endsAt;
+
+  // Real-time remaining days countdown calculated directly from active end date
+  const activeDaysRemaining = useMemo(() => {
+    const end = recurringSub?.currentPeriodEnd || subscription?.endsAt || user?.subscription?.endsAt;
+    if (!end) return null;
+    const ms = new Date(end).getTime() - Date.now();
+    return Math.max(0, Math.ceil(ms / 86400000));
+  }, [recurringSub?.currentPeriodEnd, subscription?.endsAt, user?.subscription?.endsAt]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-12">
+      {/* Header */}
       <PageHeader
-        title={hasPlan ? 'Your subscription plan' : 'Choose a subscription plan'}
+        title={isPlanActive ? 'School Subscription' : 'Choose an Institution Plan'}
         subtitle={
-          hasPlan
-            ? `Full details of ${user?.schoolName || 'your school'}'s current plan — when it started and when it ends.`
-            : `${user?.schoolName || 'Your school'} needs a plan before the rest of the admin portal is unlocked. Payment is collected securely via Razorpay when you choose a plan.`
+          isPlanActive
+            ? `Current subscription status and details for ${user?.schoolName || 'your school'}.`
+            : `${user?.schoolName || 'Your school'} needs a plan to unlock the complete CRM portal.`
         }
       />
 
+      {/* Confirmation indicator */}
       {confirming && (
-        <div className="flex items-center gap-3 rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-950/20 dark:text-indigo-400">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Confirming your payment with Razorpay — this only takes a few seconds…</span>
+        <div className="flex items-center gap-3 rounded-2xl border border-indigo-200 bg-indigo-50/90 p-4 text-sm font-semibold text-indigo-800 shadow-sm dark:border-indigo-500/30 dark:bg-indigo-950/30 dark:text-indigo-300">
+          <Loader2 className="h-5 w-5 animate-spin text-indigo-600" />
+          <span>Confirming your payment with Razorpay — unlocking your portal now…</span>
         </div>
       )}
 
+      {/* Error alert */}
       {error && (
-        <div className="flex items-center justify-between gap-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-400">
-          <span>{error}</span>
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-700 shadow-sm dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-400">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 shrink-0 text-rose-500" />
+            <span>{error}</span>
+          </div>
           <button
             type="button"
             onClick={loadPlans}
-            className="rounded-xl bg-rose-600 px-3 py-1 text-xs font-bold text-white transition hover:bg-rose-700"
+            className="rounded-xl bg-rose-600 px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-rose-700"
           >
             Retry
           </button>
@@ -453,90 +551,49 @@ export default function SubscriptionPlans() {
       )}
 
       {loading ? (
-        <SubscriptionPlansSkeleton hasPlan={hasPlan} />
+        <div className="mx-auto max-w-2xl animate-pulse space-y-4">
+          <div className="h-64 rounded-3xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-900" />
+        </div>
+      ) : isPlanActive ? (
+        /* ===================================================================
+           ACTIVE PLAN VIEW (Simple: Name, Started date, End date, Cancel option)
+           NO upgrade dropdown, NO extra available plan cards below
+           =================================================================== */
+        <ActivePlanCard
+          planName={activePlanName}
+          price={activePrice}
+          planType={activePlanType}
+          startedAt={activeStartedAt}
+          endsAt={activeEndsAt}
+          daysRemaining={activeDaysRemaining}
+          cancelAtPeriodEnd={cancelAtPeriodEnd || Boolean(recurringSub?.cancelAtPeriodEnd)}
+          onCancel={handleCancelSubscription}
+          cancelling={cancelling}
+        />
       ) : (
-        <>
-          {hasPlan && activeSubscription && <CurrentSubscriptionCard subscription={activeSubscription} />}
+        /* ===================================================================
+           NO-PLAN ONBOARDING VIEW (Only for schools choosing plan for first time)
+           =================================================================== */
+        <div className="space-y-6">
+          <OnboardingBanner user={user} />
 
-          {hasPlan && <RecurringSubscriptionSection schoolName={user?.schoolName} />}
-
-          <div>
-            {hasPlan && (
-              <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-400">
-                All available plans
-              </h3>
-            )}
-            {plans.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-200 p-12 text-center text-slate-400 dark:border-slate-800">
-                <p className="text-sm font-semibold">No Result</p>
-                <p className="mt-1 text-xs text-slate-500">No subscription plans are currently available.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-                {plans.map((plan) => {
-                  const selected = user?.subscriptionPlan === plan.name;
-                  return (
-                    <div
-                      key={plan.id}
-                      className={`flex flex-col rounded-3xl border bg-white p-6 shadow-sm dark:bg-slate-900 ${
-                        selected
-                          ? 'border-indigo-500 ring-4 ring-indigo-500/10'
-                          : 'border-slate-200 dark:border-slate-800'
-                      }`}
-                    >
-                      <div className="mb-4 flex items-center justify-between">
-                        <span className="rounded-full bg-indigo-50 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
-                          {plan.planType}
-                        </span>
-                        {selected && (
-                          <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600">
-                            <Check className="h-3.5 w-3.5" /> Current
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="text-lg font-black text-slate-900 dark:text-white">{plan.name}</h3>
-                      <p className="mt-2 text-3xl font-black text-slate-900 dark:text-white">
-                        {formatInr(plan.price)}
-                        <span className="ml-1 text-sm font-semibold text-slate-400">
-                          / {plan.planType.toLowerCase()}
-                        </span>
-                      </p>
-                      <ul className="mt-5 flex-1 space-y-2">
-                        {(plan.features || []).map((feature) => (
-                          <li key={feature} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
-                            <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-                      <button
-                        type="button"
-                        disabled={hasPlan || Boolean(selectingId)}
-                        onClick={() => handleSelect(plan)}
-                        className="mt-6 inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {selectingId === plan.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <CreditCard className="h-4 w-4" />
-                        )}
-                        {selected
-                          ? 'Selected'
-                          : hasPlan
-                          ? 'Plan already chosen'
-                          : selectingId === plan.id
-                          ? confirming
-                            ? 'Confirming payment…'
-                            : 'Opening checkout…'
-                          : 'Subscribe & pay'}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </>
+          <section className="space-y-4">
+            <h3 className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
+              Select Your School Plan
+            </h3>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {plans.map((plan) => (
+                <InitialPricingCard
+                  key={plan.id}
+                  plan={plan}
+                  onSelect={handleSelect}
+                  selectingId={selectingId}
+                  confirming={confirming}
+                />
+              ))}
+            </div>
+          </section>
+        </div>
       )}
     </div>
   );

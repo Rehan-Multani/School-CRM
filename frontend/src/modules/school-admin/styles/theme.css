@@ -36,7 +36,14 @@ html.school-admin-theme .hover\:bg-primary-hover:hover,
 
 html.school-admin-theme .text-primary,
 .school-admin-theme .text-primary {
-  color: rgb(var(--primary)) !important;
+  color: rgb(var(--primary));
+}
+
+html.school-admin-theme .hover\:text-white:hover,
+.school-admin-theme .hover\:text-white:hover,
+html.school-admin-theme .group:hover .group-hover\:text-white,
+.school-admin-theme .group:hover .group-hover\:text-white {
+  color: #ffffff !important;
 }
 
 html.school-admin-theme .border-primary,

@@ -86,11 +86,27 @@ export const SchoolAdminAuthProvider = ({ children }) => {
     return next;
   };
 
+  const refreshUser = async () => {
+    try {
+      const result = await schoolPortalApi.me();
+      if (result?.user) {
+        const next = persistUser(result.user);
+        setUser(next);
+        if (next.theme) setTheme(next.theme);
+        if (next.primaryColor) setAccentColor(next.primaryColor);
+        return next;
+      }
+    } catch {
+      // transient or unauthenticated
+    }
+    return null;
+  };
+
   const hasPlan = Boolean(user?.hasPlan || user?.subscriptionPlan);
 
   return (
     <SchoolAdminAuthContext.Provider
-      value={{ user, login, logout, updateProfile, applyUser, loading, hasPlan }}
+      value={{ user, login, logout, updateProfile, applyUser, refreshUser, loading, hasPlan }}
     >
       {children}
     </SchoolAdminAuthContext.Provider>

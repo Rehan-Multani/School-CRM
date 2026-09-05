@@ -8,9 +8,10 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { CountCards, EmptyState } from '../academics/components/AcademicUi';
 import { apiMessage, ENTITY_STATUS_VARIANT } from '../academics/utils';
-import { academicPortalApi, schoolPortalApi } from '../../../../shared/api/client';
-import { Camera, Edit3, Eye, ImagePlus, Loader2, Plus, Trash2, UserCheck, UserCircle2, UserX, X } from 'lucide-react';
+import { academicPortalApi, feePortalApi, schoolPortalApi } from '../../../../shared/api/client';
+import { Camera, Edit3, Eye, ImagePlus, Loader2, Plus, Trash2, UserCheck, UserCircle2, UserX, Wallet, X } from 'lucide-react';
 import { SkeletonTable } from '../../components/ui/SkeletonLoader';
+import { formatCurrency } from '../../utils/formatters';
 
 const inputClass =
   'h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-slate-800 dark:bg-slate-950';
@@ -93,6 +94,20 @@ function revokeDocumentPreviews(documents) {
   });
 }
 
+function yearlyAmount(item) {
+  const amt = Number(item.amount) || 0;
+  switch (item.frequency) {
+    case 'MONTHLY':
+      return amt * 12;
+    case 'QUARTERLY':
+      return amt * 4;
+    case 'HALF_YEARLY':
+      return amt * 2;
+    default:
+      return amt; // YEARLY / ONE_TIME
+  }
+}
+
 function getInitials(name) {
   return (name || 'Student')
     .split(' ')
@@ -137,6 +152,8 @@ export const StudentManagement = () => {
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
   const [yearClassMap, setYearClassMap] = useState({});
+  const [feeStructurePreview, setFeeStructurePreview] = useState(undefined);
+  const [loadingFeePreview, setLoadingFeePreview] = useState(false);
   const photoInputRef = useRef(null);
   const yearClassRequestRef = useRef({});
 
@@ -163,6 +180,37 @@ export const StudentManagement = () => {
     loadYearClasses(filters.academicYearId);
   }, [filters.academicYearId, loadYearClasses]);
 
+  // Preview the applicable class fee structure as soon as a class + academic
+  // year is picked in the Add/Edit Student form.
+  useEffect(() => {
+    if (!modalOpen || !form.classId || !form.academicYearId) {
+      setFeeStructurePreview(undefined);
+      return;
+    }
+    let cancelled = false;
+    setLoadingFeePreview(true);
+    feePortalApi
+      .structures({ academicYearId: form.academicYearId, classId: form.classId, status: 'ACTIVE', limit: 1 })
+      .then((res) => {
+        const match = (res.data || [])[0];
+        if (!match) return null;
+        return feePortalApi.getStructure(match.id);
+      })
+      .then((detail) => {
+        if (cancelled) return;
+        setFeeStructurePreview(detail?.data || null);
+      })
+      .catch(() => {
+        if (!cancelled) setFeeStructurePreview(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingFeePreview(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [modalOpen, form.classId, form.academicYearId]);
+
   const classesForYear = useCallback(
     (yearId, keepClassId) => {
       const allowedIds = yearClassMap[yearId];
@@ -182,6 +230,13 @@ export const StudentManagement = () => {
     () => classesForYear(filters.academicYearId, filters.classId),
     [classesForYear, filters.academicYearId, filters.classId]
   );
+
+  const feeStructureMandatoryTotal = useMemo(() => {
+    if (!feeStructurePreview?.items) return 0;
+    return feeStructurePreview.items
+      .filter((item) => !item.isOptional)
+      .reduce((sum, item) => sum + yearlyAmount(item), 0);
+  }, [feeStructurePreview]);
 
   const filteredSections = useMemo(() => {
     if (!form.academicYearId || !form.classId) return [];
@@ -693,6 +748,7 @@ export const StudentManagement = () => {
         <DataTable
           columns={columns}
           data={tableRows}
+          defaultPageSize={5}
           onRowClick={handleView}
           searchPlaceholder="Search by student, admission number, parent, or email..."
           emptyMessage="No students match the current filters."
@@ -898,6 +954,48 @@ export const StudentManagement = () => {
               </select>
             </div>
           </div>
+
+          {form.classId && form.academicYearId && (
+            <div className="rounded-2xl border border-indigo-200/70 bg-indigo-50/40 p-4 dark:border-indigo-900/40 dark:bg-indigo-950/20">
+              <div className="mb-2 flex items-center gap-2">
+                <Wallet className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">Applicable Fee Structure (Yearly)</span>
+              </div>
+              {loadingFeePreview ? (
+                <p className="flex items-center gap-1.5 text-xs text-slate-500">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" /> Checking fee structure for this class...
+                </p>
+              ) : !feeStructurePreview ? (
+                <p className="text-xs text-slate-500">
+                  Is class ke liye abhi koi fee structure configure nahi hui. Student create hone ke baad Fees &amp; Finance module se bana sakte hain.
+                </p>
+              ) : (
+                <>
+                  <p className="mb-2 text-xs font-semibold text-slate-700 dark:text-slate-300">{feeStructurePreview.name}</p>
+                  <div className="space-y-1.5">
+                    {feeStructurePreview.items.map((item) => (
+                      <div key={item.id} className="flex items-center justify-between gap-2 text-xs">
+                        <span className="text-slate-600 dark:text-slate-300">
+                          {item.feeHead?.name || 'Fee'}
+                          {item.isOptional && <span className="ml-1 font-semibold text-amber-600 dark:text-amber-400">(Optional)</span>}
+                          <span className="ml-1 text-slate-400">· {item.frequency}</span>
+                        </span>
+                        <span className="shrink-0 font-bold text-slate-800 dark:text-white">
+                          {formatCurrency(yearlyAmount(item))}/yr
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-2.5 flex items-center justify-between border-t border-indigo-200/60 pt-2.5 dark:border-indigo-900/40">
+                    <span className="text-xs font-bold text-indigo-700 dark:text-indigo-300">Estimated Mandatory Total</span>
+                    <span className="text-sm font-extrabold text-indigo-700 dark:text-indigo-300">
+                      {formatCurrency(feeStructureMandatoryTotal)}/yr
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           <div>
             <label className="mb-2 block text-xs font-bold text-slate-500">Status</label>

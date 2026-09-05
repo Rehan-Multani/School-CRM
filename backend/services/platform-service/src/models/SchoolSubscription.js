@@ -87,8 +87,8 @@ export const ACTIVE_LIKE_STATUSES = ['created', 'authenticated', 'active', 'pend
 schoolSubscriptionSchema.methods.toPublicJSON = function toPublicJSON(extra = {}) {
   return {
     id: this._id.toString(),
-    schoolId: this.schoolId.toString(),
-    planId: this.planId?.toString?.() || this.planId,
+    schoolId: this.schoolId?._id?.toString() || this.schoolId?.toString?.() || '',
+    planId: this.planId?._id?.toString() || (typeof this.planId?.toString === 'function' ? this.planId.toString() : ''),
     plan: extra.plan || undefined,
     razorpaySubscriptionId: this.razorpaySubscriptionId || '',
     status: this.status,
@@ -107,7 +107,7 @@ schoolSubscriptionSchema.methods.toPublicJSON = function toPublicJSON(extra = {}
     failureCount: this.failureCount,
     lastFailureReason: this.lastFailureReason || '',
     gracePeriodEndsAt: this.gracePeriodEndsAt,
-    pendingPlanId: this.pendingPlanId?.toString?.() || null,
+    pendingPlanId: this.pendingPlanId?._id?.toString() || (this.pendingPlanId ? this.pendingPlanId.toString() : null),
     pendingChangeType: this.pendingChangeType || '',
     pendingChangeEffectiveAt: this.pendingChangeEffectiveAt,
     createdAt: this.createdAt,

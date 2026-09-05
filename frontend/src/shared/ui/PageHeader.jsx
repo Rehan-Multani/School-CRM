@@ -5,7 +5,7 @@ import React from 'react';
 export const PageHeader = ({ title, subtitle, actions }) => {
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
-      <div>
+      <div className="min-w-0 flex-1">
         <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
           {title}
         </h1>
@@ -16,7 +16,7 @@ export const PageHeader = ({ title, subtitle, actions }) => {
         )}
       </div>
       {actions && (
-        <div className="flex items-center gap-2.5 self-start md:self-auto">
+        <div className="flex items-center gap-2.5 self-start md:self-auto shrink-0">
           {actions}
         </div>
       )}

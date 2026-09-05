@@ -22,8 +22,14 @@
 .brand-accent .hover\:bg-primary:hover { background-color: rgb(var(--primary)) !important; }
 .brand-accent .hover\:bg-primary-hover:hover { background-color: rgb(var(--primary-hover)) !important; }
 
-.brand-accent .text-primary { color: rgb(var(--primary)) !important; }
+.brand-accent .text-primary { color: rgb(var(--primary)); }
 .brand-accent .hover\:text-primary:hover { color: rgb(var(--primary)) !important; }
+
+/* Ensure hover and group-hover text color overrides take precedence over base text colors */
+.brand-accent .hover\:text-white:hover { color: #ffffff !important; }
+.brand-accent .group:hover .group-hover\:text-white { color: #ffffff !important; }
+.brand-accent .dark\:hover\:text-white:hover:is(.dark *) { color: #ffffff !important; }
+.brand-accent .group:hover .dark\:group-hover\:text-white:is(.dark *) { color: #ffffff !important; }
 
 .brand-accent .border-primary { border-color: rgb(var(--primary)) !important; }
 .brand-accent .border-primary\/20 { border-color: rgb(var(--primary) / 0.2) !important; }
