@@ -6,6 +6,7 @@ import { ACTIVE_LIKE_STATUSES } from '../models/SchoolSubscription.js';
 import { razorpaySubscriptionService } from './razorpaySubscription.service.js';
 import { notificationService } from './notification.service.js';
 import { auditLogService } from './auditLog.service.js';
+import { mapPlanTypeToInterval } from './subscription.service.js';
 
 const GRACE_PERIOD_DAYS = 3; // TODO: make per-plan configurable if the business needs it later
 
@@ -20,11 +21,37 @@ async function assertSchoolUsable(schoolId) {
   return school;
 }
 
+/**
+ * Lazily creates the matching Razorpay recurring Plan the first time anyone
+ * tries to subscribe to it, so Super Admin doesn't have to pre-toggle
+ * recurring billing on every plan before it's usable for onboarding.
+ * Weekly plans are excluded per business decision (see subscription.service.js).
+ */
 async function assertPlanUsable(planId) {
   const plan = await subscriptionRepository.findById(planId);
   if (!plan) throw new AppError('Plan not found', 404);
   if (plan.status && plan.status !== 'active') throw new AppError('This plan is not currently available', 400);
-  if (!plan.razorpayPlanId) throw new AppError('This plan is not configured for recurring billing', 400);
+  if (!plan.razorpayPlanId) {
+    const interval = mapPlanTypeToInterval(plan.planType);
+    if (!interval) {
+      throw new AppError(
+        'This plan does not support recurring billing — only Monthly or Yearly plans can be subscribed to. Ask your Super Admin to adjust it.',
+        400
+      );
+    }
+    const rzpPlan = await razorpaySubscriptionService.createPlan({
+      interval,
+      intervalCount: 1,
+      amountPaise: Math.round(plan.price * 100),
+      currency: 'INR',
+      name: plan.name,
+      description: plan.description,
+    });
+    plan.razorpayPlanId = rzpPlan.id;
+    plan.billingInterval = interval;
+    plan.billingIntervalCount = 1;
+    await plan.save();
+  }
   return plan;
 }
 
@@ -55,10 +82,17 @@ class SchoolSubscriptionService {
       notes: { schoolId: String(schoolId), schoolCode: school.schoolId || '' },
     });
 
+    // Standard 10-year recurring count:
+    // Monthly: 10 years * 12 months = 120 cycles
+    // Yearly: 10 years = 10 cycles
+    // Weekly: 10 years * 52 weeks = 520 cycles
+    const standard10YearCount = plan.billingInterval === 'yearly' ? 10 : (plan.billingInterval === 'weekly' ? 520 : 120);
+
     let rzpSub;
     try {
       rzpSub = await razorpaySubscriptionService.createSubscription({
         razorpayPlanId: plan.razorpayPlanId,
+        totalCount: standard10YearCount,
         quantity: qty,
         startAt: effectiveTrialDays > 0 ? new Date(Date.now() + effectiveTrialDays * 86400000) : startDate,
         notes: { schoolId: String(schoolId), planId: String(planId) },

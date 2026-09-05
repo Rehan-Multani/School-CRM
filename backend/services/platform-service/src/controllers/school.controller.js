@@ -184,19 +184,10 @@ export async function schoolPortalPlans(req, res, next) {
   }
 }
 
-export async function schoolInitiatePlanSelection(req, res, next) {
+export async function schoolInitiateSubscriptionCheckout(req, res, next) {
   try {
-    const result = await schoolService.initiatePlanSelection(req.user?.sub, req.body?.planId);
+    const result = await schoolService.initiateSubscriptionCheckout(req.user?.sub, req.body?.planId, req);
     res.json({ success: true, ...result });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function schoolConfirmPlanSelection(req, res, next) {
-  try {
-    const result = await schoolService.confirmPlanSelection(req.user?.sub, req.body?.planId, req.body);
-    res.json({ success: true, message: 'Payment verified — plan activated.', ...result });
   } catch (error) {
     next(error);
   }

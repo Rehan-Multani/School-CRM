@@ -40,8 +40,7 @@ import {
   schoolPortalUpdateConfig,
   schoolPortalUpdateEmail,
   schoolPortalUpdateTheme,
-  schoolInitiatePlanSelection,
-  schoolConfirmPlanSelection,
+  schoolInitiateSubscriptionCheckout,
   updateSchool,
   updateSchoolStatus,
 } from '../controllers/school.controller.js';
@@ -596,8 +595,7 @@ router.get('/school-portal/reports/summary', requirePrincipal, getSchoolReportsS
 router.get('/school-portal/reports/data', requirePrincipal, getCategoryReportData);
 router.get('/school-portal/me', requireSchoolAdmin, schoolPortalMe);
 router.get('/school-portal/plans', requireSchoolAdmin, schoolPortalPlans);
-router.post('/school-portal/select-plan/checkout', requireSchoolAdmin, schoolInitiatePlanSelection);
-router.post('/school-portal/select-plan/confirm', requireSchoolAdmin, schoolConfirmPlanSelection);
+router.post('/school-portal/select-plan/checkout', requireSchoolAdmin, schoolInitiateSubscriptionCheckout);
 router.get('/school-portal/config', requireSchoolAdmin, schoolPortalConfig);
 router.patch('/school-portal/config', requireSchoolAdmin, schoolPortalUpdateConfig);
 router.get('/school-portal/settings', requireSchoolAdmin, schoolPortalSettings);

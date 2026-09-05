@@ -6,6 +6,36 @@ import { razorpaySubscriptionService } from './razorpaySubscription.service.js';
 import { notificationService } from './notification.service.js';
 import { GRACE_PERIOD_DAYS, toDate } from './schoolSubscription.service.js';
 import { AppError } from '../../../shared/AppError.js';
+import { School } from '../models/School.js';
+import { planEndDate } from '../utils/subscription.utils.js';
+
+/**
+ * Onboarding plan selection (school.service.js initiateSubscriptionCheckout)
+ * creates the SchoolSubscription + Razorpay subscription up front, but never
+ * grants portal access itself — this is the one place that does, and only
+ * once Razorpay confirms the mandate actually charged. Safe to call from
+ * multiple handlers/events; no-ops once school.subscriptionPlan is set.
+ */
+async function grantSchoolPlanIfNeeded(sub) {
+  if (!sub?.schoolId) return;
+  const schoolId = sub.schoolId?._id || sub.schoolId;
+  const school = await School.findById(schoolId);
+  if (!school || school.subscriptionPlan) return;
+
+  const plan = await subscriptionRepository.findById(sub.planId?._id || sub.planId);
+  if (!plan) return;
+
+  const startedAt = new Date();
+  school.subscriptionPlan = plan.name;
+  school.subscription = {
+    planId: plan._id,
+    planType: plan.planType,
+    startedAt,
+    endsAt: sub.currentPeriodEnd || planEndDate(startedAt, plan.planType),
+    status: 'Active',
+  };
+  await school.save();
+}
 
 function deriveEventId(headerEventId, body) {
   if (headerEventId) return String(headerEventId);
@@ -64,6 +94,7 @@ async function handleSubscriptionActivated(sub, entity) {
     performedBy: 'Razorpay',
     source: 'webhook',
   });
+  await grantSchoolPlanIfNeeded(sub);
   notifySchool(sub, 'Subscription activated', 'Your subscription is now active.');
 }
 
@@ -114,6 +145,7 @@ async function handleSubscriptionCharged(sub, entity, paymentEntity, invoiceEnti
     source: 'webhook',
     metadata: { razorpayPaymentId: paymentEntity?.id },
   });
+  await grantSchoolPlanIfNeeded(sub);
   notifySchool(sub, 'Payment successful', `Your payment of ₹${((paymentEntity?.amount || 0) / 100).toLocaleString('en-IN')} was received.`);
 }
 

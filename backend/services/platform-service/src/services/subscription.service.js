@@ -119,23 +119,26 @@ export class SubscriptionService {
       normalized.billingInterval = existing.period === 'yearly' ? 'yearly' : 'monthly';
       normalized.billingIntervalCount = existing.interval || 1;
       normalized.trialDays = Number(payload?.trialDays) || 0;
-    } else if (payload?.makeRecurring) {
+    } else if (payload?.makeRecurring !== false) {
       const interval = mapPlanTypeToInterval(normalized.planType);
-      if (!interval) {
-        throw new AppError('Only Monthly or Yearly plans can be made recurring', 400);
+      if (interval && razorpaySubscriptionService.isConfigured()) {
+        const rzpPlan = await razorpaySubscriptionService.createPlan({
+          interval,
+          intervalCount: 1,
+          amountPaise: Math.round(normalized.price * 100),
+          currency: 'INR',
+          name: normalized.name,
+          description: normalized.description,
+        });
+        normalized.razorpayPlanId = rzpPlan.id;
+        normalized.billingInterval = interval;
+        normalized.billingIntervalCount = 1;
+        normalized.trialDays = Number(payload?.trialDays) || 0;
+      } else if (interval) {
+        normalized.billingInterval = interval;
+        normalized.billingIntervalCount = 1;
+        normalized.trialDays = Number(payload?.trialDays) || 0;
       }
-      const rzpPlan = await razorpaySubscriptionService.createPlan({
-        interval,
-        intervalCount: 1,
-        amountPaise: Math.round(normalized.price * 100),
-        currency: 'INR',
-        name: normalized.name,
-        description: normalized.description,
-      });
-      normalized.razorpayPlanId = rzpPlan.id;
-      normalized.billingInterval = interval;
-      normalized.billingIntervalCount = 1;
-      normalized.trialDays = Number(payload?.trialDays) || 0;
 
       try {
         const plan = await subscriptionRepository.create(normalized);
@@ -261,4 +264,4 @@ export class SubscriptionService {
 }
 
 export const subscriptionService = new SubscriptionService();
-export { BILLING_INTERVALS };
+export { BILLING_INTERVALS, mapPlanTypeToInterval };

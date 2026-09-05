@@ -9,6 +9,9 @@ import { subscriptionRepository } from '../repositories/subscription.repository.
 import { billingService } from './billing.service.js';
 import { billingRepository } from '../repositories/billing.repository.js';
 import { planEndDate, resolveSubscriptionStatus } from '../utils/subscription.utils.js';
+import { schoolSubscriptionService } from './schoolSubscription.service.js';
+import { schoolSubscriptionRepository } from '../repositories/schoolSubscription.repository.js';
+import { razorpaySubscriptionService } from './razorpaySubscription.service.js';
 
 const SCHOOL_TYPES = ['Public', 'Private', 'Government', 'Government Aided', 'International', 'Other'];
 const SCHOOL_BOARDS = ['CBSE', 'ICSE', 'State Board', 'IB', 'Cambridge', 'Other'];
@@ -879,12 +882,14 @@ export class SchoolService {
   }
 
   /**
-   * Step 1 of plan selection: creates (or reuses) a Pending invoice for this
-   * school+plan and a matching Razorpay order. The plan is NOT granted here —
-   * `confirmPlanSelection` only activates it after the payment signature
-   * verifies, so a school can never get portal access without actually paying.
+   * Onboarding plan selection now goes through a real Razorpay Subscription
+   * (not a one-time order) — the school authorizes recurring billing right
+   * here, and the plan is only granted once the webhook confirms the mandate
+   * actually charged (see grantSchoolPlanIfNeeded in razorpayWebhook.service.js).
+   * If the plan has no razorpayPlanId yet, schoolSubscriptionService lazily
+   * creates one (Monthly/Yearly only — Weekly plans can't be recurring).
    */
-  async initiatePlanSelection(schoolId, planId) {
+  async initiateSubscriptionCheckout(schoolId, planId, req) {
     const school = await schoolRepository.findById(schoolId);
     if (!school) {
       throw new AppError('School not found', 404);
@@ -893,82 +898,31 @@ export class SchoolService {
       throw new AppError('A subscription plan is already selected for this school', 400);
     }
 
-    const plan = await subscriptionRepository.findById(planId);
-    if (!plan) {
-      throw new AppError('Subscription plan not found', 404);
-    }
-
-    let invoice = await billingRepository.findOpenForSchoolPlan(school._id, plan.name);
-    if (!invoice) {
-      const dueAt = new Date();
-      dueAt.setDate(dueAt.getDate() + 14);
-      invoice = await billingRepository.create({
-        invoiceNumber: await billingRepository.nextInvoiceNumber(),
-        school: school._id,
-        schoolName: school.name,
-        schoolCode: school.code,
-        planName: plan.name,
-        planType: plan.planType,
-        amount: plan.price,
-        currency: 'INR',
-        status: 'Pending',
-        issuedAt: new Date(),
-        dueAt,
+    const existing = await schoolSubscriptionRepository.findActiveLikeForSchool(schoolId);
+    if (existing) {
+      const stuck = ['created', 'authenticated'].includes(existing.status);
+      if (!stuck) {
+        throw new AppError('This school already has an active or pending subscription', 409);
+      }
+      if (String(existing.planId?._id || existing.planId) === String(planId)) {
+        // Resume the same not-yet-paid attempt instead of blocking the school forever.
+        const plan = await subscriptionRepository.findById(planId);
+        return {
+          subscription: existing.toPublicJSON({ plan: plan?.toPublicJSON?.() }),
+          razorpayKeyId: razorpaySubscriptionService.publicKeyId(),
+          razorpaySubscriptionId: existing.razorpaySubscriptionId,
+        };
+      }
+      // Switched plan before finishing checkout — abandon the stale attempt and start fresh.
+      await razorpaySubscriptionService.cancelSubscription(existing.razorpaySubscriptionId, { atCycleEnd: false }).catch(() => {});
+      await schoolSubscriptionRepository.updateById(existing._id, {
+        status: 'cancelled',
+        cancelledAt: new Date(),
+        endedAt: new Date(),
       });
     }
 
-    const order = await billingService.createRazorpayOrder(invoice._id.toString());
-    return { ...order, planId: plan._id.toString() };
-  }
-
-  /**
-   * Step 2: verifies the Razorpay payment signature for the invoice created
-   * above, marks it Paid, and only then grants the plan (status Active — no
-   * more "Pending Payment" free-access window).
-   */
-  async confirmPlanSelection(schoolId, planId, paymentPayload) {
-    const school = await schoolRepository.findById(schoolId);
-    if (!school) {
-      throw new AppError('School not found', 404);
-    }
-    if (school.subscriptionPlan) {
-      throw new AppError('A subscription plan is already selected for this school', 400);
-    }
-
-    const plan = await subscriptionRepository.findById(planId);
-    if (!plan) {
-      throw new AppError('Subscription plan not found', 404);
-    }
-
-    const invoiceId = paymentPayload?.invoiceId;
-    if (!invoiceId) {
-      throw new AppError('Invoice reference is required', 400);
-    }
-    const invoice = await billingRepository.findById(invoiceId);
-    if (!invoice || invoice.school?.toString() !== schoolId.toString() || invoice.planName !== plan.name) {
-      throw new AppError('Invoice not found for this school and plan', 404);
-    }
-
-    const paidInvoice =
-      invoice.status === 'Paid'
-        ? invoice.toPublicJSON()
-        : await billingService.verifyRazorpayPayment(invoice._id.toString(), paymentPayload);
-
-    const startedAt = new Date();
-    school.subscriptionPlan = plan.name;
-    school.subscription = {
-      planId: plan._id,
-      planType: plan.planType,
-      startedAt,
-      endsAt: planEndDate(startedAt, plan.planType),
-      status: 'Active',
-    };
-    await school.save();
-
-    return {
-      user: toPortalUser(school),
-      invoice: paidInvoice,
-    };
+    return schoolSubscriptionService.checkoutForSchool(schoolId, { planId }, { name: school.name, req });
   }
 }
 

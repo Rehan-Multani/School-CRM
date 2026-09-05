@@ -321,6 +321,7 @@ export default function SubscriptionPlans() {
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectingId, setSelectingId] = useState('');
+  const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState('');
 
   const loadPlans = async () => {
@@ -341,12 +342,31 @@ export default function SubscriptionPlans() {
     loadPlans();
   }, []);
 
+  // Subscription activation is confirmed by Razorpay's webhook, not by this
+  // browser tab — poll /school-portal/me for a few seconds after checkout
+  // closes so the admin lands on the dashboard as soon as it's actually granted.
+  const pollForActivation = async (maxAttempts = 12, intervalMs = 2500) => {
+    for (let i = 0; i < maxAttempts; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        const res = await schoolPortalApi.me();
+        if (res?.user?.hasPlan) return res.user;
+      } catch {
+        // transient — keep polling
+      }
+    }
+    return null;
+  };
+
   const handleSelect = async (plan) => {
     if (hasPlan) return;
     setSelectingId(plan.id);
     setError('');
     try {
-      const order = await schoolPortalApi.initiatePlanSelection(plan.id);
+      const result = await schoolPortalApi.initiateSubscriptionCheckout(plan.id);
+      const { razorpayKeyId, razorpaySubscriptionId } = result;
       const RazorpayCtor = await loadRazorpayScript();
       if (!RazorpayCtor) {
         setError('Could not load the payment gateway. Check your connection and try again.');
@@ -355,28 +375,22 @@ export default function SubscriptionPlans() {
       }
 
       const rzp = new RazorpayCtor({
-        key: order.keyId,
-        order_id: order.orderId,
-        amount: order.amount,
-        currency: order.currency,
+        key: razorpayKeyId,
+        subscription_id: razorpaySubscriptionId,
         name: user?.schoolName || 'School Subscription',
-        description: `${plan.name} plan subscription`,
+        description: `${plan.name} plan — recurring subscription`,
         prefill: { email: user?.email || '' },
         theme: { color: '#4f46e5' },
-        handler: async (response) => {
-          try {
-            const result = await schoolPortalApi.confirmPlanSelection(plan.id, {
-              invoiceId: order.invoice.id,
-              razorpayOrderId: response.razorpay_order_id,
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpaySignature: response.razorpay_signature,
-            });
-            applyUser(result.user);
+        handler: async () => {
+          setConfirming(true);
+          const activatedUser = await pollForActivation();
+          setConfirming(false);
+          setSelectingId('');
+          if (activatedUser) {
+            applyUser(activatedUser);
             navigate('/school-admin/dashboard', { replace: true });
-          } catch (err) {
-            setError(err.response?.data?.message || err.message || 'Payment succeeded but activation failed — contact support with your payment id.');
-          } finally {
-            setSelectingId('');
+          } else {
+            setError('Payment received — Razorpay is confirming it, which can take a minute. Refresh this page shortly.');
           }
         },
         modal: {
@@ -417,6 +431,13 @@ export default function SubscriptionPlans() {
             : `${user?.schoolName || 'Your school'} needs a plan before the rest of the admin portal is unlocked. Payment is collected securely via Razorpay when you choose a plan.`
         }
       />
+
+      {confirming && (
+        <div className="flex items-center gap-3 rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm font-semibold text-indigo-700 dark:border-indigo-500/20 dark:bg-indigo-950/20 dark:text-indigo-400">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span>Confirming your payment with Razorpay — this only takes a few seconds…</span>
+        </div>
+      )}
 
       {error && (
         <div className="flex items-center justify-between gap-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-400">
@@ -499,7 +520,15 @@ export default function SubscriptionPlans() {
                         ) : (
                           <CreditCard className="h-4 w-4" />
                         )}
-                        {selected ? 'Selected' : hasPlan ? 'Plan already chosen' : 'Choose this plan'}
+                        {selected
+                          ? 'Selected'
+                          : hasPlan
+                          ? 'Plan already chosen'
+                          : selectingId === plan.id
+                          ? confirming
+                            ? 'Confirming payment…'
+                            : 'Opening checkout…'
+                          : 'Subscribe & pay'}
                       </button>
                     </div>
                   );
