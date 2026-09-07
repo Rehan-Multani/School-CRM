@@ -3,7 +3,7 @@
     "name": "School Management - Teacher APK API",
     "_postman_id": "b7f2c1a0-teach-4a11-9d33-teacherapk0001",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Teacher APK backend, organised exactly like the app: an App bar (top-right 🔔 notifications + 👤 profile) and 5 bottom-nav tabs — Home · Classes · Attendance · Pickup · Profile.\n\nbaseUrl points straight at platform-service (default http://localhost:5002); no /api/v1/platform prefix (the api-gateway on :8080 adds it). Collection-level Bearer {{accessToken}}.\n\nRUN ORDER: \"00 - Environment / Health\" -> \"Tab 5 · Profile / 01 - Auth / Login (teacher)\" (stores accessToken/teacherId/schoolId) -> \"App bar / 👤 Profile menu / Me\" (stores isClassTeacher + classTeacherSectionId) -> \"Tab 2 · Classes / 03 - Classes\" top-to-bottom (classId/sectionId/studentId; Timetable/Week fills subjectId).\n\nPICKUP TAB is class-teacher-only: it calls GET /me, and when teacher.isClassTeacher is false the app hides the tab and \"Eligible students\" returns []. Staging OTP = 123456."
+    "description": "Teacher APK backend, organised exactly like the app: an ⌂ App bar (top-right 🔔 notifications + 👤 profile) and 5 bottom-nav tabs — Home · Classes · Attendance · Notices · Profile.\n\nSafe Pickup is NOT a tab: it lives under the Profile tab (\"12 - Pickup\"), is shown only to class teachers (GET /me -> isClassTeacher), and is the deep-link target for pickup notifications.\n\nbaseUrl points straight at platform-service (default http://localhost:5002); no /api/v1/platform prefix (the api-gateway on :8080 adds it). Collection-level Bearer {{accessToken}}.\n\nRUN ORDER: \"00 - Environment / Health\" -> \"Tab 5 · Profile / 01 - Auth / Login (teacher)\" (stores accessToken/teacherId/schoolId) -> \"App bar / 👤 Profile menu / Me\" (stores isClassTeacher + classTeacherSectionId) -> \"Tab 2 · Classes / 03 - Classes\" top-to-bottom."
   },
   "auth": {
     "type": "bearer",
@@ -397,106 +397,6 @@
                     "school-portal",
                     "teacher",
                     "today-schedule"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test(\"200\", () => pm.response.code === 200);",
-                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
-                    ]
-                  }
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "11 - Announcements",
-          "item": [
-            {
-              "name": "List",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/school-portal/teacher/announcements",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "school-portal",
-                    "teacher",
-                    "announcements"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test(\"200\", () => pm.response.code === 200);",
-                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
-                      "const d = pm.response.json().data;",
-                      "if (d && d[0]) pm.environment.set('announcementId', d[0].id);"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Get",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/school-portal/teacher/announcements/{{announcementId}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "school-portal",
-                    "teacher",
-                    "announcements",
-                    "{{announcementId}}"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test(\"200\", () => pm.response.code === 200);",
-                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Mark read",
-              "request": {
-                "method": "PATCH",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/school-portal/teacher/announcements/{{announcementId}}/read",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "school-portal",
-                    "teacher",
-                    "announcements",
-                    "{{announcementId}}",
-                    "read"
                   ]
                 }
               },
@@ -2001,427 +1901,106 @@
       ]
     },
     {
-      "name": "📱 Tab 4 · Pickup  (/teacher/pickup)",
-      "description": "Student Safe Pickup / parent-OTP verification. Visible ONLY to a class teacher. Flow: Check role -> Eligible students -> Pickup (initiate) -> enter OTP (staging 123456) -> Verify -> confirm handover -> Complete. Run \"Check role\" first; if isClassTeacher=false, \"Eligible students\" returns [].",
+      "name": "📱 Tab 4 · Notices  (/teacher/notices)",
+      "description": "School announcements the teacher receives (read + mark-read). Authoring is admin-side.",
       "item": [
         {
-          "name": "Check role (GET /me)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/school-portal/teacher/me",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "school-portal",
-                "teacher",
-                "me"
-              ]
-            }
-          },
-          "event": [
+          "name": "11 - Announcements",
+          "item": [
             {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"200\", () => pm.response.code === 200);",
-                  "pm.test(\"success:true\", () => pm.response.json().success === true);",
-                  "const t = pm.response.json().data.teacher;",
-                  "pm.environment.set('isClassTeacher', String(!!t.isClassTeacher));",
-                  "pm.test(\"has isClassTeacher flag\", () => typeof t.isClassTeacher === 'boolean');",
-                  "if (t.classTeacherSections && t.classTeacherSections[0]) pm.environment.set('classTeacherSectionId', t.classTeacherSections[0].sectionId);",
-                  "console.log('isClassTeacher =', t.isClassTeacher, '| Pickup tab', t.isClassTeacher ? 'SHOWN' : 'HIDDEN');"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Eligible students",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/school-portal/teacher/pickups/eligible-students?sectionId={{classTeacherSectionId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "school-portal",
-                "teacher",
-                "pickups",
-                "eligible-students"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
-                  "pm.test(\"success\", () => pm.response.json().success === true);",
-                  "const d = pm.response.json().data || [];",
-                  "if (pm.environment.get('isClassTeacher') === 'false') {",
-                  "  pm.test(\"non class teacher -> empty pickup list\", () => d.length === 0);",
-                  "} else {",
-                  "  pm.test(\"rows carry pickup flags\", () => d.every(r => 'pickupEnabled' in r && 'hasGuardianMobile' in r && 'alreadyPickedUpToday' in r));",
-                  "  const s = d.find(r => r.pickupEnabled && r.hasGuardianMobile && !r.alreadyPickedUpToday && !r.activeSessionId);",
-                  "  if (s) pm.environment.set('pickupStudentId', s.id);",
-                  "}"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Pickup — initiate (Idempotency-Key)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
+              "name": "List",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/announcements",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "announcements"
+                  ]
+                }
               },
-              {
-                "key": "Idempotency-Key",
-                "value": "{{$guid}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/school-portal/teacher/pickups/initiate",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "school-portal",
-                "teacher",
-                "pickups",
-                "initiate"
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "const d = pm.response.json().data;",
+                      "if (d && d[0]) pm.environment.set('announcementId', d[0].id);"
+                    ]
+                  }
+                }
               ]
             },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"studentId\": \"{{pickupStudentId}}\"\n}"
-            }
-          },
-          "event": [
             {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"201\", () => pm.response.code === 201);",
-                  "const d = pm.response.json().data;",
-                  "pm.test(\"OTP_SENT\", () => d.status === 'OTP_SENT');",
-                  "pm.test(\"mobile masked\", () => /^\\*+\\d{4}$/.test(d.maskedMobile));",
-                  "pm.test(\"no raw otp / phone\", () => !('otpHash' in d) && !('guardianMobile' in d));",
-                  "pm.environment.set('pickupSessionId', d.id);"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Pickup — initiate again (no key) -> 409",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/school-portal/teacher/pickups/initiate",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "school-portal",
-                "teacher",
-                "pickups",
-                "initiate"
+              "name": "Get",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/announcements/{{announcementId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "announcements",
+                    "{{announcementId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
               ]
             },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"studentId\": \"{{pickupStudentId}}\"\n}"
-            }
-          },
-          "event": [
             {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"409\", () => pm.response.code === 409);",
-                  "pm.test(\"PICKUP_ALREADY_ACTIVE\", () => pm.response.json().code === 'PICKUP_ALREADY_ACTIVE');"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Pickup — session",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "school-portal",
-                "teacher",
-                "pickups",
-                "{{pickupSessionId}}"
+              "name": "Mark read",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/announcements/{{announcementId}}/read",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "announcements",
+                    "{{announcementId}}",
+                    "read"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
               ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
-                  "pm.test(\"success\", () => pm.response.json().success === true);"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Pickup — verify wrong OTP -> 400",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/verify",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "school-portal",
-                "teacher",
-                "pickups",
-                "{{pickupSessionId}}",
-                "verify"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"otp\": \"000000\"\n}"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"400\", () => pm.response.code === 400);",
-                  "pm.test(\"OTP_INVALID\", () => pm.response.json().code === 'OTP_INVALID');"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Pickup — verify OTP (staging 123456)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/verify",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "school-portal",
-                "teacher",
-                "pickups",
-                "{{pickupSessionId}}",
-                "verify"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"otp\": \"{{pickupOtp}}\"\n}"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
-                  "pm.test(\"success\", () => pm.response.json().success === true);",
-                  "pm.test(\"VERIFIED\", () => pm.response.json().data.status === 'VERIFIED');"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Pickup — resend OTP",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/resend-otp",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "school-portal",
-                "teacher",
-                "pickups",
-                "{{pickupSessionId}}",
-                "resend-otp"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"409 (already verified) or 429 (cooldown)\", () => [409, 429].includes(pm.response.code));"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Pickup — complete without handoverConfirmed -> 400",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/complete",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "school-portal",
-                "teacher",
-                "pickups",
-                "{{pickupSessionId}}",
-                "complete"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"pickupPersonRelationship\": \"Parent\"\n}"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"400\", () => pm.response.code === 400);",
-                  "pm.test(\"HANDOVER_NOT_CONFIRMED\", () => pm.response.json().code === 'HANDOVER_NOT_CONFIRMED');"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Pickup — complete (handover)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/complete",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "school-portal",
-                "teacher",
-                "pickups",
-                "{{pickupSessionId}}",
-                "complete"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"handoverConfirmed\": true,\n  \"pickupPersonName\": \"Rahul's Uncle\",\n  \"pickupPersonRelationship\": \"Family Friend\"\n}"
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
-                  "pm.test(\"success\", () => pm.response.json().success === true);",
-                  "pm.test(\"COMPLETED\", () => pm.response.json().data.status === 'COMPLETED');"
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "name": "Pickup — cancel (fresh session)",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/cancel",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "school-portal",
-                "teacher",
-                "pickups",
-                "{{pickupSessionId}}",
-                "cancel"
-              ]
-            }
-          },
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "type": "text/javascript",
-                "exec": [
-                  "pm.test(\"200 or 409 (terminal)\", () => [200, 409].includes(pm.response.code));"
-                ]
-              }
             }
           ]
         }
@@ -3102,6 +2681,433 @@
                     "exec": [
                       "pm.test(\"200\", () => pm.response.code === 200);",
                       "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "12 - Pickup  (class-teacher only)",
+          "description": "Pickup is not a bottom-nav tab — it opens from the Profile tab and is shown only when GET /me returns isClassTeacher:true. It is also the deep-link target for pickup push notifications. Staging OTP = 123456.",
+          "item": [
+            {
+              "name": "Check role (GET /me)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "me"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "const t = pm.response.json().data.teacher;",
+                      "pm.environment.set('isClassTeacher', String(!!t.isClassTeacher));",
+                      "pm.test(\"has isClassTeacher flag\", () => typeof t.isClassTeacher === 'boolean');",
+                      "if (t.classTeacherSections && t.classTeacherSections[0]) pm.environment.set('classTeacherSectionId', t.classTeacherSections[0].sectionId);",
+                      "console.log('isClassTeacher =', t.isClassTeacher, '| Pickup tab', t.isClassTeacher ? 'SHOWN' : 'HIDDEN');"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Eligible students",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/pickups/eligible-students?sectionId={{classTeacherSectionId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "pickups",
+                    "eligible-students"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                      "pm.test(\"success\", () => pm.response.json().success === true);",
+                      "const d = pm.response.json().data || [];",
+                      "if (pm.environment.get('isClassTeacher') === 'false') {",
+                      "  pm.test(\"non class teacher -> empty pickup list\", () => d.length === 0);",
+                      "} else {",
+                      "  pm.test(\"rows carry pickup flags\", () => d.every(r => 'pickupEnabled' in r && 'hasGuardianMobile' in r && 'alreadyPickedUpToday' in r));",
+                      "  const s = d.find(r => r.pickupEnabled && r.hasGuardianMobile && !r.alreadyPickedUpToday && !r.activeSessionId);",
+                      "  if (s) pm.environment.set('pickupStudentId', s.id);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Pickup — initiate (Idempotency-Key)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{$guid}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/pickups/initiate",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "pickups",
+                    "initiate"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"studentId\": \"{{pickupStudentId}}\"\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"201\", () => pm.response.code === 201);",
+                      "const d = pm.response.json().data;",
+                      "pm.test(\"OTP_SENT\", () => d.status === 'OTP_SENT');",
+                      "pm.test(\"mobile masked\", () => /^\\*+\\d{4}$/.test(d.maskedMobile));",
+                      "pm.test(\"no raw otp / phone\", () => !('otpHash' in d) && !('guardianMobile' in d));",
+                      "pm.environment.set('pickupSessionId', d.id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Pickup — initiate again (no key) -> 409",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/pickups/initiate",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "pickups",
+                    "initiate"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"studentId\": \"{{pickupStudentId}}\"\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"409\", () => pm.response.code === 409);",
+                      "pm.test(\"PICKUP_ALREADY_ACTIVE\", () => pm.response.json().code === 'PICKUP_ALREADY_ACTIVE');"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Pickup — session",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "pickups",
+                    "{{pickupSessionId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                      "pm.test(\"success\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Pickup — verify wrong OTP -> 400",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/verify",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "pickups",
+                    "{{pickupSessionId}}",
+                    "verify"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"otp\": \"000000\"\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"400\", () => pm.response.code === 400);",
+                      "pm.test(\"OTP_INVALID\", () => pm.response.json().code === 'OTP_INVALID');"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Pickup — verify OTP (staging 123456)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/verify",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "pickups",
+                    "{{pickupSessionId}}",
+                    "verify"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"otp\": \"{{pickupOtp}}\"\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                      "pm.test(\"success\", () => pm.response.json().success === true);",
+                      "pm.test(\"VERIFIED\", () => pm.response.json().data.status === 'VERIFIED');"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Pickup — resend OTP",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/resend-otp",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "pickups",
+                    "{{pickupSessionId}}",
+                    "resend-otp"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"409 (already verified) or 429 (cooldown)\", () => [409, 429].includes(pm.response.code));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Pickup — complete without handoverConfirmed -> 400",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/complete",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "pickups",
+                    "{{pickupSessionId}}",
+                    "complete"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"pickupPersonRelationship\": \"Parent\"\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"400\", () => pm.response.code === 400);",
+                      "pm.test(\"HANDOVER_NOT_CONFIRMED\", () => pm.response.json().code === 'HANDOVER_NOT_CONFIRMED');"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Pickup — complete (handover)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/complete",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "pickups",
+                    "{{pickupSessionId}}",
+                    "complete"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"handoverConfirmed\": true,\n  \"pickupPersonName\": \"Rahul's Uncle\",\n  \"pickupPersonRelationship\": \"Family Friend\"\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                      "pm.test(\"success\", () => pm.response.json().success === true);",
+                      "pm.test(\"COMPLETED\", () => pm.response.json().data.status === 'COMPLETED');"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Pickup — cancel (fresh session)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/cancel",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "pickups",
+                    "{{pickupSessionId}}",
+                    "cancel"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200 or 409 (terminal)\", () => [200, 409].includes(pm.response.code));"
                     ]
                   }
                 }

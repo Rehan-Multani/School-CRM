@@ -22,12 +22,18 @@ patterns. It must look like the same product.
 | **08. Fees** — Total / Paid / Pending, next due, invoice breakdown, payment history (**read-only**) | `GET /fees/summary`, `GET /fees/invoices/:id`, `GET /fees/history` |
 | **09. Leave** — list, apply (from/to/reason/type), edit/cancel while pending | `GET /leaves`, `POST /leaves`, `PATCH /leaves/:id`, `POST /leaves/:id/cancel` |
 | **10. Notices & Events** — categories, unread dots, event detail | `GET /notices`, `PATCH /notices/:id/read`, `GET /events` |
-| **11. Notifications** — centre, unread badge on the tab, mark-all | `GET /notifications`, `GET /notifications/unread-count`, `POST /device-tokens` |
+| **11. Notifications** — top-right 🔔 bell (App bar, every screen), unread badge, mark-all | `GET /notifications`, `GET /notifications/unread-count`, `POST /device-tokens` |
 | **12. Profile & Settings** — photo, admission no., class/section/roll, DOB, guardians, documents, notification prefs, password, logout | `GET /profile`, `PATCH /profile`, `GET /academic-info`, `GET /guardians`, `GET /documents`, `GET/PATCH /settings`, `PATCH /change-password` |
 
-Bottom navigation (exactly 5): **HOME · ACADEMICS · ATTENDANCE ·
-NOTIFICATIONS · PROFILE**. Fees / Leave / Notices / Events open from Home &
-Profile, not the bar.
+**Bottom navigation (exactly 5):** `HOME · HOMEWORK · ATTENDANCE · NOTICES · PROFILE`.
+
+- **Homework** tab = the Academics hub — opens on the homework list; Timetable,
+  Classwork, Study Material, Exams and Results are reached from the same screen
+  (and via Home quick-actions).
+- **Notices** tab also holds **Events**.
+- **Fees / Leave / Settings / Documents** open from the **Profile** tab.
+- **Notifications** are the top-right 🔔 only — not a tab.
+- **Safe Pickup** does not exist in the Student app (teacher-only feature).
 
 ---
 

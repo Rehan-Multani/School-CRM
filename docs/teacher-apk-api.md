@@ -28,15 +28,19 @@ below omit the prefix; add `/api/v1/platform` only when hitting the gateway.
 
 | Tab | Screens | Endpoints |
 |---|---|---|
-| **1 · Home** `/teacher/home` | Today at a glance, announcements feed | `GET /dashboard`, `GET /today-schedule` · `GET /announcements`, `GET /announcements/:id`, `PATCH /announcements/:id/read` |
+| **1 · Home** `/teacher/home` | Today at a glance (next period, metric cards, today's schedule) | `GET /dashboard`, `GET /today-schedule` |
 | **2 · Classes** `/teacher/classes` | My Classes → roster; Timetable; Homework; Assignments; Study Material; Exams & Marks | `GET /classes`, `GET /classes/:id`, `GET /classes/:id/sections`, `GET /sections/:id/students`, `GET /students/:id` · `GET /timetable`, `GET /timetable/day/:day`, `GET /schedule/:id` · `GET/POST /homework`, `GET/PATCH/DELETE /homework/:id`, `GET /homework/:id/submissions` · `GET/POST /assignments`, `GET/PATCH/DELETE /assignments/:id`, `GET /assignments/:id/submissions`, `PATCH /assignments/:id/submissions/:sid/grade` · `GET/POST /materials`, `GET/PATCH/DELETE /materials/:id` · `GET /exams`, `GET /exams/:id`, `GET /exams/:id/schedule`, `GET /exams/:id/subjects`, `GET /exams/:id/marks`, `POST /exams/:id/marks`, `PATCH /exams/:id/marks/:markId` |
 | **3 · Attendance** `/teacher/attendance` | Daily marking, finalize, history, summary, per-student log | `GET /attendance/today`, `POST /attendance` (idempotent), `PATCH /attendance/:id`, `POST /attendance/:id/finalize`, `GET /attendance/history`, `GET /attendance/section/:id`, `GET /attendance/student/:id`, `GET /attendance/summary` |
-| **4 · Pickup** `/teacher/pickup` | Student Safe Pickup / parent-OTP. **Class-teacher only** — hidden when `GET /me` → `teacher.isClassTeacher === false` | `GET /pickups/eligible-students`, `POST /pickups/initiate`, `GET /pickups/:id`, `POST /pickups/:id/verify`, `POST /pickups/:id/resend-otp`, `POST /pickups/:id/complete`, `POST /pickups/:id/cancel` (see §6) |
-| **5 · Profile** `/teacher/profile` | Account: sign-in/out & password, profile & documents, leave requests, office messages | `POST /school-portal/auth/teacher-login`, `POST …/auth/logout`, `GET /me`, `PATCH /change-password` · `GET /profile`, `PATCH /profile`, `GET /documents` · `GET/POST /leaves`, `GET /leaves/:id`, `DELETE /leaves/:id` · `GET /conversations`, `GET /conversations/:id/messages`, `POST /conversations/:id/messages`, `PATCH /messages/:id/read` |
+| **4 · Notices** `/teacher/notices` | School announcements feed (read + mark-read; authoring is admin-side) | `GET /announcements`, `GET /announcements/:id`, `PATCH /announcements/:id/read` |
+| **5 · Profile** `/teacher/profile` | Account: sign-in/out & password, profile & documents, leave requests, office messages, **Pickup** | `POST /school-portal/auth/teacher-login`, `POST …/auth/logout`, `GET /me`, `PATCH /change-password` · `GET /profile`, `PATCH /profile`, `GET /documents` · `GET/POST /leaves`, `GET /leaves/:id`, `DELETE /leaves/:id` · `GET /conversations`, `GET /conversations/:id/messages`, `POST /conversations/:id/messages`, `PATCH /messages/:id/read` · **Pickup** (see below) |
 
-`GET /me` also returns `teacher.isClassTeacher` + `teacher.classTeacherSections[]`
-— the app reads this once after login to decide whether to render the **Pickup**
-tab at all.
+**Pickup is not a tab.** It opens from the **Profile** tab and is shown only
+when `GET /me` → `teacher.isClassTeacher === true` (`GET /me` also returns
+`teacher.classTeacherSections[]`). It is also the deep-link target for pickup
+push notifications. Endpoints: `GET /pickups/eligible-students`,
+`POST /pickups/initiate`, `GET /pickups/:id`, `POST /pickups/:id/verify`,
+`POST /pickups/:id/resend-otp`, `POST /pickups/:id/complete`,
+`POST /pickups/:id/cancel` (full rules in §6).
 
 *Not a tab:* `GET/POST/PATCH/DELETE /school-portal/timetable` and
 `POST /school-portal/academic/teachers/:id/set-password` are admin-side

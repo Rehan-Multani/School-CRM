@@ -17,22 +17,23 @@ pointing at `http://localhost:5002`. Examples below omit the prefix.
 
 ## 0. Bottom-nav → API map
 
-The APK has **5 bottom-nav tabs**. Secondary modules (Fees, Leave, Notices,
-Events) open from the Home dashboard / Profile tab. All paths are under
+The APK has **5 bottom-nav tabs** — Home · Homework · Attendance · Notices ·
+Profile — plus an ⌂ App bar (top-right 🔔 + 👤) on every screen. The Postman
+collection is grouped the same way (`📱 Tab N · …`). All paths are under
 `/school-portal/student` unless noted.
 
 | Tab | Screens | Endpoints |
 |---|---|---|
 | **⌂ App bar** (every screen) | 🔔 notifications list + unread badge · 👤 quick menu (Me / Profile / Logout) | `GET /notifications`, `GET /notifications/unread-count`, `PATCH /notifications/:id/read`, `PATCH /notifications/read-all`, `POST /device-tokens` · `GET /me`, `GET /profile`, `POST /auth/logout` |
-| **1 · Home** `/dashboard` | Dashboard (greeting, today summary, quick actions, upcoming), **Notices** | `GET /dashboard`, `GET /today`, `GET /upcoming` · `GET /notices(/:id)`, `PATCH /notices/:id/read`, `PATCH /notices/read-all` |
-| **2 · Academics** | Homework, Classwork, Study Material, Timetable, Exams, Results | `GET /homework(/pending\|/completed\|/:id)`, `POST /homework/:id/submission` · `GET /classwork(/:id)` · `GET /materials(/:id\|/:id/download-url)` · `GET /timetable(/today\|/day/:day)` · `GET /exams(/upcoming\|/:id\|/:id/schedule)` · `GET /results(/:examId\|/:examId/subjects)`, `GET /report-card` |
-| **3 · Attendance** | Overall %, monthly, daily calendar | `GET /attendance/summary`, `GET /attendance/daily`, `GET /attendance/monthly` |
-| **4 · Notifications** | Notification centre, Events | `GET /notifications`, `GET /notifications/unread-count`, `PATCH /notifications/:id/read`, `PATCH /notifications/read-all`, `POST /device-tokens` · `GET /events(/:id)` |
-| **5 · Profile** | Profile, Academic info, Guardians, Documents, Settings, Fees, Leave, login/logout | `POST /school-portal/auth/student-login`, `POST …/auth/logout`, `GET /me`, `PATCH /change-password` · `GET /profile`, `PATCH /profile`, `GET /academic-info`, `GET /guardians` · `GET /documents(/:key\|/download-url)` · `GET/PATCH /settings` · `GET /fees/summary\|/pending\|/history\|/invoices\|/invoices/:id` · `GET /leaves(/:id)`, `POST /leaves`, `PATCH /leaves/:id`, `POST /leaves/:id/cancel` |
+| **1 · Home** `/student/home` | Dashboard — greeting, today summary (attendance % · homework pending · next class), quick actions, upcoming | `GET /dashboard`, `GET /today`, `GET /upcoming` |
+| **2 · Homework** `/student/homework` | The Academics hub — lands on the homework list; also holds Classwork, Study Material, Timetable, Exams, Results | `GET /homework(/pending\|/completed\|/:id)`, `POST /homework/:id/submission` · `GET /classwork(/:id)` · `GET /materials(/:id\|/:id/download-url)` · `GET /timetable(/today\|/day/:day)` · `GET /exams(/upcoming\|/:id\|/:id/schedule)` · `GET /results(/:examId\|/:examId/subjects)`, `GET /report-card` |
+| **3 · Attendance** `/student/attendance` | Overall %, monthly, daily calendar | `GET /attendance/summary`, `GET /attendance/daily`, `GET /attendance/monthly` |
+| **4 · Notices** `/student/notices` | School notices (read + mark-read), Events | `GET /notices(/:id)`, `PATCH /notices/:id/read`, `PATCH /notices/read-all` · `GET /events(/:id)` |
+| **5 · Profile** `/student/profile` | Profile, Academic info, Guardians, Documents, Settings, Fees, Leave, login/logout | `POST /school-portal/auth/student-login`, `POST …/auth/logout`, `GET /me`, `PATCH /change-password` · `GET /profile`, `PATCH /profile`, `GET /academic-info`, `GET /guardians` · `GET /documents(/:key\|/download-url)` · `GET/PATCH /settings` · `GET /fees/summary\|/pending\|/history\|/invoices\|/invoices/:id` · `GET /leaves(/:id)`, `POST /leaves`, `PATCH /leaves/:id`, `POST /leaves/:id/cancel` |
 
-> **Safe Pickup** is a **teacher-only** feature — it lives in the Teacher APK
-> (`Teacher-APK.postman_collection.json` → `📱 Tab 4 · Pickup`) and is
-> intentionally absent from the Student APK.
+> **Notifications** are the top-right 🔔 only — there is no Notifications tab.
+> **Safe Pickup** is a **teacher-only** feature (Teacher APK → Profile tab →
+> Pickup, class-teacher only) and is intentionally absent from the Student APK.
 
 **Deferred / not in this build** (documented so the app hides them):
 

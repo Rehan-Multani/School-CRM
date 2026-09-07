@@ -3,7 +3,7 @@
     "name": "School Management - Student APK API",
     "_postman_id": "c8a3d2b1-stud-4b22-ae44-studentapk0001",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Student APK backend, organised exactly like the app (same shape as the Teacher APK collection): an ⌂ App bar (top-right 🔔 notifications + 👤 profile) and 5 bottom-nav tabs — Home · Academics · Attendance · Notifications · Profile. Fees / Leave / Settings / Documents open from the Profile tab; Notices open from Home.\n\nSafe Pickup is a TEACHER-only feature and lives in the Teacher APK collection (Tab 4 · Pickup) — it is intentionally absent here.\n\nbaseUrl points straight at platform-service (default http://localhost:5002); no /api/v1/platform prefix (the api-gateway on :8080 adds it). Collection-level Bearer {{accessToken}}.\n\nRUN ORDER: \"00 - Environment / Health\" → \"📱 Tab 5 · Profile / 01 - Auth / Login (student)\" (stores accessToken/studentId/schoolId/classId/sectionId) → then any tab top-to-bottom (each List request stores the first row id into the matching *Id env var)."
+    "description": "Student APK backend, organised exactly like the app (same shape as the Teacher APK collection): an ⌂ App bar (top-right 🔔 notifications + 👤 profile) and 5 bottom-nav tabs — Home · Homework · Attendance · Notices · Profile.\n\nTab 2 \"Homework\" is the Academics hub — it opens on the homework list and also holds Classwork · Study Material · Timetable · Exams · Results. Fees / Leave / Settings / Documents live under Profile. Notifications are the top-right bell only (no tab). Safe Pickup is a TEACHER-only feature and is absent here.\n\nbaseUrl points straight at platform-service (default http://localhost:5002); no /api/v1/platform prefix (the api-gateway on :8080 adds it). Collection-level Bearer {{accessToken}}.\n\nRUN ORDER: \"00 - Environment / Health\" → \"📱 Tab 5 · Profile / 01 - Auth / Login (student)\" (stores accessToken/studentId/schoolId/classId/sectionId) → then any tab top-to-bottom (each List request stores the first row id into the matching *Id env var)."
   },
   "auth": {
     "type": "bearer",
@@ -433,152 +433,12 @@
               ]
             }
           ]
-        },
-        {
-          "name": "11 - Notices",
-          "item": [
-            {
-              "name": "List",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/school-portal/student/notices?category=&page=1",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "school-portal",
-                    "student",
-                    "notices"
-                  ],
-                  "query": [
-                    {
-                      "key": "category",
-                      "value": "",
-                      "disabled": true
-                    },
-                    {
-                      "key": "page",
-                      "value": "1"
-                    }
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
-                      "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });",
-                      "const d = pm.response.json().data; if (d && d[0]) pm.environment.set('noticeId', d[0].id);"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Get",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/school-portal/student/notices/{{noticeId}}",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "school-portal",
-                    "student",
-                    "notices",
-                    "{{noticeId}}"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
-                      "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Mark read",
-              "request": {
-                "method": "PATCH",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/school-portal/student/notices/{{noticeId}}/read",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "school-portal",
-                    "student",
-                    "notices",
-                    "{{noticeId}}",
-                    "read"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
-                      "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Mark all read",
-              "request": {
-                "method": "PATCH",
-                "header": [],
-                "url": {
-                  "raw": "{{baseUrl}}/school-portal/student/notices/read-all",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "school-portal",
-                    "student",
-                    "notices",
-                    "read-all"
-                  ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
-                      "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
-                    ]
-                  }
-                }
-              ]
-            }
-          ]
         }
       ]
     },
     {
-      "name": "📱 Tab 2 · Academics  (/student/academics)",
+      "name": "📱 Tab 2 · Homework  (/student/homework)",
+      "description": "The \"Homework\" bottom-nav tab is the Academics hub — lands on the homework list; Classwork / Study Material / Timetable / Exams / Results are reachable from the same screen.",
       "item": [
         {
           "name": "03 - Homework",
@@ -1501,10 +1361,10 @@
       ]
     },
     {
-      "name": "📱 Tab 4 · Notifications  (/student/notifications)",
+      "name": "📱 Tab 4 · Notices  (/student/notices)",
       "item": [
         {
-          "name": "12 - Notifications",
+          "name": "10 - Notices",
           "item": [
             {
               "name": "List",
@@ -1512,16 +1372,21 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/school-portal/student/notifications?page=1",
+                  "raw": "{{baseUrl}}/school-portal/student/notices?category=&page=1",
                   "host": [
                     "{{baseUrl}}"
                   ],
                   "path": [
                     "school-portal",
                     "student",
-                    "notifications"
+                    "notices"
                   ],
                   "query": [
+                    {
+                      "key": "category",
+                      "value": "",
+                      "disabled": true
+                    },
                     {
                       "key": "page",
                       "value": "1"
@@ -1537,27 +1402,27 @@
                     "exec": [
                       "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
                       "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });",
-                      "const d = pm.response.json().data; if (d && d[0]) pm.environment.set('notificationId', d[0].id);"
+                      "const d = pm.response.json().data; if (d && d[0]) pm.environment.set('noticeId', d[0].id);"
                     ]
                   }
                 }
               ]
             },
             {
-              "name": "Unread count",
+              "name": "Get",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/school-portal/student/notifications/unread-count",
+                  "raw": "{{baseUrl}}/school-portal/student/notices/{{noticeId}}",
                   "host": [
                     "{{baseUrl}}"
                   ],
                   "path": [
                     "school-portal",
                     "student",
-                    "notifications",
-                    "unread-count"
+                    "notices",
+                    "{{noticeId}}"
                   ]
                 }
               },
@@ -1575,20 +1440,20 @@
               ]
             },
             {
-              "name": "Mark one read",
+              "name": "Mark read",
               "request": {
                 "method": "PATCH",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/school-portal/student/notifications/{{notificationId}}/read",
+                  "raw": "{{baseUrl}}/school-portal/student/notices/{{noticeId}}/read",
                   "host": [
                     "{{baseUrl}}"
                   ],
                   "path": [
                     "school-portal",
                     "student",
-                    "notifications",
-                    "{{notificationId}}",
+                    "notices",
+                    "{{noticeId}}",
                     "read"
                   ]
                 }
@@ -1599,7 +1464,8 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "pm.test(\"200 or 404 (no rows)\", () => [200,404].includes(pm.response.code));"
+                      "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                      "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
                     ]
                   }
                 }
@@ -1611,55 +1477,16 @@
                 "method": "PATCH",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/school-portal/student/notifications/read-all",
+                  "raw": "{{baseUrl}}/school-portal/student/notices/read-all",
                   "host": [
                     "{{baseUrl}}"
                   ],
                   "path": [
                     "school-portal",
                     "student",
-                    "notifications",
+                    "notices",
                     "read-all"
                   ]
-                }
-              },
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "type": "text/javascript",
-                    "exec": [
-                      "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
-                      "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
-                    ]
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Register device",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{baseUrl}}/school-portal/student/device-tokens",
-                  "host": [
-                    "{{baseUrl}}"
-                  ],
-                  "path": [
-                    "school-portal",
-                    "student",
-                    "device-tokens"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"token\": \"fcm-sample-token-0000000000000000000000\"\n}"
                 }
               },
               "event": [
@@ -1678,7 +1505,7 @@
           ]
         },
         {
-          "name": "15 - Events",
+          "name": "11 - Events",
           "item": [
             {
               "name": "List (upcoming)",
@@ -2025,7 +1852,7 @@
           ]
         },
         {
-          "name": "14 - Profile",
+          "name": "12 - Profile",
           "item": [
             {
               "name": "Get profile",
@@ -2255,7 +2082,7 @@
           ]
         },
         {
-          "name": "16 - Settings",
+          "name": "15 - Settings",
           "item": [
             {
               "name": "Get",
@@ -2502,7 +2329,7 @@
           ]
         },
         {
-          "name": "10 - Leave",
+          "name": "14 - Leave",
           "item": [
             {
               "name": "Apply",
@@ -2725,7 +2552,7 @@
       "description": "Not part of the app UI — negative-path coverage that mirrors the Student APK isolation test suite.",
       "item": [
         {
-          "name": "17 - Security Tests",
+          "name": "16 - Security Tests",
           "item": [
             {
               "name": "No token → 401",
@@ -2967,7 +2794,7 @@
           ]
         },
         {
-          "name": "18 - Error Tests",
+          "name": "17 - Error Tests",
           "item": [
             {
               "name": "Invalid ObjectId → 400",
