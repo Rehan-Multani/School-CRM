@@ -16,6 +16,7 @@ import { TeacherEvents } from '../pages/TeacherEvents';
 import { TeacherNotifications } from '../pages/TeacherNotifications';
 import { TeacherDownloads } from '../pages/TeacherDownloads';
 import { TeacherSettings } from '../pages/TeacherSettings';
+import { TeacherPickupDemo } from '../pages/TeacherPickupDemo';
 
 export const TeacherRoutes = () => {
   return (
@@ -36,6 +37,7 @@ export const TeacherRoutes = () => {
       <Route path="notifications" element={<TeacherNotifications />} />
       <Route path="downloads" element={<TeacherDownloads />} />
       <Route path="settings" element={<TeacherSettings />} />
+      <Route path="pickup-demo" element={<TeacherPickupDemo />} />
       <Route path="*" element={<Navigate to="dashboard" replace />} />
     </Routes>
   );

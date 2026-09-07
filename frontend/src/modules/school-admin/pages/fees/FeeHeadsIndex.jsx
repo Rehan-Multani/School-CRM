@@ -305,8 +305,46 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
           </div>
         </div>
 
-        {/* Right Side: Status Filter Tabs + Create Button */}
+        {/* Right Side: CSV Actions + Status Filter Tabs + Create Button */}
         <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex items-center rounded-xl border border-slate-200 bg-slate-50/60 p-0.5 dark:border-slate-800 dark:bg-slate-950">
+            <button
+              type="button"
+              onClick={() => downloadFile(FEE_HEAD_CSV_SAMPLE, 'fee_heads_sample.csv', 'text/csv')}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-bold text-slate-600 hover:bg-white hover:text-slate-900 transition dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
+              title="Download CSV Template"
+            >
+              <Download className="h-3.5 w-3.5" /> Sample
+            </button>
+
+            <div className="h-4 w-px bg-slate-200 dark:bg-slate-800" />
+
+            <button
+              type="button"
+              onClick={() => importRef.current?.click()}
+              disabled={importing}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-bold text-slate-600 hover:bg-white hover:text-slate-900 transition dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white disabled:opacity-50"
+              title="Import Fee Heads from CSV"
+            >
+              {importing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />} Import
+            </button>
+            <input ref={importRef} type="file" accept=".csv,.txt" className="hidden" onChange={handleImport} />
+
+            {feeHeads.length > 0 && (
+              <>
+                <div className="h-4 w-px bg-slate-200 dark:bg-slate-800" />
+                <button
+                  type="button"
+                  onClick={() => exportFeeHeadsCSV(feeHeads)}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-bold text-slate-600 hover:bg-white hover:text-slate-900 transition dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
+                  title="Export all fee heads to CSV"
+                >
+                  <FileUp className="h-3.5 w-3.5" /> Export
+                </button>
+              </>
+            )}
+          </div>
+
           <div className="flex items-center rounded-xl bg-slate-100 p-1 dark:bg-slate-950">
             {[
               { id: 'ALL', label: 'All', count: statusCounts.ALL },
@@ -339,6 +377,26 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
         </div>
       </div>
 
+      {(searchQuery || categoryFilter !== 'ALL' || statusFilter !== 'ALL') && (
+        <div className="flex items-center gap-2 px-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+          <span>
+            Showing <strong className="font-bold text-slate-800 dark:text-slate-200">{filteredHeads.length}</strong> of {feeHeads.length} heads
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setSearchQuery('');
+              setCategoryFilter('ALL');
+              setStatusFilter('ALL');
+              setPage(1);
+            }}
+            className="font-bold text-primary hover:underline ml-1"
+          >
+            Clear filters
+          </button>
+        </div>
+      )}
+
       {/* Main Table */}
       {loading ? (
         <SkeletonTable rows={5} columns={4} />
@@ -362,13 +420,15 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
       ) : (
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="overflow-x-auto">
-            <table className="w-full table-fixed text-left text-xs">
+            <table className="w-full text-left text-xs">
               <thead className="border-b border-slate-100 bg-slate-50/70 text-slate-500 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-400">
                 <tr>
-                  <th className="w-[40%] px-4 py-3 font-bold">Fee Head</th>
-                  <th className="w-[25%] px-4 py-3 font-bold">Category</th>
-                  <th className="w-[20%] px-4 py-3 font-bold">Status</th>
-                  <th className="w-[15%] px-4 py-3 text-right font-bold">Actions</th>
+                  <th className="px-4 py-3 font-bold">Fee Head</th>
+                  <th className="px-3 py-3 font-bold">Code</th>
+                  <th className="px-3 py-3 text-center font-bold">Category</th>
+                  <th className="px-4 py-3 font-bold">Description</th>
+                  <th className="px-3 py-3 text-center font-bold">Status</th>
+                  <th className="px-4 py-3 text-right font-bold">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -389,15 +449,27 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
                       </div>
                     </td>
 
+                    {/* Code */}
+                    <td className="px-3 py-3.5">
+                      <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded-md">
+                        {head.code}
+                      </span>
+                    </td>
+
                     {/* Category */}
-                    <td className="px-4 py-3.5">
+                    <td className="px-3 py-3.5 text-center">
                       <Badge variant={CATEGORY_COLORS[head.category] || 'default'}>
                         {head.category}
                       </Badge>
                     </td>
 
+                    {/* Description */}
+                    <td className="px-4 py-3.5 text-slate-500 dark:text-slate-400">
+                      {head.description || '—'}
+                    </td>
+
                     {/* Status */}
-                    <td className="px-4 py-3.5">
+                    <td className="px-3 py-3.5 text-center">
                       <Badge variant={head.status === 'ACTIVE' ? 'success' : 'default'}>
                         {head.status}
                       </Badge>
@@ -500,21 +572,50 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
+                Code *
+              </label>
+              <input
+                type="text"
+                value={form.code}
+                onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
+                placeholder="TUITION"
+                required
+                className={`${inputClass} font-mono uppercase`}
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
+                Category *
+              </label>
+              <select
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                className={inputClass}
+              >
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           <div>
             <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">
-              Category *
+              Description / Notes (Optional)
             </label>
-            <select
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className={inputClass}
-            >
-              {CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
+            <textarea
+              rows={2}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="e.g. Standard monthly academic tuition fee billed per term."
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+            />
           </div>
 
           <div>

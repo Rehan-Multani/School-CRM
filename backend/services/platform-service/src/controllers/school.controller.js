@@ -1,4 +1,5 @@
 import { schoolService } from '../services/school.service.js';
+import { auditLogService } from '../services/auditLog.service.js';
 
 export async function listSchools(req, res, next) {
   try {
@@ -69,6 +70,43 @@ export async function deleteSchool(req, res, next) {
       message: 'School deleted successfully',
       data,
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getSchoolFeatures(req, res, next) {
+  try {
+    const data = await schoolService.getFeatures(req.params.id);
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateSchoolFeatures(req, res, next) {
+  try {
+    const result = await schoolService.updateFeatures(req.params.id, req.body || {});
+    auditLogService.record(
+      {
+        user: {
+          sub: req.params.id,
+          userId: req.user?.sub || req.user?.userId || '',
+          role: 'SUPERADMIN',
+          name: req.user?.name || req.user?.email || 'Super Admin',
+        },
+        headers: req.headers,
+        socket: req.socket,
+      },
+      {
+        module: 'SAFE_PICKUP',
+        action: 'SCHOOL_FEATURE_UPDATED',
+        entityType: 'School',
+        entityId: req.params.id,
+        summary: `Safe pickup ${result.safePickupEnabled ? 'enabled' : 'disabled'} for the school`,
+      }
+    );
+    res.json({ success: true, message: 'School features updated', data: result });
   } catch (error) {
     next(error);
   }

@@ -80,6 +80,7 @@ export const NAVIGATION_ITEMS = [
   { name: 'Notifications', path: '/school-admin/notifications', icon: Bell, category: 'System' },
   { name: 'Reports Hub', path: '/school-admin/reports', icon: BarChart3, category: 'System' },
   { name: 'Help & Support', path: '/school-admin/support', icon: LifeBuoy, category: 'System' },
+  { name: 'Student Safe Pickup', path: '/school-admin/settings/safe-pickup', icon: Shield, category: 'System' },
   { name: 'Settings', path: '/school-admin/settings', icon: Settings, category: 'System' }
 ];
 

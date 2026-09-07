@@ -49,4 +49,17 @@ export const env = {
   firebase: {
     serviceAccountBase64: (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64 || '').replace(/\s/g, ''),
   },
+  // Student Safe Pickup / Parent OTP verification.
+  // TODO(prod): set SAFE_PICKUP_OTP_MODE=random and wire a real SMS provider
+  // (SMS_PROVIDER + credentials) before production release.
+  safePickup: {
+    otpMode: (process.env.SAFE_PICKUP_OTP_MODE || 'static').toLowerCase(), // 'static' | 'random'
+    staticOtp: process.env.SAFE_PICKUP_STATIC_OTP || '123456',
+    otpLength: Math.min(8, Math.max(4, Number(process.env.SAFE_PICKUP_OTP_LENGTH) || 6)),
+    otpExpirySeconds: Number(process.env.SAFE_PICKUP_OTP_EXPIRY_SECONDS) || 300,
+    maxAttempts: Number(process.env.SAFE_PICKUP_MAX_ATTEMPTS) || 5,
+    resendCooldownSeconds: Number(process.env.SAFE_PICKUP_RESEND_COOLDOWN_SECONDS) || 30,
+    maxResends: Number(process.env.SAFE_PICKUP_MAX_RESENDS) || 3,
+  },
+  smsProvider: (process.env.SMS_PROVIDER || 'mock').toLowerCase(),
 };

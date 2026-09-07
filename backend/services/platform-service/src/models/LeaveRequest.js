@@ -15,10 +15,18 @@ const leaveRequestSchema = new mongoose.Schema(
     },
     employeeType: {
       type: String,
-      enum: ['TEACHER', 'STAFF'],
+      enum: ['TEACHER', 'STAFF', 'STUDENT'],
       required: true,
       default: 'STAFF',
     },
+    // Optional academic context — only set for employeeType === 'STUDENT'
+    // (Student APK leave). employeeRefId still carries the Student._id so the
+    // existing staff queries/serializers keep working unchanged.
+    classId: { type: mongoose.Schema.Types.ObjectId, ref: 'SchoolClass', default: null },
+    className: { type: String, default: '', trim: true },
+    sectionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Section', default: null },
+    sectionName: { type: String, default: '', trim: true },
+    rollNumber: { type: String, default: '', trim: true },
     employeeId: {
       type: String,
       required: true,
@@ -100,6 +108,7 @@ const leaveRequestSchema = new mongoose.Schema(
 
 leaveRequestSchema.index({ schoolId: 1, status: 1 });
 leaveRequestSchema.index({ schoolId: 1, employeeRefId: 1, startDate: 1 });
+leaveRequestSchema.index({ schoolId: 1, employeeType: 1, employeeRefId: 1, startDate: 1 });
 
 leaveRequestSchema.methods.toPublicJSON = function toPublicJSON() {
   return {
@@ -110,6 +119,11 @@ leaveRequestSchema.methods.toPublicJSON = function toPublicJSON() {
     employeeId: this.employeeId,
     employeeName: this.employeeName,
     department: this.department,
+    classId: this.classId ? this.classId.toString() : null,
+    className: this.className || '',
+    sectionId: this.sectionId ? this.sectionId.toString() : null,
+    sectionName: this.sectionName || '',
+    rollNumber: this.rollNumber || '',
     leaveType: this.leaveType,
     startDate: this.startDate,
     endDate: this.endDate,

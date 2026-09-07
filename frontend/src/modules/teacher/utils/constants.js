@@ -24,6 +24,7 @@ export const NAVIGATION_ITEMS = [
 
   { name: 'My Classes', path: '/teacher/classes', icon: Users, category: 'Management' },
   { name: 'Attendance', path: '/teacher/attendance', icon: CalendarCheck, category: 'Management' },
+  { name: 'Safe Pickup (demo)', path: '/teacher/pickup-demo', icon: ClipboardList, category: 'Management' },
   { name: 'Homework', path: '/teacher/homework', icon: BookOpen, category: 'Management' },
   { name: 'Examination', path: '/teacher/examination', icon: FileText, category: 'Management' },
 

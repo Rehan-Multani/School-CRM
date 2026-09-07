@@ -24,3 +24,29 @@ export function schoolId(req) {
 export function performedBy(req) {
   return req.user?.name || req.user?.email || 'System';
 }
+
+/**
+ * Teacher identity from the verified JWT (never from the request body).
+ * The teacher token carries both `teacherId` and `sub` set to Teacher._id.
+ * Throws fail-closed when the session has no usable teacher context.
+ */
+export function teacherId(req) {
+  const raw = req.user?.teacherId || req.user?.sub;
+  if (!raw || !mongoose.isValidObjectId(String(raw))) {
+    throw new AppError('Teacher context is missing or invalid on this session', 401);
+  }
+  return String(raw);
+}
+
+/**
+ * Student identity from the verified JWT (never from the request body/query).
+ * The student token carries both `studentId` and `sub` set to Student._id.
+ * Throws fail-closed when the session has no usable student context.
+ */
+export function studentId(req) {
+  const raw = req.user?.studentId || req.user?.sub;
+  if (!raw || !mongoose.isValidObjectId(String(raw))) {
+    throw new AppError('Student context is missing or invalid on this session', 401);
+  }
+  return String(raw);
+}

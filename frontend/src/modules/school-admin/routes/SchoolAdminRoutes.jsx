@@ -46,6 +46,8 @@ import { ReportsHub } from '../pages/reports/ReportsHub';
 import { AuditLogs } from '../pages/audit/AuditLogs';
 import { Support } from '../pages/support/Support';
 import { Settings } from '../pages/settings/Settings';
+import { SafePickup } from '../pages/settings/SafePickup';
+import { SafePickupHistory } from '../pages/settings/SafePickupHistory';
 import SubscriptionPlans from '../pages/plans/SubscriptionPlans';
 
 export const SchoolAdminRoutes = () => {
@@ -99,6 +101,8 @@ export const SchoolAdminRoutes = () => {
       <Route path="audit" element={<AuditLogs />} />
       <Route path="support" element={<Support />} />
       <Route path="settings" element={<Settings />} />
+      <Route path="settings/safe-pickup" element={<SafePickup />} />
+      <Route path="settings/safe-pickup/history" element={<SafePickupHistory />} />
       <Route path="*" element={<Navigate to="dashboard" replace />} />
     </Routes>
   );

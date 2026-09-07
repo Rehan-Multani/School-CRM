@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 import { AppError } from '../../../shared/AppError.js';
 import { academicRepository } from '../repositories/academic.repository.js';
+import { Student } from '../models/Student.js';
 import {
   deleteMulterFiles,
   deleteUploadedFile,
@@ -353,6 +355,27 @@ async function assertTeacher(schoolId, teacherId) {
   return teacher;
 }
 
+// Teacher APK login provisioning. Mutates `target` (the sanitized create/update
+// payload) in place. When a login is requested with a password → hash it and
+// mark the account ACTIVE; when requested without one → flag mustResetPassword
+// so the principal can send credentials later. Fully additive to the existing
+// teacher CRUD — a payload with no `account.password` behaves exactly as before.
+async function applyTeacherLoginProvisioning(target, payload) {
+  const wantsLogin = Boolean(payload?.account?.createLoginAccount);
+  const rawPassword = typeof payload?.account?.password === 'string' ? payload.account.password.trim() : '';
+  if (!wantsLogin) return;
+  if (rawPassword) {
+    if (rawPassword.length < 8) {
+      throw new AppError('Teacher login password must be at least 8 characters', 400);
+    }
+    target.passwordHash = await bcrypt.hash(rawPassword, 10);
+    target.mustResetPassword = false;
+    if (target.account) target.account.accountStatus = 'ACTIVE';
+  } else {
+    target.mustResetPassword = true;
+  }
+}
+
 function paginationMeta({ total, page, limit }) {
   return { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) };
 }
@@ -539,12 +562,13 @@ export class AcademicService {
   }
 
   async deleteClass(schoolId, id) {
-    await assertClass(schoolId, id);
+    const cls = await assertClass(schoolId, id);
     const hasDeps = await academicRepository.classHasDependents(schoolId, id);
     if (hasDeps) {
-      throw new AppError('Cannot delete class with sections or enrollments. Set status to inactive instead.', 400);
+      throw new AppError('Cannot delete class with existing sections or enrolled students. Remove sections and students first or set status to inactive.', 400);
     }
-    const cls = await academicRepository.updateClass(schoolId, id, { status: 'INACTIVE' });
+    await academicRepository.deleteYearClassesByClassId(schoolId, id);
+    await academicRepository.deleteClass(schoolId, id);
     return cls.toPublicJSON();
   }
 
@@ -582,19 +606,21 @@ export class AcademicService {
 
     const classMap = new Map(classes.map((c) => [c._id.toString(), c.toPublicJSON()]));
 
-    const data = mappings.map((mapping) => {
-      const cId = mapping.classId.toString();
-      const cls = classMap.get(cId) || null;
-      return {
-        ...mapping.toPublicJSON(),
-        class: cls,
-        counts: {
-          sections: sectionCountsMap.get(cId) || 0,
-          students: studentCountsMap.get(cId) || 0,
-          subjectAssignments: subjectCountsMap.get(cId) || 0,
-        },
-      };
-    });
+    const data = mappings
+      .map((mapping) => {
+        const cId = mapping.classId.toString();
+        const cls = classMap.get(cId) || null;
+        return {
+          ...mapping.toPublicJSON(),
+          class: cls,
+          counts: {
+            sections: sectionCountsMap.get(cId) || 0,
+            students: studentCountsMap.get(cId) || 0,
+            subjectAssignments: subjectCountsMap.get(cId) || 0,
+          },
+        };
+      })
+      .filter((item) => item.class !== null);
 
     return data.sort((a, b) => (a.class?.numericOrder || 0) - (b.class?.numericOrder || 0));
   }
@@ -1003,6 +1029,7 @@ export class AcademicService {
       if (!teacherPayload.joiningDate) throw new AppError('Joining date is required', 400);
       if (!teacherPayload.qualifications.length) throw new AppError('Qualification is required', 400);
       teacherPayload.documents = mergeDocumentUploads(payload.documentsKeep, null, files);
+      await applyTeacherLoginProvisioning(teacherPayload, payload);
       const teacher = await academicRepository.createTeacher({
         schoolId,
         ...teacherPayload,
@@ -1030,6 +1057,7 @@ export class AcademicService {
     if (photo) update.profilePhoto = toTeacherPhotoPublicPath(photo.filename);
     else if (shouldRemovePhoto) update.profilePhoto = '';
     update.documents = mergeDocumentUploads(payload.documentsKeep, existing.documents, files);
+    await applyTeacherLoginProvisioning(update, payload);
 
     try {
       const teacher = await academicRepository.updateTeacher(schoolId, id, update);
@@ -1051,6 +1079,51 @@ export class AcademicService {
     const teacher = await academicRepository.updateTeacher(schoolId, id, { status: nextStatus });
     const counts = await academicRepository.teacherAssignmentCounts(schoolId, teacher._id);
     return { ...teacher.toPublicJSON(), counts };
+  }
+
+  async setTeacherPassword(schoolId, id, newPassword, loginEmail) {
+    const raw = typeof newPassword === 'string' ? newPassword.trim() : '';
+    if (raw.length < 8) throw new AppError('Password must be at least 8 characters', 400);
+    const email = typeof loginEmail === 'string' ? loginEmail.trim().toLowerCase() : '';
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new AppError('loginEmail must be a valid email address', 400);
+    }
+    const teacher = await assertTeacher(schoolId, id);
+    teacher.passwordHash = await bcrypt.hash(raw, 10);
+    teacher.mustResetPassword = false;
+    if (!teacher.account) teacher.account = {};
+    teacher.account.createLoginAccount = true;
+    if (email) teacher.account.loginEmail = email;
+    else if (!teacher.account.loginEmail) teacher.account.loginEmail = teacher.email || '';
+    teacher.account.accountStatus = 'ACTIVE';
+    teacher.markModified('account');
+    await teacher.save();
+    return { message: 'Teacher login password set', loginEmail: teacher.account.loginEmail };
+  }
+
+  /**
+   * Student APK login provisioning — the exact analogue of setTeacherPassword.
+   * `schoolId` here is the School ObjectId (schoolId(req) already resolved it).
+   */
+  async setStudentPassword(schoolId, id, newPassword, loginEmail) {
+    const raw = typeof newPassword === 'string' ? newPassword.trim() : '';
+    if (raw.length < 8) throw new AppError('Password must be at least 8 characters', 400);
+    const email = typeof loginEmail === 'string' ? loginEmail.trim().toLowerCase() : '';
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new AppError('loginEmail must be a valid email address', 400);
+    }
+    const student = await Student.findOne({ _id: id, schoolId }).select('+passwordHash');
+    if (!student) throw new AppError('Student not found', 404);
+    student.passwordHash = await bcrypt.hash(raw, 10);
+    student.mustResetPassword = false;
+    if (!student.account) student.account = {};
+    student.account.createLoginAccount = true;
+    if (email) student.account.loginEmail = email;
+    else if (!student.account.loginEmail) student.account.loginEmail = student.email || '';
+    student.account.accountStatus = 'ACTIVE';
+    student.markModified('account');
+    await student.save();
+    return { message: 'Student login password set', loginEmail: student.account.loginEmail };
   }
 
   async deleteTeacher(schoolId, id) {

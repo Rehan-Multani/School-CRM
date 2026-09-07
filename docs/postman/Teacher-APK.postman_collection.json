@@ -1,0 +1,3434 @@
+{
+  "info": {
+    "name": "School Management - Teacher APK API",
+    "_postman_id": "b7f2c1a0-teach-4a11-9d33-teacherapk0001",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Teacher APK backend, organised exactly like the app: an App bar (top-right 🔔 notifications + 👤 profile) and 5 bottom-nav tabs — Home · Classes · Attendance · Pickup · Profile.\n\nbaseUrl points straight at platform-service (default http://localhost:5002); no /api/v1/platform prefix (the api-gateway on :8080 adds it). Collection-level Bearer {{accessToken}}.\n\nRUN ORDER: \"00 - Environment / Health\" -> \"Tab 5 · Profile / 01 - Auth / Login (teacher)\" (stores accessToken/teacherId/schoolId) -> \"App bar / 👤 Profile menu / Me\" (stores isClassTeacher + classTeacherSectionId) -> \"Tab 2 · Classes / 03 - Classes\" top-to-bottom (classId/sectionId/studentId; Timetable/Week fills subjectId).\n\nPICKUP TAB is class-teacher-only: it calls GET /me, and when teacher.isClassTeacher is false the app hides the tab and \"Eligible students\" returns []. Staging OTP = 123456."
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// derived date helpers",
+          "const iso = (d) => d.toISOString().slice(0,10);",
+          "pm.environment.set('today', iso(new Date()));",
+          "pm.environment.set('dueDate', iso(new Date(Date.now()+7*864e5)));",
+          "pm.environment.set('leaveStart', iso(new Date(Date.now()+3*864e5)));",
+          "pm.environment.set('leaveEnd', iso(new Date(Date.now()+4*864e5)));"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Environment",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"up\", () => pm.response.code === 200);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "⌂ App bar  (top-right: 🔔 notifications · 👤 profile)",
+      "description": "The two icons in the top-right of every screen. Bell -> notifications list + unread badge. Avatar -> quick menu (Me / My Profile / Logout).",
+      "item": [
+        {
+          "name": "🔔 Notifications",
+          "item": [
+            {
+              "name": "List",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/notifications",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "notifications"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "const d = pm.response.json().data;",
+                      "if (d && d[0]) pm.environment.set('notificationId', d[0].id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Unread count",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/notifications/unread-count",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "notifications",
+                    "unread-count"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Mark one read",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/notifications/{{notificationId}}/read",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "notifications",
+                    "{{notificationId}}",
+                    "read"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Mark all read",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/notifications/read-all",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "notifications",
+                    "read-all"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Register device",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/device-tokens",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "device-tokens"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"postman-fcm-{{$guid}}\"\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "👤 Profile menu",
+          "item": [
+            {
+              "name": "Me",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "me"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "const t = pm.response.json().data.teacher;",
+                      "pm.environment.set('isClassTeacher', String(!!t.isClassTeacher));",
+                      "if (t.classTeacherSections && t.classTeacherSections[0]) {",
+                      "  pm.environment.set('classTeacherSectionId', t.classTeacherSections[0].sectionId);",
+                      "  if (!pm.environment.get('sectionId')) pm.environment.set('sectionId', t.classTeacherSections[0].sectionId);",
+                      "  if (!pm.environment.get('classId')) pm.environment.set('classId', t.classTeacherSections[0].classId);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Logout",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/auth/logout",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "auth",
+                    "logout"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get profile",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/profile",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "profile"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📱 Tab 1 · Home  (/teacher/home)",
+      "description": "Bottom-nav \"Home\". Today at a glance + the announcements feed.",
+      "item": [
+        {
+          "name": "02 - Home",
+          "item": [
+            {
+              "name": "Dashboard",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/dashboard",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "dashboard"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Today schedule",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/today-schedule",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "today-schedule"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "11 - Announcements",
+          "item": [
+            {
+              "name": "List",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/announcements",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "announcements"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "const d = pm.response.json().data;",
+                      "if (d && d[0]) pm.environment.set('announcementId', d[0].id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/announcements/{{announcementId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "announcements",
+                    "{{announcementId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Mark read",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/announcements/{{announcementId}}/read",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "announcements",
+                    "{{announcementId}}",
+                    "read"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📱 Tab 2 · Classes  (/teacher/classes)",
+      "description": "Bottom-nav \"Classes\". Roster + everything you do for a class: timetable, homework, assignments, study material, exams & marks.",
+      "item": [
+        {
+          "name": "03 - Classes",
+          "item": [
+            {
+              "name": "My classes",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/classes",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "classes"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "const d = pm.response.json().data;",
+                      "if (d && d[0]) pm.environment.set('classId', d[0].id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Class detail",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/classes/{{classId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "classes",
+                    "{{classId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Class sections",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/classes/{{classId}}/sections",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "classes",
+                    "{{classId}}",
+                    "sections"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "const d = pm.response.json().data;",
+                      "if (d && d[0]) pm.environment.set('sectionId', d[0].id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Section students",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/sections/{{sectionId}}/students?page=1&limit=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "sections",
+                    "{{sectionId}}",
+                    "students"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "const d = pm.response.json().data;",
+                      "if (d && d[0]) pm.environment.set('studentId', d[0].id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Student detail",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/students/{{studentId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "students",
+                    "{{studentId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "05 - Timetable",
+          "item": [
+            {
+              "name": "Week",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/timetable",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "timetable"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "// a timetable period carries classId/sectionId/subjectId — use it to fill any",
+                      "// vars the Classes folder did not set (e.g. subjectId, which has no list endpoint).",
+                      "const tt = pm.response.json().data && pm.response.json().data.timetable || {};",
+                      "const first = Object.values(tt).flat()[0];",
+                      "if (first) {",
+                      "  if (first.subjectId) pm.environment.set('subjectId', first.subjectId);",
+                      "  if (!pm.environment.get('classId') && first.classId) pm.environment.set('classId', first.classId);",
+                      "  if (!pm.environment.get('sectionId') && first.sectionId) pm.environment.set('sectionId', first.sectionId);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Day",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/timetable/day/MON",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "timetable",
+                    "day",
+                    "MON"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Day - invalid (400)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/timetable/day/FUNDAY",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "timetable",
+                    "day",
+                    "FUNDAY"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"400\", () => pm.response.code === 400);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "06 - Homework",
+          "item": [
+            {
+              "name": "Create",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/homework",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "homework"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sectionId\": \"{{sectionId}}\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"title\": \"Postman HW\",\n  \"description\": \"Do it\",\n  \"dueDate\": \"{{dueDate}}\"\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"201\", () => pm.response.code === 201);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "const d = pm.response.json().data;",
+                      "if (d && d.id) pm.environment.set('homeworkId', d.id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "List",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/homework",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "homework"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/homework/{{homeworkId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "homework",
+                    "{{homeworkId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Update",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/homework/{{homeworkId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "homework",
+                    "{{homeworkId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"CLOSED\"\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Submissions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/homework/{{homeworkId}}/submissions",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "homework",
+                    "{{homeworkId}}",
+                    "submissions"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Delete",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/homework/{{homeworkId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "homework",
+                    "{{homeworkId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "07 - Assignments",
+          "item": [
+            {
+              "name": "Create",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/assignments",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "assignments"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sectionId\": \"{{sectionId}}\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"title\": \"Postman Assignment\",\n  \"maxMarks\": 20,\n  \"dueDate\": \"{{dueDate}}\"\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"201\", () => pm.response.code === 201);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "const d = pm.response.json().data;",
+                      "if (d && d.id) pm.environment.set('assignmentId', d.id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "List",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/assignments",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "assignments"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/assignments/{{assignmentId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "assignments",
+                    "{{assignmentId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Update",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/assignments/{{assignmentId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "assignments",
+                    "{{assignmentId}}"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"CLOSED\"\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Submissions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/assignments/{{assignmentId}}/submissions",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "assignments",
+                    "{{assignmentId}}",
+                    "submissions"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Delete",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/assignments/{{assignmentId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "assignments",
+                    "{{assignmentId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "08 - Study Material",
+          "item": [
+            {
+              "name": "List",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/materials",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "materials"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Upload (multipart)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/materials",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "materials"
+                  ]
+                },
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "sectionId",
+                      "value": "{{sectionId}}",
+                      "type": "text"
+                    },
+                    {
+                      "key": "subjectId",
+                      "value": "{{subjectId}}",
+                      "type": "text"
+                    },
+                    {
+                      "key": "title",
+                      "value": "Postman notes",
+                      "type": "text"
+                    },
+                    {
+                      "key": "file",
+                      "src": [],
+                      "type": "file"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"201 or 400 (file required)\", () => [201,400].includes(pm.response.code));",
+                      "const d = pm.response.json().data; if (d && d.id) pm.environment.set('materialId', d.id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/materials/{{materialId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "materials",
+                    "{{materialId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Delete",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/materials/{{materialId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "materials",
+                    "{{materialId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "09 - Exams & Marks",
+          "item": [
+            {
+              "name": "List exams",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/exams",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "exams"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "const d = pm.response.json().data;",
+                      "if (d && d[0]) pm.environment.set('examId', d[0].id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get exam",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/exams/{{examId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "exams",
+                    "{{examId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Exam schedule",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/exams/{{examId}}/schedule",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "exams",
+                    "{{examId}}",
+                    "schedule"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Exam subjects",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/exams/{{examId}}/subjects",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "exams",
+                    "{{examId}}",
+                    "subjects"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Marks sheet",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/exams/{{examId}}/marks?classId={{classId}}&sectionId={{sectionId}}&subjectId={{subjectId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "exams",
+                    "{{examId}}",
+                    "marks"
+                  ],
+                  "query": [
+                    {
+                      "key": "classId",
+                      "value": "{{classId}}"
+                    },
+                    {
+                      "key": "sectionId",
+                      "value": "{{sectionId}}"
+                    },
+                    {
+                      "key": "subjectId",
+                      "value": "{{subjectId}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Save marks",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{$guid}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/exams/{{examId}}/marks",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "exams",
+                    "{{examId}}",
+                    "marks"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"classId\": \"{{classId}}\",\n  \"sectionId\": \"{{sectionId}}\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"marksList\": [\n    {\n      \"studentId\": \"{{studentId}}\",\n      \"marksObtained\": 75,\n      \"attendanceStatus\": \"PRESENT\"\n    }\n  ]\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Save marks - out of range (400)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/exams/{{examId}}/marks",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "exams",
+                    "{{examId}}",
+                    "marks"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"classId\": \"{{classId}}\",\n  \"sectionId\": \"{{sectionId}}\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"marksList\": [\n    {\n      \"studentId\": \"{{studentId}}\",\n      \"marksObtained\": 9999\n    }\n  ]\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"400\", () => pm.response.code === 400);",
+                      "pm.test(\"INVALID_MARKS\", () => pm.response.json().code === 'INVALID_MARKS');"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📱 Tab 3 · Attendance  (/teacher/attendance)",
+      "description": "Bottom-nav \"Attendance\". Daily marking (idempotent), finalize, history, summary, per-student log.",
+      "item": [
+        {
+          "name": "04 - Attendance",
+          "item": [
+            {
+              "name": "Today (roster)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/attendance/today?sectionId={{sectionId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "attendance",
+                    "today"
+                  ],
+                  "query": [
+                    {
+                      "key": "sectionId",
+                      "value": "{{sectionId}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Submit",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{$guid}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/attendance",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "attendance"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sectionId\": \"{{sectionId}}\",\n  \"date\": \"{{today}}\",\n  \"records\": [\n    {\n      \"studentId\": \"{{studentId}}\",\n      \"status\": \"PRESENT\"\n    }\n  ]\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "const d = pm.response.json().data;",
+                      "if (d && d.id) pm.environment.set('attendanceId', d.id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Submit - retry same key (replay)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "postman-fixed-key-1"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/attendance",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "attendance"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sectionId\": \"{{sectionId}}\",\n  \"date\": \"{{today}}\",\n  \"records\": [\n    {\n      \"studentId\": \"{{studentId}}\",\n      \"status\": \"PRESENT\"\n    }\n  ]\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Submit again same key (must NOT duplicate)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "postman-fixed-key-1"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/attendance",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "attendance"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sectionId\": \"{{sectionId}}\",\n  \"date\": \"{{today}}\",\n  \"records\": [\n    {\n      \"studentId\": \"{{studentId}}\",\n      \"status\": \"ABSENT\"\n    }\n  ]\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "pm.test(\"replayed (still PRESENT)\", () => pm.response.json().data.entries[0].status === 'PRESENT');"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "History",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/attendance/history?sectionId={{sectionId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "attendance",
+                    "history"
+                  ],
+                  "query": [
+                    {
+                      "key": "sectionId",
+                      "value": "{{sectionId}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Summary",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/attendance/summary?sectionId={{sectionId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "attendance",
+                    "summary"
+                  ],
+                  "query": [
+                    {
+                      "key": "sectionId",
+                      "value": "{{sectionId}}"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Student attendance log",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/attendance/student/{{studentId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "attendance",
+                    "student",
+                    "{{studentId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Finalize",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/attendance/{{attendanceId}}/finalize",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "attendance",
+                    "{{attendanceId}}",
+                    "finalize"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Submit after finalize (409)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/attendance",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "attendance"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sectionId\": \"{{sectionId}}\",\n  \"date\": \"{{today}}\",\n  \"records\": [\n    {\n      \"studentId\": \"{{studentId}}\",\n      \"status\": \"PRESENT\"\n    }\n  ]\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"409\", () => pm.response.code === 409);",
+                      "pm.test(\"ATTENDANCE_FINALIZED\", () => pm.response.json().code === 'ATTENDANCE_FINALIZED');"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📱 Tab 4 · Pickup  (/teacher/pickup)",
+      "description": "Student Safe Pickup / parent-OTP verification. Visible ONLY to a class teacher. Flow: Check role -> Eligible students -> Pickup (initiate) -> enter OTP (staging 123456) -> Verify -> confirm handover -> Complete. Run \"Check role\" first; if isClassTeacher=false, \"Eligible students\" returns [].",
+      "item": [
+        {
+          "name": "Check role (GET /me)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/teacher/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "teacher",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200\", () => pm.response.code === 200);",
+                  "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                  "const t = pm.response.json().data.teacher;",
+                  "pm.environment.set('isClassTeacher', String(!!t.isClassTeacher));",
+                  "pm.test(\"has isClassTeacher flag\", () => typeof t.isClassTeacher === 'boolean');",
+                  "if (t.classTeacherSections && t.classTeacherSections[0]) pm.environment.set('classTeacherSectionId', t.classTeacherSections[0].sectionId);",
+                  "console.log('isClassTeacher =', t.isClassTeacher, '| Pickup tab', t.isClassTeacher ? 'SHOWN' : 'HIDDEN');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eligible students",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/teacher/pickups/eligible-students?sectionId={{classTeacherSectionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "teacher",
+                "pickups",
+                "eligible-students"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success\", () => pm.response.json().success === true);",
+                  "const d = pm.response.json().data || [];",
+                  "if (pm.environment.get('isClassTeacher') === 'false') {",
+                  "  pm.test(\"non class teacher -> empty pickup list\", () => d.length === 0);",
+                  "} else {",
+                  "  pm.test(\"rows carry pickup flags\", () => d.every(r => 'pickupEnabled' in r && 'hasGuardianMobile' in r && 'alreadyPickedUpToday' in r));",
+                  "  const s = d.find(r => r.pickupEnabled && r.hasGuardianMobile && !r.alreadyPickedUpToday && !r.activeSessionId);",
+                  "  if (s) pm.environment.set('pickupStudentId', s.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pickup — initiate (Idempotency-Key)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/teacher/pickups/initiate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "teacher",
+                "pickups",
+                "initiate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": \"{{pickupStudentId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201\", () => pm.response.code === 201);",
+                  "const d = pm.response.json().data;",
+                  "pm.test(\"OTP_SENT\", () => d.status === 'OTP_SENT');",
+                  "pm.test(\"mobile masked\", () => /^\\*+\\d{4}$/.test(d.maskedMobile));",
+                  "pm.test(\"no raw otp / phone\", () => !('otpHash' in d) && !('guardianMobile' in d));",
+                  "pm.environment.set('pickupSessionId', d.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pickup — initiate again (no key) -> 409",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/teacher/pickups/initiate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "teacher",
+                "pickups",
+                "initiate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": \"{{pickupStudentId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"409\", () => pm.response.code === 409);",
+                  "pm.test(\"PICKUP_ALREADY_ACTIVE\", () => pm.response.json().code === 'PICKUP_ALREADY_ACTIVE');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pickup — session",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "teacher",
+                "pickups",
+                "{{pickupSessionId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success\", () => pm.response.json().success === true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pickup — verify wrong OTP -> 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "teacher",
+                "pickups",
+                "{{pickupSessionId}}",
+                "verify"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"000000\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"400\", () => pm.response.code === 400);",
+                  "pm.test(\"OTP_INVALID\", () => pm.response.json().code === 'OTP_INVALID');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pickup — verify OTP (staging 123456)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/verify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "teacher",
+                "pickups",
+                "{{pickupSessionId}}",
+                "verify"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"{{pickupOtp}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success\", () => pm.response.json().success === true);",
+                  "pm.test(\"VERIFIED\", () => pm.response.json().data.status === 'VERIFIED');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pickup — resend OTP",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/resend-otp",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "teacher",
+                "pickups",
+                "{{pickupSessionId}}",
+                "resend-otp"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"409 (already verified) or 429 (cooldown)\", () => [409, 429].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pickup — complete without handoverConfirmed -> 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/complete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "teacher",
+                "pickups",
+                "{{pickupSessionId}}",
+                "complete"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pickupPersonRelationship\": \"Parent\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"400\", () => pm.response.code === 400);",
+                  "pm.test(\"HANDOVER_NOT_CONFIRMED\", () => pm.response.json().code === 'HANDOVER_NOT_CONFIRMED');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pickup — complete (handover)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/complete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "teacher",
+                "pickups",
+                "{{pickupSessionId}}",
+                "complete"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"handoverConfirmed\": true,\n  \"pickupPersonName\": \"Rahul's Uncle\",\n  \"pickupPersonRelationship\": \"Family Friend\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success\", () => pm.response.json().success === true);",
+                  "pm.test(\"COMPLETED\", () => pm.response.json().data.status === 'COMPLETED');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pickup — cancel (fresh session)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/teacher/pickups/{{pickupSessionId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "teacher",
+                "pickups",
+                "{{pickupSessionId}}",
+                "cancel"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 or 409 (terminal)\", () => [200, 409].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📱 Tab 5 · Profile  (/teacher/profile)",
+      "description": "Bottom-nav \"Profile\". Account: sign-in/out & password, profile & documents, leave requests, office messages.",
+      "item": [
+        {
+          "name": "01 - Auth",
+          "item": [
+            {
+              "name": "Login (teacher)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/auth/teacher-login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "auth",
+                    "teacher-login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"identifier\": \"{{teacherEmail}}\",\n  \"password\": \"{{teacherPassword}}\"\n}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const b = pm.response.json();",
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"has token\", () => !!b.token);",
+                      "pm.test(\"role TEACHER (from JWT)\", () => {",
+                      "  const p = JSON.parse(atob(b.token.split('.')[1]));",
+                      "  return p.role === 'TEACHER';",
+                      "});",
+                      "if (b.token) pm.environment.set('accessToken', b.token);",
+                      "if (b.teacher && b.teacher.id) pm.environment.set('teacherId', b.teacher.id);",
+                      "if (b.school && b.school.id) pm.environment.set('schoolId', b.school.id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Login - wrong password",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/auth/teacher-login",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "auth",
+                    "teacher-login"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"identifier\": \"{{teacherEmail}}\",\n  \"password\": \"wrong-pass\"\n}"
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"401\", () => pm.response.code === 401);",
+                      "pm.test(\"code\", () => pm.response.json().code === 'INVALID_CREDENTIALS');"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Me",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "me"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "const t = pm.response.json().data.teacher;",
+                      "pm.environment.set('isClassTeacher', String(!!t.isClassTeacher));",
+                      "if (t.classTeacherSections && t.classTeacherSections[0]) {",
+                      "  pm.environment.set('classTeacherSectionId', t.classTeacherSections[0].sectionId);",
+                      "  if (!pm.environment.get('sectionId')) pm.environment.set('sectionId', t.classTeacherSections[0].sectionId);",
+                      "  if (!pm.environment.get('classId')) pm.environment.set('classId', t.classTeacherSections[0].classId);",
+                      "}"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Me - no token",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "me"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"401\", () => pm.response.code === 401);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Change password",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/change-password",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "change-password"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"currentPassword\": \"{{teacherPassword}}\",\n  \"newPassword\": \"{{teacherPassword}}X\"\n}"
+                }
+              }
+            },
+            {
+              "name": "Logout",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/auth/logout",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "auth",
+                    "logout"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "14 - Profile",
+          "item": [
+            {
+              "name": "Get profile",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/profile",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "profile"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Update profile",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/profile",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "profile"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"phone\": \"9990001234\",\n  \"bloodGroup\": \"B+\"\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Update profile - protected field (400)",
+              "request": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/profile",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "profile"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"schoolId\": \"x\",\n  \"role\": \"ADMIN\"\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"400\", () => pm.response.code === 400);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Documents",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/documents",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "documents"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "10 - Leave",
+          "item": [
+            {
+              "name": "Apply",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/leaves",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "leaves"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"leaveType\": \"CASUAL\",\n  \"startDate\": \"{{leaveStart}}\",\n  \"endDate\": \"{{leaveEnd}}\",\n  \"reason\": \"Postman test\"\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"201\", () => pm.response.code === 201);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "const d = pm.response.json().data;",
+                      "if (d && d.id) pm.environment.set('leaveId', d.id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "List",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/leaves",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "leaves"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Get",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/leaves/{{leaveId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "leaves",
+                    "{{leaveId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Cancel",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/leaves/{{leaveId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "leaves",
+                    "{{leaveId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Cancel again (409)",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/leaves/{{leaveId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "leaves",
+                    "{{leaveId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"409\", () => pm.response.code === 409);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "13 - Communication",
+          "item": [
+            {
+              "name": "Conversations",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/conversations",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "conversations"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "const d = pm.response.json().data;",
+                      "if (d && d[0]) pm.environment.set('conversationId', d[0].id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Post message",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/conversations/{{conversationId}}/messages",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "conversations",
+                    "{{conversationId}}",
+                    "messages"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"body\": \"Hello from Postman\"\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"201\", () => pm.response.code === 201);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);",
+                      "const d = pm.response.json().data;",
+                      "if (d && d.id) pm.environment.set('messageId', d.id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Messages",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/conversations/{{conversationId}}/messages",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "conversations",
+                    "{{conversationId}}",
+                    "messages"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Mark message read",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/messages/{{messageId}}/read",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "messages",
+                    "{{messageId}}",
+                    "read"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200\", () => pm.response.code === 200);",
+                      "pm.test(\"success:true\", () => pm.response.json().success === true);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "🔒 Security & Error Tests  (not a tab)",
+      "description": "Cross-tenant / wrong-role / bad-input assertions — run after the tabs above.",
+      "item": [
+        {
+          "name": "15 - Security Tests",
+          "item": [
+            {
+              "name": "No token -> 401",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/dashboard",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "dashboard"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"401\", () => pm.response.code === 401);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Garbage token -> 401",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer abc.def.ghi"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/dashboard",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "dashboard"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"401\", () => pm.response.code === 401);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Wrong role (principal token) -> 403",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{principalToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/dashboard",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "dashboard"
+                  ]
+                },
+                "auth": {
+                  "type": "noauth"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"403\", () => pm.response.code === 403);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Cross-school section -> 403",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/sections/{{otherSchoolSectionId}}/students",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "sections",
+                    "{{otherSchoolSectionId}}",
+                    "students"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"403 or 404\", () => [403,404].includes(pm.response.code));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Cross-school student -> 403",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/students/{{otherSchoolStudentId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "students",
+                    "{{otherSchoolStudentId}}"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"403 or 404\", () => [403,404].includes(pm.response.code));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "16 - Error Tests",
+          "item": [
+            {
+              "name": "Invalid ObjectId -> 400",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/classes/not-an-id",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "classes",
+                    "not-an-id"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"400\", () => pm.response.code === 400);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Unknown resource -> 404",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/homework/000000000000000000000000",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "homework",
+                    "000000000000000000000000"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"404\", () => pm.response.code === 404);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Attendance bad status -> 400",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/attendance",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "attendance"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sectionId\": \"{{sectionId}}\",\n  \"date\": \"{{today}}\",\n  \"records\": [\n    {\n      \"studentId\": \"{{studentId}}\",\n      \"status\": \"SLEEPING\"\n    }\n  ]\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"400\", () => pm.response.code === 400);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Attendance future date -> 400",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/teacher/attendance",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "teacher",
+                    "attendance"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"sectionId\": \"{{sectionId}}\",\n  \"date\": \"2099-01-01\",\n  \"records\": [\n    {\n      \"studentId\": \"{{studentId}}\",\n      \"status\": \"PRESENT\"\n    }\n  ]\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"400\", () => pm.response.code === 400);"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

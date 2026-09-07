@@ -153,7 +153,7 @@ export async function updateClass(req, res, next) {
 export async function deleteClass(req, res, next) {
   try {
     const data = await academicService.deleteClass(schoolId(req), req.params.id);
-    res.json({ success: true, data, message: 'Class deactivated' });
+    res.json({ success: true, data, message: 'Class deleted successfully' });
   } catch (error) {
     next(error);
   }
@@ -395,6 +395,34 @@ export async function updateTeacherStatus(req, res, next) {
 export async function deleteTeacher(req, res, next) {
   try {
     const result = await academicService.deleteTeacher(schoolId(req), req.params.id);
+    res.json({ success: true, ...result });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function setTeacherPassword(req, res, next) {
+  try {
+    const result = await academicService.setTeacherPassword(
+      schoolId(req),
+      req.params.id,
+      req.body?.newPassword,
+      req.body?.loginEmail
+    );
+    res.json({ success: true, ...result });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function setStudentPassword(req, res, next) {
+  try {
+    const result = await academicService.setStudentPassword(
+      schoolId(req),
+      req.params.id,
+      req.body?.newPassword,
+      req.body?.loginEmail
+    );
     res.json({ success: true, ...result });
   } catch (error) {
     next(error);

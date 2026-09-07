@@ -27,6 +27,11 @@ export const PERMISSION_MODULES = [
   { key: 'roles', label: 'Roles & Permissions', actions: ['view', 'manage'] },
   { key: 'settings', label: 'School Settings', actions: ['view', 'manage'] },
   { key: 'audit', label: 'Audit Logs', actions: ['view'] },
+  {
+    key: 'pickup',
+    label: 'Student Safe Pickup',
+    actions: ['settings', 'history', 'initiate', 'verify', 'complete', 'cancel'],
+  },
 ];
 
 export const ALL_PERMISSIONS = PERMISSION_MODULES.flatMap((m) =>
@@ -57,6 +62,8 @@ export const SYSTEM_ROLE_DEFAULTS = {
     'reports.view',
     'reports.export',
     'users.view',
+    'pickup.settings',
+    'pickup.history',
   ],
   Accountant: ['fees.view', 'fees.collect', 'fees.manage', 'reports.view', 'reports.export'],
   HR: ['hr.view', 'hr.manage', 'payroll.view', 'payroll.manage', 'attendance.view', 'reports.view'],

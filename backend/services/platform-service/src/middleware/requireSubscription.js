@@ -30,6 +30,17 @@ const EXEMPT_PATHS = [
   '/school-portal/hr/password',
   '/school-portal/accountant/profile',
   '/school-portal/accountant/password',
+  // Teacher APK self-service — must stay reachable so a teacher at an expired
+  // school can still authenticate and see the "subscription expired" reason.
+  '/school-portal/teacher/auth',
+  '/school-portal/teacher/me',
+  '/school-portal/teacher/profile',
+  '/school-portal/teacher/change-password',
+  // Student APK self-service — same rationale as the teacher paths above.
+  '/school-portal/student/auth',
+  '/school-portal/student/me',
+  '/school-portal/student/profile',
+  '/school-portal/student/change-password',
 ];
 
 function isExemptPath(path) {

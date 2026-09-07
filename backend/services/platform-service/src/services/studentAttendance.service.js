@@ -2,11 +2,11 @@ import { AppError } from '../../../shared/AppError.js';
 import { studentAttendanceRepository } from '../repositories/studentAttendance.repository.js';
 import { STUDENT_ATTENDANCE_STATUSES } from '../models/StudentAttendance.js';
 
-function todayStr() {
+export function todayStr() {
   const d = new Date();
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 }
-function validDate(date) {
+export function validDate(date) {
   const s = (date || '').trim() || todayStr();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) throw new AppError('Date must be YYYY-MM-DD', 400);
   if (s > todayStr()) throw new AppError('Cannot mark attendance for a future date', 400);

@@ -95,6 +95,10 @@ export class AcademicRepository {
     });
   }
 
+  deleteClass(schoolId, id) {
+    return SchoolClass.findOneAndDelete({ _id: toObjectId(id), schoolId: toObjectId(schoolId) });
+  }
+
   // Academic Year Classes
   listYearClasses(schoolId, academicYearId) {
     return AcademicYearClass.find({
@@ -120,6 +124,13 @@ export class AcademicRepository {
       schoolId: toObjectId(schoolId),
       academicYearId,
       classId,
+    });
+  }
+
+  deleteYearClassesByClassId(schoolId, classId) {
+    return AcademicYearClass.deleteMany({
+      schoolId: toObjectId(schoolId),
+      classId: toObjectId(classId),
     });
   }
 
@@ -409,11 +420,12 @@ export class AcademicRepository {
   }
 
   classHasDependents(schoolId, classId) {
+    const sId = toObjectId(schoolId);
+    const cId = toObjectId(classId);
     return Promise.all([
-      Section.countDocuments({ schoolId: toObjectId(schoolId), classId }),
-      AcademicYearClass.countDocuments({ schoolId: toObjectId(schoolId), classId }),
-      StudentEnrollment.countDocuments({ schoolId: toObjectId(schoolId), classId }),
-    ]).then(([sections, mappings, enrollments]) => sections > 0 || mappings > 0 || enrollments > 0);
+      Section.countDocuments({ schoolId: sId, classId: cId }),
+      StudentEnrollment.countDocuments({ schoolId: sId, classId: cId }),
+    ]).then(([sections, enrollments]) => sections > 0 || enrollments > 0);
   }
 
   sectionHasDependents(schoolId, sectionId) {

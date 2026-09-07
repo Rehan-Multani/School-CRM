@@ -1,6 +1,14 @@
 import { Router } from 'express';
 import { loginRateLimiter } from '../middleware/loginRateLimiter.js';
 import { validateObjectId } from '../middleware/validateObjectId.js';
+import teacherApkRoutes from './teacher.routes.js';
+import studentApkRoutes from './student.routes.js';
+import {
+  getSafePickupSettings,
+  updateSafePickupSchool,
+  updateSafePickupClass,
+  getSafePickupHistory,
+} from '../controllers/safePickupSettings.controller.js';
 import {
   getServiceInfo,
   healthCheck,
@@ -30,6 +38,8 @@ import {
   schoolAdminLogin,
   schoolAdminResetPassword,
   schoolBranding,
+  getSchoolFeatures,
+  updateSchoolFeatures,
   schoolThemePublic,
   schoolPortalChangePassword,
   schoolPortalConfig,
@@ -141,6 +151,8 @@ import {
   updateTeacher,
   updateTeacherStatus,
   deleteTeacher,
+  setTeacherPassword,
+  setStudentPassword,
 } from '../controllers/academic.controller.js';
 import {
   createStudent,
@@ -513,6 +525,12 @@ import {
   getHRNotifications,
   getHRSalarySlip,
 } from '../controllers/hr.controller.js';
+import {
+  listTimetable,
+  createTimetable,
+  updateTimetable,
+  deleteTimetable,
+} from '../controllers/timetable.controller.js';
 import { assertSchoolAccess } from '../middleware/assertSchoolAccess.js';
 import { uploadStudentFiles, convertStudentImages } from '../middleware/uploadStudentPhoto.js';
 import { convertTeacherImages, uploadTeacherFiles } from '../middleware/uploadTeacherPhoto.js';
@@ -524,6 +542,8 @@ router.get('/health', healthCheck);
 router.get('/schools', requireSuperAdmin, listSchools);
 router.post('/schools', requireSuperAdmin, createSchool);
 router.put('/schools/:id', requireSuperAdmin, updateSchool);
+router.get('/schools/:id/features', requireSuperAdmin, validateObjectId('id'), getSchoolFeatures);
+router.patch('/schools/:id/features', requireSuperAdmin, validateObjectId('id'), updateSchoolFeatures);
 router.patch('/schools/:id/status', requireSuperAdmin, updateSchoolStatus);
 router.post('/schools/:id/reset-login', requireSuperAdmin, resetSchoolLogin);
 router.delete('/schools/:id', requireSuperAdmin, deleteSchool);
@@ -603,6 +623,12 @@ router.patch('/school-portal/settings/theme', requireSchoolAdmin, schoolPortalUp
 router.patch('/school-portal/settings/branding', requireSchoolAdmin, schoolPortalUpdateBranding);
 router.patch('/school-portal/settings/password', requireSchoolAdmin, schoolPortalChangePassword);
 router.patch('/school-portal/settings/email', requireSchoolAdmin, schoolPortalUpdateEmail);
+
+// ---- Student Safe Pickup — School Admin configuration + history ----
+router.get('/school-portal/settings/safe-pickup', requireSchoolAdmin, requirePermission('pickup.settings'), getSafePickupSettings);
+router.patch('/school-portal/settings/safe-pickup', requireSchoolAdmin, requirePermission('pickup.settings'), updateSafePickupSchool);
+router.patch('/school-portal/academic/classes/:classId/pickup', requireSchoolAdmin, requirePermission('pickup.settings'), validateObjectId('classId'), updateSafePickupClass);
+router.get('/school-portal/pickups/history', requireSchoolAdmin, requirePermission('pickup.history'), getSafePickupHistory);
 router.get('/school-portal/notifications', requirePrincipal, listSchoolNotifications);
 router.post('/school-portal/notifications', requirePrincipal, sendSchoolNotification);
 router.get('/school-portal/academic/years', requirePrincipal, listAcademicYears);
@@ -644,12 +670,20 @@ router.post('/school-portal/academic/teachers', requirePrincipal, uploadTeacherF
 router.get('/school-portal/academic/teachers/:id', requirePrincipal, getTeacher);
 router.patch('/school-portal/academic/teachers/:id', requirePrincipal, uploadTeacherFiles, convertTeacherImages, updateTeacher);
 router.patch('/school-portal/academic/teachers/:id/status', requirePrincipal, updateTeacherStatus);
+router.post('/school-portal/academic/teachers/:id/set-password', requirePrincipal, validateObjectId('id'), setTeacherPassword);
 router.delete('/school-portal/academic/teachers/:id', requirePrincipal, deleteTeacher);
+
+// Class timetable (admin-side CRUD; teachers read it via /school-portal/teacher/timetable)
+router.get('/school-portal/timetable', requirePrincipal, listTimetable);
+router.post('/school-portal/timetable', requirePrincipal, createTimetable);
+router.patch('/school-portal/timetable/:id', requirePrincipal, validateObjectId('id'), updateTimetable);
+router.delete('/school-portal/timetable/:id', requirePrincipal, validateObjectId('id'), deleteTimetable);
 router.get('/school-portal/students', requirePrincipal, listStudents);
 router.post('/school-portal/students', requirePrincipal, uploadStudentFiles, convertStudentImages, createStudent);
 router.get('/school-portal/students/:id', requirePrincipal, getStudent);
 router.patch('/school-portal/students/:id', requirePrincipal, uploadStudentFiles, convertStudentImages, updateStudent);
 router.patch('/school-portal/students/:id/status', requirePrincipal, updateStudentStatus);
+router.post('/school-portal/academic/students/:id/set-password', requirePrincipal, validateObjectId('id'), setStudentPassword);
 router.delete('/school-portal/students/:id', requirePrincipal, deleteStudent);
 
 // School User Management Routes (Teachers, Librarians, HR, Accountants, Transport)
@@ -1097,6 +1131,12 @@ router.get('/support/school/:schoolId/tickets', requireSchoolAdmin, assertSchool
 router.post('/support/school/:schoolId/tickets', requireSchoolAdmin, assertSchoolAccess, createSchoolTicket);
 router.get('/support/school/:schoolId/tickets/:id', requireSchoolAdmin, assertSchoolAccess, getSchoolTicket);
 router.post('/support/school/:schoolId/tickets/:id/replies', requireSchoolAdmin, assertSchoolAccess, replySchoolTicket);
+// ===================== Teacher APK (see teacher.routes.js) =====================
+router.use(teacherApkRoutes);
+
+// ===================== Student APK (see student.routes.js) =====================
+router.use(studentApkRoutes);
+
 router.get('/', getServiceInfo);
 router.use(notFound);
 

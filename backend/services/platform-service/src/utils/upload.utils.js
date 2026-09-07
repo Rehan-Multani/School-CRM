@@ -14,6 +14,7 @@ export const studentUploadsDir = path.join(uploadsRoot, 'students');
 export const studentDocumentsDir = path.join(studentUploadsDir, 'documents');
 export const teacherUploadsDir = path.join(uploadsRoot, 'teachers');
 export const teacherDocumentsDir = path.join(teacherUploadsDir, 'documents');
+export const teacherResourcesDir = path.join(uploadsRoot, 'teacher-resources');
 export const userUploadsDir = path.join(uploadsRoot, 'users');
 export const userDocumentsDir = path.join(userUploadsDir, 'documents');
 
@@ -22,8 +23,13 @@ export function ensureUploadDirs() {
   fs.mkdirSync(studentDocumentsDir, { recursive: true });
   fs.mkdirSync(teacherUploadsDir, { recursive: true });
   fs.mkdirSync(teacherDocumentsDir, { recursive: true });
+  fs.mkdirSync(teacherResourcesDir, { recursive: true });
   fs.mkdirSync(userUploadsDir, { recursive: true });
   fs.mkdirSync(userDocumentsDir, { recursive: true });
+}
+
+export function toTeacherResourcePublicPath(filename) {
+  return `/uploads/teacher-resources/${filename}`;
 }
 
 export function toStudentPhotoPublicPath(filename) {

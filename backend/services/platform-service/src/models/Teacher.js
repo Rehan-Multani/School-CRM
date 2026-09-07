@@ -107,12 +107,17 @@ const teacherSchema = new mongoose.Schema(
       enum: ['ACTIVE', 'INACTIVE', 'ON_LEAVE', 'SUSPENDED', 'RESIGNED', 'TERMINATED', 'PENDING_APPROVAL', 'PENDING', 'REJECTED'],
       default: 'PENDING_APPROVAL',
     },
+    // ---- Teacher APK login (additive; never exposed by toPublicJSON) ----
+    passwordHash: { type: String, default: '', select: false },
+    lastLoginAt: { type: Date, default: null },
+    mustResetPassword: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
 teacherSchema.index({ schoolId: 1, email: 1 });
 teacherSchema.index({ schoolId: 1, name: 1 });
+teacherSchema.index({ schoolId: 1, 'account.loginEmail': 1 });
 
 teacherSchema.methods.toPublicJSON = function toPublicJSON() {
   const firstName = this.firstName || this.name?.split(' ')[0] || '';

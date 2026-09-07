@@ -338,6 +338,10 @@ export class SchoolService {
     try {
       const next = normalizePayload(payload, createdBy);
       next.subscriptionPlan = '';
+      // Optional feature flag at creation time (Super Admin). Defaults false.
+      if (payload?.safePickupEnabled !== undefined) {
+        next.settings = { safePickupEnabled: Boolean(payload.safePickupEnabled) };
+      }
       const school = await schoolRepository.create(next);
       const requestedPassword = typeof payload?.admin?.password === 'string' ? payload.admin.password.trim() : '';
       if (requestedPassword && requestedPassword.length < 8) {
@@ -401,6 +405,32 @@ export class SchoolService {
     }
 
     return school.toPublicJSON();
+  }
+
+  // ---- Per-school feature flags (Super Admin) ----
+  async getFeatures(id) {
+    const school = await schoolRepository.findById(id);
+    if (!school) throw new AppError('School not found', 404);
+    return { safePickupEnabled: Boolean(school.settings?.safePickupEnabled) };
+  }
+
+  async updateFeatures(id, payload = {}) {
+    const $set = {};
+    if (payload.safePickupEnabled !== undefined) {
+      if (typeof payload.safePickupEnabled !== 'boolean') {
+        throw new AppError('safePickupEnabled must be a boolean', 400);
+      }
+      $set['settings.safePickupEnabled'] = payload.safePickupEnabled;
+    }
+    if (!Object.keys($set).length) {
+      throw new AppError('No feature flags supplied', 400);
+    }
+    const school = await schoolRepository.updateById(id, { $set });
+    if (!school) throw new AppError('School not found', 404);
+    return {
+      safePickupEnabled: Boolean(school.settings?.safePickupEnabled),
+      school: school.toPublicJSON(),
+    };
   }
 
   async resetLogin(id) {

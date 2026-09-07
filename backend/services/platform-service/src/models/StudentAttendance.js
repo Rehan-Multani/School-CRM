@@ -24,6 +24,10 @@ const studentAttendanceSchema = new mongoose.Schema(
     date: { type: String, required: true }, // YYYY-MM-DD (local)
     entries: { type: [entrySchema], default: [] },
     markedByName: { type: String, default: '', trim: true },
+    // Teacher APK: who submitted + finalize lock (blocks further edits).
+    markedById: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', default: null },
+    locked: { type: Boolean, default: false },
+    lockedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
@@ -59,6 +63,9 @@ studentAttendanceSchema.methods.toPublicJSON = function () {
     })),
     summary: this.summary(),
     markedByName: this.markedByName || '',
+    markedById: this.markedById ? this.markedById.toString() : null,
+    locked: Boolean(this.locked),
+    lockedAt: this.lockedAt || null,
     updatedAt: this.updatedAt,
   };
 };

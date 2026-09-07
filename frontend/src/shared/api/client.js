@@ -375,6 +375,9 @@ export const platformSchoolApi = {
     apiClient.patch(`/platform/schools/${id}/status`, { status }).then((res) => res.data),
   resetLogin: (id) => apiClient.post(`/platform/schools/${id}/reset-login`).then((res) => res.data),
   remove: (id) => apiClient.delete(`/platform/schools/${id}`).then((res) => res.data),
+  getFeatures: (id) => apiClient.get(`/platform/schools/${id}/features`).then((res) => res.data),
+  updateFeatures: (id, payload) =>
+    apiClient.patch(`/platform/schools/${id}/features`, payload).then((res) => res.data),
 };
 
 export const platformSubscriptionApi = {
@@ -1289,3 +1292,81 @@ export const principalMeetingApi = {
 };
 
 
+
+// ===========================================================================
+// STUDENT SAFE PICKUP — School Admin configuration + history
+// ===========================================================================
+export const safePickupSettingsApi = {
+  get: () =>
+    schoolAdminClient.get('/platform/school-portal/settings/safe-pickup').then((r) => r.data),
+  setSchool: (safePickupEnabled) =>
+    schoolAdminClient
+      .patch('/platform/school-portal/settings/safe-pickup', { safePickupEnabled })
+      .then((r) => r.data),
+  setClass: (classId, safePickupEnabled) =>
+    schoolAdminClient
+      .patch(`/platform/school-portal/academic/classes/${classId}/pickup`, { safePickupEnabled })
+      .then((r) => r.data),
+  history: (params) =>
+    schoolAdminClient
+      .get('/platform/school-portal/pickups/history', { params })
+      .then((r) => r.data),
+};
+
+// ===========================================================================
+// STUDENT SAFE PICKUP — Teacher (used by the mock-panel demo page).
+// Its own axios instance with a self-managed bearer, so it never touches the
+// other panels' auth. token lives in localStorage key `pickup_demo_token`.
+// ===========================================================================
+const pickupDemoClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
+pickupDemoClient.interceptors.request.use((config) => {
+  const t = localStorage.getItem('pickup_demo_token');
+  if (t) config.headers.Authorization = `Bearer ${t}`;
+  return config;
+});
+
+export const teacherPickupApi = {
+  login: (identifier, password) =>
+    axios
+      .post(`${API_BASE_URL}/platform/school-portal/auth/teacher-login`, { identifier, password })
+      .then((r) => {
+        if (r.data?.token) localStorage.setItem('pickup_demo_token', r.data.token);
+        return r.data;
+      }),
+  logout: () => localStorage.removeItem('pickup_demo_token'),
+  eligibleStudents: (params) =>
+    pickupDemoClient
+      .get('/platform/school-portal/teacher/pickups/eligible-students', { params })
+      .then((r) => r.data),
+  initiate: (studentId, idempotencyKey) =>
+    pickupDemoClient
+      .post(
+        '/platform/school-portal/teacher/pickups/initiate',
+        { studentId },
+        idempotencyKey ? { headers: { 'Idempotency-Key': idempotencyKey } } : undefined
+      )
+      .then((r) => r.data),
+  session: (id) =>
+    pickupDemoClient
+      .get(`/platform/school-portal/teacher/pickups/${id}`)
+      .then((r) => r.data),
+  verify: (id, otp) =>
+    pickupDemoClient
+      .post(`/platform/school-portal/teacher/pickups/${id}/verify`, { otp })
+      .then((r) => r.data),
+  resend: (id) =>
+    pickupDemoClient
+      .post(`/platform/school-portal/teacher/pickups/${id}/resend-otp`)
+      .then((r) => r.data),
+  cancel: (id) =>
+    pickupDemoClient
+      .post(`/platform/school-portal/teacher/pickups/${id}/cancel`)
+      .then((r) => r.data),
+  complete: (id, payload) =>
+    pickupDemoClient
+      .post(`/platform/school-portal/teacher/pickups/${id}/complete`, payload)
+      .then((r) => r.data),
+};

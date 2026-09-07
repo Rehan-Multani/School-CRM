@@ -73,6 +73,9 @@ const schoolSchema = new mongoose.Schema(
     settings: {
       theme: { type: String, enum: ['light', 'dark'], default: 'light' },
       primaryColor: { type: String, default: '#4F46E5', trim: true },
+      // Super-Admin per-school feature flag: Student Safe Pickup / Parent OTP.
+      // Effective state for a student = this AND SchoolClass.safePickupEnabled.
+      safePickupEnabled: { type: Boolean, default: false },
       portalBranding: {
         logo: { type: String, default: '' },
         favicon: { type: String, default: '' },
@@ -124,6 +127,7 @@ schoolSchema.methods.toPublicJSON = function toPublicJSON() {
     subscriptionPlan: this.subscriptionPlan,
     status: this.status,
     stats: this.stats,
+    safePickupEnabled: Boolean(this.settings?.safePickupEnabled),
     createdBy: this.createdBy,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,

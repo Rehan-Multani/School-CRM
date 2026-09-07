@@ -109,11 +109,13 @@ export const ClassesIndex = () => {
     try {
       if (selectedYear) {
         const result = await principalAcademicApi.yearClasses(selectedYear);
-        const mapped = (result.data || []).map((item) => ({
-          ...item.class,
-          id: item.classId,
-          mappingId: item.id,
-        }));
+        const mapped = (result.data || [])
+          .filter((item) => Boolean(item.class))
+          .map((item) => ({
+            ...item.class,
+            id: item.classId,
+            mappingId: item.id,
+          }));
         setClasses(mapped);
       } else {
         const result = await principalAcademicApi.classes({ limit: 100 });
@@ -145,6 +147,13 @@ export const ClassesIndex = () => {
       return cls.status === statusFilter;
     });
   }, [classes, statusFilter]);
+
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(filteredClasses.length / PAGE_SIZE));
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [filteredClasses.length, page, PAGE_SIZE]);
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -200,7 +209,7 @@ export const ClassesIndex = () => {
     if (!deleteTarget) return;
     try {
       await principalAcademicApi.deleteClass(deleteTarget.id);
-      showToast('Class deleted', 'success');
+      showToast('Class deleted successfully', 'success');
       loadClasses();
       loadReferenceYearsAndMappings();
     } catch (error) {

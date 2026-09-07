@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher App UI Screens & Flutter Guide</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
+    .screen-active { display: flex; }
+    .screen-hidden { display: none; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen p-4 md:p-8 font-sans">
+
+  <!-- Main Container -->
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <header class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+      <div>
+        <div class="flex items-center gap-2 mb-1">
+          <span class="bg-blue-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">Flutter Mobile App</span>
+          <span class="text-xs text-slate-400 font-medium">Version 2.4 • Platform Service</span>
+        </div>
+        <h1 class="text-2xl md:text-3xl font-bold text-slate-900">School CRM — Teacher App UI Mockups & Spec</h1>
+        <p class="text-sm text-slate-500 mt-1">Flutter Developer Handoff Kit: Full screen designs, interactive mobile demo, and API integration guides.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="switchView('interactive')" id="btn-view-interactive" class="px-4 py-2 text-sm font-semibold rounded-xl bg-blue-600 text-white shadow-sm transition">
+          📱 Live Phone Mockup
+        </button>
+        <button onclick="switchView('gallery')" id="btn-view-gallery" class="px-4 py-2 text-sm font-semibold rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+          🖼️ AI Generated Screens
+        </button>
+      </div>
+    </header>
+
+    <!-- SECTION 1: INTERACTIVE MOBILE PREVIEW -->
+    <div id="interactive-view" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- Left Controls / Screen Selector -->
+      <div class="lg:col-span-4 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
+        <h3 class="font-bold text-slate-900 text-base flex items-center justify-between">
+          <span>Select Screen to Preview</span>
+          <span class="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md font-medium">8 Pages Total</span>
+        </h3>
+        
+        <div class="space-y-1.5" id="screen-nav">
+          <button onclick="showScreen('login')" class="screen-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between bg-blue-50 text-blue-700 border border-blue-200" data-target="login">
+            <span class="flex items-center gap-2.5">
+              <span>🔐</span>
+              <span>1. Login & Auth</span>
+            </span>
+            <span class="text-xs text-blue-500 font-mono">/auth</span>
+          </button>
+          
+          <button onclick="showScreen('dashboard')" class="screen-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between text-slate-700 hover:bg-slate-50" data-target="dashboard">
+            <span class="flex items-center gap-2.5">
+              <span>🏠</span>
+              <span>2. Home / Dashboard</span>
+            </span>
+            <span class="text-xs text-slate-400 font-mono">/dashboard</span>
+          </button>
+          
+          <button onclick="showScreen('attendance')" class="screen-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between text-slate-700 hover:bg-slate-50" data-target="attendance">
+            <span class="flex items-center gap-2.5">
+              <span>📋</span>
+              <span>3. Mark Attendance</span>
+            </span>
+            <span class="text-xs text-slate-400 font-mono">/attendance</span>
+          </button>
+          
+          <button onclick="showScreen('timetable')" class="screen-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between text-slate-700 hover:bg-slate-50" data-target="timetable">
+            <span class="flex items-center gap-2.5">
+              <span>📅</span>
+              <span>4. Class Timetable</span>
+            </span>
+            <span class="text-xs text-slate-400 font-mono">/timetable</span>
+          </button>
+          
+          <button onclick="showScreen('homework')" class="screen-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between text-slate-700 hover:bg-slate-50" data-target="homework">
+            <span class="flex items-center gap-2.5">
+              <span>📚</span>
+              <span>5. Homework & Assignments</span>
+            </span>
+            <span class="text-xs text-slate-400 font-mono">/homework</span>
+          </button>
+          
+          <button onclick="showScreen('marks')" class="screen-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between text-slate-700 hover:bg-slate-50" data-target="marks">
+            <span class="flex items-center gap-2.5">
+              <span>📝</span>
+              <span>6. Exam & Marks Entry</span>
+            </span>
+            <span class="text-xs text-slate-400 font-mono">/exams</span>
+          </button>
+          
+          <button onclick="showScreen('leave')" class="screen-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between text-slate-700 hover:bg-slate-50" data-target="leave">
+            <span class="flex items-center gap-2.5">
+              <span>🏖️</span>
+              <span>7. Leave Management</span>
+            </span>
+            <span class="text-xs text-slate-400 font-mono">/leaves</span>
+          </button>
+          
+          <button onclick="showScreen('profile')" class="screen-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between text-slate-700 hover:bg-slate-50" data-target="profile">
+            <span class="flex items-center gap-2.5">
+              <span>👤</span>
+              <span>8. Profile & Settings</span>
+            </span>
+            <span class="text-xs text-slate-400 font-mono">/profile</span>
+          </button>
+        </div>
+
+        <!-- Technical API & Flutter Spec for Active Screen -->
+        <div class="mt-6 pt-5 border-t border-slate-100" id="screen-spec-box">
+          <h4 class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Backend Endpoint Mapping</h4>
+          <div id="spec-content" class="bg-slate-900 text-slate-200 text-xs rounded-xl p-3 font-mono leading-relaxed overflow-x-auto">
+            POST /school-portal/auth/teacher-login<br>
+            Payload: { identifier, password }<br>
+            Response: { token, teacher, school }
+          </div>
+          <div class="mt-3 text-xs text-slate-500 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+            <span>All responses match <code>teacher-apk-api.md</code></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center / Right: Interactive Mobile Device Mockup -->
+      <div class="lg:col-span-8 flex justify-center">
+        <!-- Phone Frame Wrapper -->
+        <div class="w-full max-w-[390px] h-[780px] bg-slate-900 rounded-[48px] p-3.5 shadow-2xl ring-1 ring-slate-800 relative flex flex-col">
+          <!-- Dynamic Island / Speaker Notch -->
+          <div class="absolute top-6 left-1/2 -translate-x-1/2 w-28 h-5 bg-black rounded-full z-50 flex items-center justify-center">
+            <div class="w-3 h-3 rounded-full bg-slate-900 ml-auto mr-2"></div>
+          </div>
+          
+          <!-- Screen Glass / Body Container -->
+          <div class="w-full h-full bg-slate-50 rounded-[38px] overflow-hidden flex flex-col relative">
+            
+            <!-- Status Bar -->
+            <div class="h-10 w-full flex items-center justify-between px-7 pt-1 text-xs font-semibold text-slate-800 z-40">
+              <span>09:41</span>
+              <div class="flex items-center gap-1.5 text-xs">
+                <span>5G</span>
+                <span>📶</span>
+                <span>🔋 100%</span>
+              </div>
+            </div>
+
+            <!-- SCREENS CONTAINER -->
+            <div class="flex-1 overflow-y-auto relative flex flex-col">
+
+              <!-- ================= 1. LOGIN SCREEN ================= -->
+              <div id="screen-login" class="screen-view screen-active flex flex-col h-full p-6 justify-center">
+                <div class="text-center mb-8">
+                  <div class="w-16 h-16 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-blue-500/30 text-white text-3xl font-bold mb-3">
+                    🏫
+                  </div>
+                  <h2 class="text-xl font-black text-slate-900">GREENWOOD ACADEMY</h2>
+                  <p class="text-xs text-slate-500 font-medium tracking-wide">Teacher Management Portal</p>
+                </div>
+
+                <div class="space-y-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Teacher ID / Email</label>
+                    <input type="text" value="teacher@greenwood.edu" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500">
+                  </div>
+                  <div>
+                    <div class="flex justify-between items-center mb-1">
+                      <label class="text-xs font-semibold text-slate-600">Password</label>
+                      <span class="text-xs text-blue-600 font-medium">Forgot?</span>
+                    </div>
+                    <input type="password" value="••••••••••••" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500">
+                  </div>
+                  
+                  <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked class="rounded text-blue-600">
+                      <span>Remember Me</span>
+                    </label>
+                  </div>
+
+                  <button onclick="showScreen('dashboard')" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-xl shadow-md shadow-blue-600/30 transition">
+                    Log In to Portal
+                  </button>
+                </div>
+
+                <div class="mt-8 text-center">
+                  <button class="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm">
+                    <span>👆</span> Use Biometric Login
+                  </button>
+                  <p class="text-[10px] text-slate-400 mt-4">Powered by School CRM • v2.4</p>
+                </div>
+              </div>
+
+              <!-- ================= 2. DASHBOARD SCREEN ================= -->
+              <div id="screen-dashboard" class="screen-view screen-hidden flex flex-col h-full bg-slate-50">
+                <!-- Top Bar -->
+                <div class="p-5 pb-3 bg-white border-b border-slate-100 flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm shadow-sm">
+                      SJ
+                    </div>
+                    <div>
+                      <h3 class="text-sm font-bold text-slate-900">Sarah Jenkins 👋</h3>
+                      <p class="text-[11px] text-slate-500">Sr. Math Teacher • Greenwood</p>
+                    </div>
+                  </div>
+                  <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-sm relative">
+                    🔔
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+                  </div>
+                </div>
+
+                <div class="p-4 space-y-4 flex-1 overflow-y-auto">
+                  <!-- Next Class Hero Banner -->
+                  <div class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl p-4 shadow-md">
+                    <div class="flex justify-between items-start">
+                      <div>
+                        <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider">Next Upcoming Period</span>
+                        <h4 class="text-base font-bold mt-1">Grade 10-A • Mathematics</h4>
+                        <p class="text-xs text-blue-100 mt-0.5">⏰ 10:15 AM - 11:00 AM • Room 204</p>
+                      </div>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-white/15 flex gap-2">
+                      <button onclick="showScreen('attendance')" class="flex-1 bg-white text-blue-700 py-1.5 rounded-xl text-xs font-bold text-center shadow-sm">
+                        Mark Attendance
+                      </button>
+                      <button onclick="showScreen('homework')" class="px-3 bg-blue-500/40 text-white py-1.5 rounded-xl text-xs font-semibold">
+                        View Plan
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Quick Stats Grid -->
+                  <div class="grid grid-cols-4 gap-2">
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 text-center">
+                      <span class="text-xs">📅</span>
+                      <p class="text-base font-extrabold text-blue-600 mt-1">5</p>
+                      <p class="text-[9px] text-slate-500 font-medium">Classes</p>
+                    </div>
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 text-center">
+                      <span class="text-xs">👥</span>
+                      <p class="text-base font-extrabold text-purple-600 mt-1">142</p>
+                      <p class="text-[9px] text-slate-500 font-medium">Students</p>
+                    </div>
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 text-center">
+                      <span class="text-xs">📖</span>
+                      <p class="text-base font-extrabold text-amber-500 mt-1">3</p>
+                      <p class="text-[9px] text-slate-500 font-medium">Homework</p>
+                    </div>
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 text-center">
+                      <span class="text-xs">✍️</span>
+                      <p class="text-base font-extrabold text-rose-500 mt-1">1</p>
+                      <p class="text-[9px] text-slate-500 font-medium">Pending</p>
+                    </div>
+                  </div>
+
+                  <!-- Quick Actions -->
+                  <div>
+                    <h5 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Quick Actions</h5>
+                    <div class="grid grid-cols-3 gap-2">
+                      <button onclick="showScreen('attendance')" class="bg-white p-3 rounded-xl border border-slate-200 flex flex-col items-center gap-1.5 hover:border-blue-400 transition">
+                        <span class="text-lg">📋</span>
+                        <span class="text-[11px] font-semibold text-slate-700">Attendance</span>
+                      </button>
+                      <button onclick="showScreen('timetable')" class="bg-white p-3 rounded-xl border border-slate-200 flex flex-col items-center gap-1.5 hover:border-blue-400 transition">
+                        <span class="text-lg">🗓️</span>
+                        <span class="text-[11px] font-semibold text-slate-700">Timetable</span>
+                      </button>
+                      <button onclick="showScreen('homework')" class="bg-white p-3 rounded-xl border border-slate-200 flex flex-col items-center gap-1.5 hover:border-blue-400 transition">
+                        <span class="text-lg">📚</span>
+                        <span class="text-[11px] font-semibold text-slate-700">Homework</span>
+                      </button>
+                      <button onclick="showScreen('marks')" class="bg-white p-3 rounded-xl border border-slate-200 flex flex-col items-center gap-1.5 hover:border-blue-400 transition">
+                        <span class="text-lg">📝</span>
+                        <span class="text-[11px] font-semibold text-slate-700">Marks Entry</span>
+                      </button>
+                      <button onclick="showScreen('leave')" class="bg-white p-3 rounded-xl border border-slate-200 flex flex-col items-center gap-1.5 hover:border-blue-400 transition">
+                        <span class="text-lg">🏖️</span>
+                        <span class="text-[11px] font-semibold text-slate-700">Leave</span>
+                      </button>
+                      <button onclick="showScreen('profile')" class="bg-white p-3 rounded-xl border border-slate-200 flex flex-col items-center gap-1.5 hover:border-blue-400 transition">
+                        <span class="text-lg">👤</span>
+                        <span class="text-[11px] font-semibold text-slate-700">Profile</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Bottom Navigation -->
+                <div class="h-16 bg-white border-t border-slate-200 grid grid-cols-5 items-center px-2">
+                  <button onclick="showScreen('dashboard')" class="flex flex-col items-center text-blue-600">
+                    <span class="text-base">🏠</span>
+                    <span class="text-[9px] font-bold">Home</span>
+                  </button>
+                  <button onclick="showScreen('attendance')" class="flex flex-col items-center text-slate-400 hover:text-slate-600">
+                    <span class="text-base">📋</span>
+                    <span class="text-[9px]">Attendance</span>
+                  </button>
+                  <button onclick="showScreen('timetable')" class="flex flex-col items-center text-slate-400 hover:text-slate-600">
+                    <span class="text-base">📅</span>
+                    <span class="text-[9px]">Timetable</span>
+                  </button>
+                  <button onclick="showScreen('homework')" class="flex flex-col items-center text-slate-400 hover:text-slate-600">
+                    <span class="text-base">📚</span>
+                    <span class="text-[9px]">Homework</span>
+                  </button>
+                  <button onclick="showScreen('profile')" class="flex flex-col items-center text-slate-400 hover:text-slate-600">
+                    <span class="text-base">👤</span>
+                    <span class="text-[9px]">Profile</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- ================= 3. ATTENDANCE SCREEN ================= -->
+              <div id="screen-attendance" class="screen-view screen-hidden flex flex-col h-full bg-slate-50">
+                <!-- App Bar -->
+                <div class="p-4 bg-white border-b border-slate-200 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <button onclick="showScreen('dashboard')" class="text-slate-600 text-sm">◀</button>
+                    <h3 class="text-sm font-bold text-slate-900">Mark Attendance</h3>
+                  </div>
+                  <span class="text-xs bg-slate-100 text-slate-700 font-semibold px-2 py-1 rounded-lg">Today</span>
+                </div>
+
+                <!-- Section & Date Filter Header -->
+                <div class="p-3 bg-white border-b border-slate-200 space-y-2">
+                  <div class="flex gap-2">
+                    <select class="flex-1 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-lg p-2">
+                      <option>Class 10th - Section A</option>
+                      <option>Class 9th - Section B</option>
+                      <option>Class 11th - Section C</option>
+                    </select>
+                    <div class="text-xs font-semibold bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-600">
+                      14 Oct 2026
+                    </div>
+                  </div>
+                  
+                  <!-- Stat Badges -->
+                  <div class="flex gap-1.5 text-[10px] font-bold">
+                    <span class="flex-1 bg-blue-50 text-blue-600 py-1 rounded text-center">Total: 35</span>
+                    <span class="flex-1 bg-emerald-50 text-emerald-600 py-1 rounded text-center">P: 32</span>
+                    <span class="flex-1 bg-rose-50 text-rose-600 py-1 rounded text-center">A: 2</span>
+                    <span class="flex-1 bg-amber-50 text-amber-600 py-1 rounded text-center">L: 1</span>
+                  </div>
+                </div>
+
+                <!-- Student Roster -->
+                <div class="flex-1 overflow-y-auto p-3 space-y-2">
+                  <div class="flex justify-between items-center px-1">
+                    <span class="text-[11px] font-bold text-slate-500 uppercase">Student List (35)</span>
+                    <button class="text-[11px] text-blue-600 font-bold">Mark All Present</button>
+                  </div>
+
+                  <!-- Student Item 1 -->
+                  <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                      <span class="text-[11px] font-mono text-slate-400 font-bold">#01</span>
+                      <div class="w-7 h-7 rounded-full bg-slate-200 text-[10px] flex items-center justify-center font-bold">AS</div>
+                      <div>
+                        <p class="text-xs font-bold text-slate-900 leading-none">Aarav Sharma</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Roll: 1001</p>
+                      </div>
+                    </div>
+                    <div class="flex gap-1">
+                      <button class="w-6 h-6 rounded text-[10px] font-bold bg-emerald-600 text-white">P</button>
+                      <button class="w-6 h-6 rounded text-[10px] font-bold bg-slate-100 text-slate-500">A</button>
+                      <button class="w-6 h-6 rounded text-[10px] font-bold bg-slate-100 text-slate-500">L</button>
+                    </div>
+                  </div>
+
+                  <!-- Student Item 2 -->
+                  <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                      <span class="text-[11px] font-mono text-slate-400 font-bold">#02</span>
+                      <div class="w-7 h-7 rounded-full bg-slate-200 text-[10px] flex items-center justify-center font-bold">AV</div>
+                      <div>
+                        <p class="text-xs font-bold text-slate-900 leading-none">Ananya Verma</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Roll: 1002</p>
+                      </div>
+                    </div>
+                    <div class="flex gap-1">
+                      <button class="w-6 h-6 rounded text-[10px] font-bold bg-slate-100 text-slate-500">P</button>
+                      <button class="w-6 h-6 rounded text-[10px] font-bold bg-rose-600 text-white">A</button>
+                      <button class="w-6 h-6 rounded text-[10px] font-bold bg-slate-100 text-slate-500">L</button>
+                    </div>
+                  </div>
+
+                  <!-- Student Item 3 -->
+                  <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                      <span class="text-[11px] font-mono text-slate-400 font-bold">#03</span>
+                      <div class="w-7 h-7 rounded-full bg-slate-200 text-[10px] flex items-center justify-center font-bold">DK</div>
+                      <div>
+                        <p class="text-xs font-bold text-slate-900 leading-none">Dev Kumar</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Roll: 1003</p>
+                      </div>
+                    </div>
+                    <div class="flex gap-1">
+                      <button class="w-6 h-6 rounded text-[10px] font-bold bg-emerald-600 text-white">P</button>
+                      <button class="w-6 h-6 rounded text-[10px] font-bold bg-slate-100 text-slate-500">A</button>
+                      <button class="w-6 h-6 rounded text-[10px] font-bold bg-slate-100 text-slate-500">L</button>
+                    </div>
+                  </div>
+
+                  <!-- Student Item 4 -->
+                  <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                      <span class="text-[11px] font-mono text-slate-400 font-bold">#04</span>
+                      <div class="w-7 h-7 rounded-full bg-slate-200 text-[10px] flex items-center justify-center font-bold">RG</div>
+                      <div>
+                        <p class="text-xs font-bold text-slate-900 leading-none">Riya Gupta</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Roll: 1004</p>
+                      </div>
+                    </div>
+                    <div class="flex gap-1">
+                      <button class="w-6 h-6 rounded text-[10px] font-bold bg-slate-100 text-slate-500">P</button>
+                      <button class="w-6 h-6 rounded text-[10px] font-bold bg-slate-100 text-slate-500">A</button>
+                      <button class="w-6 h-6 rounded text-[10px] font-bold bg-amber-500 text-white">L</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Bottom Sticky Submit -->
+                <div class="p-3 bg-white border-t border-slate-200">
+                  <button class="w-full py-2.5 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-md flex items-center justify-center gap-2">
+                    <span>🔒</span> Submit & Finalize Attendance
+                  </button>
+                </div>
+              </div>
+
+              <!-- ================= 4. TIMETABLE SCREEN ================= -->
+              <div id="screen-timetable" class="screen-view screen-hidden flex flex-col h-full bg-slate-50">
+                <div class="p-4 bg-white border-b border-slate-200 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <button onclick="showScreen('dashboard')" class="text-slate-600 text-sm">◀</button>
+                    <h3 class="text-sm font-bold text-slate-900">Weekly Timetable</h3>
+                  </div>
+                  <span class="text-xs text-blue-600 font-bold">Week 42</span>
+                </div>
+
+                <!-- Days Bar -->
+                <div class="bg-white px-3 py-2 border-b border-slate-200 flex justify-between">
+                  <button class="px-2.5 py-1 text-xs font-bold rounded-lg bg-blue-600 text-white">MON</button>
+                  <button class="px-2.5 py-1 text-xs font-bold rounded-lg text-slate-600 hover:bg-slate-100">TUE</button>
+                  <button class="px-2.5 py-1 text-xs font-bold rounded-lg text-slate-600 hover:bg-slate-100">WED</button>
+                  <button class="px-2.5 py-1 text-xs font-bold rounded-lg text-slate-600 hover:bg-slate-100">THU</button>
+                  <button class="px-2.5 py-1 text-xs font-bold rounded-lg text-slate-600 hover:bg-slate-100">FRI</button>
+                  <button class="px-2.5 py-1 text-xs font-bold rounded-lg text-slate-600 hover:bg-slate-100">SAT</button>
+                </div>
+
+                <!-- Schedule List -->
+                <div class="flex-1 overflow-y-auto p-3 space-y-3">
+                  <!-- Period 1 -->
+                  <div class="bg-white p-3 rounded-xl border border-slate-200 flex gap-3 items-center">
+                    <div class="text-center pr-3 border-r border-slate-100">
+                      <span class="text-[10px] text-slate-400 block font-semibold">08:30</span>
+                      <span class="text-xs font-black text-slate-800">P1</span>
+                      <span class="text-[10px] text-slate-400 block font-semibold">09:15</span>
+                    </div>
+                    <div class="flex-1">
+                      <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-900">Grade 10-A • Mathematics</span>
+                        <span class="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold">Completed</span>
+                      </div>
+                      <p class="text-[11px] text-slate-500 mt-0.5">Room 204 • Real Numbers</p>
+                    </div>
+                  </div>
+
+                  <!-- Period 2 -->
+                  <div class="bg-blue-50/70 p-3 rounded-xl border-2 border-blue-400 flex gap-3 items-center shadow-sm">
+                    <div class="text-center pr-3 border-r border-blue-200">
+                      <span class="text-[10px] text-blue-500 block font-semibold">09:20</span>
+                      <span class="text-xs font-black text-blue-700">P2</span>
+                      <span class="text-[10px] text-blue-500 block font-semibold">10:05</span>
+                    </div>
+                    <div class="flex-1">
+                      <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-blue-900">Grade 9-B • Geometry</span>
+                        <span class="text-[9px] bg-blue-600 text-white px-1.5 py-0.5 rounded font-bold animate-pulse">Live Now</span>
+                      </div>
+                      <p class="text-[11px] text-blue-600 mt-0.5">Room 108 • Triangles Theorem</p>
+                    </div>
+                  </div>
+
+                  <!-- Recess -->
+                  <div class="bg-amber-50/60 p-2 rounded-lg border border-amber-200 text-center text-xs font-bold text-amber-800 flex items-center justify-center gap-2">
+                    <span>☕</span> Morning Break (10:05 AM - 10:30 AM)
+                  </div>
+
+                  <!-- Period 3 -->
+                  <div class="bg-white p-3 rounded-xl border border-slate-200 flex gap-3 items-center">
+                    <div class="text-center pr-3 border-r border-slate-100">
+                      <span class="text-[10px] text-slate-400 block font-semibold">10:30</span>
+                      <span class="text-xs font-black text-slate-800">P3</span>
+                      <span class="text-[10px] text-slate-400 block font-semibold">11:15</span>
+                    </div>
+                    <div class="flex-1">
+                      <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-900">Grade 11-A • Trigonometry</span>
+                        <span class="text-[9px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">Upcoming</span>
+                      </div>
+                      <p class="text-[11px] text-slate-500 mt-0.5">Room 305 • Angles & Identities</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ================= 5. HOMEWORK SCREEN ================= -->
+              <div id="screen-homework" class="screen-view screen-hidden flex flex-col h-full bg-slate-50">
+                <div class="p-4 bg-white border-b border-slate-200 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <button onclick="showScreen('dashboard')" class="text-slate-600 text-sm">◀</button>
+                    <h3 class="text-sm font-bold text-slate-900">Homework & Tasks</h3>
+                  </div>
+                  <button class="w-7 h-7 bg-blue-600 text-white rounded-lg flex items-center justify-center font-bold text-sm">+</button>
+                </div>
+
+                <!-- Tabs -->
+                <div class="bg-white px-3 py-1.5 border-b border-slate-200 flex gap-2">
+                  <button class="flex-1 py-1.5 text-xs font-bold border-b-2 border-blue-600 text-blue-600">Active (3)</button>
+                  <button class="flex-1 py-1.5 text-xs font-medium text-slate-400">Review (12)</button>
+                  <button class="flex-1 py-1.5 text-xs font-medium text-slate-400">History</button>
+                </div>
+
+                <!-- Homework Cards -->
+                <div class="flex-1 overflow-y-auto p-3 space-y-3">
+                  <!-- Homework 1 -->
+                  <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex justify-between items-start">
+                      <span class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-bold">Class 10-A • Math</span>
+                      <span class="text-[10px] text-rose-500 font-bold">Due: Tomorrow</span>
+                    </div>
+                    <h4 class="text-xs font-bold text-slate-900 mt-2">Quadratic Equations — Ex 4.2</h4>
+                    <p class="text-[11px] text-slate-500 mt-0.5 line-clamp-2">Complete problems 1 to 15 in notebook. Show step by step factorization method.</p>
+                    
+                    <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                      <span class="text-slate-500 font-medium">Submissions: <strong>28 / 35</strong></span>
+                      <span class="text-blue-600 font-bold">View Submissions →</span>
+                    </div>
+                  </div>
+
+                  <!-- Homework 2 -->
+                  <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex justify-between items-start">
+                      <span class="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded font-bold">Class 9-B • Geometry</span>
+                      <span class="text-[10px] text-slate-500 font-medium">Due: 18 Oct</span>
+                    </div>
+                    <h4 class="text-xs font-bold text-slate-900 mt-2">Theorem 6.1 Proof Assignment</h4>
+                    <p class="text-[11px] text-slate-500 mt-0.5 line-clamp-2">Draw neat figures and write formal proof of corresponding angles axiom.</p>
+                    
+                    <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                      <span class="text-slate-500 font-medium">Submissions: <strong>14 / 32</strong></span>
+                      <span class="text-blue-600 font-bold">View Submissions →</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ================= 6. MARKS ENTRY SCREEN ================= -->
+              <div id="screen-marks" class="screen-view screen-hidden flex flex-col h-full bg-slate-50">
+                <div class="p-4 bg-white border-b border-slate-200 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <button onclick="showScreen('dashboard')" class="text-slate-600 text-sm">◀</button>
+                    <h3 class="text-sm font-bold text-slate-900">Exam Marks Entry</h3>
+                  </div>
+                  <span class="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded font-bold">Mid-Term</span>
+                </div>
+
+                <!-- Exam details banner -->
+                <div class="p-3 bg-white border-b border-slate-200">
+                  <div class="text-xs font-bold text-slate-900">Class 10-A • Mathematics Paper 1</div>
+                  <div class="flex justify-between text-[11px] text-slate-500 mt-1">
+                    <span>Max Marks: <strong>100</strong></span>
+                    <span>Pass Marks: <strong>35</strong></span>
+                    <span>Students: <strong>35</strong></span>
+                  </div>
+                </div>
+
+                <!-- Marks Table Roster -->
+                <div class="flex-1 overflow-y-auto p-3 space-y-2">
+                  <!-- Row 1 -->
+                  <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <p class="text-xs font-bold text-slate-900">#01 Aarav Sharma</p>
+                      <p class="text-[10px] text-slate-400">Roll: 1001</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-[11px] text-slate-400">Marks:</span>
+                      <input type="number" value="88" class="w-14 px-2 py-1 text-center font-bold text-xs bg-slate-50 border border-slate-200 rounded-lg">
+                      <span class="text-xs text-slate-400">/ 100</span>
+                    </div>
+                  </div>
+
+                  <!-- Row 2 -->
+                  <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <p class="text-xs font-bold text-slate-900">#02 Ananya Verma</p>
+                      <p class="text-[10px] text-slate-400">Roll: 1002</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-[11px] text-slate-400">Marks:</span>
+                      <input type="number" value="94" class="w-14 px-2 py-1 text-center font-bold text-xs bg-slate-50 border border-slate-200 rounded-lg">
+                      <span class="text-xs text-slate-400">/ 100</span>
+                    </div>
+                  </div>
+
+                  <!-- Row 3 -->
+                  <div class="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center justify-between">
+                    <div>
+                      <p class="text-xs font-bold text-slate-900">#03 Dev Kumar</p>
+                      <p class="text-[10px] text-slate-400">Roll: 1003</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-[11px] text-slate-400">Marks:</span>
+                      <input type="number" value="72" class="w-14 px-2 py-1 text-center font-bold text-xs bg-slate-50 border border-slate-200 rounded-lg">
+                      <span class="text-xs text-slate-400">/ 100</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Footer save -->
+                <div class="p-3 bg-white border-t border-slate-200 flex gap-2">
+                  <button class="flex-1 py-2 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl">Save Draft</button>
+                  <button class="flex-1 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-sm">Submit to Admin</button>
+                </div>
+              </div>
+
+              <!-- ================= 7. LEAVE SCREEN ================= -->
+              <div id="screen-leave" class="screen-view screen-hidden flex flex-col h-full bg-slate-50">
+                <div class="p-4 bg-white border-b border-slate-200 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <button onclick="showScreen('dashboard')" class="text-slate-600 text-sm">◀</button>
+                    <h3 class="text-sm font-bold text-slate-900">My Leave Requests</h3>
+                  </div>
+                  <button class="text-xs bg-blue-600 text-white font-bold px-2.5 py-1 rounded-lg">Apply Leave</button>
+                </div>
+
+                <!-- Leave Balances -->
+                <div class="p-3 bg-white border-b border-slate-200">
+                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Leave Balance</span>
+                  <div class="grid grid-cols-3 gap-2 mt-2">
+                    <div class="bg-blue-50 p-2 rounded-xl text-center">
+                      <p class="text-xs font-black text-blue-700">8 Days</p>
+                      <p class="text-[9px] text-blue-500 font-medium">Casual Leave</p>
+                    </div>
+                    <div class="bg-emerald-50 p-2 rounded-xl text-center">
+                      <p class="text-xs font-black text-emerald-700">5 Days</p>
+                      <p class="text-[9px] text-emerald-500 font-medium">Medical Leave</p>
+                    </div>
+                    <div class="bg-purple-50 p-2 rounded-xl text-center">
+                      <p class="text-xs font-black text-purple-700">10 Days</p>
+                      <p class="text-[9px] text-purple-500 font-medium">Earned Leave</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Recent Applications -->
+                <div class="flex-1 overflow-y-auto p-3 space-y-3">
+                  <span class="text-[11px] font-bold text-slate-500 uppercase">Recent Requests</span>
+                  
+                  <div class="bg-white p-3 rounded-xl border border-slate-200">
+                    <div class="flex justify-between items-center">
+                      <span class="text-xs font-bold text-slate-900">Medical Leave (2 Days)</span>
+                      <span class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded font-bold">Approved</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-1">20 Oct 2026 — 21 Oct 2026</p>
+                    <p class="text-[10px] text-slate-400 mt-1">Reason: Viral fever and doctor visit.</p>
+                  </div>
+
+                  <div class="bg-white p-3 rounded-xl border border-slate-200">
+                    <div class="flex justify-between items-center">
+                      <span class="text-xs font-bold text-slate-900">Casual Leave (1 Day)</span>
+                      <span class="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded font-bold">Pending</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-1">05 Nov 2026</p>
+                    <p class="text-[10px] text-slate-400 mt-1">Reason: Personal family function.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- ================= 8. PROFILE SCREEN ================= -->
+              <div id="screen-profile" class="screen-view screen-hidden flex flex-col h-full bg-slate-50">
+                <div class="p-4 bg-white border-b border-slate-200 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <button onclick="showScreen('dashboard')" class="text-slate-600 text-sm">◀</button>
+                    <h3 class="text-sm font-bold text-slate-900">Teacher Profile</h3>
+                  </div>
+                  <span class="text-xs text-blue-600 font-bold">Edit</span>
+                </div>
+
+                <div class="p-4 flex-1 overflow-y-auto space-y-4">
+                  <!-- Profile Card -->
+                  <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center">
+                    <div class="w-16 h-16 rounded-full bg-blue-600 text-white font-bold text-xl mx-auto flex items-center justify-center shadow-md">
+                      SJ
+                    </div>
+                    <h4 class="text-sm font-bold text-slate-900 mt-2">Sarah Jenkins</h4>
+                    <p class="text-xs text-slate-500">M.Sc. Mathematics, B.Ed.</p>
+                    <div class="inline-block bg-blue-50 text-blue-700 text-[10px] font-mono font-bold px-2.5 py-1 rounded-full mt-2">
+                      EMP ID: TCH-2024-042
+                    </div>
+                  </div>
+
+                  <!-- School & Details -->
+                  <div class="bg-white rounded-2xl border border-slate-200 p-3.5 space-y-2.5 text-xs">
+                    <div class="flex justify-between py-1 border-b border-slate-100">
+                      <span class="text-slate-400">School</span>
+                      <span class="font-semibold text-slate-800">Greenwood High</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-slate-100">
+                      <span class="text-slate-400">Assigned Sections</span>
+                      <span class="font-semibold text-slate-800">10-A, 9-B, 11-A</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-slate-100">
+                      <span class="text-slate-400">Phone</span>
+                      <span class="font-semibold text-slate-800">+91 98765 43210</span>
+                    </div>
+                    <div class="flex justify-between py-1">
+                      <span class="text-slate-400">Email</span>
+                      <span class="font-semibold text-slate-800">sarah.j@greenwood.edu</span>
+                    </div>
+                  </div>
+
+                  <!-- Actions -->
+                  <div class="space-y-2">
+                    <button class="w-full py-2.5 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl text-left px-4 flex items-center justify-between">
+                      <span>🔑 Change Password</span>
+                      <span>›</span>
+                    </button>
+                    <button class="w-full py-2.5 bg-white border border-slate-200 text-slate-700 text-xs font-semibold rounded-xl text-left px-4 flex items-center justify-between">
+                      <span>📄 Uploaded Documents</span>
+                      <span>›</span>
+                    </button>
+                    <button onclick="showScreen('login')" class="w-full py-2.5 bg-rose-50 border border-rose-200 text-rose-600 text-xs font-bold rounded-xl text-center mt-2">
+                      Log Out
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div><!-- End Screen Container -->
+            
+            <!-- Home Indicator Bar -->
+            <div class="h-5 w-full flex items-center justify-center pb-1">
+              <div class="w-32 h-1 bg-slate-300 rounded-full"></div>
+            </div>
+
+          </div><!-- End Screen Glass -->
+        </div><!-- End Phone Frame -->
+      </div>
+    </div>
+
+    <!-- SECTION 2: GALLERY OF AI GENERATED SCREENS -->
+    <div id="gallery-view" class="hidden space-y-8">
+      <div class="bg-white p-6 rounded-2xl border border-slate-200">
+        <h2 class="text-xl font-bold text-slate-900 mb-2">High-Resolution UI Artwork Generated for Flutter</h2>
+        <p class="text-sm text-slate-500 mb-6">These images are ready to be directly passed to the Flutter developer as pixel-perfect visual design targets.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Screen 1 -->
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col items-center">
+            <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md mb-2">01 · Teacher Login</span>
+            <div class="w-full aspect-[9/16] rounded-xl overflow-hidden shadow-lg border border-slate-300">
+              <img src="01_login_screen.jpg" alt="Teacher Login Screen" class="w-full h-full object-cover">
+            </div>
+            <p class="text-xs text-slate-500 mt-3 text-center">School branding, Employee ID, Password toggle, Biometric option</p>
+          </div>
+
+          <!-- Screen 2 -->
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col items-center">
+            <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md mb-2">02 · Dashboard Home</span>
+            <div class="w-full aspect-[9/16] rounded-xl overflow-hidden shadow-lg border border-slate-300">
+              <img src="02_dashboard_home.jpg" alt="Teacher Dashboard Home Screen" class="w-full h-full object-cover">
+            </div>
+            <p class="text-xs text-slate-500 mt-3 text-center">Upcoming Period card, 4 Stat Metrics, Quick Action grid, Nav bar</p>
+          </div>
+
+          <!-- Screen 3 -->
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col items-center">
+            <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md mb-2">03 · Attendance Marking</span>
+            <div class="w-full aspect-[9/16] rounded-xl overflow-hidden shadow-lg border border-slate-300">
+              <img src="03_attendance_marking.jpg" alt="Attendance Marking Screen" class="w-full h-full object-cover">
+            </div>
+            <p class="text-xs text-slate-500 mt-3 text-center">Class selector, Summary pill badges, P/A/L/HD toggles, Lock button</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const screenSpecs = {
+      login: `POST /school-portal/auth/teacher-login\\nPayload: { identifier, password }\\nResponse: { token, teacher, school }\\nStorage: Flutter Secure Storage (token, schoolId)`,
+      dashboard: `GET /school-portal/teacher/dashboard\\nResponse: { stats { classesToday, students, pendingHomework, pendingMarks }, nextClass }\\nGET /school-portal/teacher/today-schedule`,
+      attendance: `GET /school-portal/teacher/attendance/today?sectionId=\\nPOST /school-portal/teacher/attendance\\nPayload: { sectionId, date, records: [{ studentId, status, note }] }\\nStatus: PRESENT | ABSENT | LATE | HALF_DAY`,
+      timetable: `GET /school-portal/teacher/timetable\\nGET /school-portal/teacher/timetable/day/:day\\nDay: MON | TUE | WED | THU | FRI | SAT`,
+      homework: `GET /school-portal/teacher/homework?status=&page=&limit=\\nPOST /school-portal/teacher/homework\\nPayload: { sectionId, subjectId, title, description, dueDate }`,
+      marks: `GET /school-portal/teacher/exams/:examId/marks?classId=&sectionId=&subjectId=\\nPOST /school-portal/teacher/exams/:examId/marks\\nHeader: Idempotency-Key`,
+      leave: `GET /school-portal/teacher/leaves?status=&page=&limit=\\nPOST /school-portal/teacher/leaves\\nPayload: { leaveType, startDate, endDate, reason }`,
+      profile: `GET /school-portal/teacher/profile\\nPATCH /school-portal/teacher/profile (multipart)\\nPATCH /school-portal/teacher/change-password`
+    };
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen-view').forEach(el => {
+        el.classList.remove('screen-active');
+        el.classList.add('screen-hidden');
+      });
+      const activeEl = document.getElementById('screen-' + screenId);
+      if (activeEl) {
+        activeEl.classList.remove('screen-hidden');
+        activeEl.classList.add('screen-active');
+      }
+
+      // Update Nav Buttons
+      document.querySelectorAll('.screen-btn').forEach(btn => {
+        if (btn.getAttribute('data-target') === screenId) {
+          btn.className = "screen-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between bg-blue-50 text-blue-700 border border-blue-200";
+        } else {
+          btn.className = "screen-btn w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium transition flex items-center justify-between text-slate-700 hover:bg-slate-50";
+        }
+      });
+
+      // Update spec code
+      if (screenSpecs[screenId]) {
+        document.getElementById('spec-content').innerHTML = screenSpecs[screenId].replace(/\\n/g, '<br>');
+      }
+    }
+
+    function switchView(viewName) {
+      const interactiveView = document.getElementById('interactive-view');
+      const galleryView = document.getElementById('gallery-view');
+      const btnInteractive = document.getElementById('btn-view-interactive');
+      const btnGallery = document.getElementById('btn-view-gallery');
+
+      if (viewName === 'interactive') {
+        interactiveView.classList.remove('hidden');
+        galleryView.classList.add('hidden');
+        btnInteractive.className = "px-4 py-2 text-sm font-semibold rounded-xl bg-blue-600 text-white shadow-sm transition";
+        btnGallery.className = "px-4 py-2 text-sm font-semibold rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
+      } else {
+        interactiveView.classList.add('hidden');
+        galleryView.classList.remove('hidden');
+        btnInteractive.className = "px-4 py-2 text-sm font-semibold rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition";
+        btnGallery.className = "px-4 py-2 text-sm font-semibold rounded-xl bg-blue-600 text-white shadow-sm transition";
+      }
+    }
+  </script>
+</body>
+</html>
