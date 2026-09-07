@@ -50,3 +50,16 @@ export function studentId(req) {
   }
   return String(raw);
 }
+
+/**
+ * Parent identity from the verified JWT (never from the request body/query).
+ * The parent token carries both `parentId` and `sub` set to Parent._id.
+ * Throws fail-closed when the session has no usable parent context.
+ */
+export function parentId(req) {
+  const raw = req.user?.parentId || req.user?.sub;
+  if (!raw || !mongoose.isValidObjectId(String(raw))) {
+    throw new AppError('Parent context is missing or invalid on this session', 401);
+  }
+  return String(raw);
+}

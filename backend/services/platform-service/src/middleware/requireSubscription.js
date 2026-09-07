@@ -41,6 +41,11 @@ const EXEMPT_PATHS = [
   '/school-portal/student/me',
   '/school-portal/student/profile',
   '/school-portal/student/change-password',
+  // Parent APK self-service — same rationale.
+  '/school-portal/parent/auth',
+  '/school-portal/parent/me',
+  '/school-portal/parent/profile',
+  '/school-portal/parent/change-password',
 ];
 
 function isExemptPath(path) {

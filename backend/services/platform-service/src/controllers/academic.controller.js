@@ -428,3 +428,44 @@ export async function setStudentPassword(req, res, next) {
     next(error);
   }
 }
+
+export async function createParent(req, res, next) {
+  try {
+    const data = await academicService.createParent(schoolId(req), req.body || {});
+    res.status(201).json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function setParentPassword(req, res, next) {
+  try {
+    const result = await academicService.setParentPassword(
+      schoolId(req),
+      req.params.id,
+      req.body?.newPassword,
+      req.body?.loginEmail
+    );
+    res.json({ success: true, ...result });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function linkParentChild(req, res, next) {
+  try {
+    const data = await academicService.linkChild(schoolId(req), req.params.id, req.body || {});
+    res.status(201).json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function unlinkParentChild(req, res, next) {
+  try {
+    const result = await academicService.unlinkChild(schoolId(req), req.params.id, req.params.studentId);
+    res.json({ success: true, ...result });
+  } catch (error) {
+    next(error);
+  }
+}

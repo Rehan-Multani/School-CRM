@@ -8,6 +8,7 @@ import { GRACE_PERIOD_DAYS, toDate } from './schoolSubscription.service.js';
 import { AppError } from '../../../shared/AppError.js';
 import { School } from '../models/School.js';
 import { planEndDate } from '../utils/subscription.utils.js';
+import { parentFeePaymentService } from './parentFeePayment.service.js';
 
 /**
  * Onboarding plan selection (school.service.js initiateSubscriptionCheckout)
@@ -366,6 +367,24 @@ class RazorpayWebhookService {
       const subEntity = body?.payload?.subscription?.entity;
       const paymentEntity = body?.payload?.payment?.entity;
       const invoiceEntity = body?.payload?.invoice?.entity;
+      const orderEntity = body?.payload?.order?.entity;
+
+      // Parent APK school-fee payments — routed by order note `type: 'SCHOOL_FEE'`,
+      // independent of the subscription flow below. Idempotent inside the service.
+      if (
+        (eventName === 'payment.captured' && paymentEntity?.notes?.type === 'SCHOOL_FEE') ||
+        (eventName === 'order.paid' && (paymentEntity?.notes?.type === 'SCHOOL_FEE' || orderEntity?.notes?.type === 'SCHOOL_FEE'))
+      ) {
+        const feeEntity = paymentEntity?.notes?.type === 'SCHOOL_FEE' ? paymentEntity : orderEntity;
+        const res = await parentFeePaymentService.reconcileFromRazorpay(feeEntity);
+        console.log(`[fee-payment] webhook event="${eventName}" reconcile → ${JSON.stringify(res)}`);
+        webhookEventDoc.processed = true;
+        webhookEventDoc.processedAt = new Date();
+        webhookEventDoc.failed = false;
+        webhookEventDoc.failureReason = '';
+        await webhookEventDoc.save();
+        return;
+      }
 
       const razorpaySubscriptionId = subEntity?.id || paymentEntity?.subscription_id || invoiceEntity?.subscription_id;
       const sub = razorpaySubscriptionId ? await findSubscriptionByRazorpayId(razorpaySubscriptionId) : null;

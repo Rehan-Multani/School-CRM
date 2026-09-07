@@ -38,6 +38,8 @@ const feeInvoiceSchema = new mongoose.Schema(
       default: 'PENDING',
     },
     notes: { type: String, default: '', trim: true },
+    // Last Razorpay order id created for this invoice by the Parent APK "Pay Now".
+    lastPaymentOrderId: { type: String, default: '', trim: true },
   },
   { timestamps: true }
 );

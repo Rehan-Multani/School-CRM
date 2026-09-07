@@ -1,7 +1,8 @@
 import mongoose from 'mongoose';
 
-export const FEE_PAYMENT_METHODS = ['CASH', 'UPI', 'CARD', 'NET_BANKING', 'CHEQUE', 'DD', 'OTHER'];
+export const FEE_PAYMENT_METHODS = ['CASH', 'UPI', 'CARD', 'NET_BANKING', 'CHEQUE', 'DD', 'ONLINE', 'OTHER'];
 export const FEE_PAYMENT_STATUSES = ['COMPLETED', 'REFUNDED', 'CANCELLED'];
+export const FEE_PAYMENT_GATEWAYS = ['MANUAL', 'RAZORPAY'];
 
 const feePaymentSchema = new mongoose.Schema(
   {
@@ -25,6 +26,14 @@ const feePaymentSchema = new mongoose.Schema(
       default: 'COMPLETED',
     },
     collectedBy: { type: String, default: '', trim: true },
+
+    // ---- Online payment (Parent APK "Pay Now"); MANUAL = accountant-recorded ----
+    gateway: { type: String, enum: FEE_PAYMENT_GATEWAYS, default: 'MANUAL' },
+    gatewayOrderId: { type: String, default: '', trim: true },
+    gatewayPaymentId: { type: String, default: '', trim: true },
+    gatewaySignature: { type: String, default: '', trim: true, select: false },
+    paidByParentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Parent', default: null },
+    idempotencyKey: { type: String, default: null },
   },
   { timestamps: true }
 );
@@ -33,6 +42,15 @@ feePaymentSchema.index({ schoolId: 1, receiptNumber: 1 }, { unique: true });
 feePaymentSchema.index({ schoolId: 1, invoiceId: 1 });
 feePaymentSchema.index({ schoolId: 1, studentId: 1 });
 feePaymentSchema.index({ schoolId: 1, paymentDate: -1 });
+// Webhook idempotency: one FeePayment per captured gateway payment.
+feePaymentSchema.index(
+  { gatewayPaymentId: 1 },
+  { unique: true, partialFilterExpression: { gatewayPaymentId: { $type: 'string', $gt: '' } } }
+);
+feePaymentSchema.index(
+  { idempotencyKey: 1 },
+  { unique: true, partialFilterExpression: { idempotencyKey: { $type: 'string' } } }
+);
 
 feePaymentSchema.methods.toPublicJSON = function toPublicJSON() {
   return {
@@ -48,6 +66,9 @@ feePaymentSchema.methods.toPublicJSON = function toPublicJSON() {
     remarks: this.remarks,
     status: this.status,
     collectedBy: this.collectedBy,
+    gateway: this.gateway || 'MANUAL',
+    gatewayOrderId: this.gatewayOrderId || '',
+    gatewayPaymentId: this.gatewayPaymentId || '',
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

@@ -3,6 +3,7 @@ import { loginRateLimiter } from '../middleware/loginRateLimiter.js';
 import { validateObjectId } from '../middleware/validateObjectId.js';
 import teacherApkRoutes from './teacher.routes.js';
 import studentApkRoutes from './student.routes.js';
+import parentApkRoutes from './parent.routes.js';
 import {
   getSafePickupSettings,
   updateSafePickupSchool,
@@ -153,6 +154,10 @@ import {
   deleteTeacher,
   setTeacherPassword,
   setStudentPassword,
+  createParent,
+  setParentPassword,
+  linkParentChild,
+  unlinkParentChild,
 } from '../controllers/academic.controller.js';
 import {
   createStudent,
@@ -686,6 +691,12 @@ router.patch('/school-portal/students/:id/status', requirePrincipal, updateStude
 router.post('/school-portal/academic/students/:id/set-password', requirePrincipal, validateObjectId('id'), setStudentPassword);
 router.delete('/school-portal/students/:id', requirePrincipal, deleteStudent);
 
+// Parent APK account management (principal)
+router.post('/school-portal/parents', requirePrincipal, createParent);
+router.post('/school-portal/parents/:id/children', requirePrincipal, validateObjectId('id'), linkParentChild);
+router.delete('/school-portal/parents/:id/children/:studentId', requirePrincipal, validateObjectId('id'), validateObjectId('studentId'), unlinkParentChild);
+router.post('/school-portal/academic/parents/:id/set-password', requirePrincipal, validateObjectId('id'), setParentPassword);
+
 // School User Management Routes (Teachers, Librarians, HR, Accountants, Transport)
 router.get('/school-portal/users', requirePrincipal, listUsers);
 router.post('/school-portal/users', requirePrincipal, uploadSchoolUserFiles, convertSchoolUserImages, createUser);
@@ -1136,6 +1147,9 @@ router.use(teacherApkRoutes);
 
 // ===================== Student APK (see student.routes.js) =====================
 router.use(studentApkRoutes);
+
+// ===================== Parent APK (see parent.routes.js) =====================
+router.use(parentApkRoutes);
 
 router.get('/', getServiceInfo);
 router.use(notFound);

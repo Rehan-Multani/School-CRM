@@ -163,6 +163,26 @@ async function buildSchool(models, name, slug) {
     { secret: env.jwtSecret, expiresIn: '1h' }
   );
 
+  // ---- Parent APK fixtures: one Parent linked to `student` (not studentNoGuardian) ----
+  const { Parent, ParentStudent } = models;
+  const parent = await Parent.create({
+    schoolId: school._id,
+    firstName: 'Pat',
+    lastName: 'Parent',
+    email: `parent@${slug}.edu`,
+    phone: `9876${slug === 'schoola' ? '111111' : '222222'}`,
+    status: 'ACTIVE',
+    passwordHash: await bcrypt.hash('Parent@1', 10),
+    account: { createLoginAccount: true, loginEmail: `parent@${slug}.edu`, username: 'parent', accountStatus: 'ACTIVE' },
+  });
+  await ParentStudent.create({
+    schoolId: school._id, parentId: parent._id, studentId: student._id, relationship: 'FATHER', isPrimary: true, status: 'ACTIVE',
+  });
+  const parentToken = signAccessToken(
+    { sub: parent._id.toString(), userId: parent._id.toString(), parentId: parent._id.toString(), schoolId: school._id.toString(), role: 'PARENT', name: 'Pat Parent', phone: parent.phone },
+    { secret: env.jwtSecret, expiresIn: '1h' }
+  );
+
   return {
     schoolId: school._id.toString(),
     yearId: year._id.toString(),
@@ -176,6 +196,11 @@ async function buildSchool(models, name, slug) {
     studentToken,
     studentLoginEmail: `student@${slug}.edu`,
     studentPassword: 'Student@1',
+    parentToken,
+    parentId: parent._id.toString(),
+    parentLoginEmail: `parent@${slug}.edu`,
+    parentPhone: parent.phone,
+    parentPassword: 'Parent@1',
     homeworkId: homework._id.toString(),
     examId: exam._id.toString(),
     examDraftId: examDraft._id.toString(),
@@ -206,6 +231,8 @@ export async function seed() {
     FeeInvoice: (await import('../../src/models/FeeInvoice.js')).FeeInvoice,
     Announcement: (await import('../../src/models/Communication.js')).Announcement,
     StudentAttendance: (await import('../../src/models/StudentAttendance.js')).StudentAttendance,
+    Parent: (await import('../../src/models/Parent.js')).Parent,
+    ParentStudent: (await import('../../src/models/ParentStudent.js')).ParentStudent,
   };
   const a = await buildSchool(models, 'School A', 'schoola');
   const b = await buildSchool(models, 'School B', 'schoolb');

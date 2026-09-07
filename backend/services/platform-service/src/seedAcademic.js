@@ -14,9 +14,12 @@ import { Exam } from './models/Exam.js';
 import { ExamResult } from './models/ExamResult.js';
 import { FeeInvoice } from './models/FeeInvoice.js';
 import { Announcement } from './models/Communication.js';
+import { Parent } from './models/Parent.js';
+import { ParentStudent } from './models/ParentStudent.js';
 
 const TEACHER_LOGIN_PASSWORD = 'Teacher@123';
 const STUDENT_LOGIN_PASSWORD = 'Student@123';
+const PARENT_LOGIN_PASSWORD = 'Parent@123';
 
 const DEFAULT_TEACHERS = [
   { employeeId: 'TCH-001', name: 'Rahul Sharma', email: 'rahul.sharma@school.local', department: 'Mathematics' },
@@ -117,6 +120,76 @@ export async function seedAcademicTeachers() {
 
   await ensureTeacherApkSampleData(schools);
   await ensureStudentApkData(schools);
+  await ensureParentApkData(schools);
+}
+
+/**
+ * Give every school one Parent APK login (parent@<school-domain> / Parent@123)
+ * linked (ParentStudent) to that school's first Student — so the Parent APK
+ * renders real child data (homework/attendance/fees/results) on first run.
+ * Every write is guarded; re-running boot is a no-op.
+ */
+async function ensureParentApkData(schools) {
+  const passwordHash = await bcrypt.hash(PARENT_LOGIN_PASSWORD, 10);
+  let provisioned = 0;
+
+  for (const school of schools) {
+    const student = await Student.findOne({ schoolId: school._id }).sort({ createdAt: 1 });
+    if (!student) continue;
+
+    const loginEmail = `parent@${schoolLoginDomain(school)}`;
+    let parent = await Parent.findOne({ schoolId: school._id, 'account.loginEmail': loginEmail }).select('+passwordHash');
+    if (!parent) {
+      parent = await Parent.create({
+        schoolId: school._id,
+        firstName: student.parentName ? student.parentName.split(' ')[0] : 'Parent',
+        lastName: student.parentName && student.parentName.split(' ').length > 1 ? student.parentName.split(' ').slice(1).join(' ') : '',
+        email: loginEmail,
+        phone: student.parentPhone || '',
+        status: 'ACTIVE',
+        account: { createLoginAccount: true, loginEmail, username: 'parent', accountStatus: 'ACTIVE' },
+      });
+      parent = await Parent.findById(parent._id).select('+passwordHash');
+    }
+    if (!parent.passwordHash || parent.account?.accountStatus !== 'ACTIVE') {
+      if (!parent.passwordHash) parent.passwordHash = passwordHash;
+      parent.status = 'ACTIVE';
+      parent.mustResetPassword = false;
+      parent.account = {
+        ...(parent.account || {}),
+        createLoginAccount: true,
+        loginEmail,
+        username: parent.account?.username || 'parent',
+        accountStatus: 'ACTIVE',
+      };
+      parent.markModified('account');
+      await parent.save();
+      provisioned += 1;
+    }
+
+    // Link the parent to every student of this school (idempotent).
+    const students = await Student.find({ schoolId: school._id }).select('_id').lean();
+    for (const s of students) {
+      await ParentStudent.updateOne(
+        { parentId: parent._id, studentId: s._id },
+        {
+          $setOnInsert: {
+            schoolId: school._id,
+            parentId: parent._id,
+            studentId: s._id,
+            relationship: 'GUARDIAN',
+            isPrimary: String(s._id) === String(student._id),
+            status: 'ACTIVE',
+          },
+        },
+        { upsert: true }
+      );
+    }
+  }
+
+  if (provisioned > 0) {
+    console.log(`Parent APK logins provisioned/updated: ${provisioned} (password: ${PARENT_LOGIN_PASSWORD})`);
+  }
 }
 
 /**

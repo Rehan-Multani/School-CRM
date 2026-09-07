@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import { AppError } from '../../../shared/AppError.js';
 import { academicRepository } from '../repositories/academic.repository.js';
 import { Student } from '../models/Student.js';
+import { Parent } from '../models/Parent.js';
+import { ParentStudent, PARENT_RELATIONSHIPS } from '../models/ParentStudent.js';
 import {
   deleteMulterFiles,
   deleteUploadedFile,
@@ -1124,6 +1126,94 @@ export class AcademicService {
     student.markModified('account');
     await student.save();
     return { message: 'Student login password set', loginEmail: student.account.loginEmail };
+  }
+
+  /* --------------------------- Parent APK provisioning --------------------------- */
+
+  async createParent(schoolId, body = {}) {
+    const firstName = String(body.firstName || '').trim();
+    if (!firstName) throw new AppError('Parent firstName is required', 400);
+    const phone = String(body.phone || '').trim();
+    const email = String(body.email || '').trim().toLowerCase();
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new AppError('email must be a valid email address', 400);
+    }
+    if (!phone && !email) throw new AppError('A phone or email is required for the parent login', 400);
+
+    const parent = await Parent.create({
+      schoolId,
+      firstName,
+      lastName: String(body.lastName || '').trim(),
+      email,
+      phone,
+      address: String(body.address || '').trim(),
+      status: 'ACTIVE',
+      account: { createLoginAccount: false, loginEmail: email, accountStatus: 'PENDING' },
+    });
+
+    // Optional inline child links
+    const links = Array.isArray(body.children) ? body.children : [];
+    for (const link of links) {
+      await this.linkChild(schoolId, parent._id, link).catch(() => {});
+    }
+    return parent.toPublicJSON();
+  }
+
+  async setParentPassword(schoolId, id, newPassword, loginEmail) {
+    const raw = typeof newPassword === 'string' ? newPassword.trim() : '';
+    if (raw.length < 8) throw new AppError('Password must be at least 8 characters', 400);
+    const email = typeof loginEmail === 'string' ? loginEmail.trim().toLowerCase() : '';
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new AppError('loginEmail must be a valid email address', 400);
+    }
+    const parent = await Parent.findOne({ _id: id, schoolId }).select('+passwordHash');
+    if (!parent) throw new AppError('Parent not found', 404);
+    parent.passwordHash = await bcrypt.hash(raw, 10);
+    parent.mustResetPassword = false;
+    if (!parent.account) parent.account = {};
+    parent.account.createLoginAccount = true;
+    if (email) parent.account.loginEmail = email;
+    else if (!parent.account.loginEmail) parent.account.loginEmail = parent.email || '';
+    parent.account.accountStatus = 'ACTIVE';
+    parent.markModified('account');
+    await parent.save();
+    return { message: 'Parent login password set', loginEmail: parent.account.loginEmail };
+  }
+
+  async linkChild(schoolId, parentId, { studentId, relationship, isPrimary } = {}) {
+    if (!studentId || !mongoose.isValidObjectId(String(studentId))) {
+      throw new AppError('A valid studentId is required', 400);
+    }
+    const [parent, student] = await Promise.all([
+      Parent.findOne({ _id: parentId, schoolId }).select('_id').lean(),
+      Student.findOne({ _id: studentId, schoolId }).select('_id').lean(),
+    ]);
+    if (!parent) throw new AppError('Parent not found', 404);
+    if (!student) throw new AppError('Student not found in this school', 404);
+
+    const rel = String(relationship || 'GUARDIAN').toUpperCase();
+    const link = await ParentStudent.findOneAndUpdate(
+      { parentId, studentId },
+      {
+        $set: {
+          relationship: PARENT_RELATIONSHIPS.includes(rel) ? rel : 'GUARDIAN',
+          isPrimary: Boolean(isPrimary),
+          status: 'ACTIVE',
+        },
+        $setOnInsert: { schoolId, parentId, studentId },
+      },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+    return link.toPublicJSON();
+  }
+
+  async unlinkChild(schoolId, parentId, studentId) {
+    const res = await ParentStudent.updateOne(
+      { schoolId, parentId, studentId },
+      { $set: { status: 'INACTIVE' } }
+    );
+    if (!res.matchedCount) throw new AppError('Link not found', 404);
+    return { message: 'Child unlinked' };
   }
 
   async deleteTeacher(schoolId, id) {
