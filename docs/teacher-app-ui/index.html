@@ -154,46 +154,84 @@
             <!-- SCREENS CONTAINER -->
             <div class="flex-1 overflow-y-auto relative flex flex-col">
 
-              <!-- ================= 1. LOGIN SCREEN ================= -->
-              <div id="screen-login" class="screen-view screen-active flex flex-col h-full p-6 justify-center">
-                <div class="text-center mb-8">
-                  <div class="w-16 h-16 bg-blue-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-blue-500/30 text-white text-3xl font-bold mb-3">
-                    🏫
+              <!-- ================= 1. LOGIN SCREEN (MODERN 4-ROLE) ================= -->
+              <div id="screen-login" class="screen-view screen-active flex flex-col h-full p-5 justify-between bg-slate-900 text-white relative overflow-hidden">
+                <!-- Background ambient glow -->
+                <div class="absolute -top-20 -left-20 w-52 h-52 bg-blue-600/30 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-20 -right-20 w-52 h-52 bg-indigo-600/30 rounded-full blur-3xl pointer-events-none"></div>
+
+                <!-- Top Logo & Title -->
+                <div class="text-center pt-2 relative z-10">
+                  <div class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-blue-500/40 text-white text-2xl font-bold mb-2">
+                    🎓
                   </div>
-                  <h2 class="text-xl font-black text-slate-900">GREENWOOD ACADEMY</h2>
-                  <p class="text-xs text-slate-500 font-medium tracking-wide">Teacher Management Portal</p>
+                  <h2 class="text-lg font-black tracking-tight text-white">EDUNEXUS CRM</h2>
+                  <p class="text-[11px] text-slate-400 font-medium">Unified Campus Portal</p>
                 </div>
 
-                <div class="space-y-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                <!-- 4-User Role Segmented Pill Switcher -->
+                <div class="relative z-10 my-2">
+                  <div class="bg-slate-800/80 backdrop-blur-md p-1 rounded-2xl border border-slate-700/60 grid grid-cols-4 gap-1">
+                    <button onclick="setLoginRole('student')" id="role-btn-student" class="py-2 text-[10px] font-bold rounded-xl text-slate-400 hover:text-white transition">
+                      Student
+                    </button>
+                    <button onclick="setLoginRole('teacher')" id="role-btn-teacher" class="py-2 text-[10px] font-bold rounded-xl bg-blue-600 text-white shadow-md shadow-blue-600/40 transition">
+                      Teacher
+                    </button>
+                    <button onclick="setLoginRole('parent')" id="role-btn-parent" class="py-2 text-[10px] font-bold rounded-xl text-slate-400 hover:text-white transition">
+                      Parent
+                    </button>
+                    <button onclick="setLoginRole('transport')" id="role-btn-transport" class="py-2 text-[10px] font-bold rounded-xl text-slate-400 hover:text-white transition">
+                      Transport
+                    </button>
+                  </div>
+                  <p id="role-description" class="text-center text-[10px] text-blue-400 mt-1.5 font-medium">Mark attendance, homework & exam marks</p>
+                </div>
+
+                <!-- Frosted Glass Form Card -->
+                <div class="space-y-3 bg-slate-800/60 backdrop-blur-xl p-4 rounded-2xl border border-slate-700/70 shadow-xl relative z-10">
                   <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Teacher ID / Email</label>
-                    <input type="text" value="teacher@greenwood.edu" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500">
+                    <label id="input-label-id" class="block text-[11px] font-semibold text-slate-300 mb-1">Teacher ID / Email</label>
+                    <div class="relative">
+                      <span id="input-icon-id" class="absolute left-3 top-2.5 text-xs text-slate-400">👤</span>
+                      <input id="input-field-id" type="text" value="teacher@greenwood.edu" class="w-full pl-8 pr-3 py-2 text-xs bg-slate-900/80 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-blue-500">
+                    </div>
                   </div>
                   <div>
                     <div class="flex justify-between items-center mb-1">
-                      <label class="text-xs font-semibold text-slate-600">Password</label>
-                      <span class="text-xs text-blue-600 font-medium">Forgot?</span>
+                      <label class="text-[11px] font-semibold text-slate-300">Password</label>
+                      <span class="text-[10px] text-blue-400 font-medium cursor-pointer">Forgot?</span>
                     </div>
-                    <input type="password" value="••••••••••••" class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-blue-500">
+                    <div class="relative">
+                      <span class="absolute left-3 top-2.5 text-xs text-slate-400">🔒</span>
+                      <input type="password" value="••••••••••••" class="w-full pl-8 pr-8 py-2 text-xs bg-slate-900/80 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-blue-500">
+                      <span class="absolute right-3 top-2.5 text-xs text-slate-400 cursor-pointer">👁️</span>
+                    </div>
                   </div>
                   
-                  <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" checked class="rounded text-blue-600">
+                  <div class="flex items-center justify-between text-[11px] text-slate-400 pt-0.5">
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                      <input type="checkbox" checked class="rounded bg-slate-900 border-slate-700 text-blue-600">
                       <span>Remember Me</span>
                     </label>
                   </div>
 
-                  <button onclick="showScreen('dashboard')" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-xl shadow-md shadow-blue-600/30 transition">
-                    Log In to Portal
+                  <button onclick="showScreen('dashboard')" class="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-600/40 transition">
+                    Sign In to Portal
                   </button>
+
+                  <div class="pt-2 border-t border-slate-700/50 flex justify-between items-center text-[10px] text-slate-400">
+                    <button class="flex items-center gap-1 hover:text-white">
+                      <span>📷</span> Scan School QR
+                    </button>
+                    <button class="flex items-center gap-1 hover:text-white">
+                      <span>👆</span> Face ID / Touch ID
+                    </button>
+                  </div>
                 </div>
 
-                <div class="mt-8 text-center">
-                  <button class="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 bg-white px-4 py-2 rounded-full border border-slate-200 shadow-sm">
-                    <span>👆</span> Use Biometric Login
-                  </button>
-                  <p class="text-[10px] text-slate-400 mt-4">Powered by School CRM • v2.4</p>
+                <div class="text-center relative z-10 pb-1">
+                  <p class="text-[10px] text-slate-500">School CRM Multi-Tenant Platform • v2.4</p>
                 </div>
               </div>
 
@@ -762,10 +800,41 @@
         <h2 class="text-xl font-bold text-slate-900 mb-2">High-Resolution UI Artwork Generated for Flutter</h2>
         <p class="text-sm text-slate-500 mb-6">These images are ready to be directly passed to the Flutter developer as pixel-perfect visual design targets.</p>
 
+        <!-- Modern 4-Role Login Feature Highlights -->
+        <div class="mb-8 p-6 bg-gradient-to-br from-slate-900 to-indigo-950 rounded-2xl text-white border border-slate-700">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">NEW 2026 UI</span>
+            <span class="text-xs text-indigo-300 font-semibold">Unified 4-Role Login Design</span>
+          </div>
+          <h3 class="text-lg font-bold">Modern Glassmorphic 4-User Login System</h3>
+          <p class="text-xs text-slate-300 mt-1 max-w-2xl">Single Android/iOS entry point for Student, Teacher, Parent, and Transport drivers with dynamic input fields, biometric auth, and school QR scan.</p>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <!-- Modern Dark -->
+            <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 flex flex-col items-center">
+              <span class="text-xs font-bold text-blue-400 bg-blue-950/60 px-2.5 py-1 rounded-md mb-3">Option A: Dark Glassmorphic Theme</span>
+              <div class="w-full max-w-[280px] aspect-[9/16] rounded-xl overflow-hidden shadow-2xl border border-slate-600">
+                <img src="01_modern_login_dark.jpg" alt="Modern Dark Login Screen" class="w-full h-full object-cover">
+              </div>
+              <p class="text-xs text-slate-400 mt-3 text-center">Glowing segmented 4-role switcher, frosted glass card, neon gradient CTA</p>
+            </div>
+
+            <!-- Modern Light -->
+            <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 flex flex-col items-center">
+              <span class="text-xs font-bold text-cyan-300 bg-cyan-950/60 px-2.5 py-1 rounded-md mb-3">Option B: Minimalist Clean Light Theme</span>
+              <div class="w-full max-w-[280px] aspect-[9/16] rounded-xl overflow-hidden shadow-2xl border border-slate-600">
+                <img src="01_modern_login_light.jpg" alt="Modern Light Login Screen" class="w-full h-full object-cover">
+              </div>
+              <p class="text-xs text-slate-400 mt-3 text-center">Apple/Linear aesthetic, soft drop-shadow, high-contrast cobalt blue button</p>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="text-base font-bold text-slate-800 mb-4">Teacher Portal Flow Screens</h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <!-- Screen 1 -->
           <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col items-center">
-            <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md mb-2">01 · Teacher Login</span>
+            <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md mb-2">01 · Classic Teacher Login</span>
             <div class="w-full aspect-[9/16] rounded-xl overflow-hidden shadow-lg border border-slate-300">
               <img src="01_login_screen.jpg" alt="Teacher Login Screen" class="w-full h-full object-cover">
             </div>
@@ -830,6 +899,45 @@
       // Update spec code
       if (screenSpecs[screenId]) {
         document.getElementById('spec-content').innerHTML = screenSpecs[screenId].replace(/\\n/g, '<br>');
+      }
+    }
+
+      function setLoginRole(role) {
+      const roles = ['student', 'teacher', 'parent', 'transport'];
+      roles.forEach(r => {
+        const btn = document.getElementById('role-btn-' + r);
+        if (r === role) {
+          btn.className = "py-2 text-[10px] font-bold rounded-xl bg-blue-600 text-white shadow-md shadow-blue-600/40 transition";
+        } else {
+          btn.className = "py-2 text-[10px] font-bold rounded-xl text-slate-400 hover:text-white transition";
+        }
+      });
+
+      const label = document.getElementById('input-label-id');
+      const input = document.getElementById('input-field-id');
+      const icon = document.getElementById('input-icon-id');
+      const desc = document.getElementById('role-description');
+
+      if (role === 'student') {
+        label.textContent = "Admission No / Student ID";
+        input.value = "ADM-2024-8841";
+        icon.textContent = "🎒";
+        desc.textContent = "View homework, attendance, timetable & results";
+      } else if (role === 'teacher') {
+        label.textContent = "Teacher ID / Employee Email";
+        input.value = "teacher@greenwood.edu";
+        icon.textContent = "👤";
+        desc.textContent = "Mark attendance, manage homework & enter exam marks";
+      } else if (role === 'parent') {
+        label.textContent = "Registered Mobile / Parent ID";
+        input.value = "+91 98765 43210";
+        icon.textContent = "👨‍👩‍👧";
+        desc.textContent = "Fee dues, bus live tracking & child progress reports";
+      } else if (role === 'transport') {
+        label.textContent = "Driver ID / Route Code";
+        input.value = "BUS-RT-104";
+        icon.textContent = "🚌";
+        desc.textContent = "GPS route trip tracking, student boarding checklist";
       }
     }
 

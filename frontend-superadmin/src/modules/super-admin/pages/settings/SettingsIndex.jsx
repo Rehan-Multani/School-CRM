@@ -3,17 +3,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button, Badge, cn } from '../../components/ui/Button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/Tabs';
 import { useSuperAdminAuth } from '../../context/SuperAdminAuthContext';
+import { platformAppConfigApi } from '../../../../shared/api/client';
 import {
   AlertCircle,
   Camera,
   Check,
   Eye,
   EyeOff,
+  Link2,
   Loader2,
   Lock,
   Mail,
   Save,
   Shield,
+  Smartphone,
   UserRound,
 } from 'lucide-react';
 
@@ -100,11 +103,73 @@ export default function SettingsIndex() {
 
   const strength = passwordStrength(newPassword);
 
+  // Mobile app links shown on the public landing site.
+  const [appConfig, setAppConfig] = useState({ playStoreUrl: '', appStoreUrl: '', apkUrl: '' });
+  const [appConfigUpdatedAt, setAppConfigUpdatedAt] = useState(null);
+  const [loadingAppConfig, setLoadingAppConfig] = useState(true);
+  const [savingAppConfig, setSavingAppConfig] = useState(false);
+  const [appConfigSaved, setAppConfigSaved] = useState(false);
+  const [appConfigError, setAppConfigError] = useState('');
+
   useEffect(() => {
     if (!admin) return;
     setName(admin.name || 'Super Admin');
     setAvatar(admin.avatar || DEFAULT_AVATAR);
   }, [admin]);
+
+  useEffect(() => {
+    let alive = true;
+    platformAppConfigApi
+      .get()
+      .then((result) => {
+        if (!alive) return;
+        setAppConfig({
+          playStoreUrl: result.data?.playStoreUrl || '',
+          appStoreUrl: result.data?.appStoreUrl || '',
+          apkUrl: result.data?.apkUrl || '',
+        });
+        setAppConfigUpdatedAt(result.data?.updatedAt || null);
+      })
+      .catch((err) => {
+        if (!alive) return;
+        setAppConfigError(err.response?.data?.message || err.message || 'Unable to load mobile app links.');
+      })
+      .finally(() => {
+        if (alive) setLoadingAppConfig(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const handleSaveAppConfig = async (event) => {
+    event.preventDefault();
+    setAppConfigError('');
+    setAppConfigSaved(false);
+    setSavingAppConfig(true);
+    try {
+      const result = await platformAppConfigApi.update({
+        playStoreUrl: appConfig.playStoreUrl.trim(),
+        appStoreUrl: appConfig.appStoreUrl.trim(),
+        apkUrl: appConfig.apkUrl.trim(),
+      });
+      setAppConfig({
+        playStoreUrl: result.data?.playStoreUrl || '',
+        appStoreUrl: result.data?.appStoreUrl || '',
+        apkUrl: result.data?.apkUrl || '',
+      });
+      setAppConfigUpdatedAt(result.data?.updatedAt || new Date().toISOString());
+      setAppConfigSaved(true);
+      setTimeout(() => setAppConfigSaved(false), 2200);
+    } catch (err) {
+      setAppConfigError(err.response?.data?.message || err.message || 'Unable to save mobile app links.');
+    } finally {
+      setSavingAppConfig(false);
+    }
+  };
+
+  const updateAppConfigField = (key) => (event) =>
+    setAppConfig((prev) => ({ ...prev, [key]: event.target.value }));
 
   const handleLogoChange = (event) => {
     const file = event.target.files?.[0];
@@ -189,6 +254,10 @@ export default function SettingsIndex() {
           <TabsTrigger value="security" className={tabTriggerClass}>
             <Shield className="h-4 w-4" />
             Security
+          </TabsTrigger>
+          <TabsTrigger value="mobile-app" className={tabTriggerClass}>
+            <Smartphone className="h-4 w-4" />
+            Mobile app
           </TabsTrigger>
         </TabsList>
 
@@ -381,6 +450,129 @@ export default function SettingsIndex() {
                 <Button type="submit" className="h-11 gap-2 rounded-xl px-5" disabled={savingPassword}>
                   {savingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
                   {savingPassword ? 'Updating…' : 'Update password'}
+                </Button>
+              </div>
+            </motion.div>
+          </form>
+        </TabsContent>
+
+        <TabsContent value="mobile-app" className="mt-6">
+          <form onSubmit={handleSaveAppConfig}>
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60"
+            >
+              <div className="mb-6 flex items-start gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
+                  <Smartphone className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+                    Mobile app links
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Shown on the public landing page. Leave a field blank to hide that button
+                    (it renders as “coming soon”).
+                    {appConfigUpdatedAt && (
+                      <span className="ml-1 text-slate-400">
+                        Last saved {new Date(appConfigUpdatedAt).toLocaleString()}.
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              {loadingAppConfig ? (
+                <div className="space-y-4">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="h-11 w-full animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
+                  ))}
+                </div>
+              ) : (
+                <div className="max-w-xl space-y-5">
+                  <Field
+                    id="play-store-url"
+                    label="Google Play URL"
+                    icon={Smartphone}
+                    hint="e.g. https://play.google.com/store/apps/details?id=com.schoolcrm.app"
+                  >
+                    <input
+                      id="play-store-url"
+                      type="url"
+                      inputMode="url"
+                      placeholder="https://play.google.com/store/apps/details?id=…"
+                      value={appConfig.playStoreUrl}
+                      onChange={updateAppConfigField('playStoreUrl')}
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 pl-10 pr-3 text-sm text-slate-800 outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
+                    />
+                  </Field>
+
+                  <Field
+                    id="apk-url"
+                    label="APK download URL"
+                    icon={Link2}
+                    hint="Direct link to the signed .apk for sideloading."
+                  >
+                    <input
+                      id="apk-url"
+                      type="url"
+                      inputMode="url"
+                      placeholder="https://downloads.schoolcrm.app/schoolcrm-latest.apk"
+                      value={appConfig.apkUrl}
+                      onChange={updateAppConfigField('apkUrl')}
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 pl-10 pr-3 text-sm text-slate-800 outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
+                    />
+                  </Field>
+
+                  <Field
+                    id="app-store-url"
+                    label="Apple App Store URL"
+                    icon={Link2}
+                    hint="Optional — reserved for a future iOS build."
+                  >
+                    <input
+                      id="app-store-url"
+                      type="url"
+                      inputMode="url"
+                      placeholder="https://apps.apple.com/app/id…"
+                      value={appConfig.appStoreUrl}
+                      onChange={updateAppConfigField('appStoreUrl')}
+                      className="h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 pl-10 pr-3 text-sm text-slate-800 outline-none transition focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
+                    />
+                  </Field>
+
+                  {appConfigError && (
+                    <div className="flex items-center gap-2 rounded-xl border border-rose-500/20 bg-rose-50 px-3 py-2.5 text-sm text-rose-600 dark:bg-rose-500/5 dark:text-rose-400">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      {appConfigError}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="mt-8 flex items-center justify-end gap-3 border-t border-slate-100 pt-5 dark:border-slate-800">
+                <AnimatePresence>
+                  {appConfigSaved && (
+                    <motion.span
+                      initial={{ opacity: 0, x: 8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400"
+                    >
+                      <Check className="h-4 w-4" />
+                      Saved
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+                <Button
+                  type="submit"
+                  className="h-11 gap-2 rounded-xl px-5"
+                  disabled={savingAppConfig || loadingAppConfig}
+                >
+                  {savingAppConfig ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {savingAppConfig ? 'Saving…' : 'Save links'}
                 </Button>
               </div>
             </motion.div>

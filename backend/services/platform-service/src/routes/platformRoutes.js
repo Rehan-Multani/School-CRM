@@ -21,6 +21,10 @@ import {
   updateLegalDocuments,
 } from '../controllers/legal.controller.js';
 import {
+  getPlatformSettings,
+  updatePlatformSettings,
+} from '../controllers/platformSetting.controller.js';
+import {
   createSchoolTicket,
   createTicket,
   getSchoolTicket,
@@ -1129,6 +1133,8 @@ router.patch('/billings/:id/refund', requireSuperAdmin, refundInvoice);
 router.patch('/billings/:id/cancel', requireSuperAdmin, cancelInvoice);
 router.get('/privacy-policy', getLegalDocuments);
 router.put('/privacy-policy', requireSuperAdmin, updateLegalDocuments);
+router.get('/app-config', getPlatformSettings);
+router.put('/app-config', requireSuperAdmin, updatePlatformSettings);
 router.get('/reports', requireSuperAdmin, getReportSummary);
 router.get('/reports/schools', requireSuperAdmin, listSchoolReports);
 router.get('/reports/subscriptions', requireSuperAdmin, listSubscriptionReports);

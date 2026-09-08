@@ -1,7 +1,15 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AppStoreProvider } from './shared/store/useAppStore';
-import { UniversalLogin } from './shared/components/UniversalLogin';
+
+import { LandingLayout } from './modules/landing/components/LandingLayout';
+import { LandingPage } from './modules/landing/pages/LandingPage';
+import { AboutPage } from './modules/landing/pages/AboutPage';
+import { ContactPage } from './modules/landing/pages/ContactPage';
+import { PrivacyPolicyPage } from './modules/landing/pages/PrivacyPolicyPage';
+import { TermsPage } from './modules/landing/pages/TermsPage';
+import { NotFoundPage } from './modules/landing/pages/NotFoundPage';
+import { PortalPickerPage } from './modules/landing/pages/PortalPickerPage';
 
 import { StudentAuthProvider } from './modules/student/context/StudentAuthContext';
 import { ThemeProvider } from './modules/student/context/ThemeContext';
@@ -106,8 +114,18 @@ function App() {
                                                                    <TransportNotificationProvider>
                                                                      <TransportToastProvider>
                                                                        <Routes>
-                                                                         {/* Universal Single Sign-On */}
-                                                                         <Route path="/login" element={<UniversalLogin />} />
+                                                                         {/* Public marketing site */}
+                                                                         <Route element={<LandingLayout />}>
+                                                                           <Route path="/" element={<LandingPage />} />
+                                                                           <Route path="/about" element={<AboutPage />} />
+                                                                           <Route path="/contact" element={<ContactPage />} />
+                                                                           <Route path="/privacy" element={<PrivacyPolicyPage />} />
+                                                                           <Route path="/terms" element={<TermsPage />} />
+                                                                           <Route path="*" element={<NotFoundPage />} />
+                                                                         </Route>
+
+                                                                         {/* Portal picker (staff sign in) */}
+                                                                         <Route path="/login" element={<PortalPickerPage />} />
 
                                                                          {/* Student Routes */}
                                                                          <Route path="/student/login" element={<StudentLogin />} />
@@ -161,10 +179,6 @@ function App() {
                                                                          {/* Transport Routes */}
                                                                          <Route path="/transport/login" element={<TransportLogin />} />
                                                                          <Route path="/transport/*" element={<TransportRoutes />} />
-
-                                                                         {/* Default Route -> Universal Login */}
-                                                                         <Route path="/" element={<UniversalLogin />} />
-                                                                         <Route path="*" element={<Navigate to="/login" replace />} />
                                                                        </Routes>
                                                                      </TransportToastProvider>
                                                                    </TransportNotificationProvider>

@@ -367,6 +367,12 @@ export const platformLegalApi = {
   update: (payload) => apiClient.put('/platform/privacy-policy', payload).then((res) => res.data),
 };
 
+// Platform-wide config shown on the public landing site (mobile app links).
+export const platformAppConfigApi = {
+  get: () => apiClient.get('/platform/app-config').then((res) => res.data),
+  update: (payload) => apiClient.put('/platform/app-config', payload).then((res) => res.data),
+};
+
 export const platformSchoolApi = {
   list: (params) => apiClient.get('/platform/schools', { params }).then((res) => res.data),
   create: (payload) => apiClient.post('/platform/schools', payload).then((res) => res.data),
