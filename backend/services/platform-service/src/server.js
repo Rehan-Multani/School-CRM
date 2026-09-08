@@ -15,6 +15,30 @@ import { startSubscriptionCronJobs } from './cron/index.js';
 import { startTransportCronJobs } from './cron/transportJobs.js';
 import { razorpaySubscriptionService } from './services/razorpaySubscription.service.js';
 
+function logIntegrationStatus() {
+  const yes = 'CONFIGURED';
+  const no = 'NOT configured';
+
+  const firebaseOk = isFirebaseConfigured();
+  const razorpayOk = razorpaySubscriptionService.isConfigured();
+  const razorpayWebhookOk = razorpaySubscriptionService.webhookConfigured();
+
+  console.log('──────────────── Integrations ────────────────');
+  console.log(
+    `  Firebase (push notifications): ${firebaseOk ? yes : no}` +
+      (firebaseOk ? '' : ' — set FIREBASE_SERVICE_ACCOUNT_BASE64')
+  );
+  console.log(
+    `  Razorpay (payments/subscriptions): ${razorpayOk ? yes : no}` +
+      (razorpayOk ? '' : ' — set RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET')
+  );
+  console.log(
+    `  Razorpay webhook signature: ${razorpayWebhookOk ? yes : no}` +
+      (razorpayWebhookOk ? '' : ' — set RAZORPAY_WEBHOOK_SECRET (webhooks will 503 until then)')
+  );
+  console.log('──────────────────────────────────────────────');
+}
+
 async function runSeeds() {
   try {
     const plans = await seedSubscriptionPlans();
@@ -39,11 +63,7 @@ async function start() {
 
   const server = app.listen(env.port, '0.0.0.0', () => {
     console.log(`Platform service running on http://127.0.0.1:${env.port}`);
-    console.log(`Firebase messaging: ${isFirebaseConfigured() ? 'configured' : 'not configured'}`);
-    console.log(
-      `Razorpay recurring subscriptions: ${razorpaySubscriptionService.isConfigured() ? 'configured' : 'NOT configured (set RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET)'}` +
-        (razorpaySubscriptionService.webhookConfigured() ? '' : ' — RAZORPAY_WEBHOOK_SECRET not set, webhooks will 503')
-    );
+    logIntegrationStatus();
   });
 
   // Run seeding asynchronously in the background so HTTP port is available immediately
