@@ -5,10 +5,11 @@ import { Input, Select } from '../../components/ui/Input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/Dialog';
 import { useSuperAdminNotifications } from '../../context/SuperAdminNotificationContext';
 import { platformSubscriptionApi } from '../../../../shared/api/client';
-import { Plus, Trash2, CheckCircle2, Loader2, X, Pencil, AlertTriangle } from 'lucide-react';
+import { Plus, Trash2, CheckCircle2, Loader2, X, Pencil, AlertTriangle, Layers, Building2 } from 'lucide-react';
 import SchoolSubscriptionsPanel from './SchoolSubscriptionsPanel';
 
 const PLAN_TYPES = ['Weekly', 'Monthly', 'Yearly'];
+
 
 function PlansGridSkeleton() {
   return (
@@ -180,19 +181,44 @@ export default function SubscriptionsIndex() {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-2 border-b border-slate-200 pb-3 dark:border-slate-800">
-        <button
-          onClick={() => setActiveTab('plans')}
-          className={`rounded-lg px-3.5 py-2 text-xs font-bold ${activeTab === 'plans' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-900'}`}
-        >
-          Plans
-        </button>
-        <button
-          onClick={() => setActiveTab('schools')}
-          className={`rounded-lg px-3.5 py-2 text-xs font-bold ${activeTab === 'schools' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-900'}`}
-        >
-          School Subscriptions
-        </button>
+      <div className="flex items-center justify-between border-b border-slate-200/80 pb-4 dark:border-slate-800/80">
+        <div className="inline-flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-900/90 rounded-2xl border border-slate-200/70 dark:border-slate-800/80 shadow-2xs">
+          <button
+            type="button"
+            onClick={() => setActiveTab('plans')}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+              activeTab === 'plans'
+                ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-xs border border-slate-200/60 dark:border-slate-700/60'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/40 dark:hover:bg-slate-800/40'
+            }`}
+          >
+            <Layers size={14} className={activeTab === 'plans' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'} />
+            <span>SaaS Plans</span>
+            {plans.length > 0 && (
+              <span
+                className={`px-1.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                  activeTab === 'plans'
+                    ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/80 dark:text-indigo-400'
+                    : 'bg-slate-200/70 dark:bg-slate-800 text-slate-500'
+                }`}
+              >
+                {plans.length}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('schools')}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
+              activeTab === 'schools'
+                ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-xs border border-slate-200/60 dark:border-slate-700/60'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/40 dark:hover:bg-slate-800/40'
+            }`}
+          >
+            <Building2 size={14} className={activeTab === 'schools' ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'} />
+            <span>School Subscriptions</span>
+          </button>
+        </div>
       </div>
 
       {activeTab === 'schools' ? (
