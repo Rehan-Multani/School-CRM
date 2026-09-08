@@ -3,6 +3,7 @@ import rateLimit from 'express-rate-limit';
 import {
   changePassword,
   login,
+  logout,
   me,
   refresh,
   updateProfile,
@@ -22,7 +23,10 @@ const router = Router();
 
 router.get('/health', healthCheck);
 router.post('/login', loginLimiter, login);
-router.post('/refresh', refresh);
+// Rate limited too: /refresh is an unauthenticated endpoint that accepts a
+// bearer-equivalent credential, so it deserves the same brute-force budget.
+router.post('/refresh', loginLimiter, refresh);
+router.post('/logout', requireSuperAdmin, logout);
 router.get('/me', requireSuperAdmin, me);
 router.patch('/profile', requireSuperAdmin, updateProfile);
 router.patch('/password', requireSuperAdmin, changePassword);

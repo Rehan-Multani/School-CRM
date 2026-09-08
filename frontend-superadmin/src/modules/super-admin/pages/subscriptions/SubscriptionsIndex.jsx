@@ -38,8 +38,6 @@ const emptyForm = () => ({
   planType: 'Monthly',
   features: [],
   featureDraft: '',
-  makeRecurring: false,
-  trialDays: '0',
 });
 
 export default function SubscriptionsIndex() {
@@ -91,13 +89,9 @@ export default function SubscriptionsIndex() {
       planType: plan.planType,
       features: plan.features || [],
       featureDraft: '',
-      makeRecurring: Boolean(plan.isRecurring),
-      trialDays: String(plan.trialDays ?? 0),
     });
     setDialogOpen(true);
   };
-
-  const canBeRecurring = form.planType === 'Monthly' || form.planType === 'Yearly';
 
   const addFeature = () => {
     const value = form.featureDraft.trim();
@@ -142,18 +136,9 @@ export default function SubscriptionsIndex() {
       planType: form.planType,
       features: form.features,
     };
-    // Recurring can be toggled on or off later too (backend only allows it while
-    // no school is subscribed yet — price/interval stay frozen once someone is).
-    const wasRecurring = Boolean(editingPlan?.isRecurring);
-    if (canBeRecurring && form.makeRecurring && !wasRecurring) {
-      payload.makeRecurring = true;
-      payload.trialDays = Number(form.trialDays) || 0;
-    } else if (editingPlan && wasRecurring && !form.makeRecurring) {
-      payload.removeRecurring = true;
-    } else if (editingPlan && wasRecurring && form.makeRecurring) {
-      // Staying recurring — trial length can still be adjusted freely (Razorpay-side amount/interval don't change).
-      payload.trialDays = Number(form.trialDays) || 0;
-    }
+    // Recurring Razorpay billing is always on for Monthly/Yearly plans — the
+    // backend creates the matching Razorpay plan by default (no trial), so the
+    // client sends no recurring flags.
 
     setSaving(true);
     try {
@@ -332,34 +317,6 @@ export default function SubscriptionsIndex() {
                 )}
                 <p className="text-[11px] text-slate-500">Press Enter to add multiple features.</p>
               </div>
-
-              {canBeRecurring && (
-                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3.5 dark:border-slate-800 dark:bg-slate-900/50">
-                  <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    <input
-                      type="checkbox"
-                      checked={form.makeRecurring}
-                      onChange={(e) => setForm((prev) => ({ ...prev, makeRecurring: e.target.checked }))}
-                      className="h-4 w-4 rounded text-indigo-600"
-                    />
-                    Enable Razorpay recurring billing for this plan
-                  </label>
-                  {form.makeRecurring && (
-                    <Input
-                      label="Trial Days (0 = no trial)"
-                      type="number"
-                      min="0"
-                      value={form.trialDays}
-                      onChange={(e) => setForm((prev) => ({ ...prev, trialDays: e.target.value }))}
-                    />
-                  )}
-                  <p className="text-[11px] text-slate-500">
-                    {editingPlan?.isRecurring
-                      ? `Linked to Razorpay plan ${editingPlan.razorpayPlanId}. You can turn recurring off (or adjust trial days) any time — but only while no school is subscribed to it yet. Price/interval can't change while it stays recurring; unchecking this and creating a new plan is the way to change them.`
-                      : 'Creates a matching Razorpay recurring plan. Price/interval are locked in once created — turn recurring off first (only possible before any school subscribes) if you need to redo them, or create a new plan.'}
-                  </p>
-                </div>
-              )}
 
               <Button type="submit" className="w-full gap-2" disabled={saving}>
                 {saving ? (

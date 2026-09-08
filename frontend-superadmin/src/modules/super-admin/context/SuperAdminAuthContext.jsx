@@ -66,10 +66,22 @@ export const SuperAdminAuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    // Callers navigate away immediately without awaiting, so the local session
+    // has to be gone synchronously — otherwise the login route sees a still-
+    // authenticated user and bounces back into the app. Revoke server-side after,
+    // passing the captured token since storage is already cleared. A failed
+    // revoke (offline, expired) must never keep the user signed in locally.
+    const token = localStorage.getItem('super_admin_token');
     localStorage.removeItem('super_admin_user');
     localStorage.removeItem('super_admin_token');
     localStorage.removeItem('super_admin_refresh_token');
     setAdmin(null);
+
+    if (token) {
+      platformAuthApi.logout(token).catch(() => {
+        /* best effort: the refresh token still expires on its own */
+      });
+    }
   };
 
   const updateProfile = async (updates) => {

@@ -1,5 +1,5 @@
-import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import React, { useMemo } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { NAVIGATION_ITEMS } from '../../utils/constants';
 import { useSchoolAdminAuth } from '../../context/SchoolAdminAuthContext';
 import { cn } from '../../utils/cn';
@@ -7,22 +7,21 @@ import { LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import SchoolAdminBrandLogo from '../ui/SchoolAdminBrandLogo';
 import { UserAvatar } from '../ui/UserAvatar';
 
-const NavItem = ({ item, isCollapsed }) => {
+const NavItem = ({ item, isCollapsed, isActive }) => {
   const Icon = item.icon;
 
   return (
     <NavLink
       to={item.path}
+      end
       title={isCollapsed ? item.name : undefined}
-      className={({ isActive }) =>
-        cn(
-          'flex items-center rounded-lg text-sm font-medium transition-colors duration-150 select-none',
-          isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5',
-          isActive
-            ? 'bg-primary/10 text-primary'
-            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-foreground dark:hover:text-slate-100'
-        )
-      }
+      className={cn(
+        'flex items-center rounded-lg text-sm font-medium transition-colors duration-150 select-none',
+        isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5',
+        isActive
+          ? 'bg-primary/10 text-primary font-semibold'
+          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-foreground dark:hover:text-slate-100'
+      )}
     >
       <Icon className="h-[18px] w-[18px] shrink-0" />
       {!isCollapsed && <span className="truncate">{item.name}</span>}
@@ -33,6 +32,7 @@ const NavItem = ({ item, isCollapsed }) => {
 export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const { logout, user, hasPlan } = useSchoolAdminAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
@@ -42,6 +42,26 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
   const navItems = hasPlan
     ? NAVIGATION_ITEMS
     : NAVIGATION_ITEMS.filter((item) => item.path === '/school-admin/plans');
+
+  // Find the single best-matching navigation item (longest matching prefix)
+  const activeItemPath = useMemo(() => {
+    const current = location.pathname;
+    let best = null;
+
+    for (const item of navItems) {
+      const isMatch =
+        current === item.path ||
+        (current.startsWith(`${item.path}/`) && item.path !== '/school-admin');
+
+      if (isMatch) {
+        if (!best || item.path.length > best.path.length) {
+          best = item;
+        }
+      }
+    }
+
+    return best ? best.path : null;
+  }, [location.pathname, navItems]);
 
   const categories = navItems.reduce((acc, item) => {
     if (!acc[item.category]) acc[item.category] = [];
@@ -109,7 +129,12 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
               )}
               <div className="space-y-0.5">
                 {items.map((item) => (
-                  <NavItem key={item.name} item={item} isCollapsed={isCollapsed} />
+                  <NavItem
+                    key={item.name}
+                    item={item}
+                    isCollapsed={isCollapsed}
+                    isActive={activeItemPath === item.path}
+                  />
                 ))}
               </div>
             </div>

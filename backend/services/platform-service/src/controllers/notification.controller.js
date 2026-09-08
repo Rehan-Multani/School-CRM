@@ -1,5 +1,6 @@
 import { notificationService } from '../services/notification.service.js';
 import { isFirebaseConfigured } from '../config/firebase.js';
+import { deviceRoleForUser } from '../middleware/requirePlatformUser.js';
 
 function schoolId(req) {
   const role = req.user?.role?.toUpperCase();
@@ -27,12 +28,21 @@ export async function listSchoolNotifications(req, res, next) {
   }
 }
 
+/**
+ * Both handlers below derive role / schoolId / userId from the verified JWT.
+ *
+ * They previously read all three from the query string or body on an
+ * unauthenticated route, which let anyone read any school's notification inbox
+ * by guessing a schoolId, and register a device token against any user — so
+ * pushes meant for a parent could be delivered to an attacker's device. Client
+ * input is now ignored entirely for scoping.
+ */
 export async function inboxNotifications(req, res, next) {
   try {
     const data = await notificationService.inbox({
-      role: req.query?.role,
-      schoolId: req.query?.schoolId,
-      userId: req.query?.userId,
+      role: deviceRoleForUser(req.user),
+      schoolId: schoolId(req) || '',
+      userId: req.user?.userId || req.user?.sub || '',
     });
     res.json({ success: true, data });
   } catch (error) {
@@ -42,7 +52,12 @@ export async function inboxNotifications(req, res, next) {
 
 export async function registerDevice(req, res, next) {
   try {
-    const data = await notificationService.registerDevice(req.body);
+    const data = await notificationService.registerDevice({
+      token: req.body?.token,
+      role: deviceRoleForUser(req.user),
+      schoolId: schoolId(req) || '',
+      userId: req.user?.userId || req.user?.sub || '',
+    });
     res.status(201).json({ success: true, data });
   } catch (error) {
     next(error);

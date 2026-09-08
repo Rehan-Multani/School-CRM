@@ -9,3 +9,17 @@ export const loginRateLimiter = rateLimit({
   legacyHeaders: false,
   message: { success: false, message: 'Too many login attempts. Please try again later.' },
 });
+
+// Password reset is a separate, tighter budget: /forgot-password doubles as an
+// account-enumeration oracle and /reset-password is a guessable-token endpoint,
+// so neither should get the same allowance as an ordinary login.
+export const passwordResetRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many password reset attempts. Please try again later.',
+  },
+});

@@ -33,14 +33,31 @@ function requiredSuperAdminPassword() {
   return `dev-${crypto.randomBytes(9).toString('base64url')}`;
 }
 
+/**
+ * Access and refresh tokens must be signed with different keys. Sharing one key
+ * means an access token verifies as a refresh token and vice versa, which
+ * collapses the short-lived/long-lived split the two are there to provide.
+ */
+function distinctSecrets(accessSecret, refreshSecret) {
+  if (accessSecret === refreshSecret) {
+    throw new Error('[config] JWT_SECRET and JWT_REFRESH_SECRET must be different values');
+  }
+  return { accessSecret, refreshSecret };
+}
+
+const secrets = distinctSecrets(requireSecret('JWT_SECRET'), requireSecret('JWT_REFRESH_SECRET'));
+
 export const env = {
   nodeEnv: NODE_ENV,
   port: Number(process.env.PORT) || 5001,
   mongoUri: process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/school_crm_platform',
-  jwtSecret: requireSecret('JWT_SECRET'),
-  jwtRefreshSecret: requireSecret('JWT_REFRESH_SECRET'),
-  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+  jwtSecret: secrets.accessSecret,
+  jwtRefreshSecret: secrets.refreshSecret,
+  // Short-lived access token, long-lived refresh token. Both were 7d, which made
+  // the refresh token pointless and left a stolen access token usable for a week
+  // with no way to revoke it. The client transparently refreshes on 401.
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '15m',
+  jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
   superAdmin: {
     email: (process.env.SUPERADMIN_EMAIL || 'superadmin@gmail.com').toLowerCase().trim(),
     password: requiredSuperAdminPassword(),

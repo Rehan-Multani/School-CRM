@@ -333,7 +333,12 @@ export class BillingService {
       .update(`${orderId}|${paymentId}`)
       .digest('hex');
 
-    if (expected !== signature) {
+    // Constant-time compare — a plain !== leaks the correct HMAC one byte at a
+    // time under timing analysis, and this signature is what authorises money.
+    const signatureValid =
+      expected.length === signature.length &&
+      crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+    if (!signatureValid) {
       throw new AppError('Payment signature is invalid', 400);
     }
 

@@ -27,8 +27,11 @@ function performedBy(req) {
 export async function hrLogin(req, res, next) {
   try {
     const { username, email, password } = req.body || {};
-    const identifier = (username || email || '').trim().toLowerCase();
-    const rawPassword = (password || '').trim();
+    // String() first: a JSON body can send an object/array here, and calling
+    // .trim() on one throws a TypeError that surfaces as a 500 instead of a
+    // clean 400 (and would be an operator-injection vector without coercion).
+    const identifier = String(username || email || '').trim().toLowerCase();
+    const rawPassword = String(password || '').trim();
 
     if (!identifier || !rawPassword) {
       throw new AppError('Username/email and password are required', 400);

@@ -6,10 +6,7 @@ export default defineConfig({
     include: ['test/**/*.test.js'],
     globalSetup: ['test/helpers/globalSetup.js'],
     hookTimeout: 90000,
-    // 20s was tight enough that a test taking <0.5s in isolation would still
-    // time out during a full sequential run on a loaded machine, producing
-    // failures that had nothing to do with the code under test.
-    testTimeout: 45000,
+    testTimeout: 20000,
     fileParallelism: false, // files share one ephemeral DB, run sequentially
   },
 });

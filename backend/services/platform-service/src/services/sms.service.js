@@ -30,10 +30,23 @@ class SmsService {
     }
 
     switch (this.provider) {
-      case 'mock':
+      case 'mock': {
+        // The mock provider prints the message and claims success — fine in dev,
+        // dangerous in production twice over: it would write live pickup OTPs
+        // into the server log, and it would report an undelivered code as sent.
+        // Refuse instead, so a missing provider fails the pickup closed with a
+        // clear error rather than quietly issuing codes nobody receives.
+        if (env.nodeEnv === 'production') {
+          const err = new Error(
+            'SMS_PROVIDER=mock cannot be used in production. Configure a real SMS provider.'
+          );
+          err.code = 'SMS_PROVIDER_NOT_CONFIGURED';
+          throw err;
+        }
         // eslint-disable-next-line no-console
         console.log(`[sms:mock] -> ${maskPhone(to)} :: ${message}`);
         return { delivered: true, provider: 'mock', ref: `mock-${Date.now()}`, template };
+      }
 
       case 'twilio':
       case 'msg91':

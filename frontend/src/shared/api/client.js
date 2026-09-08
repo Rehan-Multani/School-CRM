@@ -436,11 +436,22 @@ export const platformBillingApi = {
   cancel: (id) => apiClient.patch(`/platform/billings/${id}/cancel`).then((res) => res.data),
 };
 
+// `apiClient`'s interceptor only carries the super-admin token, but the inbox and
+// device-token routes are called from every role portal and are now authenticated
+// (they derive school/user scope from the caller's token instead of trusting query
+// params). So these two send whichever panel token this browser actually holds.
+function panelAuthHeader() {
+  const token = currentPanelToken();
+  return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+}
+
 export const platformNotificationApi = {
   list: () => apiClient.get('/platform/notifications').then((res) => res.data),
   send: (payload) => apiClient.post('/platform/notifications', payload).then((res) => res.data),
-  inbox: (params) => apiClient.get('/platform/notifications/inbox', { params }).then((res) => res.data),
-  registerDevice: (payload) => apiClient.post('/platform/device-tokens', payload).then((res) => res.data),
+  inbox: () =>
+    apiClient.get('/platform/notifications/inbox', panelAuthHeader()).then((res) => res.data),
+  registerDevice: (payload) =>
+    apiClient.post('/platform/device-tokens', payload, panelAuthHeader()).then((res) => res.data),
 };
 
 export const platformSupportApi = {

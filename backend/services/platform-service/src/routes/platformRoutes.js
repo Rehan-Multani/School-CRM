@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { loginRateLimiter } from '../middleware/loginRateLimiter.js';
+import { loginRateLimiter, passwordResetRateLimiter } from '../middleware/loginRateLimiter.js';
+import { requirePlatformUser } from '../middleware/requirePlatformUser.js';
 import { validateObjectId } from '../middleware/validateObjectId.js';
 import teacherApkRoutes from './teacher.routes.js';
 import studentApkRoutes from './student.routes.js';
@@ -563,11 +564,11 @@ router.post('/schools/:id/change-password', requireSuperAdmin, validateObjectId(
 router.delete('/schools/:id', requireSuperAdmin, deleteSchool);
 router.get('/school-auth/branding', schoolBranding);
 router.get('/school-theme/:schoolId', schoolThemePublic);
-router.post('/school-auth/login', schoolAdminLogin);
+router.post('/school-auth/login', loginRateLimiter, schoolAdminLogin);
 router.post('/school-auth/librarian-login', loginRateLimiter, librarianLogin);
 router.post('/school-portal/auth/librarian-login', loginRateLimiter, librarianLogin);
-router.post('/school-auth/hr-login', hrLogin);
-router.post('/school-portal/auth/hr-login', hrLogin);
+router.post('/school-auth/hr-login', loginRateLimiter, hrLogin);
+router.post('/school-portal/auth/hr-login', loginRateLimiter, hrLogin);
 router.post('/school-auth/principal-login', loginRateLimiter, principalLogin);
 router.post('/school-portal/auth/principal-login', loginRateLimiter, principalLogin);
 router.get('/school-portal/principal/me', requirePrincipal, getPrincipalProfile);
@@ -622,8 +623,8 @@ router.get('/school-portal/accountant/reports/:category', requireAccountant, get
 
 router.get('/school-portal/accountant/settings', requireAccountant, getAccountantSettings);
 router.patch('/school-portal/accountant/settings', requireAccountant, updateAccountantSettings);
-router.post('/school-auth/forgot-password', schoolAdminForgotPassword);
-router.post('/school-auth/reset-password', schoolAdminResetPassword);
+router.post('/school-auth/forgot-password', passwordResetRateLimiter, schoolAdminForgotPassword);
+router.post('/school-auth/reset-password', passwordResetRateLimiter, schoolAdminResetPassword);
 router.get('/school-portal/dashboard/summary', requirePrincipal, getSchoolAdminDashboardSummary);
 router.get('/school-portal/reports/summary', requirePrincipal, getSchoolReportsSummary);
 router.get('/school-portal/reports/data', requirePrincipal, getCategoryReportData);
@@ -1123,8 +1124,9 @@ router.post('/school-portal/subscription/cancel', requireSchoolAdmin, cancelMySu
 router.get('/school-portal/subscription/payments', requireSchoolAdmin, listMySubscriptionPayments);
 router.get('/school-portal/subscription/invoices', requireSchoolAdmin, listMySubscriptionInvoices);
 router.get('/school-portal/subscription/history', requireSchoolAdmin, listMySubscriptionHistory);
-router.post('/device-tokens', registerDevice);
-router.get('/notifications/inbox', inboxNotifications);
+// Shared by every signed-in role; scope comes from the JWT, not the request.
+router.post('/device-tokens', requirePlatformUser, registerDevice);
+router.get('/notifications/inbox', requirePlatformUser, inboxNotifications);
 router.get('/notifications', requireSuperAdmin, listNotifications);
 router.post('/notifications', requireSuperAdmin, sendNotification);
 router.get('/billings', requireSuperAdmin, listInvoices);

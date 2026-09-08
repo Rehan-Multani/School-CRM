@@ -30,12 +30,11 @@ export function usePlatformPush({ enabled, role, user, mergeInbox, onPush }) {
     let cancelled = false;
     let unsubscribe = () => {};
 
+    // Scope (role / schoolId / userId) is derived server-side from the caller's
+    // token — sending it from here would be both ignored and misleading, since
+    // the client cannot be the authority on which school's inbox it may read.
     const loadInbox = async () => {
-      const result = await platformNotificationApi.inbox({
-        role,
-        schoolId: user.schoolId || '',
-        userId: user.id || '',
-      });
+      const result = await platformNotificationApi.inbox();
       if (!cancelled && Array.isArray(result.data)) {
         mergeInbox?.(result.data.map(toInboxItem));
       }
@@ -45,12 +44,7 @@ export function usePlatformPush({ enabled, role, user, mergeInbox, onPush }) {
       try {
         const token = await registerFcmToken();
         if (token && !cancelled) {
-          await platformNotificationApi.registerDevice({
-            token,
-            role,
-            schoolId: user.schoolId || '',
-            userId: user.id || '',
-          });
+          await platformNotificationApi.registerDevice({ token });
         }
       } catch (error) {
         console.warn('Firebase token registration skipped:', error.message);

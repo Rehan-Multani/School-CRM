@@ -58,8 +58,20 @@ export function toUserDocumentPublicPath(filename) {
 
 export function resolveUploadPath(publicPath) {
   if (!publicPath || typeof publicPath !== 'string') return null;
-  const sanitized = publicPath.replace(/^\/+/, '');
-  return path.join(uploadsRoot, sanitized.replace(/\//g, path.sep));
+  // Stripping the leading slash is not containment: path.join happily resolves
+  // `../../..` back out of the uploads root, so any stored path that ever came
+  // from user input would become an arbitrary-file read/delete. Resolve first,
+  // then require the result to still sit inside uploadsRoot.
+  if (publicPath.includes('\0')) return null;
+  // Stored paths are `/uploads/<dir>/<file>` — the HTTP mount point. `uploadsRoot`
+  // *is* that mount's directory, so the leading `uploads/` segment has to come off
+  // or every path resolves to `<root>/uploads/...` and silently misses the file
+  // (which is why deleted/replaced photos were never actually unlinked).
+  const sanitized = publicPath.replace(/^\/+/, '').replace(/^uploads\//, '');
+  const resolved = path.resolve(uploadsRoot, sanitized.replace(/\//g, path.sep));
+  const root = path.resolve(uploadsRoot);
+  if (resolved !== root && !resolved.startsWith(root + path.sep)) return null;
+  return resolved;
 }
 
 export function deleteUploadedFile(publicPath) {

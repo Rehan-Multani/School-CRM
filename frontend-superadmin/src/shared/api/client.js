@@ -135,6 +135,16 @@ export const platformAuthApi = {
   login: (email, password) =>
     apiClient.post('/platform/auth/login', { email, password }).then((res) => res.data),
   me: () => apiClient.get('/platform/auth/me').then((res) => res.data),
+  // Revokes this account's refresh tokens server-side. Clearing localStorage
+  // alone leaves a stolen refresh token valid for its full 30-day lifetime.
+  // Takes the token explicitly because the caller clears local storage first, so
+  // the request interceptor can no longer find it.
+  logout: (token) =>
+    apiClient
+      .post('/platform/auth/logout', null, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      })
+      .then((res) => res.data),
   updateProfile: (payload) => apiClient.patch('/platform/auth/profile', payload).then((res) => res.data),
   changePassword: (payload) => apiClient.patch('/platform/auth/password', payload).then((res) => res.data),
 };

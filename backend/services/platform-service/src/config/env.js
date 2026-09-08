@@ -24,6 +24,23 @@ function requireSecret(name) {
   return `dev-only-${name}-${crypto.randomBytes(24).toString('hex')}`;
 }
 
+// Safe-pickup OTP mode. 'static' returns a fixed code and is dev/QA only: in
+// production it is refused outright when explicitly set, and silently upgraded to
+// 'random' when merely unset — so the fail-open case is the secure one.
+function resolveOtpMode() {
+  const raw = (process.env.SAFE_PICKUP_OTP_MODE || '').trim().toLowerCase();
+  if (NODE_ENV === 'production') {
+    if (raw === 'static') {
+      throw new Error(
+        '[config] SAFE_PICKUP_OTP_MODE=static is not allowed in production — it issues a ' +
+          'fixed, publicly known pickup OTP. Set SAFE_PICKUP_OTP_MODE=random.'
+      );
+    }
+    return 'random';
+  }
+  return raw === 'random' ? 'random' : 'static';
+}
+
 export const env = {
   nodeEnv: NODE_ENV,
   port: Number(process.env.PORT) || 5002,
@@ -50,10 +67,12 @@ export const env = {
     serviceAccountBase64: (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64 || '').replace(/\s/g, ''),
   },
   // Student Safe Pickup / Parent OTP verification.
-  // TODO(prod): set SAFE_PICKUP_OTP_MODE=random and wire a real SMS provider
-  // (SMS_PROVIDER + credentials) before production release.
+  // Production always issues cryptographically random OTPs. 'static' mode exists
+  // only so QA can exercise the pickup flow without an SMS provider, and a prod
+  // deploy that merely forgot to set SAFE_PICKUP_OTP_MODE must never fall back to
+  // a universally-known code for a child-handover control.
   safePickup: {
-    otpMode: (process.env.SAFE_PICKUP_OTP_MODE || 'static').toLowerCase(), // 'static' | 'random'
+    otpMode: resolveOtpMode(),
     staticOtp: process.env.SAFE_PICKUP_STATIC_OTP || '123456',
     otpLength: Math.min(8, Math.max(4, Number(process.env.SAFE_PICKUP_OTP_LENGTH) || 6)),
     otpExpirySeconds: Number(process.env.SAFE_PICKUP_OTP_EXPIRY_SECONDS) || 300,
