@@ -10,13 +10,6 @@ import { StudentLayout } from './modules/student/components/layout/StudentLayout
 import { StudentLogin } from './modules/student/pages/StudentLogin';
 import { StudentRoutes } from './modules/student/routes/StudentRoutes';
 
-import { SuperAdminAuthProvider } from './modules/super-admin/context/SuperAdminAuthContext';
-import { SuperAdminThemeProvider } from './modules/super-admin/context/SuperAdminThemeContext';
-import { SuperAdminNotificationProvider } from './modules/super-admin/context/SuperAdminNotificationContext';
-import { SuperAdminLayout } from './modules/super-admin/components/layout/SuperAdminLayout';
-import SuperAdminLogin from './modules/super-admin/pages/SuperAdminLogin';
-import { SuperAdminRoutes } from './modules/super-admin/routes/SuperAdminRoutes';
-
 import { TeacherAuthProvider } from './modules/teacher/context/TeacherAuthContext';
 import { TeacherThemeProvider } from './modules/teacher/context/TeacherThemeContext';
 import { TeacherNotificationProvider } from './modules/teacher/context/TeacherNotificationContext';
@@ -168,26 +161,6 @@ function App() {
                                                                          {/* Transport Routes */}
                                                                          <Route path="/transport/login" element={<TransportLogin />} />
                                                                          <Route path="/transport/*" element={<TransportRoutes />} />
-
-                                                                         {/* Super Admin Routes */}
-                                                                         <Route path="/super-admin/login" element={
-                                                                           <SuperAdminAuthProvider>
-                                                                             <SuperAdminNotificationProvider>
-                                                                               <SuperAdminLogin />
-                                                                             </SuperAdminNotificationProvider>
-                                                                           </SuperAdminAuthProvider>
-                                                                         } />
-                                                                         <Route path="/super-admin/*" element={
-                                                                           <SuperAdminAuthProvider>
-                                                                             <SuperAdminThemeProvider>
-                                                                               <SuperAdminNotificationProvider>
-                                                                                 <SuperAdminLayout />
-                                                                               </SuperAdminNotificationProvider>
-                                                                             </SuperAdminThemeProvider>
-                                                                           </SuperAdminAuthProvider>
-                                                                         }>
-                                                                           <Route path="*" element={<SuperAdminRoutes />} />
-                                                                         </Route>
 
                                                                          {/* Default Route -> Universal Login */}
                                                                          <Route path="/" element={<UniversalLogin />} />

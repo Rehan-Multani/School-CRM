@@ -12,6 +12,7 @@ import ReportsIndex from '../pages/reports/ReportsIndex';
 import PrivacyPolicyIndex from '../pages/privacy/PrivacyPolicyIndex';
 import SupportIndex from '../pages/support/SupportIndex';
 import SettingsIndex from '../pages/settings/SettingsIndex';
+import ComingSoon from '../pages/ComingSoon';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useSuperAdminAuth();
@@ -122,6 +123,39 @@ export const SuperAdminRoutes = () => {
         element={
           <ProtectedRoute>
             <SettingsIndex />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="platform-users"
+        element={
+          <ProtectedRoute>
+            <ComingSoon
+              title="Platform Users"
+              description="Manage platform-level administrator accounts. Backend for this module is not wired yet."
+            />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="audit-logs"
+        element={
+          <ProtectedRoute>
+            <ComingSoon
+              title="Audit Logs"
+              description="Platform-wide activity and security audit trail. Backend for this module is not wired yet."
+            />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="system-management"
+        element={
+          <ProtectedRoute>
+            <ComingSoon
+              title="System Management"
+              description="Service health, configuration and maintenance controls. Backend for this module is not wired yet."
+            />
           </ProtectedRoute>
         }
       />

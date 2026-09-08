@@ -12,6 +12,9 @@ import {
   Scale,
   LifeBuoy,
   Settings,
+  Users,
+  ScrollText,
+  ServerCog,
   ChevronLeft,
   ChevronRight,
   LogOut
@@ -32,6 +35,9 @@ const menuItems = [
   { name: 'Notifications', path: '/super-admin/notifications', icon: Bell },
   { name: 'Help & Support', path: '/super-admin/support', icon: LifeBuoy },
   { name: 'Privacy & Policy', path: '/super-admin/privacy-policy', icon: Scale },
+  { name: 'Platform Users', path: '/super-admin/platform-users', icon: Users },
+  { name: 'Audit Logs', path: '/super-admin/audit-logs', icon: ScrollText },
+  { name: 'System Management', path: '/super-admin/system-management', icon: ServerCog },
   { name: 'Settings', path: '/super-admin/settings', icon: Settings },
 ];
 

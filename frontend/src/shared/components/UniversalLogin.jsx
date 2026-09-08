@@ -17,7 +17,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import BrandLogo from '../ui/BrandLogo';
-import { platformAuthApi, schoolAdminAuthApi } from '../api/client';
+import { schoolAdminAuthApi } from '../api/client';
 
 export const UniversalLogin = () => {
   const navigate = useNavigate();
@@ -41,17 +41,8 @@ export const UniversalLogin = () => {
   const [resetSuccess, setResetSuccess] = useState(false);
 
   const WEB_PANELS = [
-    { 
-      role: 'Super Admin', 
-      label: 'Global SaaS Super Admin', 
-      id: 'superadmin@gmail.com', 
-      pass: '123', 
-      target: '/super-admin/dashboard', 
-      color: 'bg-blue-500/10 text-blue-200 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-400',
-      isComplete: true 
-    },
-    { 
-      role: 'Admin', 
+    {
+      role: 'Admin',
       label: 'Vikramaditya (Admin)', 
       id: 'admin', 
       pass: 'admin123', 
@@ -145,27 +136,6 @@ export const UniversalLogin = () => {
 
     const cleanId = (identifier || '').trim().toLowerCase();
 
-    // Direct backend authentication for Super Admin
-    if (cleanId === 'superadmin@gmail.com') {
-      try {
-        const apiRes = await platformAuthApi.login(cleanId, password);
-        if (apiRes?.token) {
-          localStorage.setItem('super_admin_token', apiRes.token);
-          if (apiRes.refreshToken) {
-            localStorage.setItem('super_admin_refresh_token', apiRes.refreshToken);
-          }
-          localStorage.setItem('super_admin_user', JSON.stringify(apiRes.user));
-          setIsLoading(false);
-          navigate('/super-admin/dashboard');
-          return;
-        }
-      } catch (err) {
-        setIsLoading(false);
-        setError(err.response?.data?.message || err.message || 'Invalid credentials');
-        return;
-      }
-    }
-
     // Direct backend authentication for School Admin
     if (cleanId.includes('@')) {
       try {
@@ -212,8 +182,7 @@ export const UniversalLogin = () => {
           'accountant': 'accountant-user',
           'hr': 'hr-user',
           'librarian': 'librarian_user',
-          'transport': 'transport_user',
-          'super-admin': 'super_admin_user'
+          'transport': 'transport_user'
         };
 
         const key = storageKeys[role] || `${role}-user`;
@@ -232,8 +201,7 @@ export const UniversalLogin = () => {
           'accountant': '/accountant/dashboard',
           'hr': '/hr/dashboard',
           'librarian': '/librarian/dashboard',
-          'transport': '/transport/dashboard',
-          'super-admin': '/super-admin/dashboard'
+          'transport': '/transport/dashboard'
         };
 
         navigate(routeMap[role] || '/');
@@ -250,24 +218,6 @@ export const UniversalLogin = () => {
 
     setIsLoading(true);
 
-    if (preset.role === 'Super Admin' || preset.id === 'superadmin@gmail.com') {
-      try {
-        const apiRes = await platformAuthApi.login(preset.id, preset.pass);
-        if (apiRes?.token) {
-          localStorage.setItem('super_admin_token', apiRes.token);
-          if (apiRes.refreshToken) {
-            localStorage.setItem('super_admin_refresh_token', apiRes.refreshToken);
-          }
-          localStorage.setItem('super_admin_user', JSON.stringify(apiRes.user));
-          setIsLoading(false);
-          navigate(preset.target);
-          return;
-        }
-      } catch (err) {
-        console.warn('Super Admin direct login error, using fallback:', err);
-      }
-    }
-
     setTimeout(() => {
       const res = authenticateUser(preset.id, preset.pass);
       setIsLoading(false);
@@ -281,8 +231,7 @@ export const UniversalLogin = () => {
           'accountant': 'accountant-user',
           'hr': 'hr-user',
           'librarian': 'librarian_user',
-          'transport': 'transport_user',
-          'super-admin': 'super_admin_user'
+          'transport': 'transport_user'
         };
         const key = storageKeys[res.user.role];
         if (key) localStorage.setItem(key, JSON.stringify(res.user));
@@ -508,11 +457,8 @@ export const UniversalLogin = () => {
             </div>
             
             <div className="space-y-1.5">
-              <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">6+ Web Panels:</div>
+              <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Web Panels:</div>
               <div className="flex flex-wrap gap-1.5">
-                <Link to="/super-admin/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
-                  Super Admin
-                </Link>
                 <Link to="/school-admin/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
                   School Admin
                 </Link>
