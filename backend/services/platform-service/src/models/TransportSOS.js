@@ -23,16 +23,24 @@ const transportSOSSchema = new mongoose.Schema(
     cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'SchoolUser', default: null },
     cancelledAt: { type: Date, default: null },
     resolutionNote: { type: String, default: '', trim: true },
+    // true while ACTIVE or ACKNOWLEDGED; false on RESOLVED/CANCELLED. Backs the
+    // partial-unique index (partialFilterExpression cannot use $in).
+    isOpen: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
 
-// At most one non-terminal SOS per trip (anti-duplicate; never blocks a genuinely
-// new emergency once the previous one is resolved/cancelled).
+// At most one open SOS per trip (anti-duplicate; never blocks a genuinely new
+// emergency once the previous one is resolved/cancelled).
 transportSOSSchema.index(
   { tripId: 1 },
-  { unique: true, partialFilterExpression: { status: { $in: ACTIVE_SOS_STATUSES }, tripId: { $type: 'objectId' } } }
+  { unique: true, partialFilterExpression: { isOpen: true, tripId: { $type: 'objectId' } } }
 );
+
+transportSOSSchema.pre('save', function syncIsOpen(next) {
+  this.isOpen = ACTIVE_SOS_STATUSES.includes(this.status);
+  next();
+});
 transportSOSSchema.index({ schoolId: 1, status: 1, createdAt: -1 });
 transportSOSSchema.index({ schoolId: 1, driverId: 1, createdAt: -1 });
 

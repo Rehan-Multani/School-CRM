@@ -4,6 +4,7 @@ import { validateObjectId } from '../middleware/validateObjectId.js';
 import teacherApkRoutes from './teacher.routes.js';
 import studentApkRoutes from './student.routes.js';
 import parentApkRoutes from './parent.routes.js';
+import transportApkRoutes from './transportApp.routes.js';
 import {
   getSafePickupSettings,
   updateSafePickupSchool,
@@ -1150,6 +1151,9 @@ router.use(studentApkRoutes);
 
 // ===================== Parent APK (see parent.routes.js) =====================
 router.use(parentApkRoutes);
+
+// ===================== Transport APK (see transportApp.routes.js) =====================
+router.use(transportApkRoutes);
 
 router.get('/', getServiceInfo);
 router.use(notFound);

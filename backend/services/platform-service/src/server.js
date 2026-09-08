@@ -12,6 +12,7 @@ import { seedLibraryData } from './seedLibrary.js';
 import { seedRoles } from './seedRoles.js';
 import { isFirebaseConfigured } from './config/firebase.js';
 import { startSubscriptionCronJobs } from './cron/index.js';
+import { startTransportCronJobs } from './cron/transportJobs.js';
 import { razorpaySubscriptionService } from './services/razorpaySubscription.service.js';
 
 async function start() {
@@ -42,6 +43,7 @@ async function start() {
   });
 
   startSubscriptionCronJobs();
+  startTransportCronJobs();
 }
 
 start().catch((error) => {

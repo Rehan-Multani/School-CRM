@@ -16,10 +16,19 @@ import { FeeInvoice } from './models/FeeInvoice.js';
 import { Announcement } from './models/Communication.js';
 import { Parent } from './models/Parent.js';
 import { ParentStudent } from './models/ParentStudent.js';
+import { SchoolUser } from './models/SchoolUser.js';
+import { Vehicle } from './models/Vehicle.js';
+import { TransportRoute } from './models/TransportRoute.js';
+import { RouteStop } from './models/RouteStop.js';
+import { StudentTransportAssignment } from './models/StudentTransportAssignment.js';
+import { Trip } from './models/Trip.js';
+import { TripStudent } from './models/TripStudent.js';
+import { TransportSettings } from './models/TransportSettings.js';
 
 const TEACHER_LOGIN_PASSWORD = 'Teacher@123';
 const STUDENT_LOGIN_PASSWORD = 'Student@123';
 const PARENT_LOGIN_PASSWORD = 'Parent@123';
+const TRANSPORT_LOGIN_PASSWORD = 'Driver@123';
 
 const DEFAULT_TEACHERS = [
   { employeeId: 'TCH-001', name: 'Rahul Sharma', email: 'rahul.sharma@school.local', department: 'Mathematics' },
@@ -121,6 +130,172 @@ export async function seedAcademicTeachers() {
   await ensureTeacherApkSampleData(schools);
   await ensureStudentApkData(schools);
   await ensureParentApkData(schools);
+  await ensureTransportAppData(schools);
+}
+
+/**
+ * Give every school one Transport APK driver login
+ * (driver@<school-domain> / Driver@123) with a vehicle, a route + 2 stops, a
+ * transport assignment for the seeded student, a TransportSettings doc, and a
+ * SCHEDULED trip for today — so the Transport APK renders real data on first
+ * run. Idempotent.
+ */
+async function ensureTransportAppData(schools) {
+  const passwordHash = await bcrypt.hash(TRANSPORT_LOGIN_PASSWORD, 10);
+  let provisioned = 0;
+
+  for (const school of schools) {
+    const student = await Student.findOne({ schoolId: school._id }).sort({ createdAt: 1 });
+    const currentYear = await AcademicYear.findOne({ schoolId: school._id, isCurrent: true });
+    if (!student) continue;
+
+    const email = `driver@${schoolLoginDomain(school)}`;
+    let driver = await SchoolUser.findOne({ schoolId: school._id, email }).select('+passwordHash');
+    if (!driver) {
+      driver = await SchoolUser.create({
+        schoolId: school._id,
+        employeeId: `TRP-${String(school.schoolId || school._id).toUpperCase().slice(-6)}-01`,
+        firstName: 'Ravi',
+        lastName: 'Driver',
+        name: 'Ravi Driver',
+        email,
+        role: 'TRANSPORT',
+        transportRole: 'DRIVER',
+        phone: '9820000001',
+        status: 'ACTIVE',
+        passwordHash,
+      });
+      driver = await SchoolUser.findById(driver._id).select('+passwordHash');
+      provisioned += 1;
+    } else if (!driver.passwordHash || driver.status !== 'ACTIVE') {
+      if (!driver.passwordHash) driver.passwordHash = passwordHash;
+      driver.status = 'ACTIVE';
+      driver.role = 'TRANSPORT';
+      if (!driver.transportRole) driver.transportRole = 'DRIVER';
+      await driver.save();
+      provisioned += 1;
+    }
+
+    // Vehicle
+    let vehicle = await Vehicle.findOne({ schoolId: school._id }).sort({ createdAt: 1 });
+    if (!vehicle) {
+      vehicle = await Vehicle.create({
+        schoolId: school._id,
+        vehicleNumber: `BUS-01`,
+        registrationNumber: `MH12AB0001`,
+        vehicleType: 'BUS',
+        model: 'Tata Starbus',
+        capacity: 40,
+        status: 'ACTIVE',
+        gpsDeviceImei: '860000000000001',
+      });
+    }
+
+    // Route + stops
+    let route = await TransportRoute.findOne({ schoolId: school._id }).sort({ createdAt: 1 });
+    if (!route) {
+      route = await TransportRoute.create({
+        schoolId: school._id,
+        routeName: 'Route 01 — City Centre',
+        routeCode: 'R01',
+        vehicleId: vehicle._id,
+        driverId: driver._id,
+        startPoint: 'City Centre',
+        endPoint: 'School',
+        estimatedDistanceKm: 12,
+        estimatedDurationMin: 40,
+        status: 'ACTIVE',
+      });
+    } else if (!route.driverId) {
+      await TransportRoute.updateOne({ _id: route._id }, { $set: { driverId: driver._id, vehicleId: route.vehicleId || vehicle._id } });
+    }
+    let stops = await RouteStop.find({ schoolId: school._id, routeId: route._id }).sort({ sequenceOrder: 1 });
+    if (stops.length < 2) {
+      await RouteStop.deleteMany({ schoolId: school._id, routeId: route._id });
+      stops = await RouteStop.insertMany([
+        { schoolId: school._id, routeId: route._id, stopName: 'City Centre', sequenceOrder: 1, pickupTime: '07:15 AM', dropTime: '03:45 PM', monthlyFee: 1500, latitude: 22.7196, longitude: 75.8577 },
+        { schoolId: school._id, routeId: route._id, stopName: 'Main Bazaar', sequenceOrder: 2, pickupTime: '07:30 AM', dropTime: '03:30 PM', monthlyFee: 1500, latitude: 22.7250, longitude: 75.8700 },
+        { schoolId: school._id, routeId: route._id, stopName: 'School Gate', sequenceOrder: 3, pickupTime: '07:55 AM', dropTime: '03:10 PM', monthlyFee: 0, latitude: 22.7300, longitude: 75.8800 },
+      ]);
+    }
+
+    // Assign the driver
+    if (String(driver.assignedVehicleId || '') !== String(vehicle._id) || String(driver.assignedRouteId || '') !== String(route._id)) {
+      await SchoolUser.updateOne({ _id: driver._id }, { $set: { assignedVehicleId: vehicle._id, assignedRouteId: route._id } });
+    }
+
+    // Student transport assignment
+    const pickup = stops[0];
+    const drop = stops[stops.length - 1];
+    await StudentTransportAssignment.updateOne(
+      { schoolId: school._id, studentId: student._id, routeId: route._id },
+      {
+        $setOnInsert: {
+          schoolId: school._id,
+          studentId: student._id,
+          academicYearId: currentYear?._id || null,
+          routeId: route._id,
+          pickupStopId: pickup._id,
+          dropStopId: drop._id,
+          startDate: new Date(),
+          monthlyFee: 1500,
+          status: 'ACTIVE',
+        },
+      },
+      { upsert: true }
+    );
+
+    // Transport settings
+    await TransportSettings.getOrDefault(school._id);
+
+    // One SCHEDULED trip for today
+    const date = new Date().toISOString().slice(0, 10);
+    let trip = await Trip.findOne({ schoolId: school._id, routeId: route._id, date, tripType: 'MORNING_PICKUP', status: { $nin: ['COMPLETED', 'CANCELLED', 'ABORTED', 'FAILED'] } });
+    if (!trip) {
+      const routeStops = await RouteStop.find({ schoolId: school._id, routeId: route._id }).sort({ sequenceOrder: 1 }).lean();
+      const assignments = await StudentTransportAssignment.find({ schoolId: school._id, routeId: route._id, status: 'ACTIVE' }).lean();
+      trip = await Trip.create({
+        schoolId: school._id,
+        routeId: route._id,
+        vehicleId: vehicle._id,
+        driverId: driver._id,
+        tripType: 'MORNING_PICKUP',
+        date,
+        status: 'SCHEDULED',
+        counts: { studentsExpected: assignments.length, boarded: 0, dropped: 0, absent: 0 },
+        stops: routeStops.map((s) => ({
+          stopId: s._id,
+          stopName: s.stopName,
+          sequenceOrder: s.sequenceOrder,
+          lat: s.latitude ?? null,
+          lng: s.longitude ?? null,
+          studentsExpected: assignments.filter((a) => String(a.pickupStopId) === String(s._id)).length,
+        })),
+      });
+      if (assignments.length) {
+        const sids = assignments.map((a) => a.studentId);
+        const studs = await Student.find({ _id: { $in: sids } }).select('firstName lastName').lean();
+        const nameById = new Map(studs.map((s) => [String(s._id), [s.firstName, s.lastName].filter(Boolean).join(' ').trim()]));
+        await TripStudent.insertMany(
+          assignments.map((a) => ({
+            schoolId: school._id,
+            tripId: trip._id,
+            studentId: a.studentId,
+            studentName: nameById.get(String(a.studentId)) || '',
+            routeId: route._id,
+            pickupStopId: a.pickupStopId,
+            dropStopId: a.dropStopId,
+            status: 'NOT_BOARDED',
+          })),
+          { ordered: false }
+        ).catch(() => {});
+      }
+    }
+  }
+
+  if (provisioned > 0) {
+    console.log(`Transport APK driver logins provisioned/updated: ${provisioned} (password: ${TRANSPORT_LOGIN_PASSWORD})`);
+  }
 }
 
 /**

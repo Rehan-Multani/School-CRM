@@ -1,0 +1,2459 @@
+{
+  "info": {
+    "name": "School Management - Transport APK API",
+    "_postman_id": "e1c2d3f4-transport-4d44-b055-transportapk001",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Transport APK backend — driver / conductor / transport-manager operational app. 5 bottom-nav tabs: Home · Trips · Students · Alerts · Profile (+ 🔔 top-right).\n\nAPK routes are under /school-portal/transport-app/* (the existing school-admin transport management keeps /school-portal/transport/*). Login: POST /school-portal/auth/transport-login. Single 7-day JWT (no refresh). Collection-level Bearer {{accessToken}}; manager-only requests carry {{managerToken}}.\n\nRUN ORDER: \"00 - Environment / Health\" → \"01 - Auth / Login (transport)\" (stores accessToken/staffId/schoolId/vehicleId/routeId/stopId) → \"📱 Tab 1 · Home / Dashboard\" (stores tripId) → walk Tab 2 top-to-bottom (Inspection → Start → Arrive → Board → Depart → Complete)."
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.environment.set('today', new Date().toISOString().slice(0,10));"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Environment",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"up\", () => [200].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 - Auth  (run first)",
+      "item": [
+        {
+          "name": "Login (transport)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/auth/transport-login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "auth",
+                "transport-login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"{{transportIdentifier}}\",\n  \"password\": \"{{transportPassword}}\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });",
+                  "const b = pm.response.json();",
+                  "pm.environment.set('accessToken', b.token);",
+                  "pm.environment.set('staffId', b.staff.id);",
+                  "pm.environment.set('schoolId', b.school.id);",
+                  "if (b.vehicle) pm.environment.set('vehicleId', b.vehicle.id);",
+                  "if (b.route) { pm.environment.set('routeId', b.route.id); if (b.route.stops && b.route.stops[0]) pm.environment.set('stopId', b.route.stops[0].id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login - wrong password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/auth/transport-login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "auth",
+                "transport-login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"{{transportIdentifier}}\",\n  \"password\": \"nope\"\n}"
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"401\", () => [401].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "⌂ App bar  (top-right: 🔔 notifications · 👤 profile)",
+      "item": [
+        {
+          "name": "🔔 Notifications",
+          "item": [
+            {
+              "name": "List",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/transport-app/notifications?page=1",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "transport-app",
+                    "notifications"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    }
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                      "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });",
+                      "const d=pm.response.json().data; if(d&&d[0]) pm.environment.set('notificationId', d[0].id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Unread count",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/transport-app/notifications/unread-count",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "transport-app",
+                    "notifications",
+                    "unread-count"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                      "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Mark one read",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/transport-app/notifications/{{notificationId}}/read",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "transport-app",
+                    "notifications",
+                    "{{notificationId}}",
+                    "read"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"200/404\", () => [200,404].includes(pm.response.code));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Mark all read",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/transport-app/notifications/read-all",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "transport-app",
+                    "notifications",
+                    "read-all"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                      "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Register device",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/transport-app/device-tokens",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "transport-app",
+                    "device-tokens"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"fcm-transport-token-000000000000000000\"\n}"
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                      "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "👤 Profile menu",
+          "item": [
+            {
+              "name": "Me",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/transport-app/me",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "transport-app",
+                    "me"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                      "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Logout",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/school-portal/transport-app/auth/logout",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "school-portal",
+                    "transport-app",
+                    "auth",
+                    "logout"
+                  ]
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                      "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📱 Tab 1 · Home",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "dashboard"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });",
+                  "const t=pm.response.json().data.todaysTrip; if(t&&t.id) pm.environment.set('tripId', t.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/dashboard/summary",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "dashboard",
+                "summary"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📱 Tab 2 · Trips",
+      "item": [
+        {
+          "name": "List Trips",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips?status=&date=&page=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "date",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });",
+                  "const d=pm.response.json().data; if(d&&d[0]) pm.environment.set('tripId', d[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Trip History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/history?from=&to=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "history"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "to",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Trip (manager)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"routeId\": \"{{routeId}}\",\n  \"tripType\": \"AFTERNOON_DROPOFF\"\n}"
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{managerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Idempotency-Key', value: 'pm-' + Date.now() });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201 / 409 duplicate\", () => [201,409].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Trip Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pre-Trip Inspection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/inspection",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "inspection"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"key\": \"brakes\",\n      \"result\": \"PASS\"\n    },\n    {\n      \"key\": \"tyres\",\n      \"result\": \"PASS\"\n    },\n    {\n      \"key\": \"lights\",\n      \"result\": \"PASS\"\n    }\n  ],\n  \"photos\": []\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Inspection",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/inspection",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "inspection"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Start Trip",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/start",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "start"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Idempotency-Key', value: 'start-' + pm.environment.get('tripId') });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 / 409 (inspection or transition)\", () => [200,409].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Arrive Stop",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/stops/{{stopId}}/arrive",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "stops",
+                "{{stopId}}",
+                "arrive"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lat\": 22.7196,\n  \"lng\": 75.8577\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200/409\", () => [200,409].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Depart Stop",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/stops/{{stopId}}/depart",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "stops",
+                "{{stopId}}",
+                "depart"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200/409\", () => [200,409].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Stops",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/stops",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "stops"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Complete Trip",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/complete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "complete"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200/409\", () => [200,409].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel Trip (manager)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "cancel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Vehicle unavailable\"\n}"
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{managerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200/403/409\", () => [200,403,409].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Abort Trip",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/abort",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "abort"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Breakdown\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200/409\", () => [200,409].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Live Location (POST ping)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/location",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "location"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 22.7196,\n  \"longitude\": 75.8577,\n  \"accuracy\": 8,\n  \"speed\": 28,\n  \"heading\": 90\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 / 409 (trip not active)\", () => [200,409].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Live Location (GET latest)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/location",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "location"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Location History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/location/history?page=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "location",
+                "history"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📱 Tab 3 · Students",
+      "item": [
+        {
+          "name": "Trip Students",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/students?status=&stopId=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "students"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "stopId",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });",
+                  "const d=pm.response.json().data; if(d&&d[0]) pm.environment.set('studentId', d[0].studentId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Route Students",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/routes/{{routeId}}/students",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "routes",
+                "{{routeId}}",
+                "students"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Student Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/students/{{studentId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "students",
+                "{{studentId}}",
+                "status"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Board Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/students/{{studentId}}/board",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "students",
+                "{{studentId}}",
+                "board"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stopId\": \"{{stopId}}\",\n  \"lat\": 22.7196,\n  \"lng\": 75.8577\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Idempotency-Key', value: 'board-' + Date.now() });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 / 409\", () => [200,409].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Drop Student",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/students/{{studentId}}/drop",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "students",
+                "{{studentId}}",
+                "drop"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stopId\": \"{{stopId}}\",\n  \"lat\": 22.73,\n  \"lng\": 75.88\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Idempotency-Key', value: 'drop-' + Date.now() });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 / 409\", () => [200,409].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark Absent",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/students/{{studentId}}/absent",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "students",
+                "{{studentId}}",
+                "absent"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Parent informed leave\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 / 409\", () => [200,409].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Report Exception",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/students/{{studentId}}/exception",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "students",
+                "{{studentId}}",
+                "exception"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"PARENT_UNAVAILABLE\",\n  \"description\": \"No one at the drop point\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200 / 409\", () => [200,409].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📱 Tab 4 · Alerts",
+      "item": [
+        {
+          "name": "Alerts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/alerts?status=&type=&page=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "alerts"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });",
+                  "const d=pm.response.json().data; if(d&&d[0]) pm.environment.set('alertId', d[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Alert Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/alerts/{{alertId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "alerts",
+                "{{alertId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/alerts/{{alertId}}/read",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "alerts",
+                "{{alertId}}",
+                "read"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Resolve",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/alerts/{{alertId}}/resolve",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "alerts",
+                "{{alertId}}",
+                "resolve"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Handled\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200/403/409\", () => [200,403,409].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Report Vehicle Issue",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "issues"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"FLAT_TYRE\",\n  \"severity\": \"HIGH\",\n  \"description\": \"Rear left tyre punctured\",\n  \"location\": {\n    \"lat\": 22.72,\n    \"lng\": 75.86\n  },\n  \"photos\": []\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"201/409\", () => [201,409].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Trip Issues",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/issues",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "issues"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "SOS — raise",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/sos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "sos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tripId\": \"{{tripId}}\",\n  \"description\": \"Emergency — need assistance\",\n  \"location\": {\n    \"lat\": 22.72,\n    \"lng\": 75.86\n  }\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.request.headers.upsert({ key: 'Idempotency-Key', value: 'sos-' + Date.now() });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });",
+                  "const d=pm.response.json().data; if(d&&d.id) pm.environment.set('sosId', d.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "SOS — list",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/sos?status=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "sos"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "SOS — details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/sos/{{sosId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "sos",
+                "{{sosId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "SOS — acknowledge (manager)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/sos/{{sosId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "sos",
+                "{{sosId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"acknowledge\"\n}"
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{managerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200/403/409\", () => [200,403,409].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "SOS — resolve (manager)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/sos/{{sosId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "sos",
+                "{{sosId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"resolve\",\n  \"note\": \"Assistance provided\"\n}"
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{managerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200/403/409\", () => [200,403,409].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📱 Tab 5 · Profile",
+      "item": [
+        {
+          "name": "Staff Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "profile"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/profile",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "profile"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"9820000009\",\n  \"emergencyContact\": {\n    \"name\": \"Spouse\",\n    \"phone\": \"9820000010\",\n    \"relationship\": \"Spouse\"\n  }\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vehicle",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/vehicle",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "vehicle"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Vehicle Documents",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/vehicle/documents",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "vehicle",
+                "documents"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Assigned Route + Stops",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/route",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "route"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });",
+                  "const d=pm.response.json().data; if(d&&d.id) pm.environment.set('routeId', d.id); if(d&&d.stops&&d.stops[0]) pm.environment.set('stopId', d.stops[0].id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Inspection History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/vehicle/inspection-history?page=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "vehicle",
+                "inspection-history"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Transport Settings (get)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "settings"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Transport Settings (patch — manager)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "settings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"delayThresholdMin\": 12,\n  \"boardingNotify\": true\n}"
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{managerToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200/403\", () => [200,403].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/change-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "change-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"{{transportPassword}}\",\n  \"newPassword\": \"ChangeMe@123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"200/401\", () => [200,401].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"2xx\", () => pm.response.code >= 200 && pm.response.code < 300);",
+                  "pm.test(\"success:true\", () => { try { return pm.response.json().success === true; } catch (e) { return false; } });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "📊 Reports (deferred — not in v1)",
+      "description": "Manager analytics (trips / boarding / delays / vehicles / incidents / emergency) are DEFERRED. The raw data lives in Trip / TripStudent / TransportIncident / TransportSOS and the existing school-admin transport endpoints; a reports aggregation is a planned follow-up (see docs/transport-apk-api.md).",
+      "item": []
+    },
+    {
+      "name": "🔒 Security & Error Tests  (not a tab)",
+      "item": [
+        {
+          "name": "No token → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "dashboard"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"401\", () => [401].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Teacher token → 403",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "dashboard"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{teacherToken}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"403\", () => [403].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cross-school trip → 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{otherSchoolTripId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{otherSchoolTripId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"404\", () => [404].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Driver create trip → 403 (manager only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"routeId\": \"{{routeId}}\",\n  \"tripType\": \"HOME_DROP\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"403\", () => [403].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Malformed tripId → 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/not-an-id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "not-an-id"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"400\", () => [400].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GPS bad coords → 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/school-portal/transport-app/trips/{{tripId}}/location",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "school-portal",
+                "transport-app",
+                "trips",
+                "{{tripId}}",
+                "location"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 999,\n  \"longitude\": 0\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"400\", () => [400].includes(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

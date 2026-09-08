@@ -82,6 +82,10 @@ const tripSchema = new mongoose.Schema(
     },
     stops: { type: [tripStopSchema], default: [] },
     abortReason: { type: String, default: '', trim: true },
+    // true while the trip occupies its route/date/type slot; flipped false on any
+    // terminal status. Backs the partial-unique index below (partialFilterExpression
+    // cannot use $nin, so a boolean flag is the portable way to express it).
+    isActive: { type: Boolean, default: true },
     startedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'SchoolUser', default: null },
     completedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'SchoolUser', default: null },
     cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'SchoolUser', default: null },
@@ -91,12 +95,17 @@ const tripSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// One live trip per route/date/type (anti-duplicate). Terminal trips are excluded
-// so a cancelled/failed trip can be re-created for the same slot.
+// One live trip per route/date/type (anti-duplicate). Terminal trips set
+// isActive:false so a cancelled/failed slot can be re-created.
 tripSchema.index(
   { schoolId: 1, routeId: 1, date: 1, tripType: 1 },
-  { unique: true, partialFilterExpression: { status: { $nin: TERMINAL_TRIP_STATUSES } } }
+  { unique: true, partialFilterExpression: { isActive: true } }
 );
+
+tripSchema.pre('save', function syncIsActive(next) {
+  this.isActive = !TERMINAL_TRIP_STATUSES.includes(this.status);
+  next();
+});
 tripSchema.index({ schoolId: 1, driverId: 1, date: 1 });
 tripSchema.index({ schoolId: 1, status: 1, date: 1 });
 tripSchema.index({ schoolId: 1, vehicleId: 1, date: 1 });
