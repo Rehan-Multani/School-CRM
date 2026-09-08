@@ -23,8 +23,9 @@ schoolClassSchema.index({ schoolId: 1, academicYearId: 1, numericOrder: 1 });
 schoolClassSchema.methods.toPublicJSON = function toPublicJSON() {
   return {
     id: this._id.toString(),
-    schoolId: this.schoolId.toString(),
-    academicYearId: this.academicYearId.toString(),
+    schoolId: this.schoolId ? this.schoolId.toString() : null,
+    // Legacy rows created before academic-year scoping can lack this — don't 500 the list.
+    academicYearId: this.academicYearId ? this.academicYearId.toString() : null,
     name: this.name,
     code: this.code,
     numericOrder: this.numericOrder,

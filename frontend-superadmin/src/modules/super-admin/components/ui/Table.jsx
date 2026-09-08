@@ -1,9 +1,16 @@
 import React from 'react';
 import { cn } from './Button';
 
-export const Table = React.forwardRef(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs dark:border-slate-800/80 dark:bg-slate-950">
-    <table ref={ref} className={cn('w-full caption-bottom text-xs', className)} {...props} />
+export const Table = React.forwardRef(({ className, containerClassName, ...props }, ref) => (
+  <div
+    className={cn(
+      'relative w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800/80 dark:bg-slate-950',
+      containerClassName
+    )}
+  >
+    <div className="w-full overflow-x-auto">
+      <table ref={ref} className={cn('w-full caption-bottom text-xs', className)} {...props} />
+    </div>
   </div>
 ));
 
@@ -23,7 +30,7 @@ export const TableRow = React.forwardRef(({ className, ...props }, ref) => (
   <tr
     ref={ref}
     className={cn(
-      'transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-900/50 data-[state=selected]:bg-slate-100 dark:data-[state=selected]:bg-slate-800',
+      'transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-900/40 data-[state=selected]:bg-slate-100 dark:data-[state=selected]:bg-slate-800',
       className
     )}
     {...props}
@@ -34,7 +41,7 @@ export const TableHead = React.forwardRef(({ className, ...props }, ref) => (
   <th
     ref={ref}
     className={cn(
-      'h-11 px-3.5 text-left align-middle text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400',
+      'h-11 px-4 text-left align-middle text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap',
       className
     )}
     {...props}
@@ -42,5 +49,6 @@ export const TableHead = React.forwardRef(({ className, ...props }, ref) => (
 ));
 
 export const TableCell = React.forwardRef(({ className, ...props }, ref) => (
-  <td ref={ref} className={cn('px-3.5 py-3 align-middle text-slate-800 dark:text-slate-200 text-xs', className)} {...props} />
+  <td ref={ref} className={cn('px-4 py-3.5 align-middle text-slate-800 dark:text-slate-200 text-xs', className)} {...props} />
 ));
+

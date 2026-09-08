@@ -20,11 +20,11 @@ export const Topbar = ({ onOpenCommandPalette }) => {
       <div className="flex items-center gap-4">
         <button
           onClick={onOpenCommandPalette}
-          className="flex items-center gap-3 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700/80 transition-all rounded-lg px-3 py-1.5 w-64 text-left text-slate-500 hover:text-slate-400 group"
+          className="group flex w-64 items-center gap-3 rounded-xl border border-slate-200/90 bg-slate-50/80 px-3 py-1.5 text-left text-slate-500 shadow-2xs transition-all hover:border-slate-300 hover:bg-white hover:text-slate-800 dark:border-slate-800 dark:bg-slate-900/80 dark:hover:border-slate-700 dark:hover:bg-slate-900 dark:hover:text-slate-300 cursor-pointer"
         >
-          <Search size={16} className="group-hover:scale-110 transition-transform" />
-          <span className="text-sm">Search panel...</span>
-          <div className="ml-auto bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-[10px] font-bold text-slate-450 dark:text-slate-400 px-1.5 py-0.5 rounded">
+          <Search size={16} className="transition-transform group-hover:scale-110 text-slate-400" />
+          <span className="text-xs font-medium">Search panel...</span>
+          <div className="ml-auto rounded-md border border-slate-200/80 bg-white px-1.5 py-0.5 text-[10px] font-bold text-slate-400 shadow-2xs dark:border-slate-800 dark:bg-slate-950 dark:text-slate-500">
             Ctrl+K
           </div>
         </button>
@@ -33,15 +33,17 @@ export const Topbar = ({ onOpenCommandPalette }) => {
       <div className="flex items-center gap-3">
         <button
           onClick={toggleTheme}
-          className="p-2 rounded-lg bg-slate-150 dark:bg-slate-900 border border-slate-200 dark:border-slate-900 hover:border-slate-300 dark:hover:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
+          className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/90 bg-white text-slate-600 shadow-2xs transition-all hover:scale-105 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-100 cursor-pointer"
+          title="Toggle color theme"
+          aria-label="Toggle color theme"
         >
-          {isDark ? <Sun size={18} /> : <Moon size={18} />}
+          {isDark ? <Sun size={17} className="text-amber-400" /> : <Moon size={17} className="text-slate-600" />}
         </button>
 
         <Dropdown modal={false}>
           <DropdownTrigger asChild>
             <button
-              className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-150 text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900 dark:border-slate-900 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-slate-800 dark:hover:text-slate-200"
+              className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-slate-200/90 bg-white text-slate-600 shadow-2xs transition-all hover:scale-105 hover:border-slate-300 hover:text-slate-900 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:text-slate-100 cursor-pointer"
               aria-label="Profile menu"
             >
               {admin?.avatar ? (

@@ -84,19 +84,9 @@ class SafePickupService {
     };
   }
 
-  async setSchoolEnabled(schoolId, enabled, req) {
-    if (typeof enabled !== 'boolean') throw new AppError('safePickupEnabled must be a boolean', 400, E.VALIDATION);
-    const school = await safePickupRepository.setSchoolFlag(schoolId, enabled);
-    if (!school) throw new AppError('School not found', 404);
-    auditLogService.record(req, {
-      module: 'SAFE_PICKUP',
-      action: 'SCHOOL_FEATURE_UPDATED',
-      entityType: 'School',
-      entityId: String(schoolId),
-      summary: `School-admin ${enabled ? 'enabled' : 'disabled'} safe pickup for the school`,
-    });
-    return { schoolEnabled: Boolean(school.settings?.safePickupEnabled) };
-  }
+  // NOTE: the school-level master switch is Super Admin–only — it is written by
+  // schoolService.updateFeatures() (PATCH /platform/schools/:id/features), not here.
+  // School admins only manage the per-class toggles below.
 
   async setClassEnabled(schoolId, classId, enabled, req) {
     if (typeof enabled !== 'boolean') throw new AppError('safePickupEnabled must be a boolean', 400, E.VALIDATION);

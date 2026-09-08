@@ -433,7 +433,24 @@ export class SchoolService {
     };
   }
 
-  async resetLogin(id) {
+  async changeSchoolAdminPassword(id, newPassword) {
+    const trimmed = typeof newPassword === 'string' ? newPassword.trim() : '';
+    if (!trimmed || trimmed.length < 6) {
+      throw new AppError('Password must be at least 6 characters long', 400);
+    }
+    const school = await schoolRepository.findByIdWithPassword(id);
+    if (!school) {
+      throw new AppError('School not found', 404);
+    }
+    const credentials = await setAdminPassword(school, trimmed);
+    const emailSent = await emailCredentials(credentials);
+    return { ...credentials, emailSent };
+  }
+
+  async resetLogin(id, customPassword = null) {
+    if (customPassword) {
+      return this.changeSchoolAdminPassword(id, customPassword);
+    }
     const school = await schoolRepository.findByIdWithPassword(id);
     if (!school) {
       throw new AppError('School not found', 404);

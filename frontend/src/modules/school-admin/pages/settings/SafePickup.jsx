@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Save, Loader2, History } from 'lucide-react';
+import { ShieldCheck, Save, Loader2, History, Lock, BadgeCheck } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
 import { safePickupSettingsApi } from '../../../../shared/api/client';
 
@@ -46,7 +46,6 @@ export function SafePickup() {
       setSchoolEnabled(Boolean(res.data.schoolEnabled));
       setClasses(res.data.classes || []);
       setOriginal({
-        schoolEnabled: Boolean(res.data.schoolEnabled),
         classes: Object.fromEntries((res.data.classes || []).map((c) => [c.id, c.safePickupEnabled])),
       });
       setDirty(false);
@@ -65,17 +64,10 @@ export function SafePickup() {
     setClasses((prev) => prev.map((c) => (c.id === id ? { ...c, safePickupEnabled: value } : c)));
     setDirty(true);
   };
-  const toggleSchool = (value) => {
-    setSchoolEnabled(value);
-    setDirty(true);
-  };
 
   const save = async () => {
     setSaving(true);
     try {
-      if (!original || original.schoolEnabled !== schoolEnabled) {
-        await safePickupSettingsApi.setSchool(schoolEnabled);
-      }
       const changed = classes.filter((c) => !original || original.classes[c.id] !== c.safePickupEnabled);
       await Promise.all(changed.map((c) => safePickupSettingsApi.setClass(c.id, c.safePickupEnabled)));
       showToast('Safe pickup settings saved', 'success');
@@ -104,17 +96,31 @@ export function SafePickup() {
             </p>
           </div>
         </div>
-        <Link
-          to="/school-admin/settings/safe-pickup/history"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-        >
-          <History className="h-3.5 w-3.5" /> History
-        </Link>
+        {schoolEnabled && (
+          <Link
+            to="/school-admin/settings/safe-pickup/history"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+          >
+            <History className="h-3.5 w-3.5" /> History
+          </Link>
+        )}
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-20 text-slate-400">
           <Loader2 className="h-5 w-5 animate-spin" />
+        </div>
+      ) : !schoolEnabled ? (
+        <div className="rounded-xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-800/50">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400 dark:bg-slate-700 dark:text-slate-500">
+            <Lock className="h-6 w-6" />
+          </div>
+          <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Not available</p>
+          <p className="mx-auto mt-1.5 max-w-md text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+            Student Pickup Verification is managed by your platform administrator and is not
+            enabled for your school. Contact platform support to turn it on — once enabled,
+            you can configure it class by class here.
+          </p>
         </div>
       ) : (
         <>
@@ -122,10 +128,12 @@ export function SafePickup() {
             <div>
               <p className="text-sm font-bold text-slate-700 dark:text-slate-200">School feature</p>
               <p className="text-xs text-slate-400">
-                Master switch. When off, no class can use pickup verification regardless of its own setting.
+                Enabled for your school by the platform administrator. Manage it class by class below.
               </p>
             </div>
-            <Toggle checked={schoolEnabled} onChange={toggleSchool} label="School safe pickup" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+              <BadgeCheck className="h-3.5 w-3.5" /> Enabled by platform admin
+            </span>
           </div>
 
           <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
@@ -149,7 +157,6 @@ export function SafePickup() {
                   </div>
                   <Toggle
                     checked={c.safePickupEnabled}
-                    disabled={!schoolEnabled}
                     onChange={(v) => toggleClass(c.id, v)}
                     label={`${c.name} safe pickup`}
                   />

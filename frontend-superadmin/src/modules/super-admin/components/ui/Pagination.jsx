@@ -35,11 +35,11 @@ export const Pagination = ({ currentPage, totalPages, onPageChange, totalItems, 
           </p>
         </div>
         <div>
-          <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+          <nav className="inline-flex items-center gap-1.5" aria-label="Pagination">
             <Button
               variant="secondary"
-              className="rounded-r-none rounded-l-md"
               size="icon"
+              className="h-9 w-9"
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
             >
@@ -49,8 +49,8 @@ export const Pagination = ({ currentPage, totalPages, onPageChange, totalItems, 
               <Button
                 key={page}
                 variant={currentPage === page ? 'primary' : 'secondary'}
-                className="rounded-none border-x-0"
                 size="sm"
+                className="min-w-9"
                 onClick={() => onPageChange(page)}
               >
                 {page}
@@ -58,8 +58,8 @@ export const Pagination = ({ currentPage, totalPages, onPageChange, totalItems, 
             ))}
             <Button
               variant="secondary"
-              className="rounded-l-none rounded-r-md"
               size="icon"
+              className="h-9 w-9"
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
             >

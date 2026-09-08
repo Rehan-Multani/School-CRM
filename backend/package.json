@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "nodemon index.js",
     "start": "node index.js",
+    "clean-ports": "node clean-ports.js",
     "seed": "npm run seed --prefix services/auth-service"
   },
   "dependencies": {

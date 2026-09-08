@@ -19,7 +19,9 @@ export class SchoolRepository {
     }
 
     if (plan && plan !== 'All') {
-      query.subscriptionPlan = plan;
+      const trimmedPlan = String(plan).trim();
+      const basePlan = trimmedPlan.replace(/\s*Plan$/i, '').trim();
+      query.subscriptionPlan = { $in: [trimmedPlan, basePlan, `${basePlan} Plan`] };
     }
 
     const safePage = Math.max(1, Number(page) || 1);

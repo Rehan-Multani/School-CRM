@@ -1,0 +1,6 @@
+{
+  "watch": ["index.js", ".env"],
+  "ignore": ["services/**", "node_modules/**", "api/**"],
+  "ext": "js,json,env"
+}
+

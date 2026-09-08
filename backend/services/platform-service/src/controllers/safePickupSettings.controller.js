@@ -10,15 +10,6 @@ export async function getSafePickupSettings(req, res, next) {
   }
 }
 
-export async function updateSafePickupSchool(req, res, next) {
-  try {
-    const data = await safePickupService.setSchoolEnabled(schoolId(req), req.body?.safePickupEnabled, req);
-    res.json({ success: true, message: 'School safe-pickup setting updated', data });
-  } catch (error) {
-    next(error);
-  }
-}
-
 export async function updateSafePickupClass(req, res, next) {
   try {
     const data = await safePickupService.setClassEnabled(

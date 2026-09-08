@@ -29,6 +29,11 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
+  // Skip junk/empty rows so the panel never shows blank space or a phantom scrollbar.
+  const visibleNotifications = (notifications || []).filter(
+    (n) => (n?.title && String(n.title).trim()) || (n?.message && String(n.message).trim())
+  );
+
   const handleLogout = () => {
     logout();
     navigate('/school-admin/login');
@@ -46,7 +51,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
   };
 
   return (
-    <header className="sticky top-0 z-35 flex h-16 items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 md:px-8 shadow-sm">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 md:px-8 shadow-sm">
       {/* Mobile Drawer Trigger & Search Indicator */}
       <div className="flex items-center gap-4">
         <button
@@ -108,7 +113,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
 
           {/* Notifications Panel Dropdown */}
           {showNotifications && (
-            <div className="absolute right-0 mt-2.5 z-40 w-80 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+            <div className="absolute right-0 mt-2.5 z-50 w-80 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
                 <span className="text-xs font-bold text-slate-950 dark:text-white">Notifications</span>
                 {unreadCount > 0 && (
@@ -122,13 +127,13 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
               </div>
 
               <div className="max-h-60 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-850">
-                {notifications.length === 0 ? (
+                {visibleNotifications.length === 0 ? (
                   <div className="p-6 text-center text-xs font-semibold text-slate-400">
                     No new notifications
                   </div>
                 ) : (
-                  notifications.map((notif) => (
-                    <div 
+                  visibleNotifications.map((notif) => (
+                    <div
                       key={notif.id}
                       onClick={() => {
                         markRead(notif.id);
@@ -140,10 +145,12 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
                       )}
                     >
                       <div className="flex justify-between items-start gap-2">
-                        <span className="text-xs font-bold text-slate-900 dark:text-white block">{notif.title}</span>
+                        <span className="text-xs font-bold text-slate-900 dark:text-white break-words min-w-0">{notif.title}</span>
                         <span className="text-[9px] text-slate-400 font-medium shrink-0">{notif.time}</span>
                       </div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug">{notif.message}</p>
+                      {notif.message && (
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug break-words">{notif.message}</p>
+                      )}
                     </div>
                   ))
                 )}
@@ -167,7 +174,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
             </button>
 
             {showProfileMenu && (
-              <div className="absolute right-0 mt-2.5 z-40 w-52 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-2.5 space-y-1">
+              <div className="absolute right-0 mt-2.5 z-50 w-52 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-2.5 space-y-1">
                 <div className="px-2.5 py-2 border-b border-slate-100 dark:border-slate-850">
                   <span className="block text-xs font-bold text-slate-900 dark:text-white truncate">{user.name}</span>
                   <span className="block text-[10px] text-slate-400 font-medium truncate mt-0.5">{user.email}</span>

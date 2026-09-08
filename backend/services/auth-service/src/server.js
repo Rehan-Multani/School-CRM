@@ -6,12 +6,20 @@ import { seedSuperAdmin } from './seedSuperAdmin.js';
 
 async function start() {
   await connectDB(env.mongoUri, mongoose);
-  await seedSuperAdmin();
 
-  app.listen(env.port, () => {
-    console.log(`Auth service running on http://localhost:${env.port}`);
-    console.log(`Super Admin seeded: ${env.superAdmin.email}`);
+  const server = app.listen(env.port, '0.0.0.0', () => {
+    console.log(`Auth service running on http://127.0.0.1:${env.port}`);
   });
+
+  seedSuperAdmin()
+    .then(() => {
+      console.log(`[auth-service:seed] Super Admin ready: ${env.superAdmin.email}`);
+    })
+    .catch((err) => {
+      console.error('[auth-service:seed] Super Admin seed notice (non-fatal):', err.message);
+    });
+
+  return server;
 }
 
 start().catch((error) => {
@@ -20,6 +28,15 @@ start().catch((error) => {
 });
 
 process.on('unhandledRejection', (error) => {
-  console.error('Unhandled rejection in auth-service:', error);
-  process.exit(1);
+  console.error('[auth-service] Unhandled rejection:', error?.stack || error);
+  if (env.nodeEnv === 'production') {
+    process.exit(1);
+  }
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('[auth-service] Uncaught exception:', error?.stack || error);
+  if (env.nodeEnv === 'production') {
+    process.exit(1);
+  }
 });

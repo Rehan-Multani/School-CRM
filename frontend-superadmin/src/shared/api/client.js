@@ -388,7 +388,10 @@ export const platformSchoolApi = {
   update: (id, payload) => apiClient.put(`/platform/schools/${id}`, payload).then((res) => res.data),
   updateStatus: (id, status) =>
     apiClient.patch(`/platform/schools/${id}/status`, { status }).then((res) => res.data),
-  resetLogin: (id) => apiClient.post(`/platform/schools/${id}/reset-login`).then((res) => res.data),
+  resetLogin: (id, payload = {}) =>
+    apiClient.post(`/platform/schools/${id}/reset-login`, payload).then((res) => res.data),
+  changePassword: (id, password) =>
+    apiClient.post(`/platform/schools/${id}/change-password`, { password }).then((res) => res.data),
   remove: (id) => apiClient.delete(`/platform/schools/${id}`).then((res) => res.data),
   getFeatures: (id) => apiClient.get(`/platform/schools/${id}/features`).then((res) => res.data),
   updateFeatures: (id, payload) =>

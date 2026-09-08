@@ -35,7 +35,7 @@ export const TopBar = ({ toggleSidebar, onSearchTrigger }) => {
   };
 
   return (
-    <header className="sticky top-0 z-35 flex h-16 items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md px-4 md:px-8 shadow-xs">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-950/90 backdrop-blur-md px-4 md:px-8 shadow-xs">
       {/* Mobile Drawer Trigger & Search Indicator */}
       <div className="flex items-center gap-4">
         <button

@@ -112,9 +112,33 @@ export async function updateSchoolFeatures(req, res, next) {
   }
 }
 
+export async function changeSchoolAdminPassword(req, res, next) {
+  try {
+    const { password } = req.body || {};
+    if (!password || typeof password !== 'string' || password.trim().length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters long',
+      });
+    }
+    const credentials = await schoolService.changeSchoolAdminPassword(req.params.id, password);
+    res.json({
+      success: true,
+      message: credentials.emailSent
+        ? 'School admin password updated and emailed'
+        : 'School admin password updated successfully',
+      credentials,
+      emailSent: credentials.emailSent,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function resetSchoolLogin(req, res, next) {
   try {
-    const credentials = await schoolService.resetLogin(req.params.id);
+    const password = req.body?.password;
+    const credentials = await schoolService.resetLogin(req.params.id, password);
     res.json({
       success: true,
       message: credentials.emailSent

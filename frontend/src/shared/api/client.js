@@ -373,7 +373,10 @@ export const platformSchoolApi = {
   update: (id, payload) => apiClient.put(`/platform/schools/${id}`, payload).then((res) => res.data),
   updateStatus: (id, status) =>
     apiClient.patch(`/platform/schools/${id}/status`, { status }).then((res) => res.data),
-  resetLogin: (id) => apiClient.post(`/platform/schools/${id}/reset-login`).then((res) => res.data),
+  resetLogin: (id, payload = {}) =>
+    apiClient.post(`/platform/schools/${id}/reset-login`, payload).then((res) => res.data),
+  changePassword: (id, password) =>
+    apiClient.post(`/platform/schools/${id}/change-password`, { password }).then((res) => res.data),
   remove: (id) => apiClient.delete(`/platform/schools/${id}`).then((res) => res.data),
   getFeatures: (id) => apiClient.get(`/platform/schools/${id}/features`).then((res) => res.data),
   updateFeatures: (id, payload) =>
@@ -1297,12 +1300,10 @@ export const principalMeetingApi = {
 // STUDENT SAFE PICKUP — School Admin configuration + history
 // ===========================================================================
 export const safePickupSettingsApi = {
+  // The school-level master switch is Super Admin–only; school admins read it
+  // via get() and manage per-class toggles via setClass().
   get: () =>
     schoolAdminClient.get('/platform/school-portal/settings/safe-pickup').then((r) => r.data),
-  setSchool: (safePickupEnabled) =>
-    schoolAdminClient
-      .patch('/platform/school-portal/settings/safe-pickup', { safePickupEnabled })
-      .then((r) => r.data),
   setClass: (classId, safePickupEnabled) =>
     schoolAdminClient
       .patch(`/platform/school-portal/academic/classes/${classId}/pickup`, { safePickupEnabled })

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '../../components/ui/Table';
 import { Button, Badge } from '../../components/ui/Button';
 import { Select } from '../../components/ui/Input';
+import { Switch } from '../../components/ui/Switch';
 import {
   Dialog,
   DialogTrigger,
@@ -11,7 +12,7 @@ import {
   DialogDescription,
 } from '../../components/ui/Dialog';
 import { useSuperAdminNotifications } from '../../context/SuperAdminNotificationContext';
-import { platformSchoolApi } from '../../../../shared/api/client';
+import { platformSchoolApi, platformSubscriptionApi } from '../../../../shared/api/client';
 import schoolLogo from '../../../../assets/School_logo.png';
 import {
   Plus,
@@ -26,6 +27,8 @@ import {
   ImagePlus,
   X,
   Eye,
+  EyeOff,
+  Lock,
   Pencil,
   Trash2,
   Ban,
@@ -138,8 +141,9 @@ function SectionTitle({ icon: Icon, title }) {
 }
 
 function assignedPlanName(plan) {
-  if (!plan || ['Basic', 'Growth', 'Enterprise'].includes(plan)) return '';
-  return plan;
+  if (!plan) return '';
+  if (typeof plan === 'object') return plan.name || '';
+  return String(plan);
 }
 
 function Pulse({ className }) {
@@ -148,18 +152,19 @@ function Pulse({ className }) {
 
 function SchoolsTableSkeleton() {
   return (
-    <Table>
+    <Table className="min-w-[1210px]">
       <TableHeader>
         <TableRow>
           <TableHead className="w-12 text-center">#</TableHead>
-          <TableHead>School</TableHead>
-          <TableHead>Code</TableHead>
-          <TableHead>Board & Type</TableHead>
-          <TableHead>Location</TableHead>
-          <TableHead>Academic</TableHead>
-          <TableHead>Plan</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <TableHead className="min-w-[220px]">School</TableHead>
+          <TableHead className="min-w-[110px]">Code</TableHead>
+          <TableHead className="min-w-[120px]">Board & Type</TableHead>
+          <TableHead className="min-w-[120px]">Location</TableHead>
+          <TableHead className="min-w-[130px]">Academic</TableHead>
+          <TableHead className="min-w-[100px]">Plan</TableHead>
+          <TableHead className="min-w-[90px]">Status</TableHead>
+          <TableHead className="min-w-[130px] text-center">Pickup verify</TableHead>
+          <TableHead className="text-right min-w-[180px] pr-4">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -168,39 +173,44 @@ function SchoolsTableSkeleton() {
             <TableCell className="w-12 text-center">
               <Pulse className="mx-auto h-3.5 w-4" />
             </TableCell>
-            <TableCell>
+            <TableCell className="min-w-[220px]">
               <div className="flex items-center gap-2.5">
-                <Pulse className="h-9 w-9 rounded-xl" />
-                <div className="space-y-1.5">
+                <Pulse className="h-9 w-9 rounded-xl shrink-0" />
+                <div className="space-y-1.5 flex-1">
                   <Pulse className="h-3.5 w-32" />
                   <Pulse className="h-2.5 w-24" />
                 </div>
               </div>
             </TableCell>
-            <TableCell>
+            <TableCell className="min-w-[110px]">
               <Pulse className="mb-1.5 h-3 w-16" />
               <Pulse className="h-2.5 w-20" />
             </TableCell>
-            <TableCell>
+            <TableCell className="min-w-[120px]">
               <Pulse className="mb-1.5 h-3 w-14" />
               <Pulse className="h-2.5 w-16" />
             </TableCell>
-            <TableCell>
+            <TableCell className="min-w-[120px]">
               <Pulse className="mb-1.5 h-3 w-16" />
               <Pulse className="h-2.5 w-20" />
             </TableCell>
-            <TableCell>
+            <TableCell className="min-w-[130px]">
               <Pulse className="mb-1.5 h-3 w-14" />
               <Pulse className="h-2.5 w-18" />
             </TableCell>
-            <TableCell>
+            <TableCell className="min-w-[100px]">
               <Pulse className="h-6 w-16 rounded-full" />
             </TableCell>
-            <TableCell>
+            <TableCell className="min-w-[90px]">
               <Pulse className="h-6 w-16 rounded-full" />
             </TableCell>
-            <TableCell>
+            <TableCell className="min-w-[130px]">
+              <Pulse className="mx-auto h-5 w-9 rounded-full" />
+            </TableCell>
+            <TableCell className="min-w-[180px] pr-4">
               <div className="flex justify-end gap-1.5">
+                <Pulse className="h-7 w-7 rounded-lg" />
+                <Pulse className="h-7 w-7 rounded-lg" />
                 <Pulse className="h-7 w-7 rounded-lg" />
                 <Pulse className="h-7 w-7 rounded-lg" />
                 <Pulse className="h-7 w-7 rounded-lg" />
@@ -220,7 +230,7 @@ function ActionIcon({ label, onClick, className, children }) {
       title={label}
       aria-label={label}
       onClick={onClick}
-      className={`rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800 ${className}`}
+      className={`relative flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-all duration-150 hover:scale-105 active:scale-95 cursor-pointer ${className}`}
     >
       {children}
     </button>
@@ -283,6 +293,14 @@ export default function SchoolsIndex() {
   const [credentials, setCredentials] = useState(null);
   const [copiedField, setCopiedField] = useState('');
   const [resettingId, setResettingId] = useState('');
+  const [featureBusyId, setFeatureBusyId] = useState('');
+  const [changePasswordSchool, setChangePasswordSchool] = useState(null);
+  const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordSubmitting, setPasswordSubmitting] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [availablePlans, setAvailablePlans] = useState([]);
   const [form, setForm] = useState(initialForm);
   const [codeTouched, setCodeTouched] = useState(false);
   const logoFileRef = useRef(null);
@@ -320,6 +338,43 @@ export default function SchoolsIndex() {
     }, search ? 300 : 0);
     return () => clearTimeout(timer);
   }, [search, filterPlan, filterStatus, page]);
+
+  useEffect(() => {
+    let active = true;
+    platformSubscriptionApi
+      .list()
+      .then((res) => {
+        if (active && res?.data) {
+          setAvailablePlans(res.data);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load subscription plans:', err);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const planOptions = React.useMemo(() => {
+    const list = [];
+    const seen = new Set();
+    (availablePlans || []).forEach((plan) => {
+      const name = plan?.name?.trim();
+      if (name && !seen.has(name)) {
+        seen.add(name);
+        list.push({ id: plan.id || name, name });
+      }
+    });
+    (schools || []).forEach((school) => {
+      const pName = assignedPlanName(school.subscriptionPlan)?.trim();
+      if (pName && !seen.has(pName)) {
+        seen.add(pName);
+        list.push({ id: pName, name: pName });
+      }
+    });
+    return list;
+  }, [availablePlans, schools]);
 
   const updateForm = (path, value) => {
     setForm((prev) => {
@@ -485,6 +540,58 @@ export default function SchoolsIndex() {
     }
   };
 
+  const openChangePasswordModal = (school) => {
+    setChangePasswordSchool(school);
+    setPasswordForm({ newPassword: '', confirmPassword: '' });
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+    setPasswordError('');
+  };
+
+  const closeChangePasswordModal = () => {
+    setChangePasswordSchool(null);
+    setPasswordForm({ newPassword: '', confirmPassword: '' });
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+    setPasswordError('');
+  };
+
+  const handleChangePasswordSubmit = async (e) => {
+    e.preventDefault();
+    const newPass = passwordForm.newPassword.trim();
+    const confirmPass = passwordForm.confirmPassword.trim();
+
+    if (!newPass) {
+      setPasswordError('Please enter a new password.');
+      return;
+    }
+    if (newPass.length < 6) {
+      setPasswordError('Password must be at least 6 characters long.');
+      return;
+    }
+    if (newPass !== confirmPass) {
+      setPasswordError('Passwords do not match. Please verify.');
+      return;
+    }
+
+    setPasswordSubmitting(true);
+    setPasswordError('');
+    try {
+      const result = await platformSchoolApi.changePassword(changePasswordSchool.id, newPass);
+      addNotification(
+        'success',
+        result.message || `Password changed successfully for ${changePasswordSchool.name}`
+      );
+      closeChangePasswordModal();
+    } catch (err) {
+      setPasswordError(
+        err.response?.data?.message || err.message || 'Unable to update password.'
+      );
+    } finally {
+      setPasswordSubmitting(false);
+    }
+  };
+
   const handleResetLogin = async (school) => {
     setResettingId(school.id);
     try {
@@ -519,6 +626,28 @@ export default function SchoolsIndex() {
         'error',
         err.response?.data?.message || err.message || 'Unable to update school status.'
       );
+    }
+  };
+
+  const handleToggleSafePickup = async (school, next) => {
+    setFeatureBusyId(school.id);
+    setSchools((prev) => prev.map((s) => (s.id === school.id ? { ...s, safePickupEnabled: next } : s)));
+    setViewingSchool((prev) => (prev && prev.id === school.id ? { ...prev, safePickupEnabled: next } : prev));
+    try {
+      await platformSchoolApi.updateFeatures(school.id, { safePickupEnabled: next });
+      addNotification(
+        'info',
+        `Student Pickup Verification ${next ? 'enabled' : 'disabled'} for ${school.name}`
+      );
+    } catch (err) {
+      setSchools((prev) => prev.map((s) => (s.id === school.id ? { ...s, safePickupEnabled: !next } : s)));
+      setViewingSchool((prev) => (prev && prev.id === school.id ? { ...prev, safePickupEnabled: !next } : prev));
+      addNotification(
+        'error',
+        err.response?.data?.message || err.message || 'Unable to update the pickup feature.'
+      );
+    } finally {
+      setFeatureBusyId('');
     }
   };
 
@@ -866,10 +995,10 @@ export default function SchoolsIndex() {
                           key={day}
                           type="button"
                           onClick={() => toggleWorkingDay(day)}
-                          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                          className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
                             active
-                              ? 'bg-indigo-600 text-white'
-                              : 'border border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-400 dark:hover:border-slate-600'
+                              ? 'bg-gradient-to-b from-indigo-500 to-indigo-600 text-white shadow-xs border border-indigo-400/30 scale-105'
+                              : 'border border-slate-200/90 bg-white text-slate-600 shadow-2xs hover:bg-slate-50 hover:border-slate-300 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'
                           }`}
                         >
                           {day.slice(0, 3)}
@@ -929,9 +1058,11 @@ export default function SchoolsIndex() {
           }}
         >
           <option value="All">All subscription plans</option>
-          <option value="Basic">Basic Plan</option>
-          <option value="Growth">Growth Plan</option>
-          <option value="Enterprise">Enterprise Plan</option>
+          {planOptions.map((plan) => (
+            <option key={plan.id} value={plan.name}>
+              {plan.name}
+            </option>
+          ))}
         </Select>
         <Select
           value={filterStatus}
@@ -950,26 +1081,27 @@ export default function SchoolsIndex() {
       {loading ? (
         <SchoolsTableSkeleton />
       ) : (
-        <Table>
+        <Table className="min-w-[1210px]">
           <TableHeader>
             <TableRow>
               <TableHead className="w-12 text-center">#</TableHead>
-              <TableHead>School</TableHead>
-              <TableHead>Code</TableHead>
-              <TableHead>Board & Type</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Academic</TableHead>
-              <TableHead>Plan</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="min-w-[220px]">School</TableHead>
+              <TableHead className="min-w-[110px]">Code</TableHead>
+              <TableHead className="min-w-[120px]">Board & Type</TableHead>
+              <TableHead className="min-w-[120px]">Location</TableHead>
+              <TableHead className="min-w-[130px]">Academic</TableHead>
+              <TableHead className="min-w-[100px]">Plan</TableHead>
+              <TableHead className="min-w-[90px]">Status</TableHead>
+              <TableHead className="min-w-[130px] text-center">Pickup verify</TableHead>
+              <TableHead className="text-right min-w-[180px] pr-4">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {schools.length === 0 ? (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={9} className="py-16 text-center">
-                  <Building2 className="mx-auto mb-3 h-8 w-8 text-slate-300" />
-                  <p className="text-sm font-medium text-slate-500">No schools found</p>
+                <TableCell colSpan={10} className="py-16 text-center">
+                  <Building2 className="mx-auto mb-3 h-8 w-8 text-slate-300 dark:text-slate-600" />
+                  <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">No schools found</p>
                   <p className="mt-1 text-xs text-slate-400">Click &quot;Add School&quot; to create the first tenant.</p>
                 </TableCell>
               </TableRow>
@@ -981,7 +1113,7 @@ export default function SchoolsIndex() {
                     <TableCell className="w-12 text-center font-bold text-slate-400">
                       {serialNo}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="min-w-[220px]">
                       <div className="flex items-center gap-2.5">
                         {school.logo ? (
                           <img
@@ -996,34 +1128,36 @@ export default function SchoolsIndex() {
                         )}
                         <div className="min-w-0 max-w-[200px]">
                           <div className="truncate font-bold text-slate-900 dark:text-slate-100">{school.name}</div>
-                          <div className="truncate text-[11px] text-slate-400">{school.admin?.email || '—'}</div>
+                          <div className="truncate text-[11px] text-slate-400">{school.admin?.email || school.contact?.email || '—'}</div>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">
+                    <TableCell className="whitespace-nowrap min-w-[110px]">
                       <span className="inline-flex rounded-md bg-indigo-50 px-2 py-0.5 font-mono text-[11px] font-bold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
                         {school.code}
                       </span>
                       <div className="mt-0.5 font-mono text-[10px] text-slate-400">{school.schoolId}</div>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <div className="font-semibold text-slate-900 dark:text-slate-100">{school.board}</div>
-                      <div className="text-[11px] text-slate-400">{school.type}</div>
+                    <TableCell className="whitespace-nowrap min-w-[120px]">
+                      <div className="font-semibold text-slate-900 dark:text-slate-100">{school.board || '—'}</div>
+                      <div className="text-[11px] text-slate-400">{school.type || '—'}</div>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">
+                    <TableCell className="whitespace-nowrap min-w-[120px]">
                       <div className="flex items-center gap-1 text-slate-700 dark:text-slate-300">
                         <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                        <span>{school.address?.city || '—'}</span>
+                        <span className="font-medium">{school.address?.city || '—'}</span>
                       </div>
-                      <div className="text-[11px] text-slate-400 pl-4.5">{school.address?.state || ''}</div>
+                      <div className="text-[11px] text-slate-400 pl-[18px]">{school.address?.state || ''}</div>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">
+                    <TableCell className="whitespace-nowrap min-w-[130px]">
                       <div className="font-semibold text-slate-900 dark:text-slate-100">{school.academic?.session || '—'}</div>
                       <div className="text-[11px] text-slate-400">
-                        {school.academic?.classFrom}–{school.academic?.classTo} · {school.academic?.medium}
+                        {school.academic?.classFrom && school.academic?.classTo
+                          ? `${school.academic.classFrom}–${school.academic.classTo} · ${school.academic.medium || 'English'}`
+                          : school.academic?.medium || '—'}
                       </div>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">
+                    <TableCell className="whitespace-nowrap min-w-[100px]">
                       {assignedPlanName(school.subscriptionPlan) ? (
                         <Badge variant={assignedPlanName(school.subscriptionPlan)}>
                           {assignedPlanName(school.subscriptionPlan)}
@@ -1032,33 +1166,62 @@ export default function SchoolsIndex() {
                         <span className="text-xs text-slate-400">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">
+                    <TableCell className="whitespace-nowrap min-w-[90px]">
                       <Badge variant={school.status}>{school.status}</Badge>
                     </TableCell>
-                    <TableCell className="text-right whitespace-nowrap">
-                      <div className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 p-0.5 dark:border-slate-800 dark:bg-slate-900">
-                        <ActionIcon label="View details" onClick={() => setViewingSchool(school)} className="hover:text-indigo-600">
-                          <Eye size={14} />
+                    <TableCell className="whitespace-nowrap min-w-[130px]">
+                      <div className="flex items-center justify-center gap-2">
+                        {featureBusyId === school.id && (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />
+                        )}
+                        <Switch
+                          checked={Boolean(school.safePickupEnabled)}
+                          onCheckedChange={(next) => handleToggleSafePickup(school, next)}
+                          disabled={featureBusyId === school.id}
+                          aria-label={`Toggle Student Pickup Verification for ${school.name}`}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right whitespace-nowrap min-w-[190px] pr-4">
+                      <div className="inline-flex items-center gap-0.5 rounded-xl border border-slate-200/90 bg-white/90 p-1 shadow-2xs dark:border-slate-800 dark:bg-slate-900/90 backdrop-blur-xs">
+                        <ActionIcon
+                          label="View details"
+                          onClick={() => setViewingSchool(school)}
+                          className="hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-500/15 dark:hover:text-indigo-400"
+                        >
+                          <Eye size={15} />
                         </ActionIcon>
                         <ActionIcon
-                          label="Reset school admin login"
-                          onClick={() => handleResetLogin(school)}
-                          className="hover:text-indigo-600"
+                          label="Change password"
+                          onClick={() => openChangePasswordModal(school)}
+                          className="hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-500/15 dark:hover:text-amber-400"
                         >
-                          {resettingId === school.id ? <Loader2 size={14} className="animate-spin" /> : <KeyRound size={14} />}
+                          <KeyRound size={15} />
                         </ActionIcon>
-                        <ActionIcon label="Edit school" onClick={() => fillFormFromSchool(school)} className="hover:text-indigo-600">
-                          <Pencil size={14} />
+                        <ActionIcon
+                          label="Edit school"
+                          onClick={() => fillFormFromSchool(school)}
+                          className="hover:bg-sky-50 hover:text-sky-600 dark:hover:bg-sky-500/15 dark:hover:text-sky-400"
+                        >
+                          <Pencil size={15} />
                         </ActionIcon>
                         <ActionIcon
                           label={school.status === 'Active' ? 'Suspend school' : 'Activate school'}
                           onClick={() => handleToggleStatus(school.id, school.status)}
-                          className={school.status === 'Active' ? 'hover:text-amber-600' : 'hover:text-emerald-600'}
+                          className={
+                            school.status === 'Active'
+                              ? 'hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-500/15 dark:hover:text-amber-400'
+                              : 'hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-500/15 dark:hover:text-emerald-400'
+                          }
                         >
-                          {school.status === 'Active' ? <Ban size={14} /> : <Play size={14} />}
+                          {school.status === 'Active' ? <Ban size={15} /> : <Play size={15} />}
                         </ActionIcon>
-                        <ActionIcon label="Delete school" onClick={() => setSchoolToDelete(school)} className="hover:text-rose-600">
-                          <Trash2 size={14} />
+                        <ActionIcon
+                          label="Delete school"
+                          onClick={() => setSchoolToDelete(school)}
+                          className="hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/15 dark:hover:text-rose-400"
+                        >
+                          <Trash2 size={15} />
                         </ActionIcon>
                       </div>
                     </TableCell>
@@ -1081,7 +1244,7 @@ export default function SchoolsIndex() {
               type="button"
               disabled={page <= 1}
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-slate-900"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/90 bg-white text-slate-500 shadow-2xs transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 hover:scale-105 active:scale-95 disabled:hover:scale-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
               aria-label="Previous page"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -1091,10 +1254,10 @@ export default function SchoolsIndex() {
                 key={pageNumber}
                 type="button"
                 onClick={() => setPage(pageNumber)}
-                className={`inline-flex h-9 min-w-9 items-center justify-center rounded-xl px-2.5 text-xs font-semibold transition ${
+                className={`inline-flex h-9 min-w-9 items-center justify-center rounded-xl px-2.5 text-xs font-semibold transition-all cursor-pointer ${
                   pageNumber === page
-                    ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/20'
-                    : 'border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
+                    ? 'bg-gradient-to-b from-indigo-500 to-indigo-600 text-white shadow-sm shadow-indigo-500/30 border border-indigo-400/30 scale-105'
+                    : 'border border-slate-200/90 bg-white text-slate-600 shadow-2xs hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 hover:scale-105 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
                 }`}
               >
                 {pageNumber}
@@ -1104,7 +1267,7 @@ export default function SchoolsIndex() {
               type="button"
               disabled={page >= pagination.totalPages}
               onClick={() => setPage((prev) => Math.min(pagination.totalPages, prev + 1))}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-slate-900"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/90 bg-white text-slate-500 shadow-2xs transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-800 hover:scale-105 active:scale-95 disabled:hover:scale-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
               aria-label="Next page"
             >
               <ChevronRight className="h-4 w-4" />
@@ -1196,6 +1359,152 @@ export default function SchoolsIndex() {
               )}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(changePasswordSchool)}
+        onOpenChange={(open) => {
+          if (!open && !passwordSubmitting) closeChangePasswordModal();
+        }}
+      >
+        <DialogContent className="max-w-md gap-0 overflow-hidden p-0">
+          <div className="border-b border-slate-200 bg-slate-50 px-6 py-5 dark:border-slate-800/80 dark:bg-slate-900/40">
+            <DialogHeader className="space-y-3 text-left">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100 dark:bg-indigo-500/15 dark:text-indigo-400 dark:ring-indigo-500/20">
+                  <Lock className="h-5 w-5" />
+                </div>
+                <div className="space-y-1 pr-6">
+                  <DialogTitle className="text-base font-semibold leading-snug">
+                    Change Password
+                  </DialogTitle>
+                  <DialogDescription className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                    Set a new login password for the school administrator.
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+          </div>
+
+          {changePasswordSchool && (
+            <form onSubmit={handleChangePasswordSubmit} className="p-6 space-y-4">
+              <div className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-indigo-100/70 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400 font-bold text-xs">
+                  <Building2 size={16} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-bold text-slate-800 dark:text-slate-100">
+                    {changePasswordSchool.name}
+                  </p>
+                  <p className="truncate text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                    {changePasswordSchool.admin?.email || changePasswordSchool.contact?.email || changePasswordSchool.code}
+                  </p>
+                </div>
+              </div>
+
+              {passwordError && (
+                <div className="flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50/80 p-3 text-xs text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-300">
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-rose-500 mt-0.5" />
+                  <span>{passwordError}</span>
+                </div>
+              )}
+
+              <Field id="changeNewPassword" label="New Password" required hint="Must be at least 6 characters">
+                <div className="relative">
+                  <input
+                    id="changeNewPassword"
+                    type={showNewPassword ? 'text' : 'password'}
+                    className={`${inputClass} pr-10 font-mono text-sm`}
+                    value={passwordForm.newPassword}
+                    onChange={(e) => {
+                      setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }));
+                      if (passwordError) setPasswordError('');
+                    }}
+                    placeholder="Enter new password"
+                    required
+                    minLength={6}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword((prev) => !prev)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+                    aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
+                  >
+                    {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </Field>
+
+              <Field id="changeConfirmPassword" label="Confirm Password" required>
+                <div className="relative">
+                  <input
+                    id="changeConfirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    className={`${inputClass} pr-10 font-mono text-sm`}
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => {
+                      setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }));
+                      if (passwordError) setPasswordError('');
+                    }}
+                    placeholder="Re-enter new password"
+                    required
+                    minLength={6}
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+                    aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                  >
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </Field>
+
+              {passwordForm.confirmPassword.length > 0 && (
+                <div className="flex items-center gap-1.5 text-xs">
+                  {passwordForm.newPassword === passwordForm.confirmPassword ? (
+                    <span className="flex items-center gap-1 font-medium text-emerald-600 dark:text-emerald-400">
+                      <Check size={14} /> Passwords match
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 font-medium text-rose-500">
+                      <X size={14} /> Passwords do not match
+                    </span>
+                  )}
+                </div>
+              )}
+
+              <div className="flex items-center gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="flex-1"
+                  onClick={closeChangePasswordModal}
+                  disabled={passwordSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1 gap-2"
+                  disabled={passwordSubmitting || !passwordForm.newPassword || !passwordForm.confirmPassword}
+                >
+                  {passwordSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    'Change Password'
+                  )}
+                </Button>
+              </div>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
 

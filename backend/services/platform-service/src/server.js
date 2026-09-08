@@ -15,26 +15,30 @@ import { startSubscriptionCronJobs } from './cron/index.js';
 import { startTransportCronJobs } from './cron/transportJobs.js';
 import { razorpaySubscriptionService } from './services/razorpaySubscription.service.js';
 
+async function runSeeds() {
+  try {
+    const plans = await seedSubscriptionPlans();
+    await clearUnselectedSchoolPlans();
+    const schools = await seedSchools();
+    await seedLegalDocuments();
+    const ticketCount = await seedSupportTickets();
+    const invoices = await seedInvoices();
+    await seedAcademicTeachers();
+    await seedStaffUsers();
+    await seedLibraryData();
+    await seedRoles();
+
+    console.log(`[platform-service:seed] Initialization complete: ${plans.length} plans, ${schools.length} schools, ${ticketCount} tickets, ${invoices.length} invoices`);
+  } catch (seedErr) {
+    console.error('[platform-service:seed] Background seed notice (non-fatal):', seedErr.message);
+  }
+}
+
 async function start() {
   await connectDB(env.mongoUri);
-  const plans = await seedSubscriptionPlans();
-  await clearUnselectedSchoolPlans();
-  const schools = await seedSchools();
-  await seedLegalDocuments();
-  const ticketCount = await seedSupportTickets();
-  const invoices = await seedInvoices();
-  await seedAcademicTeachers();
-  await seedStaffUsers();
-  await seedLibraryData();
-  await seedRoles();
 
-  app.listen(env.port, () => {
-    console.log(`Platform service running on http://localhost:${env.port}`);
-    console.log(`Subscription plans seeded: ${plans.map((plan) => plan.name).join(', ')}`);
-    console.log(`Schools seeded: ${schools.map((school) => school.name).join(', ')}`);
-    console.log('Legal documents seeded');
-    console.log(`Support tickets seeded: ${ticketCount}`);
-    console.log(`Invoices ${invoices.length ? `seeded: ${invoices.map((invoice) => invoice.invoiceNumber).join(', ')}` : 'already present'}`);
+  const server = app.listen(env.port, '0.0.0.0', () => {
+    console.log(`Platform service running on http://127.0.0.1:${env.port}`);
     console.log(`Firebase messaging: ${isFirebaseConfigured() ? 'configured' : 'not configured'}`);
     console.log(
       `Razorpay recurring subscriptions: ${razorpaySubscriptionService.isConfigured() ? 'configured' : 'NOT configured (set RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET)'}` +
@@ -42,8 +46,13 @@ async function start() {
     );
   });
 
+  // Run seeding asynchronously in the background so HTTP port is available immediately
+  runSeeds();
+
   startSubscriptionCronJobs();
   startTransportCronJobs();
+
+  return server;
 }
 
 start().catch((error) => {
@@ -52,6 +61,15 @@ start().catch((error) => {
 });
 
 process.on('unhandledRejection', (error) => {
-  console.error('Unhandled rejection in platform-service:', error);
-  process.exit(1);
+  console.error('[platform-service] Unhandled rejection:', error?.stack || error);
+  if (env.nodeEnv === 'production') {
+    process.exit(1);
+  }
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('[platform-service] Uncaught exception:', error?.stack || error);
+  if (env.nodeEnv === 'production') {
+    process.exit(1);
+  }
 });

@@ -7,7 +7,6 @@ import parentApkRoutes from './parent.routes.js';
 import transportApkRoutes from './transportApp.routes.js';
 import {
   getSafePickupSettings,
-  updateSafePickupSchool,
   updateSafePickupClass,
   getSafePickupHistory,
 } from '../controllers/safePickupSettings.controller.js';
@@ -43,6 +42,7 @@ import {
   deleteSchool,
   listSchools,
   resetSchoolLogin,
+  changeSchoolAdminPassword,
   schoolAdminForgotPassword,
   schoolAdminLogin,
   schoolAdminResetPassword,
@@ -559,6 +559,7 @@ router.get('/schools/:id/features', requireSuperAdmin, validateObjectId('id'), g
 router.patch('/schools/:id/features', requireSuperAdmin, validateObjectId('id'), updateSchoolFeatures);
 router.patch('/schools/:id/status', requireSuperAdmin, updateSchoolStatus);
 router.post('/schools/:id/reset-login', requireSuperAdmin, resetSchoolLogin);
+router.post('/schools/:id/change-password', requireSuperAdmin, validateObjectId('id'), changeSchoolAdminPassword);
 router.delete('/schools/:id', requireSuperAdmin, deleteSchool);
 router.get('/school-auth/branding', schoolBranding);
 router.get('/school-theme/:schoolId', schoolThemePublic);
@@ -638,8 +639,9 @@ router.patch('/school-portal/settings/password', requireSchoolAdmin, schoolPorta
 router.patch('/school-portal/settings/email', requireSchoolAdmin, schoolPortalUpdateEmail);
 
 // ---- Student Safe Pickup — School Admin configuration + history ----
+// The school-level master switch is Super Admin–only (PATCH /platform/schools/:id/features).
+// School admins can read it here for display and manage per-class toggles below.
 router.get('/school-portal/settings/safe-pickup', requireSchoolAdmin, requirePermission('pickup.settings'), getSafePickupSettings);
-router.patch('/school-portal/settings/safe-pickup', requireSchoolAdmin, requirePermission('pickup.settings'), updateSafePickupSchool);
 router.patch('/school-portal/academic/classes/:classId/pickup', requireSchoolAdmin, requirePermission('pickup.settings'), validateObjectId('classId'), updateSafePickupClass);
 router.get('/school-portal/pickups/history', requireSchoolAdmin, requirePermission('pickup.history'), getSafePickupHistory);
 router.get('/school-portal/notifications', requirePrincipal, listSchoolNotifications);
