@@ -88,6 +88,13 @@ schoolSubscriptionSchema.methods.toPublicJSON = function toPublicJSON(extra = {}
   return {
     id: this._id.toString(),
     schoolId: this.schoolId?._id?.toString() || this.schoolId?.toString?.() || '',
+    school: extra.school || (this.schoolId && typeof this.schoolId === 'object' && this.schoolId.name ? {
+      id: this.schoolId._id?.toString() || this.schoolId.id,
+      name: this.schoolId.name,
+      schoolId: this.schoolId.schoolId || '',
+      logoUrl: this.schoolId.logoUrl || '',
+      status: this.schoolId.status || '',
+    } : undefined),
     planId: this.planId?._id?.toString() || (typeof this.planId?.toString === 'function' ? this.planId.toString() : ''),
     plan: extra.plan || undefined,
     razorpaySubscriptionId: this.razorpaySubscriptionId || '',
