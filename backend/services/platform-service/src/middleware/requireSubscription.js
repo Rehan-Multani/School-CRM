@@ -46,6 +46,11 @@ const EXEMPT_PATHS = [
   '/school-portal/parent/me',
   '/school-portal/parent/profile',
   '/school-portal/parent/change-password',
+  // Transport APK self-service — same rationale.
+  '/school-portal/transport-app/auth',
+  '/school-portal/transport-app/me',
+  '/school-portal/transport-app/profile',
+  '/school-portal/transport-app/change-password',
 ];
 
 function isExemptPath(path) {

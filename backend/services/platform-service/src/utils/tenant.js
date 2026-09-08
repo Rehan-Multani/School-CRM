@@ -63,3 +63,15 @@ export function parentId(req) {
   }
   return String(raw);
 }
+
+/**
+ * Transport-staff identity from the verified JWT. The transport token is minted
+ * from a SchoolUser and carries `userId` (= SchoolUser._id) and `sub`.
+ */
+export function transportStaffId(req) {
+  const raw = req.user?.userId || req.user?.sub;
+  if (!raw || !mongoose.isValidObjectId(String(raw))) {
+    throw new AppError('Transport staff context is missing or invalid on this session', 401);
+  }
+  return String(raw);
+}
