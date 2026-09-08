@@ -23,7 +23,10 @@ import {
 import {
   getPlatformSettings,
   updatePlatformSettings,
+  updatePlatformLogo,
+  deletePlatformLogo,
 } from '../controllers/platformSetting.controller.js';
+import { uploadPlatformLogo } from '../middleware/uploadPlatformLogo.js';
 import {
   createSchoolTicket,
   createTicket,
@@ -1135,6 +1138,8 @@ router.get('/privacy-policy', getLegalDocuments);
 router.put('/privacy-policy', requireSuperAdmin, updateLegalDocuments);
 router.get('/app-config', getPlatformSettings);
 router.put('/app-config', requireSuperAdmin, updatePlatformSettings);
+router.put('/app-config/logo', requireSuperAdmin, uploadPlatformLogo, updatePlatformLogo);
+router.delete('/app-config/logo', requireSuperAdmin, deletePlatformLogo);
 router.get('/reports', requireSuperAdmin, getReportSummary);
 router.get('/reports/schools', requireSuperAdmin, listSchoolReports);
 router.get('/reports/subscriptions', requireSuperAdmin, listSubscriptionReports);

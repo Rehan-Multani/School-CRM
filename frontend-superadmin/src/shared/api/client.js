@@ -367,10 +367,19 @@ export const platformLegalApi = {
   update: (payload) => apiClient.put('/platform/privacy-policy', payload).then((res) => res.data),
 };
 
-// Platform-wide config shown on the public landing site (mobile app links).
+// Platform-wide config shown on the public landing site (mobile app links) +
+// the platform logo used by every portal's <BrandLogo>.
 export const platformAppConfigApi = {
   get: () => apiClient.get('/platform/app-config').then((res) => res.data),
   update: (payload) => apiClient.put('/platform/app-config', payload).then((res) => res.data),
+  uploadLogo: (file) => {
+    const fd = new FormData();
+    fd.append('logo', file);
+    return apiClient
+      .put('/platform/app-config/logo', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+      .then((res) => res.data);
+  },
+  removeLogo: () => apiClient.delete('/platform/app-config/logo').then((res) => res.data),
 };
 
 export const platformSchoolApi = {

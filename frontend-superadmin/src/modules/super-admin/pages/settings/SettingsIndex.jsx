@@ -4,16 +4,20 @@ import { Button, Badge, cn } from '../../components/ui/Button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/Tabs';
 import { useSuperAdminAuth } from '../../context/SuperAdminAuthContext';
 import { platformAppConfigApi } from '../../../../shared/api/client';
+import { bustPlatformConfigCache } from '../../../../shared/platformBrand';
+import bundledLogo from '../../../../assets/School_logo.png';
 import {
   AlertCircle,
   Camera,
   Check,
   Eye,
   EyeOff,
+  ImagePlus,
   Link2,
   Loader2,
   Lock,
   Mail,
+  RotateCcw,
   Save,
   Shield,
   Smartphone,
@@ -111,6 +115,13 @@ export default function SettingsIndex() {
   const [appConfigSaved, setAppConfigSaved] = useState(false);
   const [appConfigError, setAppConfigError] = useState('');
 
+  // Platform logo — used by every portal's <BrandLogo> + browser-tab favicon.
+  const logoInputRef = useRef(null);
+  const [platformLogo, setPlatformLogo] = useState('');
+  const [logoBusy, setLogoBusy] = useState(false);
+  const [logoSaved, setLogoSaved] = useState(false);
+  const [logoError, setLogoError] = useState('');
+
   useEffect(() => {
     if (!admin) return;
     setName(admin.name || 'Super Admin');
@@ -128,6 +139,7 @@ export default function SettingsIndex() {
           appStoreUrl: result.data?.appStoreUrl || '',
           apkUrl: result.data?.apkUrl || '',
         });
+        setPlatformLogo(result.data?.logoUrl || '');
         setAppConfigUpdatedAt(result.data?.updatedAt || null);
       })
       .catch((err) => {
@@ -170,6 +182,48 @@ export default function SettingsIndex() {
 
   const updateAppConfigField = (key) => (event) =>
     setAppConfig((prev) => ({ ...prev, [key]: event.target.value }));
+
+  const handlePlatformLogoUpload = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setLogoError('Please choose an image file (PNG, JPG, SVG, or WebP).');
+      return;
+    }
+    setLogoError('');
+    setLogoSaved(false);
+    setLogoBusy(true);
+    try {
+      const result = await platformAppConfigApi.uploadLogo(file);
+      const nextUrl = result.data?.logoUrl || '';
+      setPlatformLogo(nextUrl);
+      bustPlatformConfigCache(nextUrl); // updates the live sidebar/topbar logo + favicon
+      setLogoSaved(true);
+      setTimeout(() => setLogoSaved(false), 2200);
+    } catch (err) {
+      setLogoError(err.response?.data?.message || err.message || 'Unable to upload the logo.');
+    } finally {
+      setLogoBusy(false);
+    }
+  };
+
+  const handlePlatformLogoReset = async () => {
+    setLogoError('');
+    setLogoSaved(false);
+    setLogoBusy(true);
+    try {
+      await platformAppConfigApi.removeLogo();
+      setPlatformLogo('');
+      bustPlatformConfigCache('');
+      setLogoSaved(true);
+      setTimeout(() => setLogoSaved(false), 2200);
+    } catch (err) {
+      setLogoError(err.response?.data?.message || err.message || 'Unable to reset the logo.');
+    } finally {
+      setLogoBusy(false);
+    }
+  };
 
   const handleLogoChange = (event) => {
     const file = event.target.files?.[0];
@@ -257,7 +311,7 @@ export default function SettingsIndex() {
           </TabsTrigger>
           <TabsTrigger value="mobile-app" className={tabTriggerClass}>
             <Smartphone className="h-4 w-4" />
-            Mobile app
+            Branding &amp; app
           </TabsTrigger>
         </TabsList>
 
@@ -456,7 +510,87 @@ export default function SettingsIndex() {
           </form>
         </TabsContent>
 
-        <TabsContent value="mobile-app" className="mt-6">
+        <TabsContent value="mobile-app" className="mt-6 space-y-6">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60"
+          >
+            <div className="mb-6 flex items-start gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
+                <ImagePlus className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Platform logo</h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  Replaces the icon in every portal sidebar, on every login screen, on the
+                  landing site and as the browser-tab icon. PNG, JPG, SVG or WebP — square
+                  works best; it is resized to 256&times;256.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-5">
+              <img
+                src={platformLogo || bundledLogo}
+                alt="Platform logo preview"
+                className="h-20 w-20 rounded-2xl border border-slate-200 object-contain p-1.5 dark:border-slate-800"
+              />
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    onClick={() => logoInputRef.current?.click()}
+                    className="h-10 gap-2 rounded-xl px-4"
+                    disabled={logoBusy}
+                  >
+                    {logoBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                    {platformLogo ? 'Replace logo' : 'Upload logo'}
+                  </Button>
+                  {platformLogo && (
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={handlePlatformLogoReset}
+                      className="h-10 gap-2 rounded-xl px-4"
+                      disabled={logoBusy}
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                      Reset to default
+                    </Button>
+                  )}
+                </div>
+                <AnimatePresence>
+                  {logoSaved && (
+                    <motion.span
+                      initial={{ opacity: 0, x: 8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400"
+                    >
+                      <Check className="h-4 w-4" />
+                      Logo updated
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+                {logoError && (
+                  <span className="inline-flex items-center gap-1.5 text-sm text-rose-600 dark:text-rose-400">
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    {logoError}
+                  </span>
+                )}
+              </div>
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePlatformLogoUpload}
+              />
+            </div>
+          </motion.div>
+
           <form onSubmit={handleSaveAppConfig}>
             <motion.div
               initial={{ opacity: 0, y: 8 }}
