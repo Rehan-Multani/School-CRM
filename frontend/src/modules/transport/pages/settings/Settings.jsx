@@ -20,7 +20,9 @@ export const Settings = () => {
     weeklyFuelReportEmail: true
   });
 
-  const [mapsKey, setMapsKey] = useState('AIzaSyA1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q');
+  // Never hardcode a Maps key — read it from the build env; the field stays
+  // empty until an admin enters one.
+  const [mapsKey, setMapsKey] = useState(import.meta.env.VITE_GOOGLE_MAPS_KEY || '');
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
