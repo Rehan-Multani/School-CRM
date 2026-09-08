@@ -2,12 +2,16 @@ import mongoose from 'mongoose';
 import { AppError } from '../../../shared/AppError.js';
 import { sanitizePagination } from '../../../shared/sanitize.js';
 import { Announcement } from '../models/Communication.js';
+import { Event } from '../models/Event.js';
 import { PlatformNotification } from '../models/PlatformNotification.js';
 import { ReadReceipt } from '../models/ReadReceipt.js';
 import { School } from '../models/School.js';
 import { notificationRepository } from '../repositories/notification.repository.js';
 import { notificationLite, announcementLite } from '../serializers/teacher.serializers.js';
+import { eventLite } from '../serializers/student.serializers.js';
 import { TEACHER_ERR } from '../constants/teacherErrorCodes.js';
+
+const TEACHER_AUDIENCES = ['ALL', 'TEACHERS', 'STAFF'];
 
 const oid = (v) => new mongoose.Types.ObjectId(String(v));
 const SCHOOL_ID_ALIASES = {
@@ -66,6 +70,56 @@ class TeacherInboxService {
     return { message: 'Marked as read' };
   }
 
+  async markAllAnnouncementsRead(ctx) {
+    const now = new Date();
+    const filter = {
+      schoolId: oid(ctx.schoolId),
+      status: 'PUBLISHED',
+      audiences: { $in: TEACHER_AUDIENCES },
+      $and: [
+        { $or: [{ publishAt: null }, { publishAt: { $lte: now } }] },
+        { $or: [{ expiresAt: null }, { expiresAt: { $gt: now } }] },
+      ],
+    };
+    const rows = await Announcement.find(filter).select('_id').lean();
+    if (!rows.length) return { marked: 0 };
+    const ops = rows.map((r) => ({
+      updateOne: {
+        filter: { userId: String(ctx.teacherId), refType: 'ANNOUNCEMENT', refId: String(r._id) },
+        update: { $setOnInsert: { schoolId: oid(ctx.schoolId), userType: 'TEACHER', readAt: new Date() } },
+        upsert: true,
+      },
+    }));
+    const res = await ReadReceipt.bulkWrite(ops, { ordered: false });
+    return { marked: res.upsertedCount ?? 0 };
+  }
+
+  /* ------------------------------- EVENTS ------------------------------- */
+  async events(ctx, query = {}) {
+    const scope = String(query.scope || 'upcoming').toLowerCase();
+    const now = new Date();
+    const filter = { schoolId: oid(ctx.schoolId), audiences: { $in: TEACHER_AUDIENCES } };
+    filter.endAt = scope === 'past' ? { $lt: now } : { $gte: now };
+    const sortDir = scope === 'past' ? -1 : 1;
+    const { page, limit, skip } = sanitizePagination({ page: query.page, limit: query.limit, defaultLimit: 20, maxLimit: 50 });
+    const [rows, total] = await Promise.all([
+      Event.find(filter).sort({ startAt: sortDir }).skip(skip).limit(limit),
+      Event.countDocuments(filter),
+    ]);
+    return {
+      data: rows.map((r) => eventLite(r.toPublicJSON())),
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) || 1 },
+    };
+  }
+
+  async event(ctx, id) {
+    const row = await Event.findOne({ schoolId: oid(ctx.schoolId), _id: oid(id) });
+    if (!row || !(row.audiences || []).some((a) => TEACHER_AUDIENCES.includes(a))) {
+      throw new AppError('Event not found', 404, TEACHER_ERR.NOT_FOUND);
+    }
+    return eventLite(row.toPublicJSON());
+  }
+
   /* --------------------------- NOTIFICATIONS --------------------------- */
   async notifications(ctx, query = {}) {
     const { variants } = await schoolSlugVariants(ctx.schoolId);
@@ -107,6 +161,22 @@ class TeacherInboxService {
     }));
     const res = await ReadReceipt.bulkWrite(ops, { ordered: false });
     return { marked: res.upsertedCount ?? 0 };
+  }
+
+  /* --------------------------- DEVICE TOKEN --------------------------- */
+  async registerDevice(ctx, body = {}) {
+    const token = String(body.token || body.fcmToken || '').trim();
+    if (!token || token.length < 20) {
+      throw new AppError('A valid device token is required', 400, TEACHER_ERR.VALIDATION_ERROR);
+    }
+    const { slug } = await schoolSlugVariants(ctx.schoolId);
+    const doc = await notificationRepository.upsertDevice({
+      token,
+      role: 'teacher',
+      schoolId: slug || String(ctx.schoolId),
+      userId: String(ctx.teacherId),
+    });
+    return { registered: true, id: String(doc._id) };
   }
 
   /* ------------------------------- shared ------------------------------- */

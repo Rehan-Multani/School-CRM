@@ -105,9 +105,12 @@ class TeacherAuthService {
 
     Teacher.updateOne({ _id: teacher._id }, { $set: { lastLoginAt: new Date() } }).catch(() => {});
 
+    const self = teacherAuthPayload(teacher);
     return {
       token,
-      teacher: teacherAuthPayload(teacher),
+      teacher: self,
+      // Common alias so a multi-role app can read `data.user` for every flow.
+      user: { ...self, role: 'TEACHER' },
       school: {
         id: schoolIdStr,
         name: school?.name || '',
@@ -124,9 +127,11 @@ class TeacherAuthService {
       School.findById(schoolId),
       teacherAccessService.classTeacherSummary(schoolId, teacherId),
     ]);
+    const self = { ...teacherAuthPayload(teacher), ...classTeacher };
     return {
-      teacher: { ...teacherAuthPayload(teacher), ...classTeacher },
+      teacher: self,
       // The APK reads `teacher.isClassTeacher` to show/hide the Pickup bottom-nav tab.
+      user: { ...self, role: 'TEACHER' },
       school: {
         id: String(schoolId),
         name: school?.name || '',

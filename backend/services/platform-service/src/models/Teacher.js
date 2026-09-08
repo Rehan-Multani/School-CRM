@@ -111,6 +111,8 @@ const teacherSchema = new mongoose.Schema(
     passwordHash: { type: String, default: '', select: false },
     lastLoginAt: { type: Date, default: null },
     mustResetPassword: { type: Boolean, default: false },
+    // ---- Teacher APK per-channel push preferences (mirrors Student/Parent) ----
+    notificationPrefs: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
   },
   { timestamps: true }
 );

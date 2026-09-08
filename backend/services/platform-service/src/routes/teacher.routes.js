@@ -20,6 +20,8 @@ import {
   getTeacherProfile,
   updateTeacherProfile,
   getTeacherDocuments,
+  getTeacherSettings,
+  updateTeacherSettings,
 } from '../controllers/teacher/teacherAuth.controller.js';
 import {
   getTeacherDashboard,
@@ -94,6 +96,12 @@ import {
   listAnnouncements,
   getAnnouncement,
   readAnnouncement,
+  listNotices,
+  getNotice,
+  markNoticeRead,
+  markAllNoticesRead,
+  listEvents,
+  getEvent,
   listNotifications,
   notificationsUnreadCount,
   readNotification,
@@ -125,6 +133,8 @@ router.patch(
   updateTeacherProfile
 );
 router.get('/school-portal/teacher/documents', requireTeacher, getTeacherDocuments);
+router.get('/school-portal/teacher/settings', requireTeacher, getTeacherSettings);
+router.patch('/school-portal/teacher/settings', requireTeacher, updateTeacherSettings);
 
 // ============================ 02 · HOME ============================
 router.get('/school-portal/teacher/dashboard', requireTeacher, getTeacherDashboard);
@@ -196,11 +206,21 @@ router.get('/school-portal/teacher/leaves', requireTeacher, listLeaves);
 router.post('/school-portal/teacher/leaves', requireTeacher, applyLeave);
 router.get('/school-portal/teacher/leaves/:id', requireTeacher, oid('id'), getLeave);
 router.delete('/school-portal/teacher/leaves/:id', requireTeacher, oid('id'), cancelLeave);
+// Cross-role parity alias: student uses POST /leaves/:id/cancel.
+router.post('/school-portal/teacher/leaves/:id/cancel', requireTeacher, oid('id'), cancelLeave);
 
 // ============================ 11 · ANNOUNCEMENTS ============================
 router.get('/school-portal/teacher/announcements', requireTeacher, listAnnouncements);
 router.get('/school-portal/teacher/announcements/:id', requireTeacher, oid('id'), getAnnouncement);
 router.patch('/school-portal/teacher/announcements/:id/read', requireTeacher, oid('id'), readAnnouncement);
+
+// ---- NOTICES (alias of ANNOUNCEMENTS) + EVENTS — cross-role parity with student/parent ----
+router.get('/school-portal/teacher/notices', requireTeacher, listNotices);
+router.patch('/school-portal/teacher/notices/read-all', requireTeacher, markAllNoticesRead);
+router.get('/school-portal/teacher/notices/:id', requireTeacher, oid('id'), getNotice);
+router.patch('/school-portal/teacher/notices/:id/read', requireTeacher, oid('id'), markNoticeRead);
+router.get('/school-portal/teacher/events', requireTeacher, listEvents);
+router.get('/school-portal/teacher/events/:id', requireTeacher, oid('id'), getEvent);
 
 // ============================ 12 · NOTIFICATIONS ============================
 router.get('/school-portal/teacher/notifications', requireTeacher, listNotifications);

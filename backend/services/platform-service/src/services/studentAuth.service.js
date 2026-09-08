@@ -92,9 +92,12 @@ class StudentAuthService {
 
     Student.updateOne({ _id: student._id }, { $set: { lastLoginAt: new Date() } }).catch(() => {});
 
+    const self = studentSelf(student, ctx);
     return {
       token,
-      student: studentSelf(student, ctx),
+      student: self,
+      // Common alias so a multi-role app can read `data.user` for every flow.
+      user: { ...self, role: 'STUDENT' },
       school: {
         id: schoolIdStr,
         name: school?.name || '',
@@ -111,8 +114,10 @@ class StudentAuthService {
       School.findById(schoolId),
       studentAccessService.buildContext(String(schoolId), String(studentId)),
     ]);
+    const self = studentSelf(student, ctx);
     return {
-      student: studentSelf(student, ctx),
+      student: self,
+      user: { ...self, role: 'STUDENT' },
       school: {
         id: String(schoolId),
         name: school?.name || '',

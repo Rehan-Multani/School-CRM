@@ -4,6 +4,7 @@ import { auditLogService } from '../../services/auditLog.service.js';
 import { collectTeacherUploadFiles } from '../../middleware/uploadTeacherPhoto.js';
 import { deleteMulterFiles } from '../../utils/upload.utils.js';
 import { teacherProfileService } from '../../services/teacherProfile.service.js';
+import { teacherSettingsService } from '../../services/teacherSettings.service.js';
 
 export async function teacherLogin(req, res, next) {
   try {
@@ -76,6 +77,24 @@ export async function getTeacherDocuments(req, res, next) {
   try {
     const data = await teacherProfileService.getDocuments(schoolId(req), teacherId(req));
     res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getTeacherSettings(req, res, next) {
+  try {
+    const data = await teacherSettingsService.get(schoolId(req), teacherId(req));
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateTeacherSettings(req, res, next) {
+  try {
+    const data = await teacherSettingsService.update(schoolId(req), teacherId(req), req.body || {});
+    res.json({ success: true, data, message: 'Settings updated' });
   } catch (error) {
     next(error);
   }

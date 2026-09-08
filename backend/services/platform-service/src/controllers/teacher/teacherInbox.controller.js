@@ -2,8 +2,6 @@ import { teacherAccessService } from '../../services/teacherAccess.service.js';
 import { teacherLeaveService } from '../../services/teacherLeave.service.js';
 import { teacherInboxService } from '../../services/teacherInbox.service.js';
 import { teacherMessagesService } from '../../services/teacherMessages.service.js';
-import { notificationService } from '../../services/notification.service.js';
-import { schoolId, teacherId } from '../../utils/tenant.js';
 import { auditLogService } from '../../services/auditLog.service.js';
 
 const ctxOf = (req) => teacherAccessService.loadContext(req);
@@ -51,6 +49,40 @@ export async function readAnnouncement(req, res, next) {
   } catch (e) { next(e); }
 }
 
+/* ----------------- NOTICES (alias of ANNOUNCEMENTS, for cross-role parity) ----------------- */
+export async function listNotices(req, res, next) {
+  try {
+    res.json({ success: true, ...(await teacherInboxService.announcements(await ctxOf(req), req.query)) });
+  } catch (e) { next(e); }
+}
+export async function getNotice(req, res, next) {
+  try {
+    res.json({ success: true, data: await teacherInboxService.announcement(await ctxOf(req), req.params.id) });
+  } catch (e) { next(e); }
+}
+export async function markNoticeRead(req, res, next) {
+  try {
+    res.json({ success: true, ...(await teacherInboxService.markAnnouncementRead(await ctxOf(req), req.params.id)) });
+  } catch (e) { next(e); }
+}
+export async function markAllNoticesRead(req, res, next) {
+  try {
+    res.json({ success: true, ...(await teacherInboxService.markAllAnnouncementsRead(await ctxOf(req))) });
+  } catch (e) { next(e); }
+}
+
+/* ------------------------------- EVENTS ------------------------------- */
+export async function listEvents(req, res, next) {
+  try {
+    res.json({ success: true, ...(await teacherInboxService.events(await ctxOf(req), req.query)) });
+  } catch (e) { next(e); }
+}
+export async function getEvent(req, res, next) {
+  try {
+    res.json({ success: true, data: await teacherInboxService.event(await ctxOf(req), req.params.id) });
+  } catch (e) { next(e); }
+}
+
 /* --------------------------- NOTIFICATIONS --------------------------- */
 export async function listNotifications(req, res, next) {
   try {
@@ -76,13 +108,8 @@ export async function readAllNotifications(req, res, next) {
 /* --------------------------- DEVICE TOKEN --------------------------- */
 export async function registerTeacherDevice(req, res, next) {
   try {
-    const data = await notificationService.registerDevice({
-      token: req.body?.token,
-      role: 'teacher',
-      schoolId: schoolId(req),
-      userId: teacherId(req),
-    });
-    res.json({ success: true, data });
+    const data = await teacherInboxService.registerDevice(await ctxOf(req), req.body || {});
+    res.json({ success: true, data, message: 'Device registered' });
   } catch (e) { next(e); }
 }
 

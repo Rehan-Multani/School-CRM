@@ -90,14 +90,18 @@ class TransportAuthService {
 
     SchoolUser.updateOne({ _id: staff._id }, { $set: { lastLoginAt: new Date() } }).catch(() => {});
 
+    const self = staffSelf(staff);
     return {
       token,
-      staff: staffSelf(staff),
+      staff: self,
+      // Common alias so a multi-role app can read `data.user` for every flow.
+      user: { ...self, role: 'TRANSPORT' },
       vehicle: bundle.vehicle,
       route: bundle.route,
       school: {
         id: schoolIdStr,
         name: school?.name || '',
+        academicSession: school?.academic?.session || '',
         ...schoolThemeSnapshot(school),
       },
     };
@@ -106,21 +110,35 @@ class TransportAuthService {
   async me(schoolId, staffId, jwtRole) {
     if (String(jwtRole || '').toUpperCase() === 'SCHOOLADMIN') {
       const school = await School.findById(schoolId);
+      const adminSelf = { id: String(schoolId), name: 'School Admin', role: 'SCHOOLADMIN', transportRole: 'TRANSPORT_ADMIN' };
       return {
-        staff: { id: String(schoolId), name: 'School Admin', role: 'SCHOOLADMIN', transportRole: 'TRANSPORT_ADMIN' },
+        staff: adminSelf,
+        user: adminSelf,
         vehicle: null,
         route: null,
-        school: { id: String(schoolId), name: school?.name || '', ...schoolThemeSnapshot(school) },
+        school: {
+          id: String(schoolId),
+          name: school?.name || '',
+          academicSession: school?.academic?.session || '',
+          ...schoolThemeSnapshot(school),
+        },
       };
     }
     const staff = await SchoolUser.findOne({ _id: staffId, schoolId, role: 'TRANSPORT' });
     if (!staff) throw new AppError('Transport staff profile not found', 404, TRANSPORT_ERR.STAFF_NOT_FOUND);
     const [school, bundle] = await Promise.all([School.findById(schoolId), assignedBundle(staff)]);
+    const self = staffSelf(staff);
     return {
-      staff: staffSelf(staff),
+      staff: self,
+      user: { ...self, role: 'TRANSPORT' },
       vehicle: bundle.vehicle,
       route: bundle.route,
-      school: { id: String(schoolId), name: school?.name || '', ...schoolThemeSnapshot(school) },
+      school: {
+        id: String(schoolId),
+        name: school?.name || '',
+        academicSession: school?.academic?.session || '',
+        ...schoolThemeSnapshot(school),
+      },
     };
   }
 

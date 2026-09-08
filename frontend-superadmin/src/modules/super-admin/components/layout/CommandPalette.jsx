@@ -13,9 +13,6 @@ import {
   Scale,
   LifeBuoy,
   Settings,
-  Users,
-  ScrollText,
-  ServerCog,
   SunMoon,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -33,9 +30,6 @@ const COMMANDS = [
   { name: 'Notifications', category: 'Navigation', path: '/super-admin/notifications', icon: Bell },
   { name: 'Help & Support', category: 'Support', path: '/super-admin/support', icon: LifeBuoy },
   { name: 'Privacy & Policy', category: 'Navigation', path: '/super-admin/privacy-policy', icon: Scale },
-  { name: 'Platform Users', category: 'Navigation', path: '/super-admin/platform-users', icon: Users },
-  { name: 'Audit Logs', category: 'Navigation', path: '/super-admin/audit-logs', icon: ScrollText },
-  { name: 'System Management', category: 'Navigation', path: '/super-admin/system-management', icon: ServerCog },
   { name: 'Settings', category: 'Settings', path: '/super-admin/settings', icon: Settings },
   { name: 'Toggle Theme', category: 'Settings', icon: SunMoon, action: 'theme' },
 ];

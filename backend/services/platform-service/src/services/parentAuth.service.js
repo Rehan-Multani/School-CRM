@@ -83,9 +83,12 @@ class ParentAuthService {
 
     Parent.updateOne({ _id: parent._id }, { $set: { lastLoginAt: new Date() } }).catch(() => {});
 
+    const self = parentSelf(parent, ctx.children.length);
     return {
       token,
-      parent: parentSelf(parent, ctx.children.length),
+      parent: self,
+      // Common alias so a multi-role app can read `data.user` for every flow.
+      user: { ...self, role: 'PARENT' },
       children: ctx.children.map((c) => childCard(c.student, c.link, c)),
       school: {
         id: schoolIdStr,
@@ -103,8 +106,10 @@ class ParentAuthService {
       School.findById(schoolId),
       parentAccessService.buildContext(String(schoolId), String(parentId)),
     ]);
+    const self = parentSelf(parent, ctx.children.length);
     return {
-      parent: parentSelf(parent, ctx.children.length),
+      parent: self,
+      user: { ...self, role: 'PARENT' },
       children: ctx.children.map((c) => childCard(c.student, c.link, c)),
       school: {
         id: String(schoolId),
