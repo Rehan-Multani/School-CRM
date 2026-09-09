@@ -71,7 +71,14 @@ export default {
       fontFamily: {
         sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
       },
+      spacing: {
+        '4.5': '1.125rem',
+        '7.5': '1.875rem',
+        '8.5': '2.125rem',
+      },
       boxShadow: {
+        '2xs': "0 1px 1px 0 rgba(15, 23, 42, 0.04)",
+        xs: "0 1px 2px 0 rgba(15, 23, 42, 0.06)",
         premium: "0 10px 30px -10px rgba(79, 70, 229, 0.1)",
         card: "0 4px 20px -2px rgba(0, 0, 0, 0.05)",
       }

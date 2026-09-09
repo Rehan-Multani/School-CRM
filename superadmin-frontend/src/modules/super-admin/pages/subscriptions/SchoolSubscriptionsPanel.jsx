@@ -30,8 +30,6 @@ import {
   Check,
   Calendar,
   ExternalLink,
-  ShieldCheck,
-  Zap,
 } from 'lucide-react';
 
 const STATUS_VARIANT = {
@@ -110,6 +108,17 @@ const STATUS_CONFIG = {
   },
 };
 
+const STATUS_FILTERS = [
+  { value: 'ALL', label: 'All' },
+  { value: 'active', label: 'Active' },
+  { value: 'created', label: 'Created' },
+  { value: 'authenticated', label: 'Authenticated' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'halted', label: 'Past due' },
+  { value: 'cancelled', label: 'Cancelled' },
+  { value: 'expired', label: 'Expired' },
+];
+
 function fmt(v) {
   if (!v) return '—';
   return new Date(v).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -117,6 +126,22 @@ function fmt(v) {
 
 function inr(n) {
   return `₹${Number(n || 0).toLocaleString('en-IN')}`;
+}
+
+function daysUntil(v) {
+  if (!v) return null;
+  const diff = Math.ceil((new Date(v).getTime() - Date.now()) / 86400000);
+  return Number.isFinite(diff) ? diff : null;
+}
+
+// Compact relative label for a billing date — "in 12d", "today", "3d overdue".
+function relativeLabel(v) {
+  const days = daysUntil(v);
+  if (days === null) return '';
+  if (days < 0) return `${Math.abs(days)}d overdue`;
+  if (days === 0) return 'today';
+  if (days === 1) return 'tomorrow';
+  return `in ${days}d`;
 }
 
 // Generate vibrant initials avatar background based on string
@@ -269,6 +294,13 @@ export default function SchoolSubscriptionsPanel() {
     }
   };
 
+  // Counts shown on the filter pills, straight from the stats aggregate.
+  const filterCount = (value) => {
+    if (!stats) return null;
+    if (value === 'ALL') return Object.values(stats.byStatus || {}).reduce((sum, c) => sum + c, 0);
+    return stats.byStatus?.[value] || 0;
+  };
+
   // Client search filter
   const filteredRows = useMemo(() => {
     if (!searchQuery.trim()) return rows;
@@ -278,17 +310,45 @@ export default function SchoolSubscriptionsPanel() {
       const schoolCode = (r.school?.schoolId || '').toLowerCase();
       const planName = (r.plan?.name || '').toLowerCase();
       const subId = (r.razorpaySubscriptionId || '').toLowerCase();
-      return schoolName.includes(q) || schoolCode.includes(q) || planName.includes(q) || subId.includes(q);
+      const schoolRef = (r.school?.id || r.schoolId || '').toLowerCase();
+      return (
+        schoolName.includes(q) || schoolCode.includes(q) || planName.includes(q) || subId.includes(q) || schoolRef.includes(q)
+      );
     });
   }, [rows, searchQuery]);
 
-  // Metric Cards
-  const kpiCards = useMemo(
+  // Revenue headline — the two numbers that matter most, given their own row.
+  const financialTiles = useMemo(
+    () => [
+      {
+        label: 'MRR',
+        value: inr(stats?.mrr),
+        sub: 'Monthly recurring run rate',
+        icon: TrendingUp,
+        ring: 'border-indigo-200/70 dark:border-indigo-500/25',
+        surface: 'from-indigo-50 to-white dark:from-indigo-500/10 dark:to-slate-900/60',
+        chip: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+      },
+      {
+        label: 'ARR (est.)',
+        value: inr(stats?.arr),
+        sub: '12× monthly run rate + yearly contracts',
+        icon: Sparkles,
+        ring: 'border-violet-200/70 dark:border-violet-500/25',
+        surface: 'from-violet-50 to-white dark:from-violet-500/10 dark:to-slate-900/60',
+        chip: 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20',
+      },
+    ],
+    [stats]
+  );
+
+  // Lifecycle counters
+  const statusTiles = useMemo(
     () => [
       {
         label: 'Active',
         value: stats?.byStatus?.active || 0,
-        sub: 'Live & active billing',
+        sub: 'Live & billing',
         icon: CheckCircle2,
         color: 'text-emerald-600 dark:text-emerald-400',
         bg: 'bg-emerald-500/10 border-emerald-500/20',
@@ -302,7 +362,7 @@ export default function SchoolSubscriptionsPanel() {
         bg: 'bg-amber-500/10 border-amber-500/20',
       },
       {
-        label: 'Past Due',
+        label: 'Past due',
         value: stats?.pastDue || 0,
         sub: 'Retry cycle active',
         icon: AlertCircle,
@@ -312,7 +372,7 @@ export default function SchoolSubscriptionsPanel() {
       {
         label: 'Cancelled',
         value: stats?.byStatus?.cancelled || 0,
-        sub: 'Revoked/ended',
+        sub: 'Revoked / ended',
         icon: Ban,
         color: 'text-slate-600 dark:text-slate-400',
         bg: 'bg-slate-500/10 border-slate-500/20',
@@ -324,24 +384,6 @@ export default function SchoolSubscriptionsPanel() {
         icon: AlertTriangle,
         color: 'text-red-600 dark:text-red-400',
         bg: 'bg-red-500/10 border-red-500/20',
-      },
-      {
-        label: 'MRR',
-        value: inr(stats?.mrr),
-        sub: 'Monthly run rate',
-        icon: TrendingUp,
-        color: 'text-indigo-600 dark:text-indigo-400',
-        bg: 'bg-indigo-500/10 border-indigo-500/30 shadow-[0_2px_12px_-3px_rgba(99,102,241,0.15)]',
-        isFinancial: true,
-      },
-      {
-        label: 'ARR (est.)',
-        value: inr(stats?.arr),
-        sub: '12× annualized MRR',
-        icon: Sparkles,
-        color: 'text-violet-600 dark:text-violet-400',
-        bg: 'bg-violet-500/10 border-violet-500/30 shadow-[0_2px_12px_-3px_rgba(139,92,246,0.15)]',
-        isFinancial: true,
       },
     ],
     [stats]
@@ -370,11 +412,7 @@ export default function SchoolSubscriptionsPanel() {
             </p>
           </div>
         </div>
-        <Button size="sm" onClick={openCreate}>
-          <Plus size={14} className="mr-1.5" /> New School Subscription
-        </Button>
-
-        <div className="flex items-center gap-2.5">
+        <div className="flex shrink-0 items-center gap-2.5">
           <button
             type="button"
             onClick={() => load(pagination.page, true)}
@@ -384,66 +422,96 @@ export default function SchoolSubscriptionsPanel() {
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin text-indigo-600' : ''}`} />
           </button>
-          <Button size="sm" onClick={openCreate} className="gap-1.5">
+          <Button size="sm" onClick={openCreate} className="gap-1.5 whitespace-nowrap">
             <Plus size={15} />
             <span>New School Subscription</span>
           </Button>
         </div>
       </div>
 
-      {/* KPI Metric Cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
-        {kpiCards.map((c) => {
+      {/* Revenue headline */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        {financialTiles.map((c) => {
           const Icon = c.icon;
           return (
             <div
               key={c.label}
-              className={`group relative overflow-hidden rounded-2xl border p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-sm dark:bg-slate-900/60 ${
-                c.isFinancial
-                  ? 'border-indigo-200/80 bg-gradient-to-b from-indigo-50/40 to-white dark:border-indigo-900/40 dark:from-indigo-950/20 dark:to-slate-900/80'
-                  : 'border-slate-200/80 bg-white dark:border-slate-800/80'
-              }`}
+              className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br p-4 transition-shadow duration-200 hover:shadow-card ${c.ring} ${c.surface}`}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                  {c.label}
-                </span>
-                <div className={`flex h-7 w-7 items-center justify-center rounded-lg border ${c.bg}`}>
-                  <Icon className={`h-3.5 w-3.5 ${c.color}`} />
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">
+                    {c.label}
+                  </span>
+                  <div className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900 tabular-nums dark:text-white">
+                    {loading && !stats ? <Pulse className="h-8 w-28" /> : c.value}
+                  </div>
+                  <p className="mt-1 truncate text-[11px] font-medium text-slate-500 dark:text-slate-400">{c.sub}</p>
                 </div>
-              </div>
-              <div className="mt-2 text-xl font-extrabold tracking-tight text-slate-900 dark:text-white tabular-nums">
-                {c.value}
-              </div>
-              <div className="mt-0.5 text-[10px] font-medium text-slate-400 dark:text-slate-500 truncate">
-                {c.sub}
+                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${c.chip}`}>
+                  <Icon className="h-4 w-4" />
+                </span>
               </div>
             </div>
           );
         })}
       </div>
 
+      {/* Lifecycle counters */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        {statusTiles.map((c) => {
+          const Icon = c.icon;
+          return (
+            <div
+              key={c.label}
+              className="rounded-2xl border border-slate-200/80 bg-white p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xs dark:border-slate-800/80 dark:bg-slate-900/60"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="truncate text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400 dark:text-slate-500">
+                  {c.label}
+                </span>
+                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border ${c.bg}`}>
+                  <Icon className={`h-3.5 w-3.5 ${c.color}`} />
+                </span>
+              </div>
+              <div className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 tabular-nums dark:text-white">
+                {loading && !stats ? <Pulse className="h-7 w-10" /> : c.value}
+              </div>
+              <div className="mt-0.5 truncate text-[10px] font-medium text-slate-400 dark:text-slate-500">{c.sub}</div>
+            </div>
+          );
+        })}
+      </div>
       {/* Search & Filters Toolbar */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/60 p-2.5 dark:border-slate-800/80 dark:bg-slate-900/50 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-slate-50/60 p-2.5 dark:border-slate-800/80 dark:bg-slate-900/50 lg:flex-row lg:items-center lg:justify-between">
         {/* Status Pills */}
         <div className="flex flex-wrap items-center gap-1.5">
-          {['ALL', 'active', 'created', 'authenticated', 'pending', 'halted', 'cancelled', 'expired'].map((s) => {
-            const isSelected = statusFilter === s;
+          {STATUS_FILTERS.map((f) => {
+            const isSelected = statusFilter === f.value;
+            const count = filterCount(f.value);
             return (
               <button
-                key={s}
+                key={f.value}
                 type="button"
-                onClick={() => setStatusFilter(s)}
-                className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold capitalize transition-all duration-150 ${
+                onClick={() => setStatusFilter(f.value)}
+                className={`inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-bold transition-all duration-150 ${
                   isSelected
                     ? 'bg-indigo-600 text-white shadow-xs'
                     : 'border border-slate-200/80 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
                 }`}
               >
-                <span>{s}</span>
-                {s === 'ALL' && rows.length > 0 && (
-                  <span className={`rounded-full px-1.5 py-0.2 text-[10px] font-extrabold ${isSelected ? 'bg-indigo-700/80 text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>
-                    {pagination.total || rows.length}
+                <span>{f.label}</span>
+                {count !== null && (
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[10px] font-extrabold leading-none tabular-nums ${
+                      isSelected
+                        ? 'bg-white/20 text-white'
+                        : count > 0
+                          ? 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
+                          : 'bg-slate-100/70 text-slate-400 dark:bg-slate-800/60 dark:text-slate-600'
+                    }`}
+                  >
+                    {count}
                   </span>
                 )}
               </button>
@@ -452,19 +520,20 @@ export default function SchoolSubscriptionsPanel() {
         </div>
 
         {/* Live Search */}
-        <div className="relative w-full md:w-72">
-          <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+        <div className="relative w-full lg:w-72 lg:shrink-0">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
-            placeholder="Search school or plan..."
+            placeholder="Search school, plan or subscription ID…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9 w-full rounded-xl border border-slate-200/90 bg-white pl-8.5 pr-8 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
+            className="h-9 w-full rounded-xl border border-slate-200/90 bg-white pl-9 pr-8 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-800 dark:bg-slate-900 dark:text-white"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery('')}
+              aria-label="Clear search"
               className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
             >
               <X className="h-3.5 w-3.5" />
@@ -472,7 +541,6 @@ export default function SchoolSubscriptionsPanel() {
           )}
         </div>
       </div>
-
       {/* Subscriptions Table */}
       {error ? (
         <div className="rounded-2xl border border-rose-200 bg-rose-50/80 p-6 text-center text-sm text-rose-600 dark:border-rose-500/20 dark:bg-rose-500/10">
@@ -489,24 +557,24 @@ export default function SchoolSubscriptionsPanel() {
 
       ) : (
         <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800/80 dark:bg-slate-900/60">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-200/80 bg-slate-50/90 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800/80 dark:bg-slate-900/90 dark:text-slate-400">
+          <div className="max-h-[calc(100vh-22rem)] overflow-auto">
+            <table className="w-full min-w-[62rem] text-left text-xs">
+              <thead className="sticky top-0 z-10 border-b border-slate-200/80 bg-slate-50/95 text-[11px] font-bold uppercase tracking-wider text-slate-500 backdrop-blur dark:border-slate-800/80 dark:bg-slate-900/95 dark:text-slate-400">
                 <tr>
-                  <th className="px-4.5 py-3.5">School</th>
-                  <th className="px-4 py-3.5">Plan & Tier</th>
+                  <th className="px-5 py-3.5">School</th>
+                  <th className="px-4 py-3.5">Plan</th>
                   <th className="px-4 py-3.5">Status</th>
-                  <th className="px-4 py-3.5">Amount</th>
+                  <th className="px-4 py-3.5 text-right">Amount</th>
                   <th className="px-4 py-3.5">Period End</th>
                   <th className="px-4 py-3.5">Next Billing</th>
-                  <th className="px-4.5 py-3.5 text-right">Actions</th>
+                  <th className="px-5 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i}>
-                      <td className="px-4.5 py-4">
+                      <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
                           <Pulse className="h-9 w-9 rounded-xl shrink-0" />
                           <div className="space-y-1.5 flex-1">
@@ -522,7 +590,7 @@ export default function SchoolSubscriptionsPanel() {
                         <Pulse className="h-5 w-16 rounded-full" />
                       </td>
                       <td className="px-4 py-4">
-                        <Pulse className="h-4 w-16" />
+                        <Pulse className="ml-auto h-4 w-16" />
                       </td>
                       <td className="px-4 py-4">
                         <Pulse className="h-4 w-20" />
@@ -530,7 +598,7 @@ export default function SchoolSubscriptionsPanel() {
                       <td className="px-4 py-4">
                         <Pulse className="h-4 w-20" />
                       </td>
-                      <td className="px-4.5 py-4 text-right">
+                      <td className="px-5 py-4 text-right">
                         <Pulse className="h-7 w-16 ml-auto rounded-lg" />
                       </td>
                     </tr>
@@ -574,25 +642,30 @@ export default function SchoolSubscriptionsPanel() {
                     };
 
                     const schoolName = r.school?.name || r.schoolName || 'Unnamed School';
-                    const schoolCode = r.school?.schoolId || r.school?.id || '';
+                    const schoolCode = r.school?.schoolId || '';
+                    const schoolStatus = r.school?.status || '';
                     const planName = r.plan?.name || 'Standard Plan';
                     const planInterval = r.plan?.billingInterval || 'monthly';
+                    const periodEndRel = relativeLabel(r.currentPeriodEnd);
+                    const nextBillingRel = relativeLabel(r.nextBillingAt);
+                    const nextBillingDays = daysUntil(r.nextBillingAt);
+                    const billingSoon = nextBillingDays !== null && nextBillingDays <= 7;
 
-                    const avatarInitials = schoolName
-                      .split(' ')
-                      .slice(0, 2)
-                      .map((w) => w[0])
-                      .join('')
-                      .toUpperCase() || 'SC';
-
+                    const avatarInitials =
+                      schoolName
+                        .split(' ')
+                        .slice(0, 2)
+                        .map((w) => w[0])
+                        .join('')
+                        .toUpperCase() || 'SC';
                     return (
                       <tr
                         key={r.id}
                         onClick={() => openDetail(r)}
-                        className="group cursor-pointer transition-colors duration-150 hover:bg-slate-50/80 dark:hover:bg-slate-850/40"
+                        className="group cursor-pointer transition-colors duration-150 hover:bg-indigo-50/40 dark:hover:bg-slate-850/50"
                       >
                         {/* School Info */}
-                        <td className="px-4.5 py-3.5">
+                        <td className="px-5 py-3.5">
                           <div className="flex items-center gap-3">
                             {r.school?.logoUrl ? (
                               <img
@@ -610,39 +683,36 @@ export default function SchoolSubscriptionsPanel() {
                               </div>
                             )}
                             <div className="min-w-0">
-                              <div className="flex items-center gap-1.5">
-                                <span className="truncate font-bold text-slate-900 transition-colors group-hover:text-indigo-600 dark:text-white dark:group-hover:text-indigo-400">
-                                  {schoolName}
-                                </span>
+                              <div className="truncate font-bold text-slate-900 transition-colors group-hover:text-indigo-600 dark:text-white dark:group-hover:text-indigo-400">
+                                {schoolName}
                               </div>
-                              {schoolCode && (
-                                <span className="inline-block font-mono text-[10px] text-slate-400 dark:text-slate-500">
-                                  {schoolCode}
-                                </span>
-                              )}
+                              <div className="mt-0.5 flex items-center gap-1.5">
+                                {schoolCode && (
+                                  <span className="font-mono text-[10px] text-slate-400 dark:text-slate-500">{schoolCode}</span>
+                                )}
+                                {schoolStatus && (
+                                  <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                                    {schoolStatus}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </td>
 
-                        {/* Plan & Tier */}
+                        {/* Plan */}
                         <td className="px-4 py-3.5">
-                          <div>
-                            <span className="font-semibold text-slate-800 dark:text-slate-200">
-                              {planName}
-                            </span>
-                            <div className="mt-0.5">
-                              <span className="inline-block rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold capitalize text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                                {planInterval}
-                              </span>
-                            </div>
-                          </div>
+                          <div className="truncate font-semibold text-slate-800 dark:text-slate-200">{planName}</div>
+                          <span className="mt-0.5 inline-block rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold capitalize text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                            {planInterval}
+                          </span>
                         </td>
 
                         {/* Status */}
                         <td className="px-4 py-3.5">
-                          <div className="flex flex-col items-start gap-1">
+                          <div className="flex flex-wrap items-center gap-1.5">
                             <span
-                              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold tracking-wide capitalize ${statusInfo.pillClass}`}
+                              className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-bold capitalize tracking-wide ${statusInfo.pillClass}`}
                             >
                               <span
                                 className={`h-1.5 w-1.5 rounded-full ${statusInfo.dotClass} ${
@@ -652,50 +722,66 @@ export default function SchoolSubscriptionsPanel() {
                               {statusInfo.label}
                             </span>
                             {r.cancelAtPeriodEnd && (
-                              <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 border border-amber-500/20 dark:text-amber-400">
+                              <span
+                                title="Cancellation scheduled at period end"
+                                className="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400"
+                              >
                                 <AlertTriangle className="h-2.5 w-2.5" />
-                                Ending soon
+                                Ending
                               </span>
                             )}
                           </div>
                         </td>
 
                         {/* Amount */}
-                        <td className="px-4 py-3.5">
-                          <div>
-                            <span className="font-black text-slate-900 dark:text-white tabular-nums text-sm">
-                              {inr(r.totalAmount)}
-                            </span>
-                            <span className="ml-1 text-[11px] text-slate-400 font-medium">
-                              /{planInterval === 'yearly' ? 'yr' : 'mo'}
-                            </span>
-                          </div>
+                        <td className="whitespace-nowrap px-4 py-3.5 text-right">
+                          <span className="text-sm font-extrabold tabular-nums text-slate-900 dark:text-white">
+                            {inr(r.totalAmount)}
+                          </span>
+                          <span className="ml-0.5 text-[11px] font-medium text-slate-400">
+                            /{planInterval === 'yearly' ? 'yr' : 'mo'}
+                          </span>
                         </td>
 
                         {/* Period End */}
-                        <td className="px-4 py-3.5">
-                          <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-medium">
-                            <Calendar className="h-3 w-3 text-slate-400 shrink-0" />
+                        <td className="whitespace-nowrap px-4 py-3.5">
+                          <div className="flex items-center gap-1.5 font-medium text-slate-600 dark:text-slate-300">
+                            <Calendar className="h-3 w-3 shrink-0 text-slate-400" />
                             <span>{fmt(r.currentPeriodEnd)}</span>
                           </div>
+                          {periodEndRel && (
+                            <div className="mt-0.5 pl-4.5 text-[10px] font-medium text-slate-400 dark:text-slate-500">
+                              {periodEndRel}
+                            </div>
+                          )}
                         </td>
 
                         {/* Next Billing */}
-                        <td className="px-4 py-3.5">
-                          <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 font-medium">
-                            <Clock className="h-3 w-3 text-slate-400 shrink-0" />
+                        <td className="whitespace-nowrap px-4 py-3.5">
+                          <div className="flex items-center gap-1.5 font-medium text-slate-600 dark:text-slate-300">
+                            <Clock className="h-3 w-3 shrink-0 text-slate-400" />
                             <span>{fmt(r.nextBillingAt)}</span>
                           </div>
+                          {nextBillingRel && (
+                            <div
+                              className={`mt-0.5 pl-4.5 text-[10px] font-bold ${
+                                billingSoon
+                                  ? 'text-amber-600 dark:text-amber-400'
+                                  : 'font-medium text-slate-400 dark:text-slate-500'
+                              }`}
+                            >
+                              {nextBillingRel}
+                            </div>
+                          )}
                         </td>
-
                         {/* Actions */}
-                        <td className="px-4.5 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
+                        <td className="px-5 py-3.5 text-right" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-end gap-1">
                             <button
                               type="button"
                               title="View details & history"
                               onClick={() => openDetail(r)}
-                              className="inline-flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-slate-200/80 bg-white text-slate-500 shadow-2xs transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 bg-white text-slate-500 shadow-2xs transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
                             >
                               <Eye size={13} />
                             </button>
@@ -706,7 +792,7 @@ export default function SchoolSubscriptionsPanel() {
                                 setChangePlanTarget(r);
                                 setChangePlanId('');
                               }}
-                              className="inline-flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-slate-200/80 bg-white text-slate-500 shadow-2xs transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 bg-white text-slate-500 shadow-2xs transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400"
                             >
                               <ArrowUpRight size={13} />
                             </button>
@@ -717,7 +803,7 @@ export default function SchoolSubscriptionsPanel() {
                                 setCancelTarget(r);
                                 setCancelImmediate(false);
                               }}
-                              className="inline-flex h-7.5 w-7.5 items-center justify-center rounded-lg border border-slate-200/80 bg-white text-slate-500 shadow-2xs transition-all hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-rose-500/10 dark:hover:text-rose-400"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 bg-white text-slate-500 shadow-2xs transition-all hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-rose-500/10 dark:hover:text-rose-400"
                             >
                               <Ban size={13} />
                             </button>
@@ -732,12 +818,19 @@ export default function SchoolSubscriptionsPanel() {
           </div>
 
           {/* Table Footer / Pagination */}
-          {pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-slate-200/80 bg-slate-50/50 px-4 py-3 dark:border-slate-800/80 dark:bg-slate-900/50">
+          {!loading && filteredRows.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/80 bg-slate-50/50 px-4 py-3 dark:border-slate-800/80 dark:bg-slate-900/50">
               <span className="text-xs text-slate-500 dark:text-slate-400">
-                Showing page <span className="font-bold text-slate-800 dark:text-slate-200">{pagination.page}</span> of{' '}
-                <span className="font-bold text-slate-800 dark:text-slate-200">{pagination.totalPages}</span> ·{' '}
-                <span className="font-bold text-slate-800 dark:text-slate-200">{pagination.total}</span> subscriptions
+                Showing <span className="font-bold text-slate-800 dark:text-slate-200">{filteredRows.length}</span> of{' '}
+                <span className="font-bold text-slate-800 dark:text-slate-200">{pagination.total || rows.length}</span> subscriptions
+                {pagination.totalPages > 1 && (
+                  <>
+                    {' · page '}
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{pagination.page}</span>
+                    {' of '}
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{pagination.totalPages}</span>
+                  </>
+                )}
               </span>
               <div className="flex items-center gap-1.5">
                 <button
@@ -977,7 +1070,7 @@ export default function SchoolSubscriptionsPanel() {
                 <span>{t.label}</span>
                 {t.count > 0 && (
                   <span
-                    className={`rounded-full px-1.5 py-0.2 text-[10px] font-extrabold ${
+                    className={`rounded-full px-1.5 py-0.5 text-[10px] font-extrabold ${
                       detailTab === t.id ? 'bg-indigo-700 text-white' : 'bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-300'
                     }`}
                   >
