@@ -146,7 +146,7 @@ export const schoolDashboardService = {
     // 7. Recent Activities Feed (from real records)
     const [recentStudents, recentPayments, recentIssues, recentAllocations] = await Promise.all([
       Student.find({ schoolId }).sort({ createdAt: -1 }).limit(3).lean(),
-      FeePayment.find({ schoolId }).sort({ createdAt: -1 }).limit(3).populate('studentId', 'firstName lastName').lean(),
+      FeePayment.find({ schoolId }).sort({ createdAt: -1 }).limit(3).lean(),
       LibraryIssue.find({ schoolId }).sort({ createdAt: -1 }).limit(2).populate('bookId', 'title').lean(),
       HostelAllocation.find({ schoolId }).sort({ createdAt: -1 }).limit(2).populate('studentId', 'firstName lastName').populate('roomId', 'roomNumber').lean(),
     ]);
