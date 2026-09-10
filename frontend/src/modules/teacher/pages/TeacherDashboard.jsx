@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTeacherAuth } from '../context/TeacherAuthContext';
 import { useTeacherNotifications } from '../context/TeacherNotificationContext';

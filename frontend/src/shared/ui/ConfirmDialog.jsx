@@ -1,4 +1,4 @@
-ï»¿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Modal } from './Modal';
 import { AlertTriangle } from 'lucide-react';
 import { cn } from '../lib/cn';

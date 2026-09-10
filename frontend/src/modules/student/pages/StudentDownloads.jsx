@@ -1,4 +1,4 @@
-ï»¿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Download, FileText, FileBadge, Receipt, Shield } from 'lucide-react';

@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { useEvents } from '../hooks/useStudentHooks';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';

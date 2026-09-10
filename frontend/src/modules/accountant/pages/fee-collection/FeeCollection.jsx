@@ -1,4 +1,4 @@
-ï»¿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
 import { Badge } from '../../components/ui/Badge';
@@ -41,24 +41,21 @@ export const FeeCollection = () => {
   const [genForm, setGenForm] = useState({ periodLabel: '', dueDate: '' });
   const [generating, setGenerating] = useState(false);
 
-  // debounced student search
+  // Direct student list on load & debounced student search
   useEffect(() => {
-    if (!query || query.trim().length < 2) {
-      setResults([]);
-      return;
-    }
+    setSearching(true);
+    const params = query && query.trim().length > 0 ? { search: query.trim() } : {};
     const t = setTimeout(() => {
-      setSearching(true);
       accountantApi
-        .searchStudents({ search: query.trim() })
+        .searchStudents(params)
         .then((res) => setResults(res?.data || []))
         .catch((err) => {
           console.error('Search error:', err);
-          showToast(err?.response?.data?.message || 'Search failed', 'error');
+          showToast(err?.response?.data?.message || 'Failed to load students', 'error');
           setResults([]);
         })
         .finally(() => setSearching(false));
-    }, 350);
+    }, query ? 300 : 0);
     return () => clearTimeout(t);
   }, [query, showToast]);
 
@@ -163,49 +160,63 @@ export const FeeCollection = () => {
       />
 
       {!selected && (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm space-y-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               autoFocus
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by student name or admission numberâ¦"
-              className="w-full h-11 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-sm font-semibold outline-none focus:border-violet-500"
+              placeholder="Search by student name, admission number, or class..."
+              className="w-full h-11 pl-10 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950 text-sm font-semibold outline-none focus:border-violet-500 focus:bg-white dark:focus:bg-slate-900 transition"
             />
           </div>
 
-          {searching && (
-            <p className="text-xs text-slate-400 flex items-center gap-2">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Searching...
-            </p>
-          )}
+          <div className="flex items-center justify-between text-xs font-bold text-slate-500 px-1">
+            <span>
+              {query.trim() ? `Search Results (${results.length})` : `All Students (${results.length})`}
+            </span>
+            {searching && (
+              <span className="flex items-center gap-1.5 text-violet-600 dark:text-violet-400">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading students...
+              </span>
+            )}
+          </div>
 
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[540px] overflow-y-auto">
             {results.map((s) => (
               <button
                 key={s.id}
                 onClick={() => loadProfile(s)}
-                className="w-full flex items-center justify-between py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-950/50 px-2 rounded-lg"
+                className="w-full flex items-center justify-between py-3.5 text-left hover:bg-slate-50 dark:hover:bg-slate-950/60 px-3 rounded-xl transition group border border-transparent hover:border-slate-200/60 dark:hover:border-slate-800"
               >
-                <div>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white">{s.name}</p>
-                  <p className="text-[11px] text-slate-400">
-                    {s.admissionNumber}
-                    {s.enrollment?.class ? ` â¢ ${s.enrollment.class.name}` : ''}
-                    {s.enrollment?.section ? ` - ${s.enrollment.section.name}` : ''}
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-violet-100 dark:bg-violet-950/50 text-violet-600 dark:text-violet-400 font-black text-xs flex items-center justify-center shrink-0">
+                    {s.name?.slice(0, 2).toUpperCase() || 'ST'}
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-violet-600 dark:group-hover:text-violet-400 transition">
+                      {s.name}
+                    </p>
+                    <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+                      <span className="font-semibold text-slate-600 dark:text-slate-300">{s.admissionNumber}</span>
+                      {s.enrollment?.class ? ` • ${s.enrollment.class.name}` : ''}
+                      {s.enrollment?.section ? ` (${s.enrollment.section.name})` : ''}
+                      {s.enrollment?.rollNumber ? ` • Roll ${s.enrollment.rollNumber}` : ''}
+                    </p>
+                  </div>
                 </div>
-                <ArrowLeft className="w-4 h-4 rotate-180 text-slate-300" />
+                <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition">
+                  <span className="hidden sm:inline text-[11px] font-bold">Collect Fees</span>
+                  <ArrowLeft className="w-4 h-4 rotate-180 transition group-hover:translate-x-0.5" />
+                </div>
               </button>
             ))}
-            {!searching && query.trim().length < 2 && results.length === 0 && (
-              <p className="py-6 text-center text-xs font-semibold text-slate-400">
-                Type at least 2 characters to search for a student
-              </p>
-            )}
-            {!searching && query.trim().length >= 2 && results.length === 0 && (
-              <p className="py-6 text-center text-xs font-semibold text-slate-400">No students found.</p>
+
+            {!searching && results.length === 0 && (
+              <div className="py-12 text-center text-xs font-semibold text-slate-400">
+                {query.trim() ? `No students found matching "${query.trim()}".` : 'No active students found in the school.'}
+              </div>
             )}
           </div>
         </div>
@@ -217,7 +228,7 @@ export const FeeCollection = () => {
             onClick={reset}
             className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to search
+            <ArrowLeft className="w-4 h-4" /> Back to student list
           </button>
 
           <div className="p-4 bg-violet-50 dark:bg-violet-950/30 rounded-2xl border border-violet-200 dark:border-violet-900/40 flex flex-wrap justify-between items-center gap-3">
@@ -227,7 +238,7 @@ export const FeeCollection = () => {
               </h3>
               <p className="text-xs text-slate-500 font-semibold">
                 {profile?.student?.admissionNumber || selected.admissionNumber}
-                {selected.enrollment?.class ? ` â¢ ${selected.enrollment.class.name}` : ''}
+                {selected.enrollment?.class ? ` • ${selected.enrollment.class.name}` : ''}
                 {selected.enrollment?.section ? ` - ${selected.enrollment.section.name}` : ''}
               </p>
             </div>
@@ -310,7 +321,7 @@ export const FeeCollection = () => {
                     <div className="space-y-1.5">
                       {paidInvoices.map((inv) => (
                         <div key={inv.id} className="flex justify-between text-[11px] font-semibold">
-                          <span className="text-slate-500">{inv.invoiceNumber} â¢ {inv.periodLabel}</span>
+                          <span className="text-slate-500">{inv.invoiceNumber} • {inv.periodLabel}</span>
                           <span className="text-emerald-600">{formatCurrency(inv.totalAmount)}</span>
                         </div>
                       ))}
@@ -326,8 +337,8 @@ export const FeeCollection = () => {
                     onSubmit={submitPayment}
                     className="bg-white dark:bg-indigo-600 border border-violet-300 dark:border-violet-900/50 rounded-2xl p-5 shadow-sm space-y-3"
                   >
-                    <h4 className=âtext-xs font-black uppercase tracking-wider text-violet-600â>
-                      Collect â {activeInvoice.invoiceNumber}
+                    <h4 className="text-xs font-black uppercase tracking-wider text-violet-600">
+                      Collect — {activeInvoice.invoiceNumber}
                     </h4>
                     <p className="text-[11px] text-slate-400">
                       Balance {formatCurrency(activeInvoice.balanceAmount)}
@@ -475,7 +486,7 @@ export const FeeCollection = () => {
               </div>
               <div>
                 <span className="text-slate-400 block font-semibold">Reference:</span>
-                <span className=âfont-boldâ>{receipt.paymentReference || 'â'}</span>
+                <span className="font-bold">{receipt.paymentReference || '—'}</span>
               </div>
             </div>
             <div className="p-4 bg-slate-50 dark:bg-indigo-600 rounded-xl border border-border flex justify-between items-center text-sm font-black">

@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Mail, Phone, ShieldCheck, Sparkles } from 'lucide-react';
 import Reveal from '../Reveal';

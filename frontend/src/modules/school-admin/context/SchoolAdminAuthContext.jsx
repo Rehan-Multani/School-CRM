@@ -1,4 +1,4 @@
-ï»¿import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import { schoolAdminAuthApi, schoolPortalApi } from '../../../shared/api/client';
 import { useSchoolAdminTheme } from './SchoolAdminThemeContext';
 

@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { cn } from '../lib/cn';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 

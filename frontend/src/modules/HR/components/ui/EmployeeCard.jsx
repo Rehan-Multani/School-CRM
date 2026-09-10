@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { Mail, Phone, Calendar, ArrowRight, Building, User, Clock, CheckCircle2, XCircle, Pencil } from 'lucide-react';
 import { Badge } from './Badge';
 

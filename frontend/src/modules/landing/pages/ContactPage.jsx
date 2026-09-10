@@ -1,4 +1,4 @@
-ï»¿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CheckCircle2, LifeBuoy, Mail, MapPin, Phone, Send, ShieldCheck } from 'lucide-react';
 import Reveal from '../components/Reveal';
 import { PRODUCT } from '../data/content';

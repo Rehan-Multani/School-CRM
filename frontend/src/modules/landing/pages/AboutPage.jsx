@@ -1,4 +1,4 @@
-ï»¿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Building2, Layers, Radio, ShieldCheck } from 'lucide-react';
 import Reveal from '../components/Reveal';
@@ -13,12 +13,12 @@ const PILLARS = [
   {
     icon: ShieldCheck,
     title: 'Multi-tenant by architecture',
-    body: 'Each school is an isolated tenant. Access is checked per tenant and per role at the API gateway, so one school's staff can never see another school's students, fees or academic records.',
+    body: "Each school is an isolated tenant. Access is checked per tenant and per role at the API gateway, so one school's staff can never see another school's students, fees or academic records.",
   },
   {
     icon: Building2,
     title: 'It looks like your school',
-    body: 'Your logo, favicon and primary colour propagate into every portal and the app. Parents and staff see your school's identity, not ours.',
+    body: "Your logo, favicon and primary colour propagate into every portal and the app. Parents and staff see your school's identity, not ours.",
   },
   {
     icon: Radio,

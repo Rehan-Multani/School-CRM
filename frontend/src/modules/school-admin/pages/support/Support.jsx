@@ -1,4 +1,4 @@
-ï»¿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { LifeBuoy, Loader2, MessageSquare, Plus, Send } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader';

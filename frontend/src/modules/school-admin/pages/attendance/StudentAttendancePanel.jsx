@@ -1,4 +1,4 @@
-ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useToast } from '../../components/ui/Toast';
 import { studentAttendanceApi, academicPortalApi } from '../../../../shared/api/client';
 import { apiMessage } from '../academics/utils';

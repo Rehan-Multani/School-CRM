@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import defaultLogo from '../../../../assets/School_logo.png';
 import { useSchoolAdminAuth } from '../../context/SchoolAdminAuthContext';
 

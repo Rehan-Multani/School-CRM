@@ -1,4 +1,4 @@
-ï»¿import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useParentAuth } from './ParentAuthContext';
 
 const ParentNotificationContext = createContext();

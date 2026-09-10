@@ -1,4 +1,4 @@
-ï»¿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Bell, MessageSquare, ChevronDown, Check } from 'lucide-react';
 import { useParentNotifications } from '../../context/ParentNotificationContext';

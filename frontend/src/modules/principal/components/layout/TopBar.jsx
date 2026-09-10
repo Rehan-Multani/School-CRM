@@ -1,4 +1,4 @@
-ï»¿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { usePrincipalAuth } from '../../context/PrincipalAuthContext';
 import { usePrincipalTheme } from '../../context/PrincipalThemeContext';
 import { usePrincipalNotifications } from '../../context/PrincipalNotificationContext';

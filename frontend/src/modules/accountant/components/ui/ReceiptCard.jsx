@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { Printer, Download, Mail, MessageSquare } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 

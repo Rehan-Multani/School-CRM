@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Modal } from '../../../../shared/ui/Modal';
 import { hrApi } from '../../../../shared/api/client';
 import { sanitizeMobileInput, isValid10DigitMobile } from '../../../../shared/utils/mobileValidation';

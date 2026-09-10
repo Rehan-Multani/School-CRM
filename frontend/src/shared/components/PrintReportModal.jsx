@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { Modal } from '../ui/Modal';
 import { Printer, Download, X } from 'lucide-react';
 import { exportToCSV } from '../lib/exportHelpers';

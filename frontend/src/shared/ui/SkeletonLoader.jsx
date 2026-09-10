@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { cn } from '../lib/cn';
 
 // 1. Primitive Base Skeleton

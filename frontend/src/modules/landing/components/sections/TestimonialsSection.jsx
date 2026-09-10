@@ -1,4 +1,4 @@
-ï»¿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, MessageSquareQuote, Star } from 'lucide-react';
 import Reveal from '../Reveal';
 import GradientBadge from '../ui/GradientBadge';

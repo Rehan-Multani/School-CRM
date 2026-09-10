@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, CornerDownLeft } from 'lucide-react';
 import { NAVIGATION_ITEMS } from '../../utils/constants';
@@ -98,7 +98,7 @@ export const CommandPalette = ({ isOpen, onClose }) => {
           <input
             ref={inputRef}
             type="text"
-            placeholder="Type a module or action... (e.g. Employee, Payroll, Attendance)"
+            placeholder="Search modules or actions..."
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);

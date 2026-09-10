@@ -1,4 +1,4 @@
-ï»¿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { cn } from '../lib/cn';
 
 // Canonical merged Avatar Ã¢â¬â superset of teacher (hashed color background

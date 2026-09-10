@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { Card } from '../components/ui/Card';

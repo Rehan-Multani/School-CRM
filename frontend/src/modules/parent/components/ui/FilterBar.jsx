@@ -1,1 +1,1 @@
-ï»¿export * from '../../../../shared/ui/FilterBar';
+export * from '../../../../shared/ui/FilterBar';

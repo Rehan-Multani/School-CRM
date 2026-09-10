@@ -1,4 +1,4 @@
-ï»¿import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useSchoolAdminAuth } from '../context/SchoolAdminAuthContext';
 import { useNavigate } from 'react-router-dom';
 import { schoolPortalApi } from '../../../shared/api/client';

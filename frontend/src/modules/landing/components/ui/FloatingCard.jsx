@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 
 /**
  * Premium floating mini-card for Hero and product visual previews.

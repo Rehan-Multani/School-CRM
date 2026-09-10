@@ -1,4 +1,4 @@
-ï»¿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, HelpCircle } from 'lucide-react';
 import Reveal from '../components/Reveal';

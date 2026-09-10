@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Modal } from '../../components/ui/Modal';
@@ -204,7 +204,7 @@ export const DesignationManagement = () => {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Search designations by title or department..."
+            placeholder="Search by title or department..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-slate-50/80 dark:bg-slate-950 text-slate-900 dark:text-white pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none text-xs font-semibold"

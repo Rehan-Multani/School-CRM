@@ -1,4 +1,4 @@
-ï»¿import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { hrApi } from '../../../shared/api/client';
 import { useHRAuth } from './HRAuthContext';
 

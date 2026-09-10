@@ -1,4 +1,4 @@
-ï»¿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { AreaChart } from '../../components/ui/Charts/AreaChart';
 import { BarChart } from '../../components/ui/Charts/BarChart';

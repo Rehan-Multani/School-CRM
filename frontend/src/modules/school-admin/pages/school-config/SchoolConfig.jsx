@@ -1,4 +1,4 @@
-ï»¿import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
 import { useSchoolAdminAuth } from '../../context/SchoolAdminAuthContext';

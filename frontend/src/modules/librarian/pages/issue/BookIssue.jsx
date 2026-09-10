@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';

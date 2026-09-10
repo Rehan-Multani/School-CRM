@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { MOBILE_TABS } from '../../utils/constants';
 import { cn } from '../../utils/cn';

@@ -1,4 +1,4 @@
-ï»¿import React, { createContext, useCallback, useContext, useLayoutEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useLayoutEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 // Standalone theme controller for the public marketing site.

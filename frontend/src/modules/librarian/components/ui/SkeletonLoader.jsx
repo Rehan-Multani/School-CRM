@@ -1,1 +1,1 @@
-ï»¿export * from '../../../../shared/ui/SkeletonLoader';
+export * from '../../../../shared/ui/SkeletonLoader';

@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { Printer, Download, Building, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { useHRAuth } from '../../context/HRAuthContext';
 

@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { Smartphone } from 'lucide-react';
 import Reveal from '../Reveal';
 import StoreBadges from '../StoreBadges';

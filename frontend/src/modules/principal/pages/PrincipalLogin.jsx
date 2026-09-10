@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { usePrincipalAuth } from '../context/PrincipalAuthContext';
 import { Lock, User, AlertCircle, ArrowRight, ArrowLeft, Eye, EyeOff, Loader2, BookOpen, CheckCircle2, Users, Mail, Award, LayoutGrid } from 'lucide-react';

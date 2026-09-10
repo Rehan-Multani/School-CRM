@@ -1,4 +1,4 @@
-ï»¿import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarClock } from 'lucide-react';
 import Reveal from './Reveal';

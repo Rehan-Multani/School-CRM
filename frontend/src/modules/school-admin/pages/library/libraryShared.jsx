@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutGrid, Library, FolderTree, SlidersHorizontal, BookMarked } from 'lucide-react';
 import { cn } from '../../utils/cn';

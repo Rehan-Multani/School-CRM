@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
 import { hrApi } from '../../../../shared/api/client';
@@ -441,7 +441,7 @@ export const TeacherManagement = () => {
                 rows={3}
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="e.g. Incomplete credentials, document verification failed, background check pending..."
+                placeholder="e.g. Verification failed..."
                 className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-xs text-slate-900 dark:text-white outline-none focus:border-indigo-500"
               />
             </div>

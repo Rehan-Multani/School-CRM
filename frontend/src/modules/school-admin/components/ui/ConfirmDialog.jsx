@@ -1,1 +1,1 @@
-ï»¿export * from '../../../../shared/ui/ConfirmDialog';
+export * from '../../../../shared/ui/ConfirmDialog';

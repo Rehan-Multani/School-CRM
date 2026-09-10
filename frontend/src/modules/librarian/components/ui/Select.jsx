@@ -1,1 +1,1 @@
-ï»¿export * from '../../../../shared/ui/Select';
+export * from '../../../../shared/ui/Select';

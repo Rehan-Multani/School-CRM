@@ -1,1 +1,1 @@
-ï»¿export * from '../../../../shared/ui/DataTable';
+export * from '../../../../shared/ui/DataTable';

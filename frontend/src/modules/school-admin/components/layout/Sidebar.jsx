@@ -1,4 +1,4 @@
-ï»¿import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { NAVIGATION_ITEMS } from '../../utils/constants';
 import { useSchoolAdminAuth } from '../../context/SchoolAdminAuthContext';

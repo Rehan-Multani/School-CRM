@@ -1,4 +1,4 @@
-ï»¿import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Save, Users, CalendarClock, Coins } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';

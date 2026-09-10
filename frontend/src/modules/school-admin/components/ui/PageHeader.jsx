@@ -1,1 +1,1 @@
-ï»¿export * from '../../../../shared/ui/PageHeader';
+export * from '../../../../shared/ui/PageHeader';

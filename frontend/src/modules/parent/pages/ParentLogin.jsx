@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { GraduationCap, ArrowRight, ShieldAlert, Eye, EyeOff, LayoutGrid } from 'lucide-react';

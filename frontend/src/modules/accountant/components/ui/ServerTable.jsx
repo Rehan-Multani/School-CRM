@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { ChevronLeft, ChevronRight, Loader2, Inbox } from 'lucide-react';
 
 /**

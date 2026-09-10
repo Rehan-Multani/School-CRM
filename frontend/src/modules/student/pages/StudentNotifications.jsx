@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { useStudentNotifications } from '../context/NotificationContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';

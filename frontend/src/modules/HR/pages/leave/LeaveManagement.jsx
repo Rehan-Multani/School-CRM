@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Modal } from '../../components/ui/Modal';
@@ -542,7 +542,7 @@ export const LeaveManagement = () => {
             </label>
             <textarea
               rows={3}
-              placeholder="e.g. Attending mandatory family wedding / severe viral fever prescribed bed rest..."
+              placeholder="e.g. Family event or medical reason..."
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-950 text-slate-900 dark:text-white outline-none focus:border-indigo-500 font-semibold"
@@ -591,7 +591,7 @@ export const LeaveManagement = () => {
           <p className="text-slate-500">Please provide a constructive reason for rejecting this leave petition:</p>
           <textarea
             rows={3}
-            placeholder="e.g. Insufficient coverage during examination term..."
+            placeholder="e.g. Insufficient coverage or staffing..."
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
             className="w-full p-2.5 rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 text-slate-900 dark:text-white outline-none focus:border-indigo-500"

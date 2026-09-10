@@ -1,4 +1,4 @@
-ï»¿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';

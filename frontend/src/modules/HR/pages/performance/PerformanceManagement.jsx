@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Modal } from '../../components/ui/Modal';
@@ -254,7 +254,7 @@ export const PerformanceManagement = () => {
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Search appraisals by faculty name, ID, or department..."
+            placeholder="Search by name, ID, or department..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-slate-50/80 dark:bg-slate-950 text-slate-900 dark:text-white pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none text-xs font-semibold"
@@ -470,7 +470,7 @@ export const PerformanceManagement = () => {
             </label>
             <textarea
               rows={2}
-              placeholder="e.g. Exceptional classroom management, thorough curriculum preparation, high student exam pass rate..."
+              placeholder="e.g. Excellent classroom management, strong student outcomes..."
               value={strengths}
               onChange={(e) => setStrengths(e.target.value)}
               className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-950 text-slate-900 dark:text-white outline-none focus:border-indigo-500 font-semibold"
@@ -483,7 +483,7 @@ export const PerformanceManagement = () => {
             </label>
             <textarea
               rows={2}
-              placeholder="e.g. Integrate digital smart-board workshops, pursue continuous professional development courses..."
+              placeholder="e.g. Pursue professional development, enhance digital skills..."
               value={goals}
               onChange={(e) => setGoals(e.target.value)}
               className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-950 text-slate-900 dark:text-white outline-none focus:border-indigo-500 font-semibold"

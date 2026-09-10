@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '../lib/cn';
 

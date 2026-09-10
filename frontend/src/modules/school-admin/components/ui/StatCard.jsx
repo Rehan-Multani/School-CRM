@@ -1,1 +1,1 @@
-ï»¿export * from '../../../../shared/ui/StatCard';
+export * from '../../../../shared/ui/StatCard';

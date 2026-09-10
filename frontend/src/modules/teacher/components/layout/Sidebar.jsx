@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { NAVIGATION_ITEMS } from '../../utils/constants';
 import { useTeacherAuth } from '../../context/TeacherAuthContext';

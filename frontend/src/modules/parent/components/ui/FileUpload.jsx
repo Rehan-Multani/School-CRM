@@ -1,1 +1,1 @@
-ï»¿export * from '../../../../shared/ui/FileUpload';
+export * from '../../../../shared/ui/FileUpload';

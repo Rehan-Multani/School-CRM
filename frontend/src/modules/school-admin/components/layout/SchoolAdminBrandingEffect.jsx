@@ -1,4 +1,4 @@
-ï»¿import { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useSchoolAdminAuth } from '../../context/SchoolAdminAuthContext';
 
 const DEFAULT_FAVICON = '/School_logo.png';

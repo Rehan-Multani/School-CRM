@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { readAccentColor } from '../../../../../shared/theme/accent';
 import { ResponsiveContainer, BarChart as RechartsBar, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 

@@ -1,4 +1,4 @@
-ï»¿import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ShieldCheck, Loader2, X, CheckCircle2, RotateCcw, LogIn } from 'lucide-react';
 import { teacherPickupApi } from '../../../shared/api/client';
 

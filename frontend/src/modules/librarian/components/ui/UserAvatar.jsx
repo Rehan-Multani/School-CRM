@@ -1,4 +1,4 @@
-ï»¿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { cn } from '../../utils/cn';
 
 export function UserAvatar({ src, name, className = 'h-8 w-8 rounded-lg text-xs' }) {

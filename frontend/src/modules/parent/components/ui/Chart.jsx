@@ -1,1 +1,1 @@
-ï»¿export * from '../../../../shared/ui/Chart';
+export * from '../../../../shared/ui/Chart';

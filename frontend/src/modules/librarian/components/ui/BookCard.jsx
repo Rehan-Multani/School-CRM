@@ -1,4 +1,4 @@
-ï»¿import React from 'react';
+import React from 'react';
 import { BookOpen, MapPin, Hash, User, Trash2, Pencil } from 'lucide-react';
 import { Badge } from './Badge';
 import { cn } from '../../utils/cn';

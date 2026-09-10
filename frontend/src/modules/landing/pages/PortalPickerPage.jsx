@@ -1,4 +1,4 @@
-ï»¿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Moon, Smartphone, Sun } from 'lucide-react';
 import BrandLogo from '../../../shared/ui/BrandLogo';

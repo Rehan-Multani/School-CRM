@@ -1,4 +1,4 @@
-ï»¿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Search,
   ChevronDown,

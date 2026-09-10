@@ -1,4 +1,4 @@
-ï»¿import React, { useRef } from 'react';
+import React, { useRef } from 'react';
 import { generateBarcodePattern } from '../../utils/barcodeHelpers';
 import { Printer } from 'lucide-react';
 
