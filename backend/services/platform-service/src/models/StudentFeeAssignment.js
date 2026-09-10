@@ -1,67 +1,126 @@
 import mongoose from 'mongoose';
 
-export const DISCOUNT_TYPES = ['NONE', 'PERCENTAGE', 'FIXED'];
-export const ASSIGNMENT_STATUSES = ['ACTIVE', 'WAIVED', 'CANCELLED'];
+export const FEE_ASSIGNMENT_STATUSES = ['PENDING', 'PARTIAL', 'PAID'];
 
+/**
+ * Student Fee Assignment — tracks the fee lifecycle for one student.
+ *
+ * Example:
+ * - Student: Rahul
+ * - Academic Year: 2026-27
+ * - Class: 5
+ * - Total Fee: ₹5,500
+ * - Discount: ₹500
+ * - Paid: ₹3,000
+ * - Due: ₹2,000
+ * - Status: PARTIAL
+ *
+ * Calculation (backend-authoritative):
+ * - totalAmount: from fee structure
+ * - discountAmount: sum of approved discounts
+ * - payableAmount = totalAmount - discountAmount
+ * - paidAmount: sum of successful payments
+ * - dueAmount = payableAmount - paidAmount
+ * - status: PENDING (due > 0) | PARTIAL (0 < due < payable) | PAID (due = 0)
+ */
 const studentFeeAssignmentSchema = new mongoose.Schema(
   {
-    schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true, index: true },
-    studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true, index: true },
-    enrollmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'StudentEnrollment', required: true },
-    feeStructureId: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeStructure', required: true },
-    feeStructureItemId: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeStructureItem', required: true },
-    feeHeadId: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeHead', required: true },
-
-    // Snapshot values (immutable)
-    feeHeadName: { type: String, required: true, trim: true },
-    originalAmount: { type: Number, required: true, min: 0 },
-    frequency: { type: String, required: true },
-
-    // Student-specific adjustments
-    discountType: {
-      type: String,
-      enum: DISCOUNT_TYPES,
-      default: 'NONE',
+    schoolId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'School',
+      required: true,
+      index: true,
     },
-    discountValue: { type: Number, default: 0, min: 0 },
-    discountAmount: { type: Number, default: 0, min: 0 },
-    concessionAmount: { type: Number, default: 0, min: 0 },
-    finalAmount: { type: Number, required: true, min: 0 },
-
-    isOptedIn: { type: Boolean, default: true },
+    studentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Student',
+      required: true,
+    },
+    academicYearId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'AcademicYear',
+      required: true,
+    },
+    classId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'SchoolClass',
+      required: true,
+    },
+    feeStructureId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'FeeStructure',
+      required: true,
+    },
+    // Backend-calculated from fee structure
+    totalAmount: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    // Sum of approved discounts for this student
+    discountAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    // payableAmount = totalAmount - discountAmount
+    // (not stored, derived)
+    // Sum of all successful payments
+    paidAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    // dueAmount = (totalAmount - discountAmount) - paidAmount
+    // (not stored, derived)
     status: {
       type: String,
-      enum: ASSIGNMENT_STATUSES,
-      default: 'ACTIVE',
+      enum: FEE_ASSIGNMENT_STATUSES,
+      default: 'PENDING',
+      index: true,
     },
-    remarks: { type: String, default: '', trim: true },
   },
   { timestamps: true }
 );
 
-studentFeeAssignmentSchema.index({ schoolId: 1, studentId: 1, feeStructureItemId: 1 }, { unique: true });
-studentFeeAssignmentSchema.index({ schoolId: 1, enrollmentId: 1 });
+// One assignment per student per year (or per class)
+studentFeeAssignmentSchema.index({ schoolId: 1, studentId: 1, academicYearId: 1 }, { unique: true });
+
+studentFeeAssignmentSchema.methods.getPayableAmount = function getPayableAmount() {
+  return this.totalAmount - this.discountAmount;
+};
+
+studentFeeAssignmentSchema.methods.getDueAmount = function getDueAmount() {
+  return Math.max(0, this.getPayableAmount() - this.paidAmount);
+};
+
+studentFeeAssignmentSchema.methods.updateStatus = function updateStatus() {
+  const due = this.getDueAmount();
+  const payable = this.getPayableAmount();
+  if (due === 0) {
+    this.status = 'PAID';
+  } else if (this.paidAmount > 0 && this.paidAmount < payable) {
+    this.status = 'PARTIAL';
+  } else {
+    this.status = 'PENDING';
+  }
+};
 
 studentFeeAssignmentSchema.methods.toPublicJSON = function toPublicJSON() {
+  const payable = this.getPayableAmount();
+  const due = this.getDueAmount();
   return {
     id: this._id.toString(),
-    schoolId: this.schoolId.toString(),
     studentId: this.studentId.toString(),
-    enrollmentId: this.enrollmentId.toString(),
+    academicYearId: this.academicYearId.toString(),
+    classId: this.classId.toString(),
     feeStructureId: this.feeStructureId.toString(),
-    feeStructureItemId: this.feeStructureItemId.toString(),
-    feeHeadId: this.feeHeadId.toString(),
-    feeHeadName: this.feeHeadName,
-    originalAmount: this.originalAmount,
-    frequency: this.frequency,
-    discountType: this.discountType,
-    discountValue: this.discountValue,
+    totalAmount: this.totalAmount,
     discountAmount: this.discountAmount,
-    concessionAmount: this.concessionAmount,
-    finalAmount: this.finalAmount,
-    isOptedIn: this.isOptedIn,
+    payableAmount: payable,
+    paidAmount: this.paidAmount,
+    dueAmount: due,
     status: this.status,
-    remarks: this.remarks,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

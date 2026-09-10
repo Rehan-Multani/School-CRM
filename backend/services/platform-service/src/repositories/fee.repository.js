@@ -1,298 +1,187 @@
-import mongoose from 'mongoose';
 import { FeeHead } from '../models/FeeHead.js';
 import { FeeStructure } from '../models/FeeStructure.js';
-import { FeeStructureItem } from '../models/FeeStructureItem.js';
 import { StudentFeeAssignment } from '../models/StudentFeeAssignment.js';
-import { FeeInvoice } from '../models/FeeInvoice.js';
+import { Discount } from '../models/Discount.js';
 import { FeePayment } from '../models/FeePayment.js';
-import { escapeRegex } from '../../../shared/sanitize.js';
+import { Receipt } from '../models/Receipt.js';
+import { FinanceCategory } from '../models/FinanceCategory.js';
+import { FinanceTransaction } from '../models/FinanceTransaction.js';
 
-function toObjectId(id) {
-  return new mongoose.Types.ObjectId(id);
-}
-
-export class FeeRepository {
-  // ===================== FEE HEADS =====================
-  listHeads(schoolId, { search, category, status, page = 1, limit = 50 } = {}) {
-    const query = { schoolId: toObjectId(schoolId) };
-    if (search) {
-      const safe = escapeRegex(search);
-      query.$or = [
-        { name: { $regex: safe, $options: 'i' } },
-        { code: { $regex: safe, $options: 'i' } },
-      ];
-    }
-    if (category) query.category = category;
-    if (status) query.status = status;
-
-    const safePage = Math.max(1, Number(page) || 1);
-    const safeLimit = Math.min(100, Math.max(1, Number(limit) || 50));
-    const skip = (safePage - 1) * safeLimit;
-
-    return Promise.all([
-      FeeHead.find(query).sort({ name: 1 }).skip(skip).limit(safeLimit),
-      FeeHead.countDocuments(query),
-    ]).then(([items, total]) => ({ items, total, page: safePage, limit: safeLimit }));
-  }
-
-  findHeadById(schoolId, id) {
-    return FeeHead.findOne({ _id: id, schoolId: toObjectId(schoolId) });
-  }
-
-  findHeadByNameOrCode(schoolId, name, code, excludeId = null) {
-    const conditions = [];
-    if (name) conditions.push({ name: { $regex: `^${name.trim()}$`, $options: 'i' } });
-    if (code) conditions.push({ code: code.trim().toUpperCase() });
-    const query = { schoolId: toObjectId(schoolId), $or: conditions };
-    if (excludeId) query._id = { $ne: excludeId };
-    return FeeHead.findOne(query);
-  }
-
-  createHead(payload) {
+/**
+ * Fee module data access layer.
+ */
+export const feeRepository = {
+  /* ======================== FEE HEADS ======================== */
+  listFeeHeads(schoolId, filter = {}) {
+    return FeeHead.find({ schoolId, ...filter }).sort({ name: 1 });
+  },
+  getFeeHead(schoolId, id) {
+    return FeeHead.findOne({ _id: id, schoolId });
+  },
+  findFeeHeadByCode(schoolId, code) {
+    return FeeHead.findOne({ schoolId, code });
+  },
+  findFeeHeadByName(schoolId, name) {
+    return FeeHead.findOne({ schoolId, name });
+  },
+  createFeeHead(payload) {
     return FeeHead.create(payload);
-  }
+  },
+  updateFeeHead(schoolId, id, updates) {
+    return FeeHead.findOneAndUpdate({ _id: id, schoolId }, updates, { new: true });
+  },
 
-  updateHead(schoolId, id, payload) {
-    return FeeHead.findOneAndUpdate({ _id: id, schoolId: toObjectId(schoolId) }, payload, {
-      new: true,
-      runValidators: true,
-    });
-  }
-
-  deleteHead(schoolId, id) {
-    return FeeHead.findOneAndDelete({ _id: id, schoolId: toObjectId(schoolId) });
-  }
-
-  // ===================== FEE STRUCTURES =====================
-  listStructures(schoolId, { academicYearId, classId, status, page = 1, limit = 50 } = {}) {
-    const query = { schoolId: toObjectId(schoolId) };
-    if (academicYearId) query.academicYearId = toObjectId(academicYearId);
-    if (classId) query.classId = toObjectId(classId);
-    if (status) query.status = status;
-
-    const safePage = Math.max(1, Number(page) || 1);
-    const safeLimit = Math.min(100, Math.max(1, Number(limit) || 50));
-    const skip = (safePage - 1) * safeLimit;
-
-    return Promise.all([
-      FeeStructure.find(query)
-        .populate('academicYearId', 'name code isCurrent')
-        .populate('classId', 'name code numericOrder')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(safeLimit),
-      FeeStructure.countDocuments(query),
-    ]).then(([items, total]) => ({ items, total, page: safePage, limit: safeLimit }));
-  }
-
-  findStructureById(schoolId, id) {
-    return FeeStructure.findOne({ _id: id, schoolId: toObjectId(schoolId) })
-      .populate('academicYearId', 'name code isCurrent')
-      .populate('classId', 'name code numericOrder');
-  }
-
-  findStructureByClassAndYear(schoolId, classId, academicYearId, excludeId = null) {
-    const query = {
-      schoolId: toObjectId(schoolId),
-      classId: toObjectId(classId),
-      academicYearId: toObjectId(academicYearId),
-    };
-    if (excludeId) query._id = { $ne: excludeId };
-    return FeeStructure.findOne(query);
-  }
-
-  createStructure(payload) {
+  /* ======================== FEE STRUCTURES ======================== */
+  listFeeStructures(schoolId, filter = {}) {
+    return FeeStructure.find({ schoolId, ...filter })
+      .populate('academicYearId', 'name code')
+      .populate('classId', 'name')
+      .populate('items.feeHeadId', 'name code');
+  },
+  getFeeStructure(schoolId, id) {
+    return FeeStructure.findOne({ _id: id, schoolId })
+      .populate('academicYearId')
+      .populate('classId')
+      .populate('items.feeHeadId');
+  },
+  findFeeStructureByYearAndClass(schoolId, academicYearId, classId) {
+    return FeeStructure.findOne({ schoolId, academicYearId, classId })
+      .populate('items.feeHeadId');
+  },
+  createFeeStructure(payload) {
     return FeeStructure.create(payload);
-  }
+  },
 
-  updateStructure(schoolId, id, payload) {
-    return FeeStructure.findOneAndUpdate({ _id: id, schoolId: toObjectId(schoolId) }, payload, {
-      new: true,
-      runValidators: true,
-    });
-  }
-
-  deleteStructure(schoolId, id) {
-    return FeeStructure.findOneAndDelete({ _id: id, schoolId: toObjectId(schoolId) });
-  }
-
-  // ===================== FEE STRUCTURE ITEMS =====================
-  listStructureItems(schoolId, feeStructureId) {
-    return FeeStructureItem.find({
-      schoolId: toObjectId(schoolId),
-      feeStructureId: toObjectId(feeStructureId),
-    })
-      .populate('feeHeadId', 'name code category status')
-      .sort({ createdAt: 1 });
-  }
-
-  findStructureItemById(schoolId, id) {
-    return FeeStructureItem.findOne({ _id: id, schoolId: toObjectId(schoolId) })
-      .populate('feeHeadId', 'name code category status');
-  }
-
-  findStructureItemByHead(feeStructureId, feeHeadId, excludeId = null) {
-    const query = {
-      feeStructureId: toObjectId(feeStructureId),
-      feeHeadId: toObjectId(feeHeadId),
-    };
-    if (excludeId) query._id = { $ne: excludeId };
-    return FeeStructureItem.findOne(query);
-  }
-
-  createStructureItem(payload) {
-    return FeeStructureItem.create(payload);
-  }
-
-  updateStructureItem(schoolId, id, payload) {
-    return FeeStructureItem.findOneAndUpdate({ _id: id, schoolId: toObjectId(schoolId) }, payload, {
-      new: true,
-      runValidators: true,
-    });
-  }
-
-  deleteStructureItem(schoolId, id) {
-    return FeeStructureItem.findOneAndDelete({ _id: id, schoolId: toObjectId(schoolId) });
-  }
-
-  deleteStructureItemsByStructure(schoolId, feeStructureId) {
-    return FeeStructureItem.deleteMany({
-      schoolId: toObjectId(schoolId),
-      feeStructureId: toObjectId(feeStructureId),
-    });
-  }
-
-  countStructureItems(feeStructureId) {
-    return FeeStructureItem.countDocuments({ feeStructureId: toObjectId(feeStructureId) });
-  }
-
-  // ===================== STUDENT FEE ASSIGNMENTS =====================
-  listAssignmentsByStudent(schoolId, studentId) {
-    return StudentFeeAssignment.find({
-      schoolId: toObjectId(schoolId),
-      studentId: toObjectId(studentId),
-    })
-      .populate('feeHeadId', 'name code category')
-      .populate('feeStructureId', 'name')
-      .sort({ createdAt: 1 });
-  }
-
-  listAssignmentsByEnrollment(schoolId, enrollmentId) {
-    return StudentFeeAssignment.find({
-      schoolId: toObjectId(schoolId),
-      enrollmentId: toObjectId(enrollmentId),
-    })
-      .populate('feeHeadId', 'name code category')
-      .sort({ createdAt: 1 });
-  }
-
-  findAssignmentById(schoolId, id) {
-    return StudentFeeAssignment.findOne({ _id: id, schoolId: toObjectId(schoolId) });
-  }
-
-  createAssignment(payload) {
+  /* ======================== STUDENT FEE ASSIGNMENT ======================== */
+  listStudentFeeAssignments(schoolId, filter = {}) {
+    return StudentFeeAssignment.find({ schoolId, ...filter })
+      .populate('studentId', 'firstName lastName admissionNumber')
+      .populate('academicYearId', 'name code')
+      .populate('classId', 'name');
+  },
+  getStudentFeeAssignment(schoolId, id) {
+    return StudentFeeAssignment.findOne({ _id: id, schoolId })
+      .populate('studentId')
+      .populate('academicYearId')
+      .populate('classId');
+  },
+  findStudentFeeAssignment(schoolId, studentId, academicYearId) {
+    return StudentFeeAssignment.findOne({ schoolId, studentId, academicYearId })
+      .populate('studentId')
+      .populate('academicYearId')
+      .populate('classId');
+  },
+  createStudentFeeAssignment(payload) {
     return StudentFeeAssignment.create(payload);
-  }
+  },
+  updateStudentFeeAssignment(schoolId, id, updates) {
+    return StudentFeeAssignment.findOneAndUpdate({ _id: id, schoolId }, updates, { new: true });
+  },
 
-  createAssignmentsBulk(payloadArray) {
-    return StudentFeeAssignment.insertMany(payloadArray);
-  }
+  /* ======================== DISCOUNTS ======================== */
+  listDiscounts(schoolId, filter = {}) {
+    return Discount.find({ schoolId, ...filter })
+      .populate('studentFeeAssignmentId')
+      .populate('approvedBy', 'firstName lastName');
+  },
+  getDiscount(schoolId, id) {
+    return Discount.findOne({ _id: id, schoolId })
+      .populate('studentFeeAssignmentId')
+      .populate('approvedBy');
+  },
+  createDiscount(payload) {
+    return Discount.create(payload);
+  },
+  updateDiscount(schoolId, id, updates) {
+    return Discount.findOneAndUpdate({ _id: id, schoolId }, updates, { new: true });
+  },
 
-  updateAssignment(schoolId, id, payload) {
-    return StudentFeeAssignment.findOneAndUpdate({ _id: id, schoolId: toObjectId(schoolId) }, payload, {
-      new: true,
-      runValidators: true,
-    });
-  }
-
-  deleteAssignment(schoolId, id) {
-    return StudentFeeAssignment.findOneAndDelete({ _id: id, schoolId: toObjectId(schoolId) });
-  }
-
-  // ===================== INVOICES =====================
-  listInvoices(schoolId, { studentId, academicYearId, status, search, page = 1, limit = 20 } = {}) {
-    const query = { schoolId: toObjectId(schoolId) };
-    if (studentId) query.studentId = toObjectId(studentId);
-    if (academicYearId) query.academicYearId = toObjectId(academicYearId);
-    if (status) query.status = status;
-    if (search) {
-      query.invoiceNumber = { $regex: search, $options: 'i' };
-    }
-
-    const safePage = Math.max(1, Number(page) || 1);
-    const safeLimit = Math.min(100, Math.max(1, Number(limit) || 20));
-    const skip = (safePage - 1) * safeLimit;
-
-    return Promise.all([
-      FeeInvoice.find(query)
-        .populate('studentId', 'firstName lastName admissionNumber parentName parentPhone')
-        .populate('academicYearId', 'name code')
-        .sort({ dueDate: -1, createdAt: -1 })
-        .skip(skip)
-        .limit(safeLimit),
-      FeeInvoice.countDocuments(query),
-    ]).then(([items, total]) => ({ items, total, page: safePage, limit: safeLimit }));
-  }
-
-  findInvoiceById(schoolId, id) {
-    return FeeInvoice.findOne({ _id: id, schoolId: toObjectId(schoolId) })
-      .populate('studentId', 'firstName lastName admissionNumber parentName parentPhone address')
-      .populate('academicYearId', 'name code');
-  }
-
-  createInvoice(payload) {
-    return FeeInvoice.create(payload);
-  }
-
-  updateInvoice(schoolId, id, payload) {
-    return FeeInvoice.findOneAndUpdate({ _id: id, schoolId: toObjectId(schoolId) }, payload, {
-      new: true,
-      runValidators: true,
-    });
-  }
-
-  async getNextInvoiceNumber(schoolId) {
-    const year = new Date().getFullYear();
-    const count = await FeeInvoice.countDocuments({ schoolId: toObjectId(schoolId) });
-    return `INV-${year}-${String(count + 1).padStart(5, '0')}`;
-  }
-
-  // ===================== PAYMENTS =====================
-  listPayments(schoolId, { invoiceId, studentId, page = 1, limit = 20 } = {}) {
-    const query = { schoolId: toObjectId(schoolId) };
-    if (invoiceId) query.invoiceId = toObjectId(invoiceId);
-    if (studentId) query.studentId = toObjectId(studentId);
-
-    const safePage = Math.max(1, Number(page) || 1);
-    const safeLimit = Math.min(100, Math.max(1, Number(limit) || 20));
-    const skip = (safePage - 1) * safeLimit;
-
-    return Promise.all([
-      FeePayment.find(query)
-        .populate('studentId', 'firstName lastName admissionNumber')
-        .populate('invoiceId', 'invoiceNumber periodLabel totalAmount')
-        .sort({ paymentDate: -1 })
-        .skip(skip)
-        .limit(safeLimit),
-      FeePayment.countDocuments(query),
-    ]).then(([items, total]) => ({ items, total, page: safePage, limit: safeLimit }));
-  }
-
-  findPaymentById(schoolId, id) {
-    return FeePayment.findOne({ _id: id, schoolId: toObjectId(schoolId) })
-      .populate('studentId', 'firstName lastName admissionNumber parentName')
-      .populate('invoiceId', 'invoiceNumber periodLabel totalAmount paidAmount balanceAmount');
-  }
-
-  createPayment(payload) {
+  /* ======================== FEE PAYMENTS ======================== */
+  listFeePayments(schoolId, filter = {}) {
+    return FeePayment.find({ schoolId, ...filter })
+      .populate('studentFeeAssignmentId')
+      .populate('receiptId')
+      .sort({ transactionDate: -1 });
+  },
+  getFeePayment(schoolId, id) {
+    return FeePayment.findOne({ _id: id, schoolId })
+      .populate('studentFeeAssignmentId')
+      .populate('receiptId');
+  },
+  createFeePayment(payload) {
     return FeePayment.create(payload);
-  }
+  },
 
-  async getNextReceiptNumber(schoolId) {
-    const year = new Date().getFullYear();
-    const count = await FeePayment.countDocuments({ schoolId: toObjectId(schoolId) });
-    return `REC-${year}-${String(count + 1).padStart(5, '0')}`;
-  }
-}
+  /* ======================== RECEIPTS ======================== */
+  listReceipts(schoolId, filter = {}) {
+    return Receipt.find({ schoolId, ...filter })
+      .populate('studentId', 'firstName lastName')
+      .populate('academicYearId', 'name')
+      .populate('classId', 'name')
+      .sort({ paymentDate: -1 });
+  },
+  getReceipt(schoolId, id) {
+    return Receipt.findOne({ _id: id, schoolId })
+      .populate('studentId')
+      .populate('academicYearId')
+      .populate('classId');
+  },
+  findReceiptByNumber(schoolId, receiptNumber) {
+    return Receipt.findOne({ schoolId, receiptNumber });
+  },
+  createReceipt(payload) {
+    return Receipt.create(payload);
+  },
+  countReceiptsInSchool(schoolId) {
+    return Receipt.countDocuments({ schoolId });
+  },
 
-export const feeRepository = new FeeRepository();
+  /* ======================== FINANCE CATEGORIES ======================== */
+  listFinanceCategories(schoolId, filter = {}) {
+    return FinanceCategory.find({ schoolId, ...filter }).sort({ name: 1 });
+  },
+  getFinanceCategory(schoolId, id) {
+    return FinanceCategory.findOne({ _id: id, schoolId });
+  },
+  findFinanceCategoryByName(schoolId, name, type) {
+    return FinanceCategory.findOne({ schoolId, name, type });
+  },
+  createFinanceCategory(payload) {
+    return FinanceCategory.create(payload);
+  },
+
+  /* ======================== FINANCE TRANSACTIONS ======================== */
+  listFinanceTransactions(schoolId, filter = {}) {
+    return FinanceTransaction.find({ schoolId, ...filter })
+      .populate('categoryId', 'name type')
+      .sort({ transactionDate: -1 });
+  },
+  getFinanceTransaction(schoolId, id) {
+    return FinanceTransaction.findOne({ _id: id, schoolId })
+      .populate('categoryId');
+  },
+  createFinanceTransaction(payload) {
+    return FinanceTransaction.create(payload);
+  },
+  
+  // Aggregations for reports
+  async getFinanceSummary(schoolId, dateRange = {}) {
+    const match = { schoolId };
+    if (dateRange.start || dateRange.end) {
+      match.transactionDate = {};
+      if (dateRange.start) match.transactionDate.$gte = dateRange.start;
+      if (dateRange.end) match.transactionDate.$lte = dateRange.end;
+    }
+    
+    return FinanceTransaction.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: '$transactionType',
+          total: { $sum: '$amount' },
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+  },
+};
