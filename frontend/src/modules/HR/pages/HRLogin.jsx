@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+ï»¿import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useHRAuth } from '../context/HRAuthContext';
 import { Lock, User as UserIcon, AlertCircle, ArrowRight, ArrowLeft, Eye, EyeOff, Loader2, Users, CheckCircle2, Wallet, Mail, UserCheck, LayoutGrid } from 'lucide-react';
@@ -160,7 +160,7 @@ export const HRLogin = () => {
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                      placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -264,12 +264,12 @@ export const HRLogin = () => {
 
           <div className="mt-4 flex flex-col items-center gap-1.5 text-center">
             <p className="text-[11px] tracking-wide text-slate-500">
-              Authorized HR personnel only Â· Secure JWT-isolated access
+              Authorized HR personnel only ÃÂ· Secure JWT-isolated access
             </p>
             <div className="flex items-center gap-1.5 text-xs text-slate-400">
               <span>Looking for another panel?</span>
               <Link to="/login" className="inline-flex items-center gap-1 font-semibold text-blue-400 hover:text-blue-300 hover:underline">
-                <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals â†’
+                <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals Ã¢â â
               </Link>
             </div>
           </div>

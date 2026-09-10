@@ -1,4 +1,4 @@
-﻿import React from 'react';
+ï»¿import React from 'react';
 import { Printer, Download, Mail, MessageSquare } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 
@@ -17,7 +17,7 @@ export const ReceiptCard = ({ receipt, onPrint, onSendEmail, onSendSms }) => {
         <div className="space-y-1">
           <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">Greenfield Public School</h2>
           <p className="text-[10px] text-slate-400">Sector 9, Gachibowli, Hyderabad, TS</p>
-          <p className="text-[10px] text-slate-400">Email: accounts@greenfield.edu â€¢ Tel: +91 99999 55555</p>
+          <p className="text-[10px] text-slate-400">Email: accounts@greenfield.edu â¢ Tel: +91 99999 55555</p>
         </div>
         <div className="text-right space-y-1 shrink-0">
           <span className="inline-block bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-400 px-2.5 py-1 rounded-lg font-black text-[10px] uppercase">

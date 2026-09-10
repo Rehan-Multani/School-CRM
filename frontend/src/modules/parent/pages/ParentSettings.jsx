@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { useToast } from '../components/ui/Toast';
@@ -191,7 +191,7 @@ export const ParentSettings = () => {
                   value={field.value}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, [field.id]: e.target.value }))}
                   className="w-full px-4 py-3 pr-11 rounded-2xl border border-border bg-white dark:bg-indigo-600 text-sm focus:outline-none"
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
                   id={`parent-settings-pw-${field.id}`}
                 />
                 <button

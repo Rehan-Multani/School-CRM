@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+ï»¿import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
@@ -91,7 +91,7 @@ export const EmployeeDetail = () => {
     setProcessing(true);
     try {
       await hrApi.approveEmployee(id);
-      showToast(`âœ“ ${employee.employeeType === 'TEACHER' ? 'Teacher' : 'Staff'} ${employee.name} approved & activated!`, 'success');
+      showToast(`Ã¢Åâ ${employee.employeeType === 'TEACHER' ? 'Teacher' : 'Staff'} ${employee.name} approved & activated!`, 'success');
       setEmployee((prev) => ({ ...prev, status: 'ACTIVE' }));
     } catch (err) {
       showToast(err.response?.data?.message || err.message || 'Failed to approve employee', 'error');
@@ -136,7 +136,7 @@ export const EmployeeDetail = () => {
           onClick={() => navigate('/hr/employees')}
           className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
         >
-          â† Back to Employee Directory
+          Ã¢â Â Back to Employee Directory
         </button>
       </div>
     );
@@ -240,7 +240,7 @@ export const EmployeeDetail = () => {
               {employee.name}
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-semibold">
-              {employee.designation || 'Staff'} â€¢ {employee.department || 'General'} â€¢ {isTeacher ? 'Teaching Faculty' : 'Non-Teaching Staff'}
+              {employee.designation || 'Staff'} â¢ {employee.department || 'General'} â¢ {isTeacher ? 'Teaching Faculty' : 'Non-Teaching Staff'}
             </p>
           </div>
         </div>
@@ -397,7 +397,7 @@ export const EmployeeDetail = () => {
               <div>
                 <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">Contracted Base Salary</span>
                 <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                  â‚¹{Number(employee.basicSalary || 0).toLocaleString('en-IN')}
+                  Ã¢âÂ¹{Number(employee.basicSalary || 0).toLocaleString('en-IN')}
                 </p>
                 <span className="text-[10px] text-slate-400">Per Month Fixed Gross</span>
               </div>
@@ -486,7 +486,7 @@ export const EmployeeDetail = () => {
                 <div key={p.id} className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 dark:text-white block">{p.payrollMonth}</span>
-                    <span className="text-[11px] text-slate-400">Net Salary: â‚¹{Number(p.netSalary || 0).toLocaleString('en-IN')}</span>
+                    <span className="text-[11px] text-slate-400">Net Salary: Ã¢âÂ¹{Number(p.netSalary || 0).toLocaleString('en-IN')}</span>
                   </div>
                   <Badge variant={p.paymentStatus === 'PAID' ? 'success' : 'default'}>
                     {p.paymentStatus}

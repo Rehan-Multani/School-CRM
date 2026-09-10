@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+ï»¿import React, { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
@@ -159,7 +159,7 @@ export const Categories = () => {
     {
       title: 'Description',
       key: 'description',
-      render: (val) => <span className="text-xs text-slate-500 dark:text-slate-400">{val || 'â€”'}</span>,
+      render: (val) => <span className="text-xs text-slate-500 dark:text-slate-400">{val || 'Ã¢â¬â'}</span>,
     },
     {
       title: 'Status',
@@ -218,7 +218,7 @@ export const Categories = () => {
     <div className="space-y-6">
       <PageHeader
         title="Book Categories"
-        subtitle={`Manage library departments and classifications Â· ${activeCount} active of ${categories.length} total.`}
+        subtitle={`Manage library departments and classifications ÃÂ· ${activeCount} active of ${categories.length} total.`}
         actions={
           <div className="flex items-center gap-2">
             <button

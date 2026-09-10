@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+ï»¿import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Eye, EyeOff, Loader2, Lock, ShieldAlert } from 'lucide-react';
 import { SchoolAdminBrandingEffect } from '../components/layout/SchoolAdminBrandingEffect';
@@ -73,7 +73,7 @@ export default function SchoolAdminResetPassword() {
           {done ? (
             <div className="flex items-start gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-3 text-sm text-emerald-300">
               <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>Password updated. Redirecting to sign inâ€¦</span>
+              <span>Password updated. Redirecting to sign inâ¦</span>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">

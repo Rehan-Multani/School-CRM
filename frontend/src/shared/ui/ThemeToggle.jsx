@@ -1,7 +1,7 @@
-﻿import React from 'react';
+ï»¿import React from 'react';
 import { Sun, Moon } from 'lucide-react';
 
-// Canonical merged ThemeToggle â€” PARTIAL merge.
+// Canonical merged ThemeToggle Ã¢â¬â PARTIAL merge.
 // student/teacher/parent each read from a *different* React Context
 // (student's own ThemeContext, TeacherThemeContext, ParentThemeContext)
 // because every portal mounts its own independent theme provider in

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+ï»¿import React from 'react';
 import { Mail, Phone, Calendar, ArrowRight, Building, User, Clock, CheckCircle2, XCircle, Pencil } from 'lucide-react';
 import { Badge } from './Badge';
 
@@ -48,7 +48,7 @@ export const EmployeeCard = ({ employee, onViewProfile, onEdit, onToggleStatus, 
               {employee.name}
             </h4>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium truncate">
-              {employee.designation || 'Staff'} â€¢ {employee.department || 'General'}
+              {employee.designation || 'Staff'} â¢ {employee.department || 'General'}
             </p>
           </div>
         </div>

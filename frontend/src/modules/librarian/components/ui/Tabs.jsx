@@ -1,1 +1,1 @@
-export * from '../../../../shared/ui/Tabs';
+ï»¿export * from '../../../../shared/ui/Tabs';

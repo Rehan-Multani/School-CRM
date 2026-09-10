@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { FilterBar } from '../components/ui/FilterBar';
@@ -60,7 +60,7 @@ export const TeacherAnnouncements = () => {
                   >
                     <div className="flex-1 min-w-0 mr-3">
                       <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="danger" className="text-[8px]">ðŸš¨ Urgent</Badge>
+                        <Badge variant="danger" className="text-[8px]">Ã°Å¸Å¡Â¨ Urgent</Badge>
                         <span className="text-[10px] text-slate-400">{ann.date}</span>
                       </div>
                       <h4 className="text-sm font-bold text-foreground truncate">{ann.title}</h4>

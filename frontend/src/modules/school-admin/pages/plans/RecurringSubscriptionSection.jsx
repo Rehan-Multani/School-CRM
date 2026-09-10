@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useState } from 'react';
 import {
   CreditCard,
   Loader2,
@@ -30,11 +30,11 @@ const STATUS_LABEL = {
 };
 
 function inr(n) {
-  return `â‚¹${Number(n || 0).toLocaleString('en-IN')}`;
+  return `Ã¢âÂ¹${Number(n || 0).toLocaleString('en-IN')}`;
 }
 
 function fmtDate(v) {
-  if (!v) return 'â€”';
+  if (!v) return 'Ã¢â¬â';
   return new Date(v).toLocaleDateString('en-IN', {
     day: '2-digit',
     month: 'short',
@@ -268,7 +268,7 @@ export default function RecurringSubscriptionSection({ schoolName }) {
             <div className="rounded-2xl border border-slate-200/80 bg-white/70 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/40">
               <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Mandate Plan</p>
               <p className="mt-1 text-base font-black text-slate-900 dark:text-white">
-                {sub.plan?.name || 'â€”'}
+                {sub.plan?.name || 'Ã¢â¬â'}
               </p>
             </div>
             <div className="rounded-2xl border border-slate-200/80 bg-white/70 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/40">
@@ -346,7 +346,7 @@ export default function RecurringSubscriptionSection({ schoolName }) {
                   disabled={actionBusy}
                   className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60"
                 >
-                  {actionBusy ? 'Cancellingâ€¦' : 'Confirm Cancellation'}
+                  {actionBusy ? 'Cancellingâ¦' : 'Confirm Cancellation'}
                 </button>
               </div>
             </div>

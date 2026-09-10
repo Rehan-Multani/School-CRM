@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
@@ -31,9 +31,9 @@ function buildFileUrl(path) {
 }
 
 function formatDate(value) {
-  if (!value) return 'â€”';
+  if (!value) return 'Ã¢â¬â';
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'â€”';
+  if (Number.isNaN(date.getTime())) return 'Ã¢â¬â';
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
@@ -50,7 +50,7 @@ function Field({ label, value }) {
   return (
     <div>
       <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
-      <p className="mt-1 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">{value || 'â€”'}</p>
+      <p className="mt-1 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">{value || 'Ã¢â¬â'}</p>
     </div>
   );
 }
@@ -213,18 +213,18 @@ export const StudentDetail = () => {
             <Badge variant={STATUS_VARIANT[student.status] || 'default'}>{student.status}</Badge>
           </div>
           <p className="text-xs font-semibold text-slate-500">
-            Class: {student.enrollment?.class?.name || 'â€”'} Â· Section: {student.enrollment?.section?.name || 'â€”'}
+            Class: {student.enrollment?.class?.name || 'Ã¢â¬â'} ÃÂ· Section: {student.enrollment?.section?.name || 'Ã¢â¬â'}
           </p>
           <p className="text-xs text-slate-500">
-            Roll No: {student.enrollment?.rollNumber || 'â€”'} Â· Parent: {student.parentName || 'â€”'} ({student.parentPhone || 'â€”'})
+            Roll No: {student.enrollment?.rollNumber || 'Ã¢â¬â'} ÃÂ· Parent: {student.parentName || 'Ã¢â¬â'} ({student.parentPhone || 'Ã¢â¬â'})
           </p>
         </div>
       </div>
 
       <CountCards
         items={[
-          { label: 'Roll Number', value: student.enrollment?.rollNumber || 'â€”' },
-          { label: 'Academic Year', value: student.enrollment?.academicYear?.name || 'â€”' },
+          { label: 'Roll Number', value: student.enrollment?.rollNumber || 'Ã¢â¬â' },
+          { label: 'Academic Year', value: student.enrollment?.academicYear?.name || 'Ã¢â¬â' },
           { label: 'Status', value: student.status },
           { label: 'Attached Documents', value: documents.aadhaar.length + documents.marksheet.length },
         ]}

@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useToast } from '../../components/ui/Toast';
 import { studentAttendanceApi, academicPortalApi } from '../../../../shared/api/client';
 import { apiMessage } from '../academics/utils';
@@ -130,7 +130,7 @@ export const StudentAttendancePanel = () => {
             onChange={(e) => setSectionId(e.target.value)}
             className="h-10 rounded-xl border border-slate-200 bg-slate-50/80 px-3 text-xs font-semibold outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
           >
-            <option value="">Select sectionâ€¦</option>
+            <option value="">Select sectionâ¦</option>
             {sectionsForClass.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
@@ -164,7 +164,7 @@ export const StudentAttendancePanel = () => {
             className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
           >
             {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-            {saving ? 'Savingâ€¦' : 'Save Attendance'}
+            {saving ? 'Savingâ¦' : 'Save Attendance'}
           </button>
         </div>
       </div>
@@ -181,7 +181,7 @@ export const StudentAttendancePanel = () => {
 
       {loading ? (
         <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-indigo-600">
-          Loading rosterâ€¦
+          Loading rosterâ¦
         </div>
       ) : !sectionId ? (
         <div className="flex flex-col items-center gap-2 rounded-3xl border border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-indigo-600">
@@ -196,7 +196,7 @@ export const StudentAttendancePanel = () => {
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           {markedInfo && (
             <div className="border-b border-slate-100 bg-slate-50/60 px-4 py-2 text-[11px] font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-950/40">
-              {meta?.className} {meta?.sectionName} Â· {date} Â· previously saved{markedInfo.by ? ` by ${markedInfo.by}` : ''}
+              {meta?.className} {meta?.sectionName} ÃÂ· {date} ÃÂ· previously saved{markedInfo.by ? ` by ${markedInfo.by}` : ''}
             </div>
           )}
           <table className="w-full text-left text-xs">
@@ -212,7 +212,7 @@ export const StudentAttendancePanel = () => {
               {entries.map((e, i) => (
                 <tr key={e.studentId} className="hover:bg-slate-50/60 dark:hover:bg-slate-950/30">
                   <td className="px-3 py-2.5 text-center font-bold text-slate-400">{i + 1}</td>
-                  <td className="px-3 py-2.5 font-mono text-[11px] text-slate-500">{e.rollNumber || 'â€”'}</td>
+                  <td className="px-3 py-2.5 font-mono text-[11px] text-slate-500">{e.rollNumber || 'Ã¢â¬â'}</td>
                   <td className="px-3 py-2.5 font-bold text-slate-900 dark:text-white">{e.studentName}</td>
                   <td className="px-3 py-2.5">
                     <div className="flex flex-wrap gap-1">

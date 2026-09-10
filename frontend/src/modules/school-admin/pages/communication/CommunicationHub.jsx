@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
 import { DataTable } from '../../components/ui/DataTable';
@@ -17,7 +17,7 @@ const AUDIENCES = ['ALL', 'TEACHERS', 'STUDENTS', 'PARENTS', 'STAFF'];
 const STATUS_VARIANT = { DRAFT: 'default', PUBLISHED: 'success', ARCHIVED: 'warning' };
 
 function fmt(v) {
-  if (!v) return 'â€”';
+  if (!v) return 'Ã¢â¬â';
   return new Date(v).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
@@ -155,7 +155,7 @@ export const CommunicationHub = () => {
     e.preventDefault();
     if (!bcForm.content.trim()) return showToast('Message content is required', 'error');
     if (bcForm.channel === 'SMS' && bcForm.content.length > 160) {
-      showToast('SMS is over 160 chars â€” it will be sent as multiple parts', 'warning');
+      showToast('SMS is over 160 chars Ã¢â¬â it will be sent as multiple parts', 'warning');
     }
     setBcSaving(true);
     try {
@@ -216,7 +216,7 @@ export const CommunicationHub = () => {
         ),
       },
       { key: 'audiences', title: 'Audience', render: (v) => <Badge variant="primary">{(v || []).join(', ')}</Badge> },
-      { key: 'publishedByName', title: 'Author', render: (v) => v || 'â€”' },
+      { key: 'publishedByName', title: 'Author', render: (v) => v || 'Ã¢â¬â' },
       { key: 'publishAt', title: 'Published', render: (v) => fmt(v) },
       { key: 'status', title: 'Status', render: (v) => <Badge variant={STATUS_VARIANT[v] || 'default'}>{v}</Badge> },
       {
@@ -257,7 +257,7 @@ export const CommunicationHub = () => {
       { key: 'audienceLabel', title: 'Recipient' },
       { key: 'content', title: 'Content', render: (v) => <span className="line-clamp-2 max-w-md text-xs">{v}</span> },
       { key: 'status', title: 'Status', render: (v) => <Badge variant="success">{v}</Badge> },
-      { key: 'sentByName', title: 'Sent By', render: (v) => v || 'â€”' },
+      { key: 'sentByName', title: 'Sent By', render: (v) => v || 'Ã¢â¬â' },
       { key: 'createdAt', title: 'When', render: (v) => fmt(v) },
     ],
     []
@@ -372,7 +372,7 @@ export const CommunicationHub = () => {
                     <span>{activeThread.fromName}</span>
                   </div>
                   {threadLoading ? (
-                    <div className="py-8 text-center text-xs text-slate-400">Loadingâ€¦</div>
+                    <div className="py-8 text-center text-xs text-slate-400">Loadingâ¦</div>
                   ) : (
                     threadMsgs.map((m) => (
                       <div key={m.id} className={`flex ${m.direction === 'OUT' ? 'justify-end' : 'justify-start'}`}>
@@ -402,7 +402,7 @@ export const CommunicationHub = () => {
                     disabled={replySending}
                     className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-white disabled:opacity-60"
                   >
-                    <Send className="h-3.5 w-3.5" /> {replySending ? 'Sendingâ€¦' : 'Send'}
+                    <Send className="h-3.5 w-3.5" /> {replySending ? 'Sendingâ¦' : 'Send'}
                   </button>
                 </form>
               </>
@@ -449,7 +449,7 @@ export const CommunicationHub = () => {
               Save Draft
             </button>
             <button type="button" disabled={annSaving} onClick={() => submitAnn(true)} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
-              {annSaving ? 'Savingâ€¦' : 'Publish'}
+              {annSaving ? 'Savingâ¦' : 'Publish'}
             </button>
           </div>
         </div>
@@ -474,12 +474,12 @@ export const CommunicationHub = () => {
           </div>
           <div>
             <label className="mb-1 block text-[11px] font-bold text-slate-400">Message ({bcForm.content.length} chars)</label>
-            <textarea rows={4} className={`${inputCls} resize-y`} value={bcForm.content} onChange={(e) => setBcForm({ ...bcForm, content: e.target.value })} placeholder="Keep below 160 chars for a single SMSâ€¦" />
+            <textarea rows={4} className={`${inputCls} resize-y`} value={bcForm.content} onChange={(e) => setBcForm({ ...bcForm, content: e.target.value })} placeholder="Keep below 160 chars for a single SMSâ¦" />
           </div>
           <div className="flex justify-end gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setBcModal(false)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>
             <button type="submit" disabled={bcSaving} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
-              {bcSaving ? 'Sendingâ€¦' : 'Send Alert'}
+              {bcSaving ? 'Sendingâ¦' : 'Send Alert'}
             </button>
           </div>
         </form>

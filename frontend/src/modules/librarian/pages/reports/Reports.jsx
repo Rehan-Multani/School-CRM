@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+ï»¿import React, { useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
@@ -58,7 +58,7 @@ function printAllReports(title, sections) {
             ${
               rows.length
                 ? rows
-                    .map((row) => `<tr>${columns.map((c) => `<td>${row[c] ?? 'â€”'}</td>`).join('')}</tr>`)
+                    .map((row) => `<tr>${columns.map((c) => `<td>${row[c] ?? 'Ã¢â¬â'}</td>`).join('')}</tr>`)
                     .join('')
                 : `<tr><td>No records.</td></tr>`
             }
@@ -381,7 +381,7 @@ export const Reports = () => {
     <div className="space-y-6">
       <PageHeader
         title="Reports & Analytics Hub"
-        subtitle="Overall library report â€” inventory, circulation, members and fine records, all in one place."
+        subtitle="Overall library report Ã¢â¬â inventory, circulation, members and fine records, all in one place."
         actions={
           <div className="flex items-center gap-2.5">
             <button

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { FilterBar } from '../components/ui/FilterBar';
@@ -70,7 +70,7 @@ export const TeacherAcademics = () => {
         <div className="space-y-4">
           <Card>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Mathematics â€” Class 9A</h3>
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Mathematics Ã¢â¬â Class 9A</h3>
               <Badge variant="primary">{completedCount}/{syllabus?.length || 0} Chapters</Badge>
             </div>
             <div className="h-2 bg-slate-100 dark:bg-indigo-600 rounded-full overflow-hidden mb-1">
@@ -148,7 +148,7 @@ export const TeacherAcademics = () => {
                     </div>
                     <h4 className="text-xs font-bold text-foreground truncate">{mat.title}</h4>
                     <p className="text-[10px] text-slate-400 mt-0.5">
-                      {mat.size ? mat.size + ' â€¢ ' : ''}{mat.uploadedAt}
+                      {mat.size ? mat.size + ' â¢ ' : ''}{mat.uploadedAt}
                     </p>
                   </div>
                   <div className="flex gap-2 shrink-0">
@@ -173,10 +173,10 @@ export const TeacherAcademics = () => {
       {tab === 'lesson' && (
         <div className="space-y-4">
           {[
-            { week: 'Week 1 (July 1â€“5)', topic: 'Coordinate Geometry Basics', objectives: 'Understand Cartesian plane, quadrants, plotting points', resources: 'NCERT Ch.4, Worksheet #12' },
-            { week: 'Week 2 (July 7â€“11)', topic: 'Quadratic Equations â€” Introduction', objectives: 'Define quadratic equations, standard form, roots', resources: 'NCERT Ch.5, Video Lecture' },
-            { week: 'Week 3 (July 14â€“18)', topic: 'Factorization Method', objectives: 'Solve quadratic equations by factorization', resources: 'Practice Sheet #8, Reference PDF' },
-            { week: 'Week 4 (July 21â€“25)', topic: 'Quadratic Formula', objectives: 'Apply Sridharacharya formula for discriminant analysis', resources: 'NCERT Exercise 5.3, Self-assessment' },
+            { week: 'Week 1 (July 1Ã¢â¬â5)', topic: 'Coordinate Geometry Basics', objectives: 'Understand Cartesian plane, quadrants, plotting points', resources: 'NCERT Ch.4, Worksheet #12' },
+            { week: 'Week 2 (July 7Ã¢â¬â11)', topic: 'Quadratic Equations Ã¢â¬â Introduction', objectives: 'Define quadratic equations, standard form, roots', resources: 'NCERT Ch.5, Video Lecture' },
+            { week: 'Week 3 (July 14Ã¢â¬â18)', topic: 'Factorization Method', objectives: 'Solve quadratic equations by factorization', resources: 'Practice Sheet #8, Reference PDF' },
+            { week: 'Week 4 (July 21Ã¢â¬â25)', topic: 'Quadratic Formula', objectives: 'Apply Sridharacharya formula for discriminant analysis', resources: 'NCERT Exercise 5.3, Self-assessment' },
           ].map((lesson, i) => (
             <Card key={i}>
               <div className="flex items-start gap-4">

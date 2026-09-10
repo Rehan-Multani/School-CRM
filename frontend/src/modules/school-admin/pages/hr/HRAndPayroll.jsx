@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
@@ -32,7 +32,7 @@ import { SkeletonTable } from '../../components/ui/SkeletonLoader';
 
 function formatCurrency(amount) {
   const num = Number(amount) || 0;
-  return `â‚¹${num.toLocaleString('en-IN')}`;
+  return `Ã¢âÂ¹${num.toLocaleString('en-IN')}`;
 }
 
 function getCurrentMonthString() {
@@ -533,13 +533,13 @@ export const HRAndPayroll = () => {
                         <Badge variant="primary" className="mb-0.5 text-[10px]">
                           {p.employeeRole}
                         </Badge>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400">{p.department || 'â€”'}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">{p.department || 'Ã¢â¬â'}</p>
                       </td>
 
                       <td className="px-3 py-3">
                         <span className="font-semibold text-slate-800 dark:text-slate-200">{p.payrollMonth}</span>
                         <span className="block text-[10px] text-slate-400">
-                          {p.payrollDate ? new Date(p.payrollDate).toLocaleDateString() : 'â€”'}
+                          {p.payrollDate ? new Date(p.payrollDate).toLocaleDateString() : 'Ã¢â¬â'}
                         </span>
                       </td>
 
@@ -548,7 +548,7 @@ export const HRAndPayroll = () => {
                       </td>
 
                       <td className="px-3 py-3 font-semibold text-rose-500">
-                        {p.totalDeductions > 0 ? `-${formatCurrency(p.totalDeductions)}` : 'â‚¹0'}
+                        {p.totalDeductions > 0 ? `-${formatCurrency(p.totalDeductions)}` : 'Ã¢âÂ¹0'}
                       </td>
 
                       <td className="px-3 py-3">
@@ -752,7 +752,7 @@ export const HRAndPayroll = () => {
                     <span className="text-[10px] text-slate-400">(Auto-fetched)</span>
                   </div>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">â‚¹</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">Ã¢âÂ¹</span>
                     <input
                       type="number"
                       min="0"
@@ -771,7 +771,7 @@ export const HRAndPayroll = () => {
                       Incentive
                     </label>
                     <div className="relative">
-                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">â‚¹</span>
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">Ã¢âÂ¹</span>
                       <input
                         type="number"
                         min="0"
@@ -788,7 +788,7 @@ export const HRAndPayroll = () => {
                       Overtime
                     </label>
                     <div className="relative">
-                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">â‚¹</span>
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">Ã¢âÂ¹</span>
                       <input
                         type="number"
                         min="0"
@@ -805,7 +805,7 @@ export const HRAndPayroll = () => {
                       Bonus
                     </label>
                     <div className="relative">
-                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">â‚¹</span>
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">Ã¢âÂ¹</span>
                       <input
                         type="number"
                         min="0"
@@ -834,7 +834,7 @@ export const HRAndPayroll = () => {
                     <span className="text-[10px] text-slate-400">(Auto-calculated / Editable)</span>
                   </div>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">â‚¹</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">Ã¢âÂ¹</span>
                     <input
                       type="number"
                       min="0"
@@ -888,7 +888,7 @@ export const HRAndPayroll = () => {
             </div>
             <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
               <span>Gross: <strong className="text-slate-800 dark:text-slate-200">{formatCurrency(calculation.gross)}</strong></span>
-              <span>â€¢</span>
+              <span>â¢</span>
               <span>Deductions: <strong className="text-rose-500">-{formatCurrency(calculation.deductions)}</strong></span>
             </div>
           </div>
@@ -965,7 +965,7 @@ export const HRAndPayroll = () => {
                 </div>
                 <div>
                   <span className="text-[10px] font-bold uppercase text-slate-400">Department</span>
-                  <p className="font-semibold text-slate-700 dark:text-slate-300">{selectedPay.department || 'â€”'}</p>
+                  <p className="font-semibold text-slate-700 dark:text-slate-300">{selectedPay.department || 'Ã¢â¬â'}</p>
                 </div>
                 <div>
                   <span className="text-[10px] font-bold uppercase text-slate-400">Payment Status</span>
@@ -1033,7 +1033,7 @@ export const HRAndPayroll = () => {
                     <div className="flex justify-between">
                       <span>Leave / Absent Deduction</span>
                       <span className="font-semibold">
-                        {selectedPay.leaveDeduction > 0 ? `-${formatCurrency(selectedPay.leaveDeduction)}` : 'â‚¹0'}
+                        {selectedPay.leaveDeduction > 0 ? `-${formatCurrency(selectedPay.leaveDeduction)}` : 'Ã¢âÂ¹0'}
                       </span>
                     </div>
                     {selectedPay.otherDeduction > 0 && (
@@ -1132,7 +1132,7 @@ export const HRAndPayroll = () => {
                           </div>
                           <div>
                             <div class="info-label">Department</div>
-                            <div class="info-val">${selectedPay?.department || 'â€”'}</div>
+                            <div class="info-val">${selectedPay?.department || 'Ã¢â¬â'}</div>
                           </div>
                           <div>
                             <div class="info-label">Payment Status</div>
@@ -1156,7 +1156,7 @@ export const HRAndPayroll = () => {
 
                           <div class="card-box">
                             <div class="card-head" style="color: #be123c;">2. Deductions (Debit)</div>
-                            <div class="row"><span>Leave / Absent Deduction</span><span>${selectedPay?.leaveDeduction > 0 ? `-${formatCurrency(selectedPay?.leaveDeduction)}` : 'â‚¹0'}</span></div>
+                            <div class="row"><span>Leave / Absent Deduction</span><span>${selectedPay?.leaveDeduction > 0 ? `-${formatCurrency(selectedPay?.leaveDeduction)}` : 'Ã¢âÂ¹0'}</span></div>
                             <div class="row total" style="color: #be123c;"><span>Total Deductions</span><span>-${formatCurrency(selectedPay?.totalDeductions)}</span></div>
                           </div>
                         </div>

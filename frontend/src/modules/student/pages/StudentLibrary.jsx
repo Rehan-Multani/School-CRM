@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { useLibrary } from '../hooks/useStudentHooks';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -103,7 +103,7 @@ export const StudentLibrary = () => {
                     {book.fine > 0 ? (
                       <Badge variant="danger" className="flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" />
-                        <span>â‚¹{book.fine} Overdue Fine</span>
+                        <span>Ã¢âÂ¹{book.fine} Overdue Fine</span>
                       </Badge>
                     ) : (
                       <Badge variant="success">Active</Badge>

@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { useToast } from '../../components/ui/Toast';
@@ -443,7 +443,7 @@ export const ClassTeachers = () => {
           </button>
         </div>
       ) : viewMode === 'grid' ? (
-        /* â”€â”€ GRID CARDS VIEW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+        /* Ã¢ââ¬Ã¢ââ¬ GRID CARDS VIEW Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬ */
         <div className="space-y-8">
           {classes
             .filter((c) => groupedSectionsByClass[c.id]?.length > 0)
@@ -517,7 +517,7 @@ export const ClassTeachers = () => {
                             <div className="mt-4 flex flex-wrap gap-2">
                               <div className="inline-flex items-center gap-1.5 rounded-xl border border-slate-100 bg-slate-50/80 px-2.5 py-1 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
                                 <DoorOpen className="h-3.5 w-3.5 text-slate-400" />
-                                <span>Room: <strong className="font-bold text-slate-800 dark:text-slate-200">{sec.roomNumber || 'â€”'}</strong></span>
+                                <span>Room: <strong className="font-bold text-slate-800 dark:text-slate-200">{sec.roomNumber || 'Ã¢â¬â'}</strong></span>
                               </div>
 
                               <div className="inline-flex items-center gap-1.5 rounded-xl border border-slate-100 bg-slate-50/80 px-2.5 py-1 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
@@ -537,7 +537,7 @@ export const ClassTeachers = () => {
                                     {assignedTeacher.name}
                                   </p>
                                   <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
-                                    {assignedTeacher.department || 'Faculty'} â€¢ {assignedTeacher.email || 'Mentor'}
+                                    {assignedTeacher.department || 'Faculty'} â¢ {assignedTeacher.email || 'Mentor'}
                                   </p>
                                 </div>
                               </div>
@@ -569,7 +569,7 @@ export const ClassTeachers = () => {
                                   ? classMap.get(otherSec.classId)?.name || 'other class'
                                   : '';
                                 const assignmentInfo = otherSec
-                                  ? ` â€” (Assigned: ${clsName} - ${otherSec.name})`
+                                  ? ` Ã¢â¬â (Assigned: ${clsName} - ${otherSec.name})`
                                   : '';
 
                                 return (
@@ -593,7 +593,7 @@ export const ClassTeachers = () => {
             })}
         </div>
       ) : (
-        /* â”€â”€ TABLE VIEW â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+        /* Ã¢ââ¬Ã¢ââ¬ TABLE VIEW Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬ */
         <div className="space-y-4">
           <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
             <table className="w-full text-left text-xs">
@@ -634,7 +634,7 @@ export const ClassTeachers = () => {
                           </span>
                         </td>
                         <td className="px-3.5 py-3 whitespace-nowrap text-slate-600 dark:text-slate-400">
-                          Room {sec.roomNumber || 'â€”'} â€¢ {sec.capacity || 40} Students
+                          Room {sec.roomNumber || 'Ã¢â¬â'} â¢ {sec.capacity || 40} Students
                         </td>
                         <td className="px-3.5 py-3 whitespace-nowrap">
                           <div className="flex items-center gap-2">
@@ -654,7 +654,7 @@ export const ClassTeachers = () => {
                                   ? classMap.get(otherSec.classId)?.name || 'other class'
                                   : '';
                                 const assignmentInfo = otherSec
-                                  ? ` â€” (Assigned: ${otherClsName} - ${otherSec.name})`
+                                  ? ` Ã¢â¬â (Assigned: ${otherClsName} - ${otherSec.name})`
                                   : '';
 
                                 return (
@@ -674,7 +674,7 @@ export const ClassTeachers = () => {
                         <td className="px-3.5 py-3 whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
                             <span className="font-semibold text-slate-700 dark:text-slate-300">
-                              {yr?.name || 'â€”'}
+                              {yr?.name || 'Ã¢â¬â'}
                             </span>
                             {yr?.isCurrent && (
                               <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
@@ -704,7 +704,7 @@ export const ClassTeachers = () => {
           {/* Super Admin Style Pagination Bar */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-1">
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Showing {(page - 1) * PAGE_SIZE + 1}â€“
+              Showing {(page - 1) * PAGE_SIZE + 1}Ã¢â¬â
               {Math.min(page * PAGE_SIZE, filteredSections.length)} of {filteredSections.length} sections
             </p>
             {Math.ceil(filteredSections.length / PAGE_SIZE) > 1 && (

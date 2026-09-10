@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
+ï»¿import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { EmployeeCard } from '../../components/ui/EmployeeCard';
 import { useToast } from '../../components/ui/Toast';
@@ -115,7 +115,7 @@ export const EmployeeList = () => {
   };
 
   const handleModalSuccess = (typeLabel) => {
-    showToast(`âœ“ ${typeLabel} submitted for Admin Approval successfully!`, 'success');
+    showToast(`Ã¢Åâ ${typeLabel} submitted for Admin Approval successfully!`, 'success');
     fetchInitialData();
   };
 
@@ -138,7 +138,7 @@ export const EmployeeList = () => {
       setEmployees((prev) =>
         prev.map((e) => (e.id === emp.id ? { ...e, status: 'ACTIVE' } : e))
       );
-      showToast(`âœ“ ${emp.employeeType === 'TEACHER' ? 'Faculty' : 'Staff'} member ${emp.name} approved & activated!`, 'success');
+      showToast(`Ã¢Åâ ${emp.employeeType === 'TEACHER' ? 'Faculty' : 'Staff'} member ${emp.name} approved & activated!`, 'success');
     } catch (err) {
       showToast(err.response?.data?.message || err.message || 'Failed to approve employee', 'error');
     }

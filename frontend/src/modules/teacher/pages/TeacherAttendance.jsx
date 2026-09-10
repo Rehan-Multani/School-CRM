@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { FilterBar } from '../components/ui/FilterBar';
@@ -159,7 +159,7 @@ export const TeacherAttendance = () => {
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-foreground">{st.name}</h4>
-                      <span className="text-[10px] text-slate-400 font-semibold">{st.admissionNo} â€¢ Roll #{st.rollNo || (100 + idx)}</span>
+                      <span className="text-[10px] text-slate-400 font-semibold">{st.admissionNo} â¢ Roll #{st.rollNo || (100 + idx)}</span>
                     </div>
                   </div>
 

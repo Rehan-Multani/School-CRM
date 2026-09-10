@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useHRNotifications } from '../../context/HRNotificationContext';
 import { Bell, Check, Eye, Trash2, CheckCircle2, AlertCircle, Calendar, Sparkles } from 'lucide-react';

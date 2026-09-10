@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
@@ -25,11 +25,11 @@ import {
 } from 'lucide-react';
 
 /**
- * Hostel â€” the whole module, in the order it must be set up:
+ * Hostel Ã¢â¬â the whole module, in the order it must be set up:
  *
- *   1 Hostel  â†’  2 Room  â†’  3 Beds (from the room's capacity)
- *   â†’  4 Warden + Hostel  â†’  5 Student + Hostel + Room + Bed
- *   â†’  6 Yearly hostel fee (per academic year)
+ *   1 Hostel  Ã¢â â  2 Room  Ã¢â â  3 Beds (from the room's capacity)
+ *   Ã¢â â  4 Warden + Hostel  Ã¢â â  5 Student + Hostel + Room + Bed
+ *   Ã¢â â  6 Yearly hostel fee (per academic year)
  *
  * Every action on this page calls the real backend; there is no local fixture.
  */
@@ -84,15 +84,15 @@ const emptyRoom = { hostelId: '', roomNumber: '', floorNumber: 'Ground Floor', c
 const emptyWarden = { name: '', mobile: '', hostelId: '', status: 'ACTIVE' };
 const emptyAllocation = { studentId: '', hostelId: '', roomId: '', bedId: '' };
 
-/** Surface the backend's own message â€” it already explains exactly what failed. */
+/** Surface the backend's own message Ã¢â¬â it already explains exactly what failed. */
 const apiError = (error, fallback) => error?.response?.data?.message || error?.message || fallback;
 
 const hostelTypeLabel = (id) => HOSTEL_TYPES.find((t) => t.id === id)?.label || id;
 const hostelCategoryLabel = (id) => HOSTEL_CATEGORIES.find((c) => c.id === id)?.label || id;
 
-/** â‚¹60,000 â€” or an em dash when the school has not set an amount yet. */
+/** Ã¢âÂ¹60,000 Ã¢â¬â or an em dash when the school has not set an amount yet. */
 const money = (amount) =>
-  amount === null || amount === undefined ? 'â€”' : `â‚¹${Number(amount).toLocaleString('en-IN')}`;
+  amount === null || amount === undefined ? 'Ã¢â¬â' : `Ã¢âÂ¹${Number(amount).toLocaleString('en-IN')}`;
 
 export const HostelManagement = () => {
   const [activeTab, setActiveTab] = useState('hostels');
@@ -114,7 +114,7 @@ export const HostelManagement = () => {
   const [hostelModal, setHostelModal] = useState(null); // null | { editing, form }
   const [roomModal, setRoomModal] = useState(null);
   const [wardenModal, setWardenModal] = useState(null);
-  const [assignWardenModal, setAssignWardenModal] = useState(null); // warden â†’ hostel
+  const [assignWardenModal, setAssignWardenModal] = useState(null); // warden Ã¢â â hostel
   const [residentModal, setResidentModal] = useState(null);
   const [confirm, setConfirm] = useState(null);
 
@@ -204,7 +204,7 @@ export const HostelManagement = () => {
   );
   /**
    * A hostel holds at most one warden, so the picker offers the ones nobody
-   * has claimed â€” plus, when editing, the hostel's own warden.
+   * has claimed Ã¢â¬â plus, when editing, the hostel's own warden.
    */
   const hostelWardenOptions = useMemo(() => {
     const editingId = hostelModal?.editing?.id || '';
@@ -272,7 +272,7 @@ export const HostelManagement = () => {
 
       <PageHeader
         title="Hostel"
-        subtitle="Hostel â†’ Room â†’ Beds â†’ Warden â†’ Student assignment â†’ Yearly fee"
+        subtitle="Hostel Ã¢â â Room Ã¢â â Beds Ã¢â â Warden Ã¢â â Student assignment Ã¢â â Yearly fee"
         actions={
           <button className={ghostBtn} onClick={() => loadAll()} disabled={loading}>
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -281,7 +281,7 @@ export const HostelManagement = () => {
         }
       />
 
-      {/* SETUP PROGRESS â€” the flow this module is required to follow, in order */}
+      {/* SETUP PROGRESS Ã¢â¬â the flow this module is required to follow, in order */}
       <div className={`${cardClass} p-4`}>
         <div className="flex flex-wrap items-center gap-2">
           {flow.map((step, index) => (
@@ -302,7 +302,7 @@ export const HostelManagement = () => {
                 </span>
                 {step.label}
               </div>
-              {index < flow.length - 1 && <span className="text-slate-300 dark:text-slate-700">â€º</span>}
+              {index < flow.length - 1 && <span className="text-slate-300 dark:text-slate-700">Ã¢â¬Âº</span>}
             </React.Fragment>
           ))}
         </div>
@@ -359,7 +359,7 @@ export const HostelManagement = () => {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={`Search ${activeTab}â€¦`}
+              placeholder={`Search ${activeTab}â¦`}
               className={`${inputClass} pl-9`}
             />
           </div>
@@ -368,14 +368,14 @@ export const HostelManagement = () => {
 
       {loading && <SkeletonTable rows={6} columns={5} />}
 
-      {/* ============================= 1 Â· HOSTELS =========================== */}
+      {/* ============================= 1 ÃÂ· HOSTELS =========================== */}
       {!loading && activeTab === 'hostels' && (
         <div className={`${cardClass} overflow-hidden`}>
           <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Hostels</h3>
               <p className="text-[11px] font-semibold text-slate-400">
-                Step 1 â€” the building and how many students it holds
+                Step 1 Ã¢â¬â the building and how many students it holds
               </p>
             </div>
             <button className={primaryBtn} onClick={() => setHostelModal({ editing: null, form: emptyHostel })}>
@@ -419,7 +419,7 @@ export const HostelManagement = () => {
                         )}
                       </td>
                       <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
-                        {row.contactNumber || 'â€”'}
+                        {row.contactNumber || 'Ã¢â¬â'}
                         {row.address ? (
                           <div className="max-w-[180px] truncate text-[11px] font-semibold text-slate-400">
                             {row.address}
@@ -494,7 +494,7 @@ export const HostelManagement = () => {
         </div>
       )}
 
-      {/* ========================= 2 + 3 Â· ROOMS & BEDS ====================== */}
+      {/* ========================= 2 + 3 ÃÂ· ROOMS & BEDS ====================== */}
       {!loading && activeTab === 'rooms' && (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr]">
           {/* hostel picker */}
@@ -518,7 +518,7 @@ export const HostelManagement = () => {
                   >
                     {hostel.name}
                     <div className="text-[11px] font-semibold text-slate-400">
-                      {hostel.roomsCreated} room(s) Â· {hostel.occupiedBeds}/{hostel.totalBeds} beds
+                      {hostel.roomsCreated} room(s) ÃÂ· {hostel.occupiedBeds}/{hostel.totalBeds} beds
                     </div>
                   </button>
                 ))}
@@ -534,7 +534,7 @@ export const HostelManagement = () => {
                   {selectedHostel ? `Rooms in ${selectedHostel.name}` : 'Rooms'}
                 </h3>
                 <p className="text-[11px] font-semibold text-slate-400">
-                  Steps 2 + 3 â€” a room's capacity defines its beds, which are created with it
+                  Steps 2 + 3 Ã¢â¬â a room's capacity defines its beds, which are created with it
                 </p>
               </div>
               <button
@@ -566,7 +566,7 @@ export const HostelManagement = () => {
                           Room {room.roomNumber}
                         </p>
                         <p className="text-[11px] font-semibold text-slate-400">
-                          {room.floorNumber} Â· occupancy {room.occupiedBeds} / {room.capacity}
+                          {room.floorNumber} ÃÂ· occupancy {room.occupiedBeds} / {room.capacity}
                         </p>
                       </div>
                       <div className="flex gap-1.5">
@@ -605,7 +605,7 @@ export const HostelManagement = () => {
                       </div>
                     </div>
 
-                    {/* the beds themselves â€” step 3, maintained by the server */}
+                    {/* the beds themselves Ã¢â¬â step 3, maintained by the server */}
                     <div className="mt-3 flex flex-wrap gap-2">
                       {(room.beds || []).map((bed) => (
                         <div
@@ -631,14 +631,14 @@ export const HostelManagement = () => {
         </div>
       )}
 
-      {/* ============================= 4 Â· WARDENS =========================== */}
+      {/* ============================= 4 ÃÂ· WARDENS =========================== */}
       {!loading && activeTab === 'wardens' && (
         <div className={`${cardClass} overflow-hidden`}>
           <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Wardens</h3>
               <p className="text-[11px] font-semibold text-slate-400">
-                Step 4 â€” who is responsible for a hostel. One warden per hostel.
+                Step 4 Ã¢â¬â who is responsible for a hostel. One warden per hostel.
               </p>
             </div>
             <button className={primaryBtn} onClick={() => setWardenModal({ editing: null, form: emptyWarden })}>
@@ -729,14 +729,14 @@ export const HostelManagement = () => {
         </div>
       )}
 
-      {/* ======================= 5 Â· STUDENT ASSIGNMENTS ===================== */}
+      {/* ======================= 5 ÃÂ· STUDENT ASSIGNMENTS ===================== */}
       {!loading && activeTab === 'allocations' && (
         <div className={`${cardClass} overflow-hidden`}>
           <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Student Assignments</h3>
               <p className="text-[11px] font-semibold text-slate-400">
-                Step 5 â€” taking a bed marks it occupied; the yearly fee is stamped on at that moment
+                Step 5 Ã¢â¬â taking a bed marks it occupied; the yearly fee is stamped on at that moment
               </p>
             </div>
             <button
@@ -759,7 +759,7 @@ export const HostelManagement = () => {
               message={
                 lookups.hostels.some((h) => h.warden && h.rooms.length > 0)
                   ? 'No students in the hostel yet.'
-                  : 'Finish steps 1â€“4 first: a hostel with rooms and a warden.'
+                  : 'Finish steps 1Ã¢â¬â4 first: a hostel with rooms and a warden.'
               }
             />
           ) : (
@@ -778,7 +778,7 @@ export const HostelManagement = () => {
                         </div>
                       </td>
                       <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
-                        {row.student?.className || 'â€”'}
+                        {row.student?.className || 'Ã¢â¬â'}
                       </td>
                       <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
                         {row.hostel?.name}
@@ -793,7 +793,7 @@ export const HostelManagement = () => {
                         {row.bed?.bedCode}
                       </td>
                       <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
-                        {row.academicYear?.name || 'â€”'}
+                        {row.academicYear?.name || 'Ã¢â¬â'}
                       </td>
                       <td className="px-5 py-3.5 font-black text-slate-900 dark:text-white">
                         {money(row.yearlyFeeAmount)}
@@ -845,13 +845,13 @@ export const HostelManagement = () => {
         </div>
       )}
 
-      {/* =========================== 6 Â· YEARLY FEE ========================== */}
+      {/* =========================== 6 ÃÂ· YEARLY FEE ========================== */}
       {!loading && activeTab === 'fees' && (
         <div className={`${cardClass} overflow-hidden`}>
           <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white">Yearly Hostel Fee</h3>
             <p className="text-[11px] font-semibold text-slate-400">
-              Step 6 â€” one amount per academic year for the whole school. Every resident pays the same,
+              Step 6 Ã¢â¬â one amount per academic year for the whole school. Every resident pays the same,
               whatever their class or hostel.
             </p>
           </div>
@@ -885,7 +885,7 @@ export const HostelManagement = () => {
                         </td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-black text-slate-400">â‚¹</span>
+                            <span className="text-xs font-black text-slate-400">Ã¢âÂ¹</span>
                             <input
                               type="number"
                               min={0}
@@ -1049,12 +1049,12 @@ export const HostelManagement = () => {
                 <option value="">No warden yet</option>
                 {hostelWardenOptions.map((w) => (
                   <option key={w.id} value={w.id}>
-                    {w.name} Â· {w.mobile}
+                    {w.name} ÃÂ· {w.mobile}
                   </option>
                 ))}
               </select>
             </Field>
-            <Field label="Contact number" hint="Optional Â· 10 digits">
+            <Field label="Contact number" hint="Optional ÃÂ· 10 digits">
               <input
                 className={inputClass}
                 placeholder="9876543210"
@@ -1089,7 +1089,7 @@ export const HostelManagement = () => {
                 }
               />
             </Field>
-            <Field label="Total rooms" hint="Optional Â· rooms are added in step 2">
+            <Field label="Total rooms" hint="Optional ÃÂ· rooms are added in step 2">
               <input
                 type="number"
                 min={1}
@@ -1171,7 +1171,7 @@ export const HostelManagement = () => {
                 value={roomModal.form.hostelId}
                 onChange={(e) => setRoomModal((m) => ({ ...m, form: { ...m.form, hostelId: e.target.value } }))}
               >
-                <option value="">Select a hostelâ€¦</option>
+                <option value="">Select a hostelâ¦</option>
                 {hostels.map((h) => (
                   <option key={h.id} value={h.id}>
                     {h.name}
@@ -1200,7 +1200,7 @@ export const HostelManagement = () => {
             <Field
               label="Capacity"
               required
-              hint="Beds are created from this â€” Bed 1 â€¦ Bed n"
+              hint="Beds are created from this Ã¢â¬â Bed 1 â¦ Bed n"
               className="sm:col-span-2"
             >
               <input
@@ -1284,7 +1284,7 @@ export const HostelManagement = () => {
               />
             </Field>
             {!wardenModal.editing && (
-              <Field label="Hostel" hint="Optional â€” can be assigned later" className="sm:col-span-2">
+              <Field label="Hostel" hint="Optional Ã¢â¬â can be assigned later" className="sm:col-span-2">
                 <select
                   className={inputClass}
                   value={wardenModal.form.hostelId}
@@ -1321,7 +1321,7 @@ export const HostelManagement = () => {
         )}
       </Modal>
 
-      {/* Warden â†’ hostel */}
+      {/* Warden Ã¢â â hostel */}
       <Modal
         isOpen={Boolean(assignWardenModal)}
         onClose={() => setAssignWardenModal(null)}
@@ -1352,7 +1352,7 @@ export const HostelManagement = () => {
               value={assignWardenModal.hostelId}
               onChange={(e) => setAssignWardenModal((m) => ({ ...m, hostelId: e.target.value }))}
             >
-              <option value="">Select a hostelâ€¦</option>
+              <option value="">Select a hostelâ¦</option>
               {hostels
                 .filter(
                   (h) =>
@@ -1368,7 +1368,7 @@ export const HostelManagement = () => {
         )}
       </Modal>
 
-      {/* Student â†’ hostel + room + bed */}
+      {/* Student Ã¢â â hostel + room + bed */}
       <Modal
         isOpen={Boolean(residentModal)}
         onClose={() => setResidentModal(null)}
@@ -1407,12 +1407,12 @@ export const HostelManagement = () => {
                   setResidentModal((m) => ({ ...m, form: { ...m.form, studentId: e.target.value } }))
                 }
               >
-                <option value="">Select a studentâ€¦</option>
+                <option value="">Select a studentâ¦</option>
                 {lookups.students
                   .filter((s) => !s.alreadyAssigned || s.id === residentModal.form.studentId)
                   .map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.name} {s.className ? `Â· ${s.className}` : ''} ({s.admissionNumber})
+                      {s.name} {s.className ? `ÃÂ· ${s.className}` : ''} ({s.admissionNumber})
                     </option>
                   ))}
               </select>
@@ -1429,10 +1429,10 @@ export const HostelManagement = () => {
                   }))
                 }
               >
-                <option value="">Select a hostelâ€¦</option>
+                <option value="">Select a hostelâ¦</option>
                 {lookups.hostels.map((h) => (
                   <option key={h.id} value={h.id} disabled={!h.warden}>
-                    {h.name} {h.warden ? `Â· warden ${h.warden.name}` : 'Â· no warden yet'}
+                    {h.name} {h.warden ? `ÃÂ· warden ${h.warden.name}` : 'ÃÂ· no warden yet'}
                   </option>
                 ))}
               </select>
@@ -1447,10 +1447,10 @@ export const HostelManagement = () => {
                   setResidentModal((m) => ({ ...m, form: { ...m.form, roomId: e.target.value, bedId: '' } }))
                 }
               >
-                <option value="">Select a roomâ€¦</option>
+                <option value="">Select a roomâ¦</option>
                 {(residentHostel?.rooms || []).map((r) => (
                   <option key={r.id} value={r.id}>
-                    Room {r.roomNumber} Â· {r.floorNumber} ({r.beds.filter((b) => b.status === 'AVAILABLE').length}{' '}
+                    Room {r.roomNumber} ÃÂ· {r.floorNumber} ({r.beds.filter((b) => b.status === 'AVAILABLE').length}{' '}
                     free of {r.capacity})
                   </option>
                 ))}
@@ -1464,20 +1464,20 @@ export const HostelManagement = () => {
                 value={residentModal.form.bedId}
                 onChange={(e) => setResidentModal((m) => ({ ...m, form: { ...m.form, bedId: e.target.value } }))}
               >
-                <option value="">Select a bedâ€¦</option>
+                <option value="">Select a bedâ¦</option>
                 {(residentRoom?.beds || []).map((b) => (
                   <option
                     key={b.id}
                     value={b.id}
                     disabled={b.status === 'OCCUPIED' && b.id !== residentModal.form.bedId}
                   >
-                    {b.bedCode} {b.status === 'OCCUPIED' ? 'Â· occupied' : 'Â· available'}
+                    {b.bedCode} {b.status === 'OCCUPIED' ? 'ÃÂ· occupied' : 'ÃÂ· available'}
                   </option>
                 ))}
               </select>
             </Field>
 
-            {/* Step 6 â€” what this student will be charged, before it is stamped
+            {/* Step 6 Ã¢â¬â what this student will be charged, before it is stamped
                 onto the allocation. Editing it later does not reach back. */}
             {!residentModal.editing && (
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950">
@@ -1487,7 +1487,7 @@ export const HostelManagement = () => {
                     {money(lookups.currentYearlyFee)}{' '}
                     <span className="text-[11px] font-semibold text-slate-400">
                       for {lookups.currentAcademicYear.name}
-                      {lookups.currentYearlyFee === null ? ' â€” not set yet, set it on the Yearly Fee tab' : ''}
+                      {lookups.currentYearlyFee === null ? ' Ã¢â¬â not set yet, set it on the Yearly Fee tab' : ''}
                     </span>
                   </p>
                 ) : (

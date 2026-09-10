@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
@@ -35,9 +35,9 @@ function buildFileUrl(path) {
 }
 
 function formatDate(value) {
-  if (!value) return 'â€”';
+  if (!value) return 'Ã¢â¬â';
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'â€”';
+  if (Number.isNaN(date.getTime())) return 'Ã¢â¬â';
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
@@ -54,7 +54,7 @@ function Field({ label, value }) {
   return (
     <div>
       <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
-      <p className="mt-1 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">{value || 'â€”'}</p>
+      <p className="mt-1 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">{value || 'Ã¢â¬â'}</p>
     </div>
   );
 }
@@ -151,14 +151,14 @@ export const TeacherDetail = () => {
           teacher.address?.pincode,
         ]
           .filter(Boolean)
-          .join(', ') || 'â€”';
+          .join(', ') || 'Ã¢â¬â';
 
   const qualificationText = Array.isArray(teacher.qualifications)
     ? teacher.qualifications
         .map((item) => (typeof item === 'string' ? item : item?.degree))
         .filter(Boolean)
         .join(', ')
-    : teacher.qualification || 'â€”';
+    : teacher.qualification || 'Ã¢â¬â';
 
   return (
     <div className="space-y-6">
@@ -218,7 +218,7 @@ export const TeacherDetail = () => {
             Joined {formatDate(teacher.joiningDate)}
           </p>
           <p className="text-xs text-slate-500">
-            {teacher.phone || teacher.mobileNumber || 'No phone'} Â· {teacher.email || 'No email'}
+            {teacher.phone || teacher.mobileNumber || 'No phone'} ÃÂ· {teacher.email || 'No email'}
           </p>
         </div>
       </div>
@@ -309,7 +309,7 @@ export const TeacherDetail = () => {
         onClose={() => setConfirmDelete(false)}
         onConfirm={handleDelete}
         title="Delete Teacher"
-        message={`"${teacher.name}" will be permanently removed. Teachers with class or subject assignments cannot be deleted â€” deactivate them instead.`}
+        message={`"${teacher.name}" will be permanently removed. Teachers with class or subject assignments cannot be deleted Ã¢â¬â deactivate them instead.`}
         confirmText="Delete Teacher"
         variant="danger"
       />

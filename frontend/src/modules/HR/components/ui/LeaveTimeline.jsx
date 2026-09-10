@@ -1,4 +1,4 @@
-﻿import React from 'react';
+ï»¿import React from 'react';
 import { Calendar, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { formatDate } from '../../utils/formatters';
 import { Badge } from './Badge';

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+ï»¿import React from 'react';
 import { Download } from 'lucide-react';
 import { useAppConfig } from '../data/siteContent';
 

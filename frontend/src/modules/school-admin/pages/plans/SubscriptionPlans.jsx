@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useMemo } from 'react';
+ï»¿import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
@@ -41,7 +41,7 @@ function formatInr(value) {
 }
 
 function formatDate(value) {
-  if (!value) return 'â€”';
+  if (!value) return 'Ã¢â¬â';
   return new Intl.DateTimeFormat('en-IN', {
     day: '2-digit',
     month: 'short',
@@ -187,7 +187,7 @@ function ActivePlanCard({
                     className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60"
                   >
                     {cancelling ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-                    <span>{cancelling ? 'Cancellingâ€¦' : 'Yes, Cancel Subscription'}</span>
+                    <span>{cancelling ? 'Cancellingâ¦' : 'Yes, Cancel Subscription'}</span>
                   </button>
                 </div>
               </div>
@@ -235,8 +235,8 @@ function OnboardingBanner({ user }) {
         </div>
 
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-indigo-100/90">
-          Your institution portal account is verified and ready. To unlock all administrative modulesâ€”including
-          student admissions, teacher records, fee processing, and examinationsâ€”please choose a subscription tier below.
+          Your institution portal account is verified and ready. To unlock all administrative modulesÃ¢â¬âincluding
+          student admissions, teacher records, fee processing, and examinationsÃ¢â¬âplease choose a subscription tier below.
         </p>
       </div>
     </section>
@@ -321,7 +321,7 @@ function InitialPricingCard({ plan, onSelect, selectingId, confirming }) {
           {isSelectingThis ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>{confirming ? 'Confirming with Razorpayâ€¦' : 'Opening Checkoutâ€¦'}</span>
+              <span>{confirming ? 'Confirming with Razorpayâ¦' : 'Opening Checkoutâ¦'}</span>
             </>
           ) : (
             <>
@@ -421,7 +421,7 @@ export default function SubscriptionPlans() {
         key: razorpayKeyId,
         subscription_id: razorpaySubscriptionId,
         name: user?.schoolName || 'School Subscription',
-        description: `${plan.name} plan â€” recurring subscription`,
+        description: `${plan.name} plan Ã¢â¬â recurring subscription`,
         prefill: { email: user?.email || '' },
         theme: { color: '#4f46e5' },
         handler: async () => {
@@ -433,7 +433,7 @@ export default function SubscriptionPlans() {
             applyUser(activatedUser);
             navigate('/school-admin/dashboard', { replace: true });
           } else {
-            setError('Payment received â€” Razorpay is confirming it. Refresh shortly.');
+            setError('Payment received Ã¢â¬â Razorpay is confirming it. Refresh shortly.');
           }
         },
         modal: {
@@ -570,7 +570,7 @@ export default function SubscriptionPlans() {
       {confirming && (
         <div className="flex items-center gap-3 rounded-2xl border border-indigo-200 bg-indigo-50/90 p-4 text-sm font-semibold text-indigo-800 shadow-sm dark:border-indigo-500/30 dark:bg-indigo-950/30 dark:text-indigo-300">
           <Loader2 className="h-5 w-5 animate-spin text-indigo-600" />
-          <span>Confirming your payment with Razorpay â€” unlocking your portal nowâ€¦</span>
+          <span>Confirming your payment with Razorpay Ã¢â¬â unlocking your portal nowâ¦</span>
         </div>
       )}
 

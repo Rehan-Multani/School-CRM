@@ -1,1 +1,1 @@
-export * from '../../../../shared/ui/SearchBar';
+ï»¿export * from '../../../../shared/ui/SearchBar';

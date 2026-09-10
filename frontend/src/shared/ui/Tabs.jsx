@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../lib/cn';
 
-// Canonical merged Tabs — superset of all six gen-2 modules. Includes the
+// Canonical merged Tabs â superset of all six gen-2 modules. Includes the
 // optional `tab.count` badge (used by principal/transport) on top of the
 // plain label style (used by HR/accountant/librarian).
 export const Tabs = ({ tabs, activeTab, onChange, className }) => {

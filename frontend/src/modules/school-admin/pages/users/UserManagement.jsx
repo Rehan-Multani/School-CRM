@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
@@ -124,7 +124,7 @@ function exportUsersToCSV(users) {
     'Designation',
     'Specialization',
     'Joining Date',
-    'Basic Salary (â‚¹)',
+    'Basic Salary (Ã¢âÂ¹)',
     'Status',
     'Bank Name',
     'Account Number',
@@ -142,7 +142,7 @@ function exportUsersToCSV(users) {
     `"${u.designation || ''}"`,
     `"${u.specialization || ''}"`,
     `"${u.joiningDate ? new Date(u.joiningDate).toLocaleDateString() : ''}"`,
-    `"${u.basicSalary ? `â‚¹${Number(u.basicSalary).toLocaleString('en-IN')}` : 'â‚¹0'}"`,
+    `"${u.basicSalary ? `Ã¢âÂ¹${Number(u.basicSalary).toLocaleString('en-IN')}` : 'Ã¢âÂ¹0'}"`,
     `"${u.status || ''}"`,
     `"${u.bankDetails?.bankName || ''}"`,
     `"${u.bankDetails?.accountNumber || ''}"`,
@@ -660,12 +660,12 @@ export const UserManagement = () => {
                       </td>
 
                       <td className="px-3 py-3">
-                        <p className="font-semibold text-slate-800 dark:text-slate-200">{user.department || 'â€”'}</p>
+                        <p className="font-semibold text-slate-800 dark:text-slate-200">{user.department || 'Ã¢â¬â'}</p>
                         <p className="text-[10px] text-slate-400">{user.designation || 'Staff'}</p>
                       </td>
 
                       <td className="px-3 py-3 font-medium text-slate-600 dark:text-slate-300">
-                        {user.phone || 'â€”'}
+                        {user.phone || 'Ã¢â¬â'}
                       </td>
 
                       <td className="px-3 py-3">
@@ -919,7 +919,7 @@ export const UserManagement = () => {
                     type={showFormPassword ? 'text' : 'password'}
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    placeholder={editingUser ? 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢' : 'Min 6 characters'}
+                    placeholder={editingUser ? 'â¢â¢â¢â¢â¢â¢â¢â¢' : 'Min 6 characters'}
                     required={!editingUser}
                     minLength={6}
                     className={`${inputClass} pr-10`}
@@ -1079,7 +1079,7 @@ export const UserManagement = () => {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="mb-1 block text-[11px] font-bold text-slate-500">Basic Salary (â‚¹ / Month)</label>
+                <label className="mb-1 block text-[11px] font-bold text-slate-500">Basic Salary (Ã¢âÂ¹ / Month)</label>
                 <input
                   type="number"
                   min="0"
@@ -1195,7 +1195,7 @@ export const UserManagement = () => {
                   Click to Browse & Upload Documents
                 </h5>
                 <p className="mt-1 max-w-sm text-[11px] text-slate-500 dark:text-slate-400">
-                  Attach Aadhaar, PAN Card, Qualification Degrees, or Identity Proof (JPG, PNG, WebP â€” Max 5MB each)
+                  Attach Aadhaar, PAN Card, Qualification Degrees, or Identity Proof (JPG, PNG, WebP Ã¢â¬â Max 5MB each)
                 </p>
                 <button
                   type="button"

@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
@@ -49,7 +49,7 @@ const defaultForm = {
 };
 
 function formatDate(value) {
-  if (!value) return 'â€”';
+  if (!value) return 'â';
   return new Date(value).toLocaleDateString('en-IN', {
     day: '2-digit',
     month: 'short',
@@ -168,7 +168,7 @@ export const StudentManagement = () => {
         .map((mapping) => mapping.classId);
       setYearClassMap((prev) => ({ ...prev, [yearId]: classIds }));
     } catch (error) {
-      // Mapping unavailable â€” fall back to the full class list for this year.
+      // Mapping unavailable ââââââ fall back to the full class list for this year.
       yearClassRequestRef.current[yearId] = false;
     }
   }, []);
@@ -573,11 +573,11 @@ export const StudentManagement = () => {
     return students.map((student) => ({
       ...student,
       name: student.name || [student.firstName, student.lastName].filter(Boolean).join(' '),
-      className: student.enrollment?.class?.name || 'â€”',
-      sectionName: student.enrollment?.section?.name || 'â€”',
-      academicYearName: student.enrollment?.academicYear?.name || 'â€”',
-      enrollmentStatus: student.enrollment?.status || 'â€”',
-      guardianPhone: student.parentPhone || student.phone || 'â€”',
+      className: student.enrollment?.class?.name || 'â',
+      sectionName: student.enrollment?.section?.name || 'â',
+      academicYearName: student.enrollment?.academicYear?.name || 'â',
+      enrollmentStatus: student.enrollment?.status || 'â',
+      guardianPhone: student.parentPhone || student.phone || 'â',
       photoUrl: buildStudentPhotoUrl(student.photo),
     }));
   }, [students]);
@@ -1021,7 +1021,7 @@ export const StudentManagement = () => {
                         <span className="text-slate-600 dark:text-slate-300">
                           {item.feeHead?.name || 'Fee'}
                           {item.isOptional && <span className="ml-1 font-semibold text-amber-600 dark:text-amber-400">(Optional)</span>}
-                          <span className="ml-1 text-slate-400">Â· {item.frequency}</span>
+                          <span className="ml-1 text-slate-400">ââÂ· {item.frequency}</span>
                         </span>
                         <span className="shrink-0 font-bold text-slate-800 dark:text-white">
                           {formatCurrency(yearlyAmount(item))}/yr

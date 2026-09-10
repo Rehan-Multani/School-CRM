@@ -1,4 +1,4 @@
-﻿import React from 'react';
+ï»¿import React from 'react';
 import { ArrowRight, ChevronRight, GitBranch, Sparkles } from 'lucide-react';
 import Reveal from '../Reveal';
 import GradientBadge from '../ui/GradientBadge';

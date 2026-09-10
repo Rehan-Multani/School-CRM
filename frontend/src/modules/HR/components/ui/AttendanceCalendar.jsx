@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const AttendanceCalendar = ({ attendanceRecords = [] }) => {

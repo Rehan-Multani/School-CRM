@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
@@ -185,8 +185,8 @@ export const DepartmentManagement = () => {
                         <span className="font-bold text-slate-900 dark:text-white">{dept.name}</span>
                       </div>
                     </td>
-                    <td className="px-3 py-3 font-bold uppercase text-slate-500">{dept.code || 'â€”'}</td>
-                    <td className="px-3 py-3 max-w-xs truncate text-slate-500">{dept.description || 'â€”'}</td>
+                    <td className="px-3 py-3 font-bold uppercase text-slate-500">{dept.code || 'Ã¢â¬â'}</td>
+                    <td className="px-3 py-3 max-w-xs truncate text-slate-500">{dept.description || 'Ã¢â¬â'}</td>
                     <td className="px-3 py-3">
                       <span className="inline-flex items-center gap-1 font-bold text-indigo-600 dark:text-indigo-400">
                         <Users className="h-3.5 w-3.5" /> {dept.employeeCount || 0}

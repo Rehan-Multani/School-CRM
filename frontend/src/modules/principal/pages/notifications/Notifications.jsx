@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useEffect, useMemo, useState } from 'react';
 import { Bell, Loader2, Send, Smartphone } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -33,7 +33,7 @@ function deliveryLabel(item) {
   if (!item.delivery?.firebaseConfigured) {
     return {
       tone: 'amber',
-      text: 'Saved only Â· Firebase not configured',
+      text: 'Saved only ÃÂ· Firebase not configured',
     };
   }
   if (item.delivery?.skippedReason) {

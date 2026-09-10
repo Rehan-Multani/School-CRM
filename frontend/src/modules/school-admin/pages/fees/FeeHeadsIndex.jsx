@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
@@ -465,7 +465,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
 
                     {/* Description */}
                     <td className="px-4 py-3.5 text-slate-500 dark:text-slate-400">
-                      {head.description || 'â€”'}
+                      {head.description || 'Ã¢â¬â'}
                     </td>
 
                     {/* Status */}
@@ -505,7 +505,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
           {/* Pagination Bar */}
           <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-3 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Showing {(page - 1) * PAGE_SIZE + 1}â€“
+              Showing {(page - 1) * PAGE_SIZE + 1}Ã¢â¬â
               {Math.min(page * PAGE_SIZE, filteredHeads.length)} of {filteredHeads.length} fee heads
             </p>
             {Math.ceil(filteredHeads.length / PAGE_SIZE) > 1 && (

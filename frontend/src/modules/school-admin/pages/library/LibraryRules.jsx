@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useState } from 'react';
 import { Save, Users, CalendarClock, Coins } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
@@ -68,7 +68,7 @@ export const LibraryRules = () => {
         maxFineAmount: Number(form.maxFineAmount),
       });
       setForm(res.data);
-      showToast('Library rules saved â€” enforced immediately for new issues', 'success');
+      showToast('Library rules saved Ã¢â¬â enforced immediately for new issues', 'success');
     } catch (err) {
       showToast(apiMessage(err, 'Failed to save library rules'), 'error');
     } finally {
@@ -91,18 +91,18 @@ export const LibraryRules = () => {
       <ToastComponent />
       <PageHeader
         title="Rules"
-        subtitle="Borrowing limits and fines â€” enforced server-side on every issue and return."
+        subtitle="Borrowing limits and fines Ã¢â¬â enforced server-side on every issue and return."
       />
       <LibraryTabsNav />
 
       <form onSubmit={handleSave} className="space-y-5">
         <RuleSection icon={Users} title="Borrowing Limits" description="Maximum unreturned books allowed per borrower type.">
           <div>
-            <label className={labelClass}>Max Books â€” Student</label>
+            <label className={labelClass}>Max Books Ã¢â¬â Student</label>
             <input placeholder="e.g. 3" type="number" min="1" value={form.maxBooksStudent} onChange={(e) => set('maxBooksStudent', e.target.value)} className={inputClass} />
           </div>
           <div>
-            <label className={labelClass}>Max Books â€” Teacher</label>
+            <label className={labelClass}>Max Books Ã¢â¬â Teacher</label>
             <input placeholder="e.g. 5" type="number" min="1" value={form.maxBooksTeacher} onChange={(e) => set('maxBooksTeacher', e.target.value)} className={inputClass} />
           </div>
         </RuleSection>
@@ -121,18 +121,18 @@ export const LibraryRules = () => {
         <RuleSection icon={Coins} title="Fine Policy" description="Overdue fine calculation, applied automatically on return.">
           <ToggleRow label="Fine Enabled" description="Charge a fine for books returned after the due date" checked={form.fineEnabled} onChange={(v) => set('fineEnabled', v)} />
           <div>
-            <label className={labelClass}>Fine Per Overdue Day (â‚¹)</label>
+            <label className={labelClass}>Fine Per Overdue Day (Ã¢âÂ¹)</label>
             <input placeholder="e.g. 5" type="number" min="0" disabled={!form.fineEnabled} value={form.finePerDay} onChange={(e) => set('finePerDay', e.target.value)} className={`${inputClass} disabled:opacity-50`} />
           </div>
           <div>
-            <label className={labelClass}>Maximum Fine Amount (â‚¹)</label>
+            <label className={labelClass}>Maximum Fine Amount (Ã¢âÂ¹)</label>
             <input placeholder="e.g. 500" type="number" min="0" disabled={!form.fineEnabled} value={form.maxFineAmount} onChange={(e) => set('maxFineAmount', e.target.value)} className={`${inputClass} disabled:opacity-50`} />
           </div>
         </RuleSection>
 
         <div className="flex justify-end">
           <button type="submit" disabled={saving} className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-primary/90 disabled:opacity-60">
-            <Save className="h-3.5 w-3.5" /> {saving ? 'Savingâ€¦' : 'Save Rules'}
+            <Save className="h-3.5 w-3.5" /> {saving ? 'Savingâ¦' : 'Save Rules'}
           </button>
         </div>
       </form>

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+ï»¿import React, { useState, useEffect } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
@@ -44,7 +44,7 @@ export const IssuedBooks = () => {
       render: (val, row) => (
         <div>
           <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val}</span>
-          <span className="text-3xs text-slate-400">Copy: {row.accessionNumber || 'N/A'} â€¢ Code: {row.bookCode || 'N/A'}</span>
+          <span className="text-3xs text-slate-400">Copy: {row.accessionNumber || 'N/A'} â¢ Code: {row.bookCode || 'N/A'}</span>
         </div>
       ),
     },
@@ -55,7 +55,7 @@ export const IssuedBooks = () => {
       render: (val, row) => (
         <div>
           <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val}</span>
-          <span className="text-3xs text-slate-400">{row.borrowerType} â€¢ {row.borrowerCode || 'STU'}</span>
+          <span className="text-3xs text-slate-400">{row.borrowerType} â¢ {row.borrowerCode || 'STU'}</span>
         </div>
       ),
     },

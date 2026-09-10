@@ -35,7 +35,7 @@ export const AppStoreProvider = ({ children }) => {
   // ACTION DISPATCHERS FOR ALL MODULES (FRD)
   // ==========================================
 
-  // 1. AUTH & USERS (FRD §6, §27)
+  // 1. AUTH & USERS (FRD Â§6, Â§27)
   const authenticateUser = useCallback((identifier, password) => {
     const s = getMasterStore();
     const cleanId = (identifier || '').trim().toLowerCase();
@@ -49,7 +49,7 @@ export const AppStoreProvider = ({ children }) => {
     );
 
     if (user) {
-      // Log login activity (FRD §6.5)
+      // Log login activity (FRD Â§6.5)
       const newLog = {
         id: `log-${Date.now().toString().slice(-5)}`,
         username: user.username,
@@ -115,7 +115,7 @@ export const AppStoreProvider = ({ children }) => {
     return found;
   }, [updateStore]);
 
-  // 2. ADMISSIONS & STUDENT LIFECYCLE (FRD §7)
+  // 2. ADMISSIONS & STUDENT LIFECYCLE (FRD Â§7)
   const approveAdmission = useCallback((admissionId, targetClass = '10', targetSection = 'A', actor = 'admin') => {
     let approvedStudent = null;
     updateStore(prev => {
@@ -220,7 +220,7 @@ export const AppStoreProvider = ({ children }) => {
     logAudit(actor, 'School Admin', 'STUDENTS_PROMOTED', `Promoted all students from Class ${sourceClass} to Class ${targetClass}`);
   }, [updateStore]);
 
-  // 3. ATTENDANCE & LEAVES (FRD §9, §16.2)
+  // 3. ATTENDANCE & LEAVES (FRD Â§9, Â§16.2)
   const markStudentAttendance = useCallback((date, classId, records, actor = 'teacher') => {
     updateStore(prev => {
       const currentDay = prev.attendance.students[date] || {};
@@ -330,7 +330,7 @@ export const AppStoreProvider = ({ children }) => {
     logAudit(actor, 'Authority', 'LEAVE_DECISION', `Leave ${leaveId} ${isApproved ? 'Approved' : 'Rejected'}`);
   }, [updateStore]);
 
-  // 4. EXAMINATIONS, MARKS & RESULTS (FRD §10)
+  // 4. EXAMINATIONS, MARKS & RESULTS (FRD Â§10)
   const submitMarks = useCallback((examId, marksEntries, actor = 'Mr. Rajesh Kumar') => {
     updateStore(prev => {
       const currentExamResults = prev.results[examId] || {};
@@ -422,7 +422,7 @@ export const AppStoreProvider = ({ children }) => {
     logAudit(actor, 'School Admin', 'RESULTS_PUBLISHED', `Published report cards for Exam ${examId}`);
   }, [updateStore]);
 
-  // 5. FEES & RECEIPTS (FRD §11)
+  // 5. FEES & RECEIPTS (FRD Â§11)
   const collectFee = useCallback((collectionData, actor = 'Virender Mehta (Accountant)') => {
     const randomReceiptNum = `RCT-2026-00${Math.floor(100 + Math.random() * 900)}`;
     const newReceipt = {
@@ -511,7 +511,7 @@ export const AppStoreProvider = ({ children }) => {
     logAudit(actor, 'Finance', 'EXPENSE_DELETED', `Expense ${expenseId} removed from ledger`);
   }, [updateStore]);
 
-  // 6. LIBRARY CIRCULATION (FRD §12)
+  // 6. LIBRARY CIRCULATION (FRD Â§12)
   const issueBook = useCallback((bookId, memberId, memberName = 'Student', dueDate = null, actor = 'Sanjay Kumar (Librarian)') => {
     let createdLoan = null;
     updateStore(prev => {
@@ -586,7 +586,7 @@ export const AppStoreProvider = ({ children }) => {
     logAudit(actor, 'Librarian', 'BOOK_RETURNED', `Returned loan #${loanId}`);
   }, [updateStore]);
 
-  // 7. TRANSPORT ASSIGNMENTS (FRD §13)
+  // 7. TRANSPORT ASSIGNMENTS (FRD Â§13)
   const assignStudentTransport = useCallback((studentId, routeId, pickupPoint, actor = 'Manish Dave (Transport Manager)') => {
     updateStore(prev => {
       const updatedStudents = prev.students.map(s => s.id === studentId ? {
@@ -601,7 +601,7 @@ export const AppStoreProvider = ({ children }) => {
     logAudit(actor, 'Transport', 'TRANSPORT_ASSIGNED', `Assigned Student ${studentId} to Route ${routeId} (${pickupPoint})`);
   }, [updateStore]);
 
-  // 8. HOMEWORK ASSIGNMENTS & SUBMISSION (FRD §17)
+  // 8. HOMEWORK ASSIGNMENTS & SUBMISSION (FRD Â§17)
   const createHomework = useCallback((hwData, actor = 'Mr. Rajesh Kumar') => {
     const newHw = {
       id: `HW-2026-${Math.floor(100 + Math.random() * 900)}`,
@@ -675,7 +675,7 @@ export const AppStoreProvider = ({ children }) => {
     logAudit(actor, 'Teacher', 'HOMEWORK_GRADED', `Graded homework #${homeworkId} for Student ${studentId}`);
   }, [updateStore]);
 
-  // 9. COMMUNICATION & ANNOUNCEMENTS (FRD §18)
+  // 9. COMMUNICATION & ANNOUNCEMENTS (FRD Â§18)
   const publishAnnouncement = useCallback((annData, actor = 'Principal') => {
     const newAnn = {
       id: `ANN-2026-${Math.floor(100 + Math.random() * 900)}`,
@@ -697,7 +697,7 @@ export const AppStoreProvider = ({ children }) => {
     return newAnn;
   }, [updateStore]);
 
-  // 10. CAMPUS EVENTS & RSVPS (FRD §19)
+  // 10. CAMPUS EVENTS & RSVPS (FRD Â§19)
   const createCampusEvent = useCallback((eventData, actor = 'School Admin') => {
     const newEvent = {
       id: `EVT-2026-${Math.floor(100 + Math.random() * 900)}`,
@@ -737,7 +737,7 @@ export const AppStoreProvider = ({ children }) => {
     }, 'EVENT_RSVP_TOGGLED', { eventId, userId });
   }, [updateStore]);
 
-  // 11. SUPER ADMIN SAAS MODULE MATRIX TOGGLE (FRD §23.4)
+  // 11. SUPER ADMIN SAAS MODULE MATRIX TOGGLE (FRD Â§23.4)
   const toggleSchoolModule = useCallback((schoolId, moduleKey, actor = 'Super Admin') => {
     let nextVal = true;
     updateStore(prev => {

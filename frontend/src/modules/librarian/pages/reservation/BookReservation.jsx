@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+ï»¿import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
@@ -177,7 +177,7 @@ export const BookReservation = () => {
       sortable: true,
       render: (val, row) => (
         <div>
-          <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val || 'â€”'}</span>
+          <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val || 'Ã¢â¬â'}</span>
           <span className="text-3xs text-slate-400">Category: {row.bookCategory || 'General'}</span>
         </div>
       ),
@@ -189,7 +189,7 @@ export const BookReservation = () => {
       render: (val, row) => (
         <div>
           <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val}</span>
-          <span className="text-3xs text-slate-400">{row.borrowerType} â€¢ {row.borrowerCode || 'STU'}</span>
+          <span className="text-3xs text-slate-400">{row.borrowerType} â¢ {row.borrowerCode || 'STU'}</span>
         </div>
       ),
     },
@@ -336,7 +336,7 @@ export const BookReservation = () => {
               <option value="">-- Choose Catalogue Title --</option>
               {books.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.title} ({b.availableCopies} available) â€” Code: {b.bookCode}
+                  {b.title} ({b.availableCopies} available) Ã¢â¬â Code: {b.bookCode}
                 </option>
               ))}
             </select>
@@ -353,7 +353,7 @@ export const BookReservation = () => {
               <option value="">-- Choose Student / Faculty --</option>
               {borrowers.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.name} ({b.type}) â€” {b.code}
+                  {b.name} ({b.type}) Ã¢â¬â {b.code}
                 </option>
               ))}
             </select>

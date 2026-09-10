@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+ï»¿import React, { useState, useEffect } from 'react';
 import { useLibrarianAuth } from '../context/LibrarianAuthContext';
 import {
   BookOpen,
@@ -139,7 +139,7 @@ export const Dashboard = () => {
               </h1>
               <Badge variant="success">Active</Badge>
             </div>
-            <p className="text-xs font-semibold text-slate-400 mt-1">{formatDate(new Date())} â€¢ Welcome back, {user?.name || 'Librarian'}</p>
+            <p className="text-xs font-semibold text-slate-400 mt-1">{formatDate(new Date())} â¢ Welcome back, {user?.name || 'Librarian'}</p>
           </div>
         </div>
 
@@ -292,7 +292,7 @@ export const Dashboard = () => {
                         {tx.bookTitle || 'Book Transaction'}
                       </span>
                       <span className="text-[11px] text-slate-400 block truncate">
-                        {tx.borrowerName} â€¢ Copy {tx.accessionNumber || 'N/A'}
+                        {tx.borrowerName} â¢ Copy {tx.accessionNumber || 'N/A'}
                       </span>
                     </div>
                   </div>

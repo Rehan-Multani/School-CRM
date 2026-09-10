@@ -1,1 +1,1 @@
-export * from '../../../../shared/ui/Badge';
+ï»¿export * from '../../../../shared/ui/Badge';

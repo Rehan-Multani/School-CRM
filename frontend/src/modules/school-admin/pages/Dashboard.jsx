@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useState } from 'react';
 import { useSchoolAdminAuth } from '../context/SchoolAdminAuthContext';
 import { useNavigate } from 'react-router-dom';
 import { schoolPortalApi } from '../../../shared/api/client';
@@ -189,9 +189,9 @@ export const Dashboard = () => {
         />
         <StatCard
           title="Fee Collected Today"
-          value={`â‚¹${kpi.collectedToday.toLocaleString()}`}
+          value={`Ã¢âÂ¹${kpi.collectedToday.toLocaleString()}`}
           icon={IndianRupee}
-          trend={`â‚¹${(kpi.collectedMonth / 1000).toFixed(0)}k This Month`}
+          trend={`Ã¢âÂ¹${(kpi.collectedMonth / 1000).toFixed(0)}k This Month`}
           trendType="up"
           subtitle="Daily Receipts"
           onClick={() => navigate('/school-admin/fees')}
@@ -199,7 +199,7 @@ export const Dashboard = () => {
 
         <StatCard
           title="Pending Fee Recovery"
-          value={`â‚¹${kpi.pendingFees.toLocaleString()}`}
+          value={`Ã¢âÂ¹${kpi.pendingFees.toLocaleString()}`}
           icon={AlertTriangle}
           trend="Overdue Balance"
           trendType="down"
@@ -388,7 +388,7 @@ export const Dashboard = () => {
         {/* Fee Collection */}
         <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Monthly Fee Recovery (â‚¹)</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Monthly Fee Recovery (Ã¢âÂ¹)</h4>
             <Badge variant="warning">Cashflow</Badge>
           </div>
           <BarChart data={charts.monthlyFeeTrend} xKey="month" yKey="collected" barColor="#f59e0b" />
@@ -442,7 +442,7 @@ export const Dashboard = () => {
 
         {recentActivities.length === 0 ? (
           <div className="py-8 text-center text-xs font-semibold text-slate-400">
-            No Result â€” No recent school activities recorded.
+            No Result Ã¢â¬â No recent school activities recorded.
           </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-800">

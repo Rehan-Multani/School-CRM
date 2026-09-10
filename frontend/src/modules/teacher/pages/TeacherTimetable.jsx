@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { FilterBar } from '../components/ui/FilterBar';
@@ -64,7 +64,7 @@ export const TeacherTimetable = () => {
             </div>
             <div>
               <p className="text-xs font-bold text-foreground">{todayClasses.length} Classes Today</p>
-              <p className="text-[10px] text-slate-500 capitalize">{todayKey} Â· {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+              <p className="text-[10px] text-slate-500 capitalize">{todayKey} ÃÂ· {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
             </div>
           </div>
 
@@ -185,7 +185,7 @@ export const TeacherTimetable = () => {
       {/* Monthly View */}
       {tab === 'monthly' && (
         <Card>
-          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">July 2025 â€” Teaching Load</h3>
+          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">July 2025 Ã¢â¬â Teaching Load</h3>
           <div className="space-y-3">
             {DAY_KEYS.map((key, i) => {
               const cls = mockTimetable[key] || [];

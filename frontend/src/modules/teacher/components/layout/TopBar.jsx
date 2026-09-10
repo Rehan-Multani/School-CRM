@@ -1,4 +1,4 @@
-﻿import React from 'react';
+ï»¿import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Bell, MessageSquare } from 'lucide-react';
 import { useTeacherNotifications } from '../../context/TeacherNotificationContext';

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ServerTable } from '../../components/ui/ServerTable';
 import { Modal } from '../../components/ui/Modal';
@@ -156,7 +156,7 @@ export const Expenses = () => {
       { key: 'title', title: 'Title & Vendor', render: (r) => (
         <div>
           <p className="font-bold text-slate-900 dark:text-white">{r.title}</p>
-          <p className="text-[10px] text-slate-400">{r.vendorName || 'â€”'}</p>
+          <p className="text-[10px] text-slate-400">{r.vendorName || 'Ã¢â¬â'}</p>
         </div>
       ) },
       { key: 'category', title: 'Category' },
@@ -250,7 +250,7 @@ export const Expenses = () => {
           <input
             value={filters.search}
             onChange={(e) => set({ search: e.target.value })}
-            placeholder="Search title, vendor, voucherâ€¦"
+            placeholder="Search title, vendor, voucherâ¦"
             className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold outline-none focus:border-violet-500"
           />
         </div>
@@ -328,7 +328,7 @@ export const Expenses = () => {
               </Field>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Amount (â‚¹) *">
+              <Field label="Amount (Ã¢âÂ¹) *">
                 <input
                   placeholder="e.g. 5000"
                   type="number"
@@ -411,7 +411,7 @@ export const Expenses = () => {
                 Cancel
               </button>
               <button type="submit" disabled={saving} className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50">
-                {saving ? 'Savingâ€¦' : modal.mode === 'edit' ? 'Save Changes' : 'Record Expense'}
+                {saving ? 'Savingâ¦' : modal.mode === 'edit' ? 'Save Changes' : 'Record Expense'}
               </button>
             </div>
           </form>

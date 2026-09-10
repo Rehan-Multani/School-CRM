@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
 import { exportToCSV, exportToJSON } from '../../../../shared/lib/exportHelpers';
@@ -322,7 +322,7 @@ export const Reports = () => {
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Fee Collections</p>
             <h3 className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
-              â‚¹{(summaryStats?.totalCollected || 0).toLocaleString('en-IN')}
+              Ã¢âÂ¹{(summaryStats?.totalCollected || 0).toLocaleString('en-IN')}
             </h3>
             <p className="text-[11px] text-slate-400 mt-1">Recorded payment transactions</p>
           </div>
@@ -335,7 +335,7 @@ export const Reports = () => {
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Outstanding Fee Dues</p>
             <h3 className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
-              â‚¹{(summaryStats?.totalDue || 0).toLocaleString('en-IN')}
+              Ã¢âÂ¹{(summaryStats?.totalDue || 0).toLocaleString('en-IN')}
             </h3>
             <p className="text-[11px] text-slate-400 mt-1">Pending invoice collections</p>
           </div>
@@ -460,7 +460,7 @@ export const Reports = () => {
                   <div>
                     <span className="text-slate-400 block text-[10px]">TOTAL COLLECTED</span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-black text-sm">
-                      â‚¹{reportStats.totalCollected.toLocaleString('en-IN')}
+                      Ã¢âÂ¹{reportStats.totalCollected.toLocaleString('en-IN')}
                     </span>
                   </div>
                 )}
@@ -468,7 +468,7 @@ export const Reports = () => {
                   <div>
                     <span className="text-slate-400 block text-[10px]">TOTAL OUTSTANDING</span>
                     <span className="text-rose-600 dark:text-rose-400 font-black text-sm">
-                      â‚¹{reportStats.totalDue.toLocaleString('en-IN')}
+                      Ã¢âÂ¹{reportStats.totalDue.toLocaleString('en-IN')}
                     </span>
                   </div>
                 )}
@@ -476,7 +476,7 @@ export const Reports = () => {
                   <div>
                     <span className="text-slate-400 block text-[10px]">TOTAL SALARY DISBURSED</span>
                     <span className="text-teal-600 dark:text-teal-400 font-black text-sm">
-                      â‚¹{reportStats.totalNetDisbursed.toLocaleString('en-IN')}
+                      Ã¢âÂ¹{reportStats.totalNetDisbursed.toLocaleString('en-IN')}
                     </span>
                   </div>
                 )}
@@ -671,17 +671,17 @@ export const Reports = () => {
         <PrintReportModal
           isOpen={printModalOpen}
           onClose={() => setPrintModalOpen(false)}
-          title={`Official Report â€” ${selectedCategory.label}`}
+          title={`Official Report Ã¢â¬â ${selectedCategory.label}`}
           documentType={selectedCategory.label}
           data={filteredData}
         >
           <div className="space-y-6 text-slate-900">
             <div className="text-center pb-4 border-b-2 border-slate-900 space-y-1">
               <h2 className="text-2xl font-black uppercase tracking-wider">{schoolName}</h2>
-              <p className="text-xs text-slate-600">Affiliated to CBSE / State Board â€¢ Session 2026-2027</p>
+              <p className="text-xs text-slate-600">Affiliated to CBSE / State Board â¢ Session 2026-2027</p>
               <h3 className="text-sm font-bold text-indigo-900 mt-2">{selectedCategory.label}</h3>
               <p className="text-[10px] text-slate-400">
-                Generated on: {new Date().toLocaleString()} â€¢ Authorized Institutional Document
+                Generated on: {new Date().toLocaleString()} â¢ Authorized Institutional Document
               </p>
             </div>
 

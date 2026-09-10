@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+ï»¿import React, { useState, useEffect } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
@@ -84,7 +84,7 @@ export const OverdueBooks = () => {
       render: (val, row) => (
         <div>
           <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val}</span>
-          <span className="text-3xs text-slate-400">{row.borrowerType} â€¢ {row.borrowerCode || 'STU'}</span>
+          <span className="text-3xs text-slate-400">{row.borrowerType} â¢ {row.borrowerCode || 'STU'}</span>
         </div>
       ),
     },
@@ -162,7 +162,7 @@ export const OverdueBooks = () => {
       ) : overdueList.length === 0 ? (
         <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
           <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 rounded-full w-12 h-12 flex items-center justify-center mx-auto">
-            <span className="text-xl font-bold">âœ“</span>
+            <span className="text-xl font-bold">Ã¢Åâ</span>
           </div>
           <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">No Overdue Books</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">

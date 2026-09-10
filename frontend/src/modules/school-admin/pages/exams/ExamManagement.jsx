@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
@@ -481,7 +481,7 @@ export const ExamManagement = () => {
                         month: 'short',
                         day: 'numeric',
                       })}{' '}
-                      â€”{' '}
+                      Ã¢â¬â{' '}
                       {new Date(item.endDate).toLocaleDateString('en-IN', {
                         month: 'short',
                         day: 'numeric',

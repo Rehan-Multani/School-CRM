@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
+ï»¿import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
 import { hrApi } from '../../../../shared/api/client';
@@ -80,7 +80,7 @@ export const TeacherManagement = () => {
       setTeachers((prev) =>
         prev.map((t) => (t.id === teacher.id ? { ...t, status: 'ACTIVE' } : t))
       );
-      showToast(`âœ“ Teacher ${teacher.name} approved & activated!`, 'success');
+      showToast(`Ã¢Åâ Teacher ${teacher.name} approved & activated!`, 'success');
     } catch (err) {
       showToast(err.response?.data?.message || err.message || 'Failed to approve teacher', 'error');
     }
@@ -116,7 +116,7 @@ export const TeacherManagement = () => {
   }, [teachers]);
 
   const handleModalSuccess = () => {
-    showToast(`âœ“ Teacher submitted for Admin Approval successfully!`, 'success');
+    showToast(`Ã¢Åâ Teacher submitted for Admin Approval successfully!`, 'success');
     fetchTeachers();
   };
 
@@ -151,7 +151,7 @@ export const TeacherManagement = () => {
         header: 'Employee ID',
         id: 'employeeId',
         sortable: true,
-        render: (val) => <span className="font-mono text-xs text-slate-600 dark:text-slate-400">{val || 'â€”'}</span>,
+        render: (val) => <span className="font-mono text-xs text-slate-600 dark:text-slate-400">{val || 'Ã¢â¬â'}</span>,
       },
       {
         header: 'Department',
@@ -177,19 +177,19 @@ export const TeacherManagement = () => {
       {
         header: 'Qualification',
         id: 'qualification',
-        render: (val) => <span className="text-slate-700 dark:text-slate-300">{val || 'â€”'}</span>,
+        render: (val) => <span className="text-slate-700 dark:text-slate-300">{val || 'Ã¢â¬â'}</span>,
       },
       {
         header: 'Gender',
         id: 'gender',
-        render: (val) => <span className="text-slate-600 capitalize dark:text-slate-400">{val?.toLowerCase() || 'â€”'}</span>,
+        render: (val) => <span className="text-slate-600 capitalize dark:text-slate-400">{val?.toLowerCase() || 'Ã¢â¬â'}</span>,
       },
       {
         header: 'Date of Birth / Joined',
         id: 'joiningDate',
         render: (val) => (
           <span className="text-slate-500 whitespace-nowrap">
-            {val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'â€”'}
+            {val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Ã¢â¬â'}
           </span>
         ),
       },
@@ -428,7 +428,7 @@ export const TeacherManagement = () => {
         <Modal
           isOpen={!!rejectingTeacher}
           onClose={() => setRejectingTeacher(null)}
-          title={`Reject Registration â€” ${rejectingTeacher.name}`}
+          title={`Reject Registration Ã¢â¬â ${rejectingTeacher.name}`}
           size="sm"
         >
           <form onSubmit={handleConfirmReject} className="space-y-4 p-1">

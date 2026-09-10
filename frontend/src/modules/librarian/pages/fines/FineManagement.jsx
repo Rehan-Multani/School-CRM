@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+ï»¿import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { StatCard } from '../../components/ui/StatCard';
@@ -96,7 +96,7 @@ export const FineManagement = () => {
       render: (val, row) => (
         <div>
           <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val}</span>
-          <span className="text-3xs text-slate-400">{row.borrowerType} â€¢ {row.borrowerCode || 'STU'}</span>
+          <span className="text-3xs text-slate-400">{row.borrowerType} â¢ {row.borrowerCode || 'STU'}</span>
         </div>
       ),
     },
@@ -112,7 +112,7 @@ export const FineManagement = () => {
       ),
     },
     { title: 'Due Date', key: 'dueDate', render: (val) => formatDate(val) },
-    { title: 'Return Date', key: 'returnDate', render: (val) => (val ? formatDate(val) : 'â€”') },
+    { title: 'Return Date', key: 'returnDate', render: (val) => (val ? formatDate(val) : 'Ã¢â¬â') },
     {
       title: 'Fine Amount',
       key: 'fineAmount',
@@ -191,7 +191,7 @@ export const FineManagement = () => {
         />
         <StatCard
           title="Daily Overdue Rate"
-          value={`â‚¹${settings?.finePerDay ?? 5} / day`}
+          value={`Ã¢âÂ¹${settings?.finePerDay ?? 5} / day`}
           icon={Sliders}
         />
       </div>

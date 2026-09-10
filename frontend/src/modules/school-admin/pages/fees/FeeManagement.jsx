@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
@@ -490,7 +490,7 @@ export const FeeManagement = () => {
                           {formatCurrency(inv.balanceAmount)}
                         </td>
                         <td className="px-3 py-3.5 text-slate-500">
-                          {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : 'â€”'}
+                          {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : 'Ã¢â¬â'}
                         </td>
                         <td className="px-3 py-3.5 text-center">
                           <Badge
@@ -599,10 +599,10 @@ export const FeeManagement = () => {
                         <td className="px-4 py-3.5 font-bold text-slate-900 dark:text-white">
                           {p.studentId
                             ? `${p.studentId.firstName} ${p.studentId.lastName || ''}`.trim()
-                            : 'â€”'}
+                            : 'Ã¢â¬â'}
                         </td>
                         <td className="px-3 py-3.5 font-mono text-slate-600 dark:text-slate-400">
-                          {p.invoiceId?.invoiceNumber || 'â€”'}
+                          {p.invoiceId?.invoiceNumber || 'Ã¢â¬â'}
                         </td>
                         <td className="px-3 py-3.5 font-black text-emerald-600">
                           {formatCurrency(p.amount)}
@@ -611,7 +611,7 @@ export const FeeManagement = () => {
                           <Badge variant="primary">{p.paymentMethod}</Badge>
                         </td>
                         <td className="px-3 py-3.5 text-slate-500">
-                          {p.paymentDate ? new Date(p.paymentDate).toLocaleDateString() : 'â€”'}
+                          {p.paymentDate ? new Date(p.paymentDate).toLocaleDateString() : 'Ã¢â¬â'}
                         </td>
                         <td className="px-3 py-3.5 text-center">
                           <Badge variant="success">{p.status}</Badge>
@@ -656,7 +656,7 @@ export const FeeManagement = () => {
                 <div>
                   <span className="text-slate-400 block text-[10px] uppercase font-bold">Student</span>
                   <span className="font-bold text-slate-800 dark:text-white">
-                    {selectedInvoice.studentId ? `${selectedInvoice.studentId.firstName} ${selectedInvoice.studentId.lastName || ''}`.trim() : 'â€”'}
+                    {selectedInvoice.studentId ? `${selectedInvoice.studentId.firstName} ${selectedInvoice.studentId.lastName || ''}`.trim() : 'Ã¢â¬â'}
                   </span>
                 </div>
                 <div className="mt-2">
@@ -672,7 +672,7 @@ export const FeeManagement = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Payment Amount (â‚¹) *</label>
+                <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Payment Amount (Ã¢âÂ¹) *</label>
                 <input
                   placeholder="e.g. 5000"
                   type="number"
@@ -767,7 +767,7 @@ export const FeeManagement = () => {
                 <option value="">-- Choose Student --</option>
                 {students.map((st) => (
                   <option key={st.id} value={st.id}>
-                    {st.firstName} {st.lastName || ''} ({st.admissionNumber || st.enrollmentId}) â€” {st.class?.name || 'Class'}
+                    {st.firstName} {st.lastName || ''} ({st.admissionNumber || st.enrollmentId}) Ã¢â¬â {st.class?.name || 'Class'}
                   </option>
                 ))}
               </select>
@@ -900,7 +900,7 @@ export const FeeManagement = () => {
                           <div>Receipt #: <strong>${selectedPayment.receiptNumber}</strong></div>
                         </div>
                         <div class="grid">
-                          <div><strong>Student:</strong> ${selectedPayment.studentId ? `${selectedPayment.studentId.firstName} ${selectedPayment.studentId.lastName || ''}`.trim() : 'â€”'}</div>
+                          <div><strong>Student:</strong> ${selectedPayment.studentId ? `${selectedPayment.studentId.firstName} ${selectedPayment.studentId.lastName || ''}`.trim() : 'Ã¢â¬â'}</div>
                           <div><strong>Date:</strong> ${selectedPayment.paymentDate ? new Date(selectedPayment.paymentDate).toLocaleDateString() : 'Today'}</div>
                           <div><strong>Method:</strong> ${selectedPayment.paymentMethod}</div>
                           <div><strong>Status:</strong> COMPLETED / PAID</div>

@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
@@ -468,12 +468,12 @@ export const TeacherManagement = () => {
       render: (_, row) => {
         const qual = Array.isArray(row.qualifications)
           ? row.qualifications.map((item) => (typeof item === 'string' ? item : item?.degree)).filter(Boolean).join(', ')
-          : row.qualification || 'â€”';
+          : row.qualification || 'Ã¢â¬â';
         return (
           <div>
-            <p className="font-semibold text-slate-700 dark:text-slate-200">{qual || 'â€”'}</p>
+            <p className="font-semibold text-slate-700 dark:text-slate-200">{qual || 'Ã¢â¬â'}</p>
             <p className="mt-0.5 text-[11px] font-medium text-slate-400">
-              Joined {row.joiningDate ? String(row.joiningDate).slice(0, 10) : 'â€”'}
+              Joined {row.joiningDate ? String(row.joiningDate).slice(0, 10) : 'Ã¢â¬â'}
             </p>
           </div>
         );
@@ -856,7 +856,7 @@ export const TeacherManagement = () => {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Delete Teacher"
-        message={`"${deleteTarget?.name}" will be permanently removed. Teachers with class or subject assignments cannot be deleted â€” deactivate them instead.`}
+        message={`"${deleteTarget?.name}" will be permanently removed. Teachers with class or subject assignments cannot be deleted Ã¢â¬â deactivate them instead.`}
         confirmText="Delete Teacher"
         variant="danger"
       />

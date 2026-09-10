@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
 import { DataTable } from '../../components/ui/DataTable';
@@ -23,7 +23,7 @@ const STATUS_META = {
 };
 
 function fmtDate(v) {
-  if (!v) return 'â€”';
+  if (!v) return 'Ã¢â¬â';
   return new Date(v).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
@@ -118,7 +118,7 @@ export const AdmissionManagement = () => {
       showToast(
         alreadyEnrolled
           ? 'Applicant already enrolled'
-          : `Approved â€” Student ID ${student?.id || ''}, Admission No ${admission?.admissionNo || ''}. Now in Student roster.`,
+          : `Approved Ã¢â¬â Student ID ${student?.id || ''}, Admission No ${admission?.admissionNo || ''}. Now in Student roster.`,
         'success'
       );
       setReviewOpen(false);
@@ -146,7 +146,7 @@ export const AdmissionManagement = () => {
       if (newId && offlineForm.appliedClassId) {
         try {
           const appr = await admissionsApi.approve(newId);
-          showToast(`Offline candidate admitted â€” Student ID ${appr?.data?.student?.id || ''}`, 'success');
+          showToast(`Offline candidate admitted Ã¢â¬â Student ID ${appr?.data?.student?.id || ''}`, 'success');
         } catch (err) {
           showToast(
             `Application saved, but auto-enrol failed: ${apiMessage(err, 'approve manually from Pending Review')}`,
@@ -188,9 +188,9 @@ export const AdmissionManagement = () => {
   const columns = useMemo(
     () => [
       { key: 'applicantName', title: 'Applicant', sortable: true, render: (v) => <span className="font-bold">{v}</span> },
-      { key: 'appliedClassLabel', title: 'Target Class', render: (v) => v || 'â€”' },
-      { key: 'guardianName', title: 'Guardian', render: (v) => v || 'â€”' },
-      { key: 'phone', title: 'Phone', render: (v) => v || 'â€”' },
+      { key: 'appliedClassLabel', title: 'Target Class', render: (v) => v || 'Ã¢â¬â' },
+      { key: 'guardianName', title: 'Guardian', render: (v) => v || 'Ã¢â¬â' },
+      { key: 'phone', title: 'Phone', render: (v) => v || 'Ã¢â¬â' },
       { key: 'appliedDate', title: 'Applied', sortable: true, render: (v) => fmtDate(v) },
       {
         key: 'documentsStatus',
@@ -307,19 +307,19 @@ export const AdmissionManagement = () => {
           <div className="space-y-5">
             <div className="grid grid-cols-2 gap-4 border-b border-slate-100 pb-4 dark:border-slate-800">
               <Field label="Candidate Name" value={selectedAdm.applicantName} strong />
-              <Field label="Target Class" value={selectedAdm.appliedClassLabel || 'â€”'} strong />
+              <Field label="Target Class" value={selectedAdm.appliedClassLabel || 'Ã¢â¬â'} strong />
               <Field label="Birth Date" value={fmtDate(selectedAdm.dob)} />
               <Field label="Gender" value={selectedAdm.gender} />
-              <Field label="Previous School" value={selectedAdm.previousSchool || 'â€”'} />
+              <Field label="Previous School" value={selectedAdm.previousSchool || 'Ã¢â¬â'} />
               <Field label="Category" value={selectedAdm.category || 'General'} />
             </div>
             <div className="space-y-2">
               <span className="block text-[10px] font-bold uppercase text-slate-400">Guardian Contacts</span>
               <div className="grid grid-cols-2 gap-4 rounded-xl border bg-slate-50 p-3.5 text-xs font-semibold dark:border-slate-800 dark:bg-slate-950">
-                <Field label="Name" value={selectedAdm.guardianName || 'â€”'} />
-                <Field label="Phone" value={selectedAdm.phone || 'â€”'} />
-                <Field label="Email" value={selectedAdm.email || 'â€”'} />
-                <Field label="Address" value={selectedAdm.address || 'â€”'} />
+                <Field label="Name" value={selectedAdm.guardianName || 'Ã¢â¬â'} />
+                <Field label="Phone" value={selectedAdm.phone || 'Ã¢â¬â'} />
+                <Field label="Email" value={selectedAdm.email || 'Ã¢â¬â'} />
+                <Field label="Address" value={selectedAdm.address || 'Ã¢â¬â'} />
               </div>
             </div>
             <div className="flex items-center justify-between rounded-xl border border-slate-200 p-3.5 dark:border-slate-800">
@@ -334,7 +334,7 @@ export const AdmissionManagement = () => {
 
             {selectedAdm.admissionNo && (
               <div className="rounded-xl bg-emerald-50 p-3 text-xs font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
-                Enrolled â€” Admission No {selectedAdm.admissionNo} Â· Student ID {selectedAdm.studentId}
+                Enrolled Ã¢â¬â Admission No {selectedAdm.admissionNo} ÃÂ· Student ID {selectedAdm.studentId}
               </div>
             )}
 
@@ -363,7 +363,7 @@ export const AdmissionManagement = () => {
                     title={!selectedAdm.appliedClassId ? 'Assign a class first (edit application)' : ''}
                     className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-md transition-all disabled:opacity-50"
                   >
-                    {busyId === selectedAdm.id ? 'Processingâ€¦' : 'Approve & Create Student'}
+                    {busyId === selectedAdm.id ? 'Processingâ¦' : 'Approve & Create Student'}
                   </button>
                 </div>
               </div>
@@ -393,7 +393,7 @@ export const AdmissionManagement = () => {
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500">Class *</label>
               <select className={inputCls} value={offlineForm.appliedClassId} onChange={(e) => setOfflineForm({ ...offlineForm, appliedClassId: e.target.value })}>
-                <option value="">Select classâ€¦</option>
+                <option value="">Select classâ¦</option>
                 {classes.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
@@ -448,7 +448,7 @@ export const AdmissionManagement = () => {
             With a class selected, the applicant is enrolled immediately and added to the Student roster.
           </p>
           <button type="submit" disabled={offlineSaving} className="w-full rounded-xl bg-primary py-2.5 text-xs font-bold text-white shadow-md disabled:opacity-60">
-            {offlineSaving ? 'Processingâ€¦' : 'Admit Student & Generate Credentials'}
+            {offlineSaving ? 'Processingâ¦' : 'Admit Student & Generate Credentials'}
           </button>
         </form>
       </Modal>
@@ -471,17 +471,17 @@ export const AdmissionManagement = () => {
               <div className="space-y-1 text-center">
                 <h3 className="text-lg font-bold leading-none text-white">{selectedAdm.applicantName}</h3>
                 <span className="text-[10px] font-extrabold uppercase tracking-wide text-indigo-400">
-                  {selectedAdm.appliedClassLabel || 'â€”'}
+                  {selectedAdm.appliedClassLabel || 'Ã¢â¬â'}
                 </span>
               </div>
               <div className="w-full space-y-2 border-t border-slate-800 pt-3 text-left text-[11px] font-semibold text-slate-400">
                 <div className="flex justify-between">
                   <span>Admission No:</span>
-                  <span className="font-bold text-white">{selectedAdm.admissionNo || 'â€”'}</span>
+                  <span className="font-bold text-white">{selectedAdm.admissionNo || 'Ã¢â¬â'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Student ID:</span>
-                  <span className="font-bold text-white">{selectedAdm.studentId || 'â€”'}</span>
+                  <span className="font-bold text-white">{selectedAdm.studentId || 'Ã¢â¬â'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Guardian:</span>

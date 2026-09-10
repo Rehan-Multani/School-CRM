@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+ï»¿import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
@@ -81,7 +81,7 @@ export const TransactionHistory = () => {
       sortable: true,
       render: (val, row) => (
         <div>
-          <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val || 'â€”'}</span>
+          <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val || 'Ã¢â¬â'}</span>
           <span className="text-3xs text-slate-400">Copy: {row.accessionNumber || 'N/A'}</span>
         </div>
       ),
@@ -92,20 +92,20 @@ export const TransactionHistory = () => {
       sortable: true,
       render: (val, row) => (
         <div>
-          <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val || 'â€”'}</span>
-          <span className="text-3xs text-slate-400">{row.borrowerType} â€¢ {row.borrowerCode || 'STU'}</span>
+          <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val || 'Ã¢â¬â'}</span>
+          <span className="text-3xs text-slate-400">{row.borrowerType} â¢ {row.borrowerCode || 'STU'}</span>
         </div>
       ),
     },
     {
       title: 'Transaction Details',
       key: 'details',
-      render: (val) => <span className="text-xs text-slate-600 dark:text-slate-400">{val || 'â€”'}</span>,
+      render: (val) => <span className="text-xs text-slate-600 dark:text-slate-400">{val || 'Ã¢â¬â'}</span>,
     },
     {
       title: 'Fine (if applicable)',
       key: 'fineAmount',
-      render: (val) => (val > 0 ? <span className="font-bold text-xs text-rose-600">{formatCurrency(val)}</span> : 'â€”'),
+      render: (val) => (val > 0 ? <span className="font-bold text-xs text-rose-600">{formatCurrency(val)}</span> : 'Ã¢â¬â'),
     },
     {
       title: 'Operator',

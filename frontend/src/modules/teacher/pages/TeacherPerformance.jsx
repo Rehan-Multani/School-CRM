@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { FilterBar } from '../components/ui/FilterBar';
@@ -151,7 +151,7 @@ export const TeacherPerformance = () => {
               <Avatar src={selectedStudent.photo} name={selectedStudent.name} size="lg" />
               <div>
                 <h3 className="text-base font-black text-foreground">{selectedStudent.name}</h3>
-                <p className="text-xs text-slate-500">Roll #{selectedStudent.rollNo} â€¢ {selectedStudent.gender}</p>
+                <p className="text-xs text-slate-500">Roll #{selectedStudent.rollNo} â¢ {selectedStudent.gender}</p>
               </div>
             </div>
 

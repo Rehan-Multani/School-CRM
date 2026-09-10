@@ -1,4 +1,4 @@
-﻿import React, { useRef } from 'react';
+ï»¿import React, { useRef } from 'react';
 import { formatDate, formatCurrency } from '../../utils/formatters';
 import { Printer, Library, CheckCircle } from 'lucide-react';
 

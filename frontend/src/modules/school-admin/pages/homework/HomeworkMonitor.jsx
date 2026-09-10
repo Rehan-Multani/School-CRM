@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
@@ -20,7 +20,7 @@ function toDateInput(value) {
   return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10);
 }
 function fmtDate(value) {
-  if (!value) return 'â€”';
+  if (!value) return 'Ã¢â¬â';
   return new Date(value).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
@@ -40,7 +40,7 @@ const emptyForm = {
 };
 
 function SubmissionBar({ value }) {
-  if (value === null || value === undefined) return <span className="text-slate-400">â€”</span>;
+  if (value === null || value === undefined) return <span className="text-slate-400">Ã¢â¬â</span>;
   return (
     <div className="flex items-center gap-2">
       <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100 dark:bg-indigo-600">
@@ -222,13 +222,13 @@ export const HomeworkMonitor = () => {
           <div>
             <span className="font-bold text-slate-900 dark:text-white">{val}</span>
             <div className="text-[11px] text-slate-400">
-              {[row.className, row.sectionName].filter(Boolean).join(' ') || 'â€”'}
+              {[row.className, row.sectionName].filter(Boolean).join(' ') || 'Ã¢â¬â'}
             </div>
           </div>
         ),
       },
-      { key: 'subjectName', title: 'Subject', render: (v) => v || 'â€”' },
-      { key: 'teacherName', title: 'Assigned By', render: (v) => v || 'â€”' },
+      { key: 'subjectName', title: 'Subject', render: (v) => v || 'Ã¢â¬â' },
+      { key: 'teacherName', title: 'Assigned By', render: (v) => v || 'Ã¢â¬â' },
       { key: 'assignedDate', title: 'Assigned', sortable: true, render: (v) => fmtDate(v) },
       {
         key: 'dueDate',
@@ -280,7 +280,7 @@ export const HomeworkMonitor = () => {
     { label: 'Overdue', value: stats?.overdue ?? 0, icon: AlertTriangle, tone: 'text-rose-600 bg-rose-50 dark:bg-rose-950/40' },
     {
       label: 'Avg Submission',
-      value: stats?.avgSubmissionRate === null || stats?.avgSubmissionRate === undefined ? 'â€”' : `${stats.avgSubmissionRate}%`,
+      value: stats?.avgSubmissionRate === null || stats?.avgSubmissionRate === undefined ? 'Ã¢â¬â' : `${stats.avgSubmissionRate}%`,
       icon: CheckCircle2,
       tone: 'text-sky-600 bg-sky-50 dark:bg-sky-950/40',
     },
@@ -384,7 +384,7 @@ export const HomeworkMonitor = () => {
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Class</label>
               <select className={inputClass} value={form.classId} onChange={(e) => setForm({ ...form, classId: e.target.value, sectionId: '' })}>
-                <option value="">â€”</option>
+                <option value="">Ã¢â¬â</option>
                 {classes.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
@@ -393,7 +393,7 @@ export const HomeworkMonitor = () => {
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Section</label>
               <select className={inputClass} value={form.sectionId} onChange={(e) => setForm({ ...form, sectionId: e.target.value })}>
-                <option value="">â€”</option>
+                <option value="">Ã¢â¬â</option>
                 {sectionsForClass.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
@@ -404,7 +404,7 @@ export const HomeworkMonitor = () => {
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Subject</label>
               <select className={inputClass} value={form.subjectId} onChange={(e) => setForm({ ...form, subjectId: e.target.value })}>
-                <option value="">â€”</option>
+                <option value="">Ã¢â¬â</option>
                 {subjects.map((s) => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
@@ -413,7 +413,7 @@ export const HomeworkMonitor = () => {
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Assigned By (Teacher)</label>
               <select className={inputClass} value={form.teacherId} onChange={(e) => setForm({ ...form, teacherId: e.target.value })}>
-                <option value="">â€”</option>
+                <option value="">Ã¢â¬â</option>
                 {teachers.map((t) => (
                   <option key={t.id} value={t.id}>{t.name || [t.firstName, t.lastName].filter(Boolean).join(' ')}</option>
                 ))}
@@ -460,7 +460,7 @@ export const HomeworkMonitor = () => {
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setModalOpen(false)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>
             <button type="submit" disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
-              {saving ? 'Savingâ€¦' : editing ? 'Update Homework' : 'Add Homework'}
+              {saving ? 'Savingâ¦' : editing ? 'Update Homework' : 'Add Homework'}
             </button>
           </div>
         </form>

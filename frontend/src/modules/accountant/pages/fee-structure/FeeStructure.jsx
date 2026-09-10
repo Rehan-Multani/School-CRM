@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ServerTable } from '../../components/ui/ServerTable';
 import { Badge } from '../../components/ui/Badge';
@@ -68,8 +68,8 @@ export const FeeStructure = () => {
       { key: 'name', title: 'Structure', render: (r) => (
         <span className="font-bold text-slate-900 dark:text-white">{r.name}</span>
       ) },
-      { key: 'academicYear', title: 'Academic Year', render: (r) => r.academicYear?.name || 'â€”' },
-      { key: 'class', title: 'Class', render: (r) => r.class?.name || 'â€”' },
+      { key: 'academicYear', title: 'Academic Year', render: (r) => r.academicYear?.name || 'Ã¢â¬â' },
+      { key: 'class', title: 'Class', render: (r) => r.class?.name || 'Ã¢â¬â' },
       { key: 'itemsCount', title: 'Fee Heads', render: (r) => `${r.itemsCount ?? 0}` },
       { key: 'status', title: 'Status', render: (r) => (
         <Badge variant={r.status === 'ACTIVE' ? 'success' : 'warning'}>{r.status}</Badge>
@@ -178,9 +178,9 @@ export const FeeStructure = () => {
       />
 
       {detail && (
-        <Modal isOpen onClose={() => setDetail(null)} title={`Fee Structure â€” ${detail.name || ''}`} size="lg">
+        <Modal isOpen onClose={() => setDetail(null)} title={`Fee Structure Ã¢â¬â ${detail.name || ''}`} size="lg">
           {loadingDetail ? (
-            <p className="py-8 text-center text-slate-400 text-sm">Loadingâ€¦</p>
+            <p className="py-8 text-center text-slate-400 text-sm">Loadingâ¦</p>
           ) : (
             <div className="space-y-4 text-xs">
               <div className="grid grid-cols-3 gap-3">
@@ -201,10 +201,10 @@ export const FeeStructure = () => {
                   {(detail.items || []).map((it) => (
                     <tr key={it.id}>
                       <td className="py-2 font-semibold text-slate-700 dark:text-slate-300">
-                        {it.feeHead?.name || it.feeHeadName || 'â€”'}
+                        {it.feeHead?.name || it.feeHeadName || 'Ã¢â¬â'}
                       </td>
-                      <td className="py-2 text-slate-400">{it.frequency || 'â€”'}</td>
-                      <td className="py-2 text-right">{it.installments ?? 'â€”'}</td>
+                      <td className="py-2 text-slate-400">{it.frequency || 'Ã¢â¬â'}</td>
+                      <td className="py-2 text-right">{it.installments ?? 'Ã¢â¬â'}</td>
                       <td className="py-2 text-right font-bold">{formatCurrency(it.amount || 0)}</td>
                     </tr>
                   ))}
@@ -238,7 +238,7 @@ export const FeeStructure = () => {
 const Info = ({ label, value }) => (
   <div>
     <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</span>
-    <span className="font-bold text-slate-800 dark:text-slate-200">{value ?? 'â€”'}</span>
+    <span className="font-bold text-slate-800 dark:text-slate-200">{value ?? 'Ã¢â¬â'}</span>
   </div>
 );
 

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+ï»¿import React, { useEffect, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { AreaChart } from '../../components/ui/Charts/AreaChart';
 import { BarChart } from '../../components/ui/Charts/BarChart';
@@ -91,7 +91,7 @@ export const FinancialReports = () => {
   const columns = rows.length ? Object.keys(rows[0]) : [];
 
   const fmtCell = (key, val) => {
-    if (val === null || val === undefined || val === '') return 'â€”';
+    if (val === null || val === undefined || val === '') return 'Ã¢â¬â';
     if (CURRENCY_KEYS.has(key) && typeof val === 'number') return formatCurrency(val);
     if (/date/i.test(key) && (typeof val === 'string' || val instanceof Date)) {
       const d = new Date(val);
@@ -128,7 +128,7 @@ export const FinancialReports = () => {
     <div className="space-y-6">
       <PageHeader
         title="Reports"
-        subtitle="Every accountant report â€” generated from live backend data, exportable to CSV / Excel."
+        subtitle="Every accountant report Ã¢â¬â generated from live backend data, exportable to CSV / Excel."
       />
 
       <div className="flex flex-wrap gap-2">

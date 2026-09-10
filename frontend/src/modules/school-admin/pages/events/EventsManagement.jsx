@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
@@ -40,7 +40,7 @@ function toLocalInput(value) {
   return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
 }
 function fmt(value) {
-  if (!value) return 'â€”';
+  if (!value) return 'Ã¢â¬â';
   return new Date(value).toLocaleString('en-IN', {
     day: '2-digit',
     month: 'short',
@@ -215,7 +215,7 @@ export const EventsManagement = () => {
         title: 'Audience',
         render: (val) => (val?.length ? val.join(', ') : 'ALL'),
       },
-      { key: 'leadName', title: 'Lead', render: (val) => val || 'â€”' },
+      { key: 'leadName', title: 'Lead', render: (val) => val || 'Ã¢â¬â' },
       {
         key: 'status',
         title: 'Status',
@@ -442,7 +442,7 @@ export const EventsManagement = () => {
               disabled={saving}
               className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60"
             >
-              {saving ? 'Savingâ€¦' : editing ? 'Update Event' : 'Schedule Event'}
+              {saving ? 'Savingâ¦' : editing ? 'Update Event' : 'Schedule Event'}
             </button>
           </div>
         </form>

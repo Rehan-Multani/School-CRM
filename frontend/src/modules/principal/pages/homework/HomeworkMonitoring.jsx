@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
 import { DataTable } from '../../components/ui/DataTable';
@@ -7,12 +7,12 @@ import { principalHomeworkApi } from '../../../../shared/api/client';
 import { apiMessage } from '../academics/utils';
 
 function fmtDate(value) {
-  if (!value) return 'â€”';
+  if (!value) return 'Ã¢â¬â';
   return new Date(value).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function SubmissionBar({ value }) {
-  if (value === null || value === undefined) return <span className="text-slate-400">â€”</span>;
+  if (value === null || value === undefined) return <span className="text-slate-400">Ã¢â¬â</span>;
   return (
     <div className="flex items-center gap-2">
       <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-100 dark:bg-indigo-600">
@@ -63,10 +63,10 @@ export const HomeworkMonitoring = () => {
       {
         key: 'className',
         title: 'Class Room',
-        render: (v, row) => [row.className, row.sectionName].filter(Boolean).join(' ') || 'â€”',
+        render: (v, row) => [row.className, row.sectionName].filter(Boolean).join(' ') || 'Ã¢â¬â',
       },
-      { key: 'subjectName', title: 'Course Subject', render: (v) => v || 'â€”' },
-      { key: 'teacherName', title: 'Assigned By', render: (v) => v || 'â€”' },
+      { key: 'subjectName', title: 'Course Subject', render: (v) => v || 'Ã¢â¬â' },
+      { key: 'teacherName', title: 'Assigned By', render: (v) => v || 'Ã¢â¬â' },
       { key: 'assignedDate', title: 'Assigned', sortable: true, render: (v) => fmtDate(v) },
       { key: 'dueDate', title: 'Due', sortable: true, render: (v, row) => (
         <span className={row.overdue ? 'font-bold text-rose-600' : ''}>{fmtDate(v)}</span>
@@ -143,7 +143,7 @@ export const HomeworkMonitoring = () => {
               <span className="text-[10px] font-bold text-slate-400">Average Submission Rate</span>
               <h4 className="mt-1 text-xl font-extrabold text-emerald-600">
                 {stats?.avgSubmissionRate === null || stats?.avgSubmissionRate === undefined
-                  ? 'â€”'
+                  ? 'Ã¢â¬â'
                   : `${stats.avgSubmissionRate}%`}
               </h4>
             </div>

@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
@@ -491,17 +491,17 @@ export const ExamDetail = () => {
               <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-0.5 font-bold text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
                 <CalendarDays className="h-3 w-3" /> {exam.session}
               </span>
-              <span>â€¢</span>
+              <span>â¢</span>
               <span className="font-bold text-slate-700 dark:text-slate-300">
                 Type: {exam.examType.replace('_', ' ')}
               </span>
-              <span>â€¢</span>
+              <span>â¢</span>
               <span>
                 {new Date(exam.startDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}{' '}
-                â€”{' '}
+                Ã¢â¬â{' '}
                 {new Date(exam.endDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
               </span>
-              <span>â€¢</span>
+              <span>â¢</span>
               <span className="inline-flex items-center gap-1">
                 <GraduationCap className="h-3.5 w-3.5" />
                 {exam.classes?.map((c) => c.name).join(', ') || 'All Classes'}
@@ -621,7 +621,7 @@ export const ExamDetail = () => {
                         </span>
                         {sub.subjectName}
                       </td>
-                      <td className="px-4 py-3 text-slate-500 font-mono">{sub.subjectCode || 'â€”'}</td>
+                      <td className="px-4 py-3 text-slate-500 font-mono">{sub.subjectCode || 'Ã¢â¬â'}</td>
                       <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-white">
                         {sub.maxMarks}
                       </td>
@@ -731,7 +731,7 @@ export const ExamDetail = () => {
                     <div className="flex items-center gap-1.5">
                       <Clock className="h-3.5 w-3.5 text-slate-400" />
                       <span>
-                        {item.startTime} â€” {item.endTime}
+                        {item.startTime} Ã¢â¬â {item.endTime}
                       </span>
                     </div>
                     <div className="flex items-center justify-between pt-1 text-[11px]">
@@ -1038,7 +1038,7 @@ export const ExamDetail = () => {
                             #{res.rank}
                           </span>
                         ) : (
-                          'â€”'
+                          'Ã¢â¬â'
                         )}
                       </td>
                       <td className="px-4 py-3 text-slate-900 dark:text-white font-bold">
@@ -1360,7 +1360,7 @@ export const ExamDetail = () => {
                 </p>
                 <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-800 dark:bg-slate-800 dark:text-white">
                   <span>{reportCardData.exam.name}</span>
-                  <span>â€¢</span>
+                  <span>â¢</span>
                   <span>Session {reportCardData.exam.session}</span>
                 </div>
               </div>
@@ -1382,7 +1382,7 @@ export const ExamDetail = () => {
                 <div>
                   <span className="text-[10px] uppercase font-bold text-slate-400">Class & Section</span>
                   <p className="font-bold text-slate-800 dark:text-slate-200">
-                    {reportCardData.student.className} â€” {reportCardData.student.sectionName}
+                    {reportCardData.student.className} Ã¢â¬â {reportCardData.student.sectionName}
                   </p>
                 </div>
                 <div>
@@ -1452,7 +1452,7 @@ export const ExamDetail = () => {
                 <div>
                   <span className="text-[10px] uppercase font-bold text-indigo-500">Class Rank</span>
                   <p className="text-lg font-black text-indigo-900 dark:text-indigo-200">
-                    #{reportCardData.result.rank || 'â€”'}
+                    #{reportCardData.result.rank || 'Ã¢â¬â'}
                   </p>
                 </div>
                 <div>

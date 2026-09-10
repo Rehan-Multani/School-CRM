@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+ï»¿import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Building2, Layers, Radio, ShieldCheck } from 'lucide-react';
 import Reveal from '../components/Reveal';
@@ -13,12 +13,12 @@ const PILLARS = [
   {
     icon: ShieldCheck,
     title: 'Multi-tenant by architecture',
-    body: 'Each school is an isolated tenant. Access is checked per tenant and per role at the API gateway, so one schoolâ€™s staff can never see another schoolâ€™s students, fees or academic records.',
+    body: 'Each school is an isolated tenant. Access is checked per tenant and per role at the API gateway, so one school's staff can never see another school's students, fees or academic records.',
   },
   {
     icon: Building2,
     title: 'It looks like your school',
-    body: 'Your logo, favicon and primary colour propagate into every portal and the app. Parents and staff see your schoolâ€™s identity, not ours.',
+    body: 'Your logo, favicon and primary colour propagate into every portal and the app. Parents and staff see your school's identity, not ours.',
   },
   {
     icon: Radio,
@@ -29,7 +29,7 @@ const PILLARS = [
 
 export const AboutPage = () => {
   useEffect(() => {
-    document.title = `About â€” ${PRODUCT.name}`;
+    document.title = `About Ã¢â¬â ${PRODUCT.name}`;
   }, []);
 
   return (
@@ -51,7 +51,7 @@ export const AboutPage = () => {
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg">
               {PRODUCT.name} is a multi-tenant school management platform. One system carries
               admissions, academics, attendance, examinations, fees, communication, library,
-              transport and HR â€” with a dedicated portal for every role and a single app for
+              transport and HR Ã¢â¬â with a dedicated portal for every role and a single app for
               the people who are rarely at a desk.
             </p>
           </Reveal>
@@ -138,7 +138,7 @@ export const AboutPage = () => {
           <div>
             <h2 className="text-lg font-black text-slate-900 dark:text-white">Want a walkthrough?</h2>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-              Weâ€™ll show you the portals with your schoolâ€™s data in mind.
+              We'll show you the portals with your school's data in mind.
             </p>
           </div>
           <Link

@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
@@ -112,13 +112,13 @@ export const SectionDetail = () => {
         items={[
           { label: 'Academic Years', to: '/principal/academics/years' },
           { label: yearLabel, to: `/principal/academics/years/${yearId}` },
-          { label: `${classLabel} â€” ${sectionLabel}` },
+          { label: `${classLabel} Ã¢â¬â ${sectionLabel}` },
         ]}
       />
 
       <PageHeader
-        title={`${classLabel} â€” ${sectionLabel}`}
-        subtitle={`${yearLabel} Â· Room ${section.roomNumber || 'â€”'} Â· Capacity ${section.capacity}`}
+        title={`${classLabel} Ã¢â¬â ${sectionLabel}`}
+        subtitle={`${yearLabel} ÃÂ· Room ${section.roomNumber || 'Ã¢â¬â'} ÃÂ· Capacity ${section.capacity}`}
         action={<Badge variant={ENTITY_STATUS_VARIANT[section.status] || 'default'}>{section.status}</Badge>}
       />
 
@@ -143,7 +143,7 @@ export const SectionDetail = () => {
               { label: 'Capacity', value: section.counts?.capacity ?? section.capacity },
               { label: 'Students', value: section.counts?.students },
               { label: 'Subjects', value: section.counts?.subjects },
-              { label: 'Class Teacher', value: section.classTeacher?.name || 'â€”' },
+              { label: 'Class Teacher', value: section.classTeacher?.name || 'Ã¢â¬â' },
             ]}
           />
         </div>
@@ -159,7 +159,7 @@ export const SectionDetail = () => {
       {activeTab === 'subjects' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-white">{sectionLabel} â€” Subjects</h3>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-white">{sectionLabel} Ã¢â¬â Subjects</h3>
             <button
               type="button"
               onClick={() => setModalOpen(true)}
@@ -187,7 +187,7 @@ export const SectionDetail = () => {
                   {sectionSubjects.map((item) => (
                     <tr key={item.id} className="border-b border-slate-50 dark:border-slate-850">
                       <td className="px-4 py-3 font-bold">{item.subject?.name}</td>
-                      <td className="px-4 py-3">{item.teacher?.name || 'â€”'}</td>
+                      <td className="px-4 py-3">{item.teacher?.name || 'Ã¢â¬â'}</td>
                       <td className="px-4 py-3">{item.subject?.subjectType || 'THEORY'}</td>
                       <td className="px-4 py-3">{item.status}</td>
                       <td className="px-4 py-3">

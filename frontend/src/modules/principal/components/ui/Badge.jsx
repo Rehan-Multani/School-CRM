@@ -1,2 +1,2 @@
-export * from '../../../../shared/ui/Badge';
+ï»¿export * from '../../../../shared/ui/Badge';
 export { default } from '../../../../shared/ui/Badge';

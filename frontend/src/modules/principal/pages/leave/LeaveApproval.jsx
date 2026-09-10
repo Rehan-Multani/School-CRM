@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
+ï»¿import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Modal } from '../../components/ui/Modal';
@@ -379,7 +379,7 @@ export const LeaveApproval = () => {
                           </div>
                           <div>
                             <p className="font-bold text-slate-900 dark:text-white leading-tight">{l.employeeName}</p>
-                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">{l.employeeId} â€¢ {l.department || 'General'}</p>
+                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">{l.employeeId} â¢ {l.department || 'General'}</p>
                           </div>
                         </div>
                       </td>
@@ -468,7 +468,7 @@ export const LeaveApproval = () => {
             >
               {employees.map((e) => (
                 <option key={e.id} value={e.id}>
-                  {e.name} ({e.employeeId || 'EMP'}) â€” {e.department || 'General'}
+                  {e.name} ({e.employeeId || 'EMP'}) Ã¢â¬â {e.department || 'General'}
                 </option>
               ))}
             </select>

@@ -1,2 +1,2 @@
-export * from '../../../../shared/ui/Select';
+ï»¿export * from '../../../../shared/ui/Select';
 export { default } from '../../../../shared/ui/Select';

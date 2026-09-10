@@ -1,11 +1,11 @@
-import React from 'react';
+ï»¿import React from 'react';
 import { Smartphone } from 'lucide-react';
 import Reveal from '../Reveal';
 import StoreBadges from '../StoreBadges';
 import { APP_ROLES } from '../../data/content';
 
 // Mobile-app download band. The Play Store / APK links come from
-// /platform/app-config (Super Admin → Settings → Mobile app) via StoreBadges.
+// /platform/app-config (Super Admin â Settings â Mobile app) via StoreBadges.
 export const AppDownloadSection = () => {
   return (
     <section id="mobile-app" className="scroll-mt-20 py-20 lg:py-28">
@@ -19,7 +19,7 @@ export const AppDownloadSection = () => {
               <div>
                 <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-white backdrop-blur">
                   <Smartphone className="h-3.5 w-3.5" />
-                  Mobile app · Android
+                  Mobile app Â· Android
                 </span>
 
                 <h2 className="text-3xl font-black tracking-tight sm:text-4xl lg:leading-tight">
@@ -27,7 +27,7 @@ export const AppDownloadSection = () => {
                 </h2>
                 <p className="mt-4 max-w-md text-sm leading-relaxed text-indigo-100 sm:text-base">
                   Teachers, students, parents and transport staff install a single Android app.
-                  Sign in once — it opens the right workspace for your role.
+                  Sign in once â it opens the right workspace for your role.
                 </p>
 
                 <div className="mt-7">

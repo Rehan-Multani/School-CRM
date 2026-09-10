@@ -1,4 +1,4 @@
-import React from 'react';
+ï»¿import React from 'react';
 import LegalPage from '../components/LegalPage';
 
 export const TermsPage = () => (

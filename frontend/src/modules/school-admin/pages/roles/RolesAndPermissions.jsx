@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
 import { Badge } from '../../components/ui/Badge';
@@ -165,7 +165,7 @@ export const RolesAndPermissions = () => {
         </div>
       ) : loading ? (
         <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-indigo-600">
-          Loadingâ€¦
+          Loadingâ¦
         </div>
       ) : tab === 'roles' ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -258,7 +258,7 @@ export const RolesAndPermissions = () => {
                       onChange={(e) => assignRole(u.id, e.target.value)}
                       className="h-9 rounded-xl border border-slate-200 bg-slate-50/80 px-3 text-xs font-semibold outline-none disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                     >
-                      <option value="">â€” none (legacy access) â€”</option>
+                      <option value="">Ã¢â¬â none (legacy access) Ã¢â¬â</option>
                       {roles.map((r) => (
                         <option key={r.id} value={r.id}>
                           {r.name}
@@ -274,7 +274,7 @@ export const RolesAndPermissions = () => {
       )}
 
       {/* ROLE MODAL */}
-      <Modal isOpen={modal} onClose={() => setModal(false)} title={editing ? `Edit Role â€” ${editing.name}` : 'Create Role'} size="xl">
+      <Modal isOpen={modal} onClose={() => setModal(false)} title={editing ? `Edit Role Ã¢â¬â ${editing.name}` : 'Create Role'} size="xl">
         <form onSubmit={submit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -330,7 +330,7 @@ export const RolesAndPermissions = () => {
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setModal(false)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>
             <button type="submit" disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
-              {saving ? 'Savingâ€¦' : editing ? 'Save Matrix' : 'Create Role'}
+              {saving ? 'Savingâ¦' : editing ? 'Save Matrix' : 'Create Role'}
             </button>
           </div>
         </form>

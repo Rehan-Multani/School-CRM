@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+ï»¿import React, { useState, useEffect } from 'react';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -45,7 +45,7 @@ export const ParentAcademics = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-xs font-black text-foreground">{sub.name}</h4>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Teacher: {sub.teacher} â€¢ Classroom: {sub.rooms}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Teacher: {sub.teacher} â¢ Classroom: {sub.rooms}</p>
                 </div>
                 <Badge variant="primary">{sub.syllabusProgress}% Completed</Badge>
               </div>

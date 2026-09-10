@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import { readAccentColor } from '../theme/accent';
 
-// Canonical Chart widgets — byte-identical between teacher and parent.
+// Canonical Chart widgets â byte-identical between teacher and parent.
 // First slot tracks the active portal's live brand accent.
 const palette = () => [readAccentColor(), '#06B6D4', '#10B981', '#F59E0B', '#F43F5E', '#8B5CF6'];
 

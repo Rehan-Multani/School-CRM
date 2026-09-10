@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+ï»¿import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
@@ -203,7 +203,7 @@ export const Settings = () => {
               />
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">{user?.name || 'Librarian'}</h3>
-                <p className="text-xs text-slate-500">{user?.role || 'Head Librarian'} â€¢ {profile.email}</p>
+                <p className="text-xs text-slate-500">{user?.role || 'Head Librarian'} â¢ {profile.email}</p>
                 <span className="inline-block mt-1 px-2.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-3xs font-bold rounded-full">
                   Active Librarian Session
                 </span>
@@ -475,7 +475,7 @@ export const Settings = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-3xs font-bold text-slate-500 uppercase">
-                  Overdue Tariff (â‚¹ / Day) *
+                  Overdue Tariff (Ã¢âÂ¹ / Day) *
                 </label>
                 <input
                   placeholder="e.g. 5"
@@ -491,7 +491,7 @@ export const Settings = () => {
 
               <div className="space-y-1.5">
                 <label className="text-3xs font-bold text-slate-500 uppercase">
-                  Maximum Penalty Cap (â‚¹) *
+                  Maximum Penalty Cap (Ã¢âÂ¹) *
                 </label>
                 <input
                   placeholder="e.g. 500"

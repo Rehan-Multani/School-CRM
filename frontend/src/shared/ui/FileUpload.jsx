@@ -1,8 +1,8 @@
-﻿import React, { useRef, useState } from 'react';
+ï»¿import React, { useRef, useState } from 'react';
 import { Upload, X, FileText, Image, Video } from 'lucide-react';
 import { cn } from '../lib/cn';
 
-// Canonical FileUpload â€” identical between teacher and parent aside from
+// Canonical FileUpload Ã¢â¬â identical between teacher and parent aside from
 // an unused per-module `id` attribute (verified via repo-wide grep), now
 // an optional prop.
 export const FileUpload = ({ onFilesChange, accept = '*', maxFiles = 5, label = 'Upload Files', className, id }) => {

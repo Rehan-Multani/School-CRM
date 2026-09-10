@@ -1,4 +1,4 @@
-﻿import React from 'react';
+ï»¿import React from 'react';
 import { CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 

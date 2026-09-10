@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
@@ -57,9 +57,9 @@ function buildFileUrl(path) {
 }
 
 function formatDate(value) {
-  if (!value) return 'â€”';
+  if (!value) return 'Ã¢â¬â';
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'â€”';
+  if (Number.isNaN(date.getTime())) return 'Ã¢â¬â';
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
@@ -95,7 +95,7 @@ function Field({ label, value, isMono = false }) {
           isMono ? 'font-mono text-xs' : ''
         }`}
       >
-        {value || 'â€”'}
+        {value || 'Ã¢â¬â'}
       </p>
     </div>
   );
@@ -266,11 +266,11 @@ export const StaffDetail = () => {
                 <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
                   EMP ID: {user.employeeId}
                 </span>
-                <span>â€¢</span>
+                <span>â¢</span>
                 <span>{user.email}</span>
                 {user.phone && (
                   <>
-                    <span>â€¢</span>
+                    <span>â¢</span>
                     <span>{user.phone}</span>
                   </>
                 )}
@@ -351,7 +351,7 @@ export const StaffDetail = () => {
           <div className="grid grid-cols-2 gap-4">
             <Field
               label="Basic Monthly Salary"
-              value={user.basicSalary ? `â‚¹${Number(user.basicSalary).toLocaleString('en-IN')} / month` : 'â‚¹0'}
+              value={user.basicSalary ? `Ã¢âÂ¹${Number(user.basicSalary).toLocaleString('en-IN')} / month` : 'Ã¢âÂ¹0'}
             />
             <Field label="Account Type" value={user.bankDetails?.accountType || 'SALARY'} />
             <Field label="Account Holder Name" value={user.bankDetails?.accountName} />

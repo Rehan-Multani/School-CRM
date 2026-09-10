@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+ï»¿import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs } from '../../components/ui/Tabs';
 import { Badge } from '../../components/ui/Badge';
@@ -165,7 +165,7 @@ export const BookDetail = () => {
     {
       title: 'Location',
       key: 'rackNumber',
-      render: (val, row) => (val ? `Rack ${val}, Shelf ${row.shelfNumber || '1'}` : 'â€”'),
+      render: (val, row) => (val ? `Rack ${val}, Shelf ${row.shelfNumber || '1'}` : 'Ã¢â¬â'),
     },
     {
       title: 'Acquired Date',
@@ -207,7 +207,7 @@ export const BookDetail = () => {
     {
       title: 'Fine',
       key: 'fineAmount',
-      render: (val) => (val > 0 ? `â‚¹${val}` : 'â€”'),
+      render: (val) => (val > 0 ? `Ã¢âÂ¹${val}` : 'Ã¢â¬â'),
     },
   ];
 
@@ -292,11 +292,11 @@ export const BookDetail = () => {
             </div>
             <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
               <Tag className="h-4 w-4 text-indigo-500" />
-              <span>ISBN: {book.isbn || 'â€”'}</span>
+              <span>ISBN: {book.isbn || 'Ã¢â¬â'}</span>
             </div>
             <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
               <MapPin className="h-4 w-4 text-indigo-500" />
-              <span>Rack {book.rackNumber || 'â€”'}, Shelf {book.shelfNumber || 'â€”'}</span>
+              <span>Rack {book.rackNumber || 'Ã¢â¬â'}, Shelf {book.shelfNumber || 'Ã¢â¬â'}</span>
             </div>
           </div>
         </div>
@@ -320,19 +320,19 @@ export const BookDetail = () => {
                   <span className="font-bold text-slate-800 dark:text-slate-200">{book.category}</span>
 
                   <span className="font-semibold text-slate-400">Subject:</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">{book.subject || 'â€”'}</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{book.subject || 'Ã¢â¬â'}</span>
 
                   <span className="font-semibold text-slate-400">Publisher:</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">{book.publisher || 'â€”'}</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{book.publisher || 'Ã¢â¬â'}</span>
 
                   <span className="font-semibold text-slate-400">Publication Year:</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">{book.publicationYear || 'â€”'}</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{book.publicationYear || 'Ã¢â¬â'}</span>
 
                   <span className="font-semibold text-slate-400">Language:</span>
                   <span className="font-bold text-slate-800 dark:text-slate-200">{book.language || 'English'}</span>
 
                   <span className="font-semibold text-slate-400">Pages:</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">{book.pages || 'â€”'}</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{book.pages || 'Ã¢â¬â'}</span>
 
                   <span className="font-semibold text-slate-400">Added On:</span>
                   <span className="font-bold text-slate-800 dark:text-slate-200">{formatDate(book.createdAt)}</span>
@@ -472,7 +472,7 @@ export const BookDetail = () => {
               </select>
             </div>
             <div className="space-y-1">
-              <label className="text-3xs font-bold text-slate-500 uppercase">Acquisition Price (â‚¹)</label>
+              <label className="text-3xs font-bold text-slate-500 uppercase">Acquisition Price (Ã¢âÂ¹)</label>
               <input
                 placeholder="e.g. 450"
                 type="number"

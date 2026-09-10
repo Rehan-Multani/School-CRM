@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -144,7 +144,7 @@ export const DashboardPreviewSection = () => {
                   </span>
                 </div>
                 <div className="mt-2 text-2xl font-black text-slate-900 dark:text-white sm:text-3xl">
-                  â‚¹<CountUp target={18.4} decimals={1} suffix="L" />
+                  Ã¢âÂ¹<CountUp target={18.4} decimals={1} suffix="L" />
                 </div>
                 <span className="mt-1 block text-[11px] text-slate-500 dark:text-slate-400">
                   92.4% Quarter Target Met
@@ -229,7 +229,7 @@ export const DashboardPreviewSection = () => {
                     <Sparkles className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
                     Automated anomaly detection: Attendance within 99.1% of target.
                   </span>
-                  <span className="font-bold text-indigo-600 dark:text-indigo-400">Full Audit Log â†’</span>
+                  <span className="font-bold text-indigo-600 dark:text-indigo-400">Full Audit Log Ã¢â â</span>
                 </div>
               </div>
 
@@ -251,7 +251,7 @@ export const DashboardPreviewSection = () => {
                     {[
                       {
                         title: 'Fee Payment Received',
-                        desc: 'Class 8-A: â‚¹28,500 via UPI (Receipt #8412)',
+                        desc: 'Class 8-A: Ã¢âÂ¹28,500 via UPI (Receipt #8412)',
                         time: '2m ago',
                         badge: 'Finance',
                         color: 'text-emerald-600 dark:text-emerald-400',

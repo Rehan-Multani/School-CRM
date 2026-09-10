@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+ï»¿import React, { useEffect, useRef, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
 import { useToast } from '../../components/ui/Toast';
@@ -659,7 +659,7 @@ export const Settings = () => {
                 id="smtpPass"
                 value={smtpPass}
                 onChange={(e) => setSmtpPass(e.target.value)}
-                placeholder={smtpPassSet ? 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢' : 'Enter SMTP password'}
+                placeholder={smtpPassSet ? 'â¢â¢â¢â¢â¢â¢â¢â¢' : 'Enter SMTP password'}
               />
             </Field>
             <Field id="smtpFrom" label="From name / email" hint="Shown as the sender on outgoing mail.">

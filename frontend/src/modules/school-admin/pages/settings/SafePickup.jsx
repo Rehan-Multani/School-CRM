@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Save, Loader2, History, Lock, BadgeCheck } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
@@ -118,7 +118,7 @@ export function SafePickup() {
           <p className="text-sm font-bold text-slate-700 dark:text-slate-200">Not available</p>
           <p className="mx-auto mt-1.5 max-w-md text-xs leading-relaxed text-slate-500 dark:text-slate-400">
             Student Pickup Verification is managed by your platform administrator and is not
-            enabled for your school. Contact platform support to turn it on â€” once enabled,
+            enabled for your school. Contact platform support to turn it on Ã¢â¬â once enabled,
             you can configure it class by class here.
           </p>
         </div>

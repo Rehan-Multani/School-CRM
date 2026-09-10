@@ -2,7 +2,7 @@ import React from 'react';
 import { Search, X } from 'lucide-react';
 import { cn } from '../lib/cn';
 
-// Canonical merged SearchBar — byte-identical between teacher and parent
+// Canonical merged SearchBar â byte-identical between teacher and parent
 // aside from a per-module `id` attribute that nothing else in the app
 // referenced (verified via repo-wide grep), so it's now an optional prop.
 export const SearchBar = ({ value, onChange, placeholder = 'Search...', className, onClear, id }) => {

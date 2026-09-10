@@ -1,4 +1,4 @@
-import React from 'react';
+ï»¿import React from 'react';
 import Reveal from '../Reveal';
 import CountUp from '../ui/CountUp';
 import { STATS } from '../../data/content';

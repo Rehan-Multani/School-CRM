@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
+ï»¿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
 import { hrApi } from '../../../../shared/api/client';
@@ -71,7 +71,7 @@ export const AuditLogs = () => {
           events.push({
             id: `PAY-REL-${p.id}`,
             user: 'Finance / HR Operations',
-            action: `Disbursed monthly salary of â‚¹${p.netSalary} to ${p.employeeName} (${p.month})`,
+            action: `Disbursed monthly salary of Ã¢âÂ¹${p.netSalary} to ${p.employeeName} (${p.month})`,
             date: p.updatedAt ? new Date(p.updatedAt).toLocaleString() : 'Recent',
             type: 'PAYROLL_RELEASED',
           });

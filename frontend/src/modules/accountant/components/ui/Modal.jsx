@@ -1,2 +1,2 @@
-export * from '../../../../shared/ui/Modal';
+ï»¿export * from '../../../../shared/ui/Modal';
 export { default } from '../../../../shared/ui/Modal';

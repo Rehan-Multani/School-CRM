@@ -1,2 +1,2 @@
-export { default as AuditLogs } from './TransactionHistory';
+ï»¿export { default as AuditLogs } from './TransactionHistory';
 export * from './TransactionHistory';

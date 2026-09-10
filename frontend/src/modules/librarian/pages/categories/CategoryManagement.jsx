@@ -1,2 +1,2 @@
-export { default as CategoryManagement } from '../books/Categories';
+ï»¿export { default as CategoryManagement } from '../books/Categories';
 export * from '../books/Categories';

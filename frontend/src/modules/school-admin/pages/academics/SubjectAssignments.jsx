@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
@@ -821,7 +821,7 @@ export const SubjectAssignments = () => {
               <option value="ALL">All Teachers</option>
               <option value="ASSIGNED">Assigned Only</option>
               <option value="VACANT">Vacant / Unassigned</option>
-              <option disabled>â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</option>
+              <option disabled>Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬</option>
               {teachers.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.name} ({t.department || 'Faculty'})
@@ -993,7 +993,7 @@ export const SubjectAssignments = () => {
                           <div className="flex flex-col gap-0.5">
                             <div className="flex items-center gap-1.5">
                               <span className="font-bold text-slate-900 dark:text-white">
-                                {sub?.name || 'â€”'}
+                                {sub?.name || 'Ã¢â¬â'}
                               </span>
                               {sub?.code && (
                                 <span className="inline-flex rounded-md bg-indigo-50 px-2 py-0.5 font-mono text-[10px] font-bold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
@@ -1052,7 +1052,7 @@ export const SubjectAssignments = () => {
                         <td className="px-3.5 py-3 whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
                             <span className="font-semibold text-slate-700 dark:text-slate-300">
-                              {yr?.name || 'â€”'}
+                              {yr?.name || 'Ã¢â¬â'}
                             </span>
                             {yr?.isCurrent && (
                               <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
@@ -1100,7 +1100,7 @@ export const SubjectAssignments = () => {
           {/* Super Admin Style Pagination Bar */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-1">
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Showing {(page - 1) * PAGE_SIZE + 1}â€“
+              Showing {(page - 1) * PAGE_SIZE + 1}Ã¢â¬â
               {Math.min(page * PAGE_SIZE, filteredAssignments.length)} of {filteredAssignments.length} subject assignments
             </p>
             {Math.ceil(filteredAssignments.length / PAGE_SIZE) > 1 && (
@@ -1254,7 +1254,7 @@ export const SubjectAssignments = () => {
                   );
                   return (
                     <option key={sub.id} value={sub.id} disabled={isAssigned}>
-                      {sub.name} ({sub.code || 'N/A'}) {isAssigned ? 'â€” Already Assigned' : ''}
+                      {sub.name} ({sub.code || 'N/A'}) {isAssigned ? 'Ã¢â¬â Already Assigned' : ''}
                     </option>
                   );
                 })}
@@ -1272,7 +1272,7 @@ export const SubjectAssignments = () => {
                 <option value="">Leave Vacant (Assign Later)</option>
                 {teachers.map((t) => (
                   <option key={t.id} value={t.id}>
-                    {t.name} ({t.department || 'Faculty'}) â€” {t.email || t.employeeId || 'ID'}
+                    {t.name} ({t.department || 'Faculty'}) Ã¢â¬â {t.email || t.employeeId || 'ID'}
                   </option>
                 ))}
               </select>
@@ -1358,7 +1358,7 @@ export const SubjectAssignments = () => {
                 <div>
                   <span className="text-slate-400">Class & Section:</span>
                   <p className="font-bold text-slate-800 dark:text-slate-200">
-                    {editingAssignment.class?.name || classMap.get(editingAssignment.classId)?.name} â€” Section{' '}
+                    {editingAssignment.class?.name || classMap.get(editingAssignment.classId)?.name} Ã¢â¬â Section{' '}
                     {editingAssignment.section?.name || sectionMap.get(editingAssignment.sectionId)?.name}
                   </p>
                 </div>
@@ -1366,7 +1366,7 @@ export const SubjectAssignments = () => {
                   <span className="text-slate-400">Subject:</span>
                   <p className="font-bold text-primary">
                     {editingAssignment.subject?.name || subjectMap.get(editingAssignment.subjectId)?.name} (
-                    {editingAssignment.subject?.code || subjectMap.get(editingAssignment.subjectId)?.code || 'â€”'})
+                    {editingAssignment.subject?.code || subjectMap.get(editingAssignment.subjectId)?.code || 'Ã¢â¬â'})
                   </p>
                 </div>
               </div>
@@ -1383,7 +1383,7 @@ export const SubjectAssignments = () => {
                 <option value="">Leave Vacant (No Teacher)</option>
                 {teachers.map((t) => (
                   <option key={t.id} value={t.id}>
-                    {t.name} ({t.department || 'Faculty'}) â€” {t.email}
+                    {t.name} ({t.department || 'Faculty'}) Ã¢â¬â {t.email}
                   </option>
                 ))}
               </select>

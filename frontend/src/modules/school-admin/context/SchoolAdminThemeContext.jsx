@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useLayoutEffect, useCallback } from 'react';
+ï»¿import React, { createContext, useState, useContext, useLayoutEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   applySchoolAdminAccent,

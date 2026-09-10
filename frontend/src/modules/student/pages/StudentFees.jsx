@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { useFees } from '../hooks/useStudentHooks';
 import { formatCurrency } from '../utils/formatters';
 import { Card } from '../components/ui/Card';

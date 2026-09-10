@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../lib/cn';
 
-// Canonical merged Badge — superset of every variant used across gen-1
+// Canonical merged Badge â superset of every variant used across gen-1
 // (student/teacher/parent) and gen-2 (HR/accountant/librarian/principal/
 // school-admin/transport) modules.
 export const Badge = ({ children, variant = 'default', className }) => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../lib/cn';
 
-// Canonical merged Card — superset of student (`hoverEffect` prop, default
+// Canonical merged Card â superset of student (`hoverEffect` prop, default
 // true) and teacher/parent (hover style gated on `onClick` instead).
 // Both are honored: `hoverEffect` defaults to true and can be turned off
 // explicitly; `onClick` additionally adds pointer/active-press affordance.

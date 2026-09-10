@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
@@ -257,7 +257,7 @@ export const AcademicYearDetail = () => {
       {/* Page Header */}
       <PageHeader
         title={year.name}
-        subtitle={`${formatDate(year.startDate)} - ${formatDate(year.endDate)} Â· Code: ${year.code || 'â€”'}`}
+        subtitle={`${formatDate(year.startDate)} - ${formatDate(year.endDate)} ÃÂ· Code: ${year.code || 'Ã¢â¬â'}`}
         badge={
           <Badge variant={YEAR_STATUS_VARIANT[year.status] || 'default'}>
             {year.isCurrent ? 'Current Session' : year.status}
@@ -388,7 +388,7 @@ export const AcademicYearDetail = () => {
                 <div>
                   <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">{item.class?.name}</h4>
                   <p className="mt-1 text-xs text-slate-500">
-                    {item.counts?.sections ?? 0} sections Â· {item.counts?.students ?? 0} students Â·{' '}
+                    {item.counts?.sections ?? 0} sections ÃÂ· {item.counts?.students ?? 0} students ÃÂ·{' '}
                     {item.counts?.subjectAssignments ?? 0} subject assignments
                   </p>
                 </div>
@@ -801,7 +801,7 @@ function ClassSections({ yearId, classId, teachers, onChanged, onEditSection, on
                   {section.classTeacher?.name || <span className="text-slate-400 italic">Unassigned</span>}
                 </td>
                 <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-400">
-                  {section.roomNumber || 'â€”'}
+                  {section.roomNumber || 'Ã¢â¬â'}
                 </td>
                 <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-400">
                   {section.capacity || 40}

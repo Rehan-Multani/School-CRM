@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -92,7 +92,7 @@ export const ParentFees = () => {
                     {inst.status}
                   </Badge>
                 </div>
-                <span className="text-[10px] text-slate-400 font-semibold mt-0.5 block">Due Date: {inst.dueDate} {inst.receiptNo && `â€¢ Receipt ${inst.receiptNo}`}</span>
+                <span className="text-[10px] text-slate-400 font-semibold mt-0.5 block">Due Date: {inst.dueDate} {inst.receiptNo && `â¢ Receipt ${inst.receiptNo}`}</span>
               </div>
 
               <div className="flex items-center gap-3">
@@ -233,7 +233,7 @@ export const ParentFees = () => {
         <PrintReportModal
           isOpen={!!selectedReceipt}
           onClose={() => setSelectedReceipt(null)}
-          title={`Fee Receipt â€” ${selectedReceipt.receiptNo}`}
+          title={`Fee Receipt Ã¢â¬â ${selectedReceipt.receiptNo}`}
           documentType="Official Fee Receipt"
         >
           <div className="space-y-6">

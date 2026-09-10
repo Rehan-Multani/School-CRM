@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { useAcademics } from '../hooks/useStudentHooks';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';

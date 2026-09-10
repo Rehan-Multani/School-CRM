@@ -1,8 +1,8 @@
-﻿import React from 'react';
+ï»¿import React from 'react';
 import { Inbox } from 'lucide-react';
 import { cn } from '../lib/cn';
 
-// Canonical merged EmptyState â€” superset of student's simpler version
+// Canonical merged EmptyState Ã¢â¬â superset of student's simpler version
 // (no action button, no className passthrough) and teacher/parent's
 // richer version (optional `action`/`actionLabel` CTA button, className).
 export const EmptyState = ({

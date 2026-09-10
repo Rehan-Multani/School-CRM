@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
+ï»¿import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
 import { hrApi } from '../../../../shared/api/client';
@@ -81,7 +81,7 @@ export const StaffManagement = () => {
       setStaffList((prev) =>
         prev.map((s) => (s.id === staff.id ? { ...s, status: 'ACTIVE' } : s))
       );
-      showToast(`âœ“ Staff member ${staff.name} approved & activated!`, 'success');
+      showToast(`Ã¢Åâ Staff member ${staff.name} approved & activated!`, 'success');
     } catch (err) {
       showToast(err.response?.data?.message || err.message || 'Failed to approve staff member', 'error');
     }
@@ -117,7 +117,7 @@ export const StaffManagement = () => {
   }, [staffList]);
 
   const handleModalSuccess = () => {
-    showToast(`âœ“ Staff member submitted for Admin Approval successfully!`, 'success');
+    showToast(`Ã¢Åâ Staff member submitted for Admin Approval successfully!`, 'success');
     fetchStaff();
   };
 
@@ -151,7 +151,7 @@ export const StaffManagement = () => {
         header: 'Employee ID',
         id: 'employeeId',
         sortable: true,
-        render: (val) => <span className="font-mono text-xs text-slate-600 dark:text-slate-400">{val || 'â€”'}</span>,
+        render: (val) => <span className="font-mono text-xs text-slate-600 dark:text-slate-400">{val || 'Ã¢â¬â'}</span>,
       },
       {
         header: 'Role',
@@ -183,14 +183,14 @@ export const StaffManagement = () => {
       {
         header: 'Gender',
         id: 'gender',
-        render: (val) => <span className="text-slate-600 capitalize dark:text-slate-400">{val?.toLowerCase() || 'â€”'}</span>,
+        render: (val) => <span className="text-slate-600 capitalize dark:text-slate-400">{val?.toLowerCase() || 'Ã¢â¬â'}</span>,
       },
       {
         header: 'Date of Birth / Joined',
         id: 'joiningDate',
         render: (val) => (
           <span className="text-slate-500 whitespace-nowrap">
-            {val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'â€”'}
+            {val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Ã¢â¬â'}
           </span>
         ),
       },
@@ -432,7 +432,7 @@ export const StaffManagement = () => {
         <Modal
           isOpen={!!rejectingStaff}
           onClose={() => setRejectingStaff(null)}
-          title={`Reject Registration â€” ${rejectingStaff.name}`}
+          title={`Reject Registration Ã¢â¬â ${rejectingStaff.name}`}
           size="sm"
         >
           <form onSubmit={handleConfirmReject} className="space-y-4 p-1">

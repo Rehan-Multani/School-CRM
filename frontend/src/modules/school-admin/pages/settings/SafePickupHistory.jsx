@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useToast } from '../../components/ui/Toast';
@@ -50,7 +50,7 @@ export function SafePickupHistory() {
     load();
   }, [load]);
 
-  const fmt = (d) => (d ? new Date(d).toLocaleString() : 'â€”');
+  const fmt = (d) => (d ? new Date(d).toLocaleString() : 'Ã¢â¬â');
 
   return (
     <div className="mx-auto max-w-5xl space-y-4 p-4 sm:p-6">
@@ -138,12 +138,12 @@ export function SafePickupHistory() {
                   <td className="whitespace-nowrap px-4 py-2.5 text-slate-500">{fmt(r.initiatedAt || r.date)}</td>
                   <td className="px-4 py-2.5 font-medium text-slate-700 dark:text-slate-200">{r.studentName}</td>
                   <td className="whitespace-nowrap px-4 py-2.5 text-slate-500">
-                    {[r.className, r.sectionName].filter(Boolean).join(' ') || 'â€”'}
+                    {[r.className, r.sectionName].filter(Boolean).join(' ') || 'Ã¢â¬â'}
                   </td>
-                  <td className="px-4 py-2.5 text-slate-500">{r.teacherName || 'â€”'}</td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-slate-400">{r.maskedMobile || 'â€”'}</td>
+                  <td className="px-4 py-2.5 text-slate-500">{r.teacherName || 'Ã¢â¬â'}</td>
+                  <td className="whitespace-nowrap px-4 py-2.5 text-slate-400">{r.maskedMobile || 'Ã¢â¬â'}</td>
                   <td className="px-4 py-2.5 text-slate-500">
-                    {r.pickupPersonName ? `${r.pickupPersonName}${r.pickupPersonRelationship ? ` (${r.pickupPersonRelationship})` : ''}` : 'â€”'}
+                    {r.pickupPersonName ? `${r.pickupPersonName}${r.pickupPersonRelationship ? ` (${r.pickupPersonRelationship})` : ''}` : 'Ã¢â¬â'}
                   </td>
                   <td className="px-4 py-2.5">
                     <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_STYLES[r.status] || STATUS_STYLES.PENDING}`}>

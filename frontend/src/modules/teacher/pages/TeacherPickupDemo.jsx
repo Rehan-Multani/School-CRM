@@ -1,11 +1,11 @@
-﻿import React, { useCallback, useEffect, useRef, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ShieldCheck, Loader2, X, CheckCircle2, RotateCcw, LogIn } from 'lucide-react';
 import { teacherPickupApi } from '../../../shared/api/client';
 
 /**
- * STAGING DEMO â€” drives the real Student Safe Pickup API from the mock teacher
+ * STAGING DEMO Ã¢â¬â drives the real Student Safe Pickup API from the mock teacher
  * web panel. Logs in for real (its own token), lists eligible students, and runs
- * initiate â†’ OTP â†’ verify â†’ handover â†’ complete. Production teacher UI is the
+ * initiate Ã¢â â OTP Ã¢â â verify Ã¢â â handover Ã¢â â complete. Production teacher UI is the
  * Flutter APK; this page just proves the end-to-end flow.
  */
 function msg(e, fb) {
@@ -202,7 +202,7 @@ export function TeacherPickupDemo() {
       <div className="mx-auto max-w-sm space-y-4 p-6">
         <div className="flex items-center gap-2 text-emerald-600">
           <ShieldCheck className="h-6 w-6" />
-          <h1 className="text-lg font-bold">Safe Pickup â€” demo</h1>
+          <h1 className="text-lg font-bold">Safe Pickup Ã¢â¬â demo</h1>
         </div>
         <p className="text-sm text-slate-500">Staging demo. Sign in with a real teacher account.</p>
         <input
@@ -273,7 +273,7 @@ export function TeacherPickupDemo() {
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-slate-700 dark:text-slate-100">{s.name}</p>
                   <p className="text-xs text-slate-400">
-                    {[s.className, s.sectionName].filter(Boolean).join(' ')} Â· Roll {s.rollNumber || 'â€”'} Â·{' '}
+                    {[s.className, s.sectionName].filter(Boolean).join(' ')} ÃÂ· Roll {s.rollNumber || 'Ã¢â¬â'} ÃÂ·{' '}
                     {s.attendanceStatus}
                   </p>
                 </div>
@@ -433,7 +433,7 @@ export function TeacherPickupDemo() {
             <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-500" />
             <h2 className="mt-2 text-lg font-bold text-slate-800 dark:text-slate-100">Student pickup completed</h2>
             <p className="mt-1 text-sm text-slate-500">
-              {active.student.name} â€” verified by parent OTP and handed over.
+              {active.student.name} Ã¢â¬â verified by parent OTP and handed over.
             </p>
             <button
               type="button"

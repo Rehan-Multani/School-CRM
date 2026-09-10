@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
@@ -412,7 +412,7 @@ export const FeeStructuresIndex = ({ hideHeader = false }) => {
                       <div className="flex items-center gap-1.5">
                         <Calendar className="h-3.5 w-3.5 text-slate-400" />
                         <span className="font-semibold text-slate-600 dark:text-slate-300">
-                          {st.academicYear?.name || 'â€”'}
+                          {st.academicYear?.name || 'Ã¢â¬â'}
                         </span>
                       </div>
                     </td>

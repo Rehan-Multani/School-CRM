@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+ï»¿import React, { useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
 import { hrApi } from '../../../../shared/api/client';
@@ -178,9 +178,9 @@ export const Reports = () => {
                   <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-950/40">
                     <td className="p-3.5 font-bold text-slate-900 dark:text-white">{m._id}</td>
                     <td className="p-3.5 text-center font-mono">{m.count}</td>
-                    <td className="p-3.5 text-right">â‚¹{Number(m.totalGross || 0).toLocaleString('en-IN')}</td>
-                    <td className="p-3.5 text-right text-rose-600">â‚¹{Number(m.totalDeductions || 0).toLocaleString('en-IN')}</td>
-                    <td className="p-3.5 text-right font-black text-emerald-600 dark:text-emerald-400">â‚¹{Number(m.totalNet || 0).toLocaleString('en-IN')}</td>
+                    <td className="p-3.5 text-right">Ã¢âÂ¹{Number(m.totalGross || 0).toLocaleString('en-IN')}</td>
+                    <td className="p-3.5 text-right text-rose-600">Ã¢âÂ¹{Number(m.totalDeductions || 0).toLocaleString('en-IN')}</td>
+                    <td className="p-3.5 text-right font-black text-emerald-600 dark:text-emerald-400">Ã¢âÂ¹{Number(m.totalNet || 0).toLocaleString('en-IN')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -209,7 +209,7 @@ export const Reports = () => {
                 {depts.map((d, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-950/40">
                     <td className="p-3.5 font-bold text-slate-900 dark:text-white">{d.name}</td>
-                    <td className="p-3.5 font-mono text-slate-500">{d.code || 'â€”'}</td>
+                    <td className="p-3.5 font-mono text-slate-500">{d.code || 'Ã¢â¬â'}</td>
                     <td className="p-3.5 text-slate-600 dark:text-slate-400">{d.headEmployeeName || 'Not Appointed'}</td>
                     <td className="p-3.5 text-center">
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{d.status}</span>

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudentAuth } from '../context/StudentAuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -108,8 +108,8 @@ export const StudentSettings = () => {
                 className="px-3 py-2 rounded-xl border border-border bg-slate-50 dark:bg-indigo-600 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="English">English</option>
-                <option value="Hindi">à¤¹à¤¿à¤¨à¥à¤¦à¥€ (Hindi)</option>
-                <option value="Spanish">EspaÃ±ol (Spanish)</option>
+                <option value="Hindi">Ã Â¤Â¹Ã Â¤Â¿Ã Â¤Â¨Ã Â¥ÂÃ Â¤Â¦Ã Â¥â¬ (Hindi)</option>
+                <option value="Spanish">EspaÃÂ±ol (Spanish)</option>
               </select>
             </div>
           </div>
@@ -161,7 +161,7 @@ export const StudentSettings = () => {
                 required
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
-                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
                 className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-50 dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs"
               />
             </div>
@@ -175,7 +175,7 @@ export const StudentSettings = () => {
                 required
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
                 className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-50 dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs"
               />
             </div>
@@ -189,7 +189,7 @@ export const StudentSettings = () => {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
                 className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-50 dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs"
               />
             </div>

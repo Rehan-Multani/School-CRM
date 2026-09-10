@@ -1,4 +1,4 @@
-import React from 'react';
+ï»¿import React from 'react';
 
 /**
  * Premium pill/eyebrow badge with soft gradient border and glowing bullet indicator.

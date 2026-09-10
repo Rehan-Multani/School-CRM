@@ -1,1 +1,1 @@
-export * from '../../../../shared/ui/Avatar';
+ï»¿export * from '../../../../shared/ui/Avatar';

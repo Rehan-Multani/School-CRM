@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Bell, MessageSquare, ChevronDown, Check } from 'lucide-react';
 import { useParentNotifications } from '../../context/ParentNotificationContext';
@@ -107,7 +107,7 @@ export const TopBar = () => {
                     <img src={c.photo} alt={c.name} className="w-10 h-10 rounded-xl object-cover" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-foreground">{c.name}</p>
-                      <p className="text-[10px] text-slate-400 font-medium">{c.class} - {c.section} â€¢ Roll #{c.rollNo}</p>
+                      <p className="text-[10px] text-slate-400 font-medium">{c.class} - {c.section} â¢ Roll #{c.rollNo}</p>
                     </div>
                     {isActive && <Check className="w-4.5 h-4.5 text-primary shrink-0" />}
                   </button>

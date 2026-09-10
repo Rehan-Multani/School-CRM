@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+ï»¿import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, HelpCircle } from 'lucide-react';
 import Reveal from '../components/Reveal';
@@ -52,7 +52,7 @@ export const LandingPage = () => {
   const [openFaq, setOpenFaq] = useState(0);
 
   useEffect(() => {
-    document.title = `${PRODUCT.name} â€” ${PRODUCT.headline}`;
+    document.title = `${PRODUCT.name} Ã¢â¬â ${PRODUCT.headline}`;
   }, []);
 
   return (
@@ -72,7 +72,7 @@ export const LandingPage = () => {
       {/* 5. Role-Based Platform (All 9 Portals) */}
       <RolesSection />
 
-      {/* 5b. Mobile app download (Play Store / APK â€” links managed in Super Admin) */}
+      {/* 5b. Mobile app download (Play Store / APK Ã¢â¬â links managed in Super Admin) */}
       <AppDownloadSection />
 
       {/* 6. Connected Workflow (School -> Teachers -> Students -> Parents -> Admin) */}

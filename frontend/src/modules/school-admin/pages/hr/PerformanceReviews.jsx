@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
@@ -46,11 +46,11 @@ const PERIOD_PRESETS = [
 ];
 
 const RATING_DESCRIPTIONS = {
-  5: { label: '5.0 â€” Outstanding Performance', color: 'text-amber-500', desc: 'Consistently exceeds all performance benchmarks and exhibits exceptional leadership.' },
-  4: { label: '4.0 â€” Exceeds Expectations', color: 'text-emerald-500', desc: 'Frequently surpasses objectives and delivers high-standard pedagogical output.' },
-  3: { label: '3.0 â€” Meets Expectations', color: 'text-indigo-500', desc: 'Consistently satisfies institutional duties and meets standard curriculum requirements.' },
-  2: { label: '2.0 â€” Needs Improvement', color: 'text-orange-500', desc: 'Performance is below expected threshold; targeted training or mentoring advised.' },
-  1: { label: '1.0 â€” Unsatisfactory', color: 'text-rose-500', desc: 'Fails to meet minimum acceptable job criteria; performance improvement plan required.' },
+  5: { label: '5.0 Ã¢â¬â Outstanding Performance', color: 'text-amber-500', desc: 'Consistently exceeds all performance benchmarks and exhibits exceptional leadership.' },
+  4: { label: '4.0 Ã¢â¬â Exceeds Expectations', color: 'text-emerald-500', desc: 'Frequently surpasses objectives and delivers high-standard pedagogical output.' },
+  3: { label: '3.0 Ã¢â¬â Meets Expectations', color: 'text-indigo-500', desc: 'Consistently satisfies institutional duties and meets standard curriculum requirements.' },
+  2: { label: '2.0 Ã¢â¬â Needs Improvement', color: 'text-orange-500', desc: 'Performance is below expected threshold; targeted training or mentoring advised.' },
+  1: { label: '1.0 Ã¢â¬â Unsatisfactory', color: 'text-rose-500', desc: 'Fails to meet minimum acceptable job criteria; performance improvement plan required.' },
 };
 
 export const PerformanceReviews = () => {
@@ -431,12 +431,12 @@ export const PerformanceReviews = () => {
             onChange={(e) => setSelectedRating(e.target.value)}
             className="h-9.5 rounded-xl border border-slate-200 bg-slate-50/80 px-3 text-xs font-semibold outline-none focus:border-indigo-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
           >
-            <option value="ALL">All Ratings (1-5â˜…)</option>
-            <option value="5">5 Stars â€” Outstanding</option>
-            <option value="4">4 Stars â€” Exceeds</option>
-            <option value="3">3 Stars â€” Meets</option>
-            <option value="2">2 Stars â€” Improvement</option>
-            <option value="1">1 Star â€” Unsatisfactory</option>
+            <option value="ALL">All Ratings (1-5Ã¢Ëâ¦)</option>
+            <option value="5">5 Stars Ã¢â¬â Outstanding</option>
+            <option value="4">4 Stars Ã¢â¬â Exceeds</option>
+            <option value="3">3 Stars Ã¢â¬â Meets</option>
+            <option value="2">2 Stars Ã¢â¬â Improvement</option>
+            <option value="1">1 Star Ã¢â¬â Unsatisfactory</option>
           </select>
 
           {/* Status Filter */}
@@ -510,7 +510,7 @@ export const PerformanceReviews = () => {
                         <div>
                           <p className="font-bold text-slate-900 dark:text-white">{r.employeeName}</p>
                           <p className="text-[11px] text-slate-400">
-                            {r.employeeId} â€¢ {r.designation || r.department || 'Faculty'}
+                            {r.employeeId} â¢ {r.designation || r.department || 'Faculty'}
                           </p>
                         </div>
                       </div>
@@ -628,7 +628,7 @@ export const PerformanceReviews = () => {
             >
               {employees.map((e) => (
                 <option key={e.id} value={e.id}>
-                  {e.name} ({e.employeeId || 'EMP'}) â€” {e.department || 'General'} [{e.employeeType || 'STAFF'}]
+                  {e.name} ({e.employeeId || 'EMP'}) Ã¢â¬â {e.department || 'General'} [{e.employeeType || 'STAFF'}]
                 </option>
               ))}
             </select>
@@ -705,7 +705,7 @@ export const PerformanceReviews = () => {
                   }`}
                 >
                   <Star className={`w-4 h-4 ${formData.rating >= starVal ? 'fill-amber-400' : ''}`} />
-                  <span className="text-xs font-bold">{starVal}â˜…</span>
+                  <span className="text-xs font-bold">{starVal}Ã¢Ëâ¦</span>
                 </button>
               ))}
             </div>
@@ -811,7 +811,7 @@ export const PerformanceReviews = () => {
                 <div>
                   <h3 className="font-bold text-base text-slate-900 dark:text-white">{viewingReview.employeeName}</h3>
                   <p className="text-xs text-slate-400">
-                    ID: {viewingReview.employeeId} â€¢ {viewingReview.designation || 'Faculty Member'} â€¢ Department of {viewingReview.department || 'Academics'}
+                    ID: {viewingReview.employeeId} â¢ {viewingReview.designation || 'Faculty Member'} â¢ Department of {viewingReview.department || 'Academics'}
                   </p>
                 </div>
               </div>
@@ -868,7 +868,7 @@ export const PerformanceReviews = () => {
             <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-400">
               <div>
                 <span>Evaluator: <strong>{viewingReview.reviewerName || 'HR Administration'}</strong></span>
-                <span className="mx-2">â€¢</span>
+                <span className="mx-2">â¢</span>
                 <span>Date: {viewingReview.reviewDate ? new Date(viewingReview.reviewDate).toLocaleDateString() : 'Today'}</span>
               </div>
 
@@ -891,7 +891,7 @@ export const PerformanceReviews = () => {
         <PrintReportModal
           isOpen={printModalOpen}
           onClose={() => setPrintModalOpen(false)}
-          title={`Appraisal Certificate â€” ${viewingReview.employeeName}`}
+          title={`Appraisal Certificate Ã¢â¬â ${viewingReview.employeeName}`}
           documentType="Official Faculty Performance Appraisal"
           data={[viewingReview]}
         >

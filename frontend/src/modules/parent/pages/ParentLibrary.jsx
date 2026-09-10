@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+ï»¿import React, { useState, useEffect } from 'react';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -60,7 +60,7 @@ export const ParentLibrary = () => {
                       </span>
                       {book.fine > 0 && (
                         <span className="flex items-center gap-1 text-rose-500 font-bold">
-                          <AlertTriangle className="w-3.5 h-3.5" /> Fine: â‚¹{book.fine}
+                          <AlertTriangle className="w-3.5 h-3.5" /> Fine: Ã¢âÂ¹{book.fine}
                         </span>
                       )}
                     </div>
@@ -94,7 +94,7 @@ export const ParentLibrary = () => {
               <div>
                 <h4 className="text-xs font-bold text-foreground">{book.title}</h4>
                 <p className="text-[10px] text-slate-400 mt-0.5">Author: {book.author}</p>
-                <p className="text-[9px] text-slate-500 mt-1.5">Issued: {book.issueDate} â€¢ Returned: {book.returnDate}</p>
+                <p className="text-[9px] text-slate-500 mt-1.5">Issued: {book.issueDate} â¢ Returned: {book.returnDate}</p>
               </div>
               <Badge variant="success">{book.status}</Badge>
             </Card>

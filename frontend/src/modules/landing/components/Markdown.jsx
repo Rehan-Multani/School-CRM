@@ -1,4 +1,4 @@
-import React from 'react';
+ï»¿import React from 'react';
 
 // Minimal renderer for the small, controlled subset of Markdown used by
 // the legal pages: `#` / `##` headings, `-` bullet lists, and paragraphs.

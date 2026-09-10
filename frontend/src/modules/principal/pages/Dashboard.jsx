@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useState } from 'react';
 import { usePrincipalAuth } from '../context/PrincipalAuthContext';
 import { useNavigate } from 'react-router-dom';
 import { principalDashboardApi } from '../../../shared/api/client';
@@ -131,7 +131,7 @@ export const Dashboard = () => {
               <Badge variant="success">Principal</Badge>
             </div>
             <p className="text-xs font-semibold text-slate-400 mt-1">
-              {user?.schoolName} â€¢ {today}
+              {user?.schoolName} â¢ {today}
             </p>
           </div>
         </div>
@@ -177,9 +177,9 @@ export const Dashboard = () => {
         />
         <StatCard
           title="Fee Collected Today"
-          value={`â‚¹${kpi.collectedToday.toLocaleString()}`}
+          value={`Ã¢âÂ¹${kpi.collectedToday.toLocaleString()}`}
           icon={IndianRupee}
-          subtitle={`â‚¹${(kpi.collectedMonth / 1000).toFixed(0)}k This Month`}
+          subtitle={`Ã¢âÂ¹${(kpi.collectedMonth / 1000).toFixed(0)}k This Month`}
           onClick={() => navigate('/principal/fees')}
         />
       </div>
@@ -201,7 +201,7 @@ export const Dashboard = () => {
           </div>
           <div className="flex items-baseline justify-between text-xs font-semibold">
             <span className="text-slate-400">Outstanding</span>
-            <span className="font-bold text-rose-600">â‚¹{kpi.pendingFees.toLocaleString()}</span>
+            <span className="font-bold text-rose-600">Ã¢âÂ¹{kpi.pendingFees.toLocaleString()}</span>
           </div>
         </div>
 
@@ -309,7 +309,7 @@ export const Dashboard = () => {
 
         <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Monthly Fee Recovery (â‚¹)</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Monthly Fee Recovery (Ã¢âÂ¹)</h4>
             <Badge variant="warning">Cashflow</Badge>
           </div>
           <BarChart data={charts.monthlyFeeTrend} dataKey="collected" xKey="month" color="#f59e0b" />
@@ -358,7 +358,7 @@ export const Dashboard = () => {
 
         {recentActivities.length === 0 ? (
           <div className="py-8 text-center text-xs font-semibold text-slate-400">
-            No Result â€” No recent school activities recorded.
+            No Result Ã¢â¬â No recent school activities recorded.
           </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-800">

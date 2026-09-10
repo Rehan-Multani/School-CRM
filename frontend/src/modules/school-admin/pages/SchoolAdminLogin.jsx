@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+ï»¿import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft,
@@ -109,7 +109,7 @@ export const SchoolAdminLogin = () => {
             School Administration
           </h1>
           <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-400">
-            Sign in to run your school â€” students, staff, academics, and billing.
+            Sign in to run your school Ã¢â¬â students, staff, academics, and billing.
           </p>
           <ul className="mt-6 w-full space-y-2.5 text-left">
             {HIGHLIGHTS.map(({ icon: Icon, text }) => (
@@ -357,12 +357,12 @@ export const SchoolAdminLogin = () => {
 
           <div className="mt-4 flex flex-col items-center gap-1.5 text-center">
             <p className="text-[11px] tracking-wide text-slate-500">
-              Authorized school administrators only Â· Encrypted sign-in
+              Authorized school administrators only ÃÂ· Encrypted sign-in
             </p>
             <div className="flex items-center gap-1.5 text-xs text-slate-400">
               <span>Looking for another panel?</span>
               <Link to="/login" className="inline-flex items-center gap-1 font-semibold text-blue-400 hover:text-blue-300 hover:underline">
-                <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals â†’
+                <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals Ã¢â â
               </Link>
             </div>
           </div>

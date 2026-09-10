@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BookOpen,
@@ -173,14 +173,14 @@ export const LibraryDashboard = () => {
           />
           <StatCard
             title="Fines Collected"
-            value={`â‚¹${kpis.totalFinesCollected}`}
+            value={`Ã¢âÂ¹${kpis.totalFinesCollected}`}
             icon={Coins}
             subtitle="Total paid to date"
             colorClass="bg-amber-500"
           />
           <StatCard
             title="Fines Pending"
-            value={`â‚¹${kpis.totalPendingFines}`}
+            value={`Ã¢âÂ¹${kpis.totalPendingFines}`}
             icon={Coins}
             subtitle="Awaiting settlement"
             colorClass="bg-orange-500"
@@ -311,7 +311,7 @@ export const LibraryDashboard = () => {
                     <td className="px-3 py-3">
                       <Badge variant={ISSUE_STATUS_BADGE.OVERDUE}>{i.overdueDays || 0} days</Badge>
                     </td>
-                    <td className="px-5 py-3 text-right font-black text-rose-600">â‚¹{i.fineAmount || 0}</td>
+                    <td className="px-5 py-3 text-right font-black text-rose-600">Ã¢âÂ¹{i.fineAmount || 0}</td>
                   </tr>
                 ))}
               </tbody>

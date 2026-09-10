@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo } from 'react';
+ï»¿import React, { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarClock } from 'lucide-react';
 import Reveal from './Reveal';
@@ -36,7 +36,7 @@ export const LegalPage = ({ docTitle, kicker, which, other }) => {
   const lastUpdated = formatDate(updatedAt, LEGAL_LAST_UPDATED);
 
   useEffect(() => {
-    document.title = `${docTitle} â€” ${PRODUCT.name}`;
+    document.title = `${docTitle} Ã¢â¬â ${PRODUCT.name}`;
   }, [docTitle]);
 
   return (

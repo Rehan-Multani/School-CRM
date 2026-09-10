@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+ï»¿import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Modal } from '../../components/ui/Modal';
@@ -417,7 +417,7 @@ export const DocumentManagement = () => {
             >
               {employees.map((e) => (
                 <option key={e.id} value={e.id}>
-                  {e.name} ({e.employeeId || 'EMP'}) â€” {e.department || 'General'}
+                  {e.name} ({e.employeeId || 'EMP'}) Ã¢â¬â {e.department || 'General'}
                 </option>
               ))}
             </select>

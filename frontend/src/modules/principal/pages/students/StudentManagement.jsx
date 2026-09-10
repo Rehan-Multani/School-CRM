@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
@@ -48,7 +48,7 @@ const defaultForm = {
 };
 
 function formatDate(value) {
-  if (!value) return 'â€”';
+  if (!value) return 'ââââââ';
   return new Date(value).toLocaleDateString('en-IN', {
     day: '2-digit',
     month: 'short',
@@ -151,7 +151,7 @@ export const StudentManagement = () => {
         .map((mapping) => mapping.classId);
       setYearClassMap((prev) => ({ ...prev, [yearId]: classIds }));
     } catch (error) {
-      // Mapping unavailable â€” fall back to the full class list for this year.
+      // Mapping unavailable ââââââ fall back to the full class list for this year.
       yearClassRequestRef.current[yearId] = false;
     }
   }, []);
@@ -518,11 +518,11 @@ export const StudentManagement = () => {
     return students.map((student) => ({
       ...student,
       name: student.name || [student.firstName, student.lastName].filter(Boolean).join(' '),
-      className: student.enrollment?.class?.name || 'â€”',
-      sectionName: student.enrollment?.section?.name || 'â€”',
-      academicYearName: student.enrollment?.academicYear?.name || 'â€”',
-      enrollmentStatus: student.enrollment?.status || 'â€”',
-      guardianPhone: student.parentPhone || student.phone || 'â€”',
+      className: student.enrollment?.class?.name || 'ââââââ',
+      sectionName: student.enrollment?.section?.name || 'ââââââ',
+      academicYearName: student.enrollment?.academicYear?.name || 'ââââââ',
+      enrollmentStatus: student.enrollment?.status || 'ââââââ',
+      guardianPhone: student.parentPhone || student.phone || 'ââââââ',
       photoUrl: buildStudentPhotoUrl(student.photo),
     }));
   }, [students]);

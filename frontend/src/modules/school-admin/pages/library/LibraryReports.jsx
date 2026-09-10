@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Download, FileSpreadsheet, RefreshCw, Filter } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
@@ -109,7 +109,7 @@ export const LibraryReports = () => {
           { key: 'issueDate', title: 'Issue Date', render: formatDisplayDate },
           { key: 'returnDate', title: 'Return Date', render: formatDisplayDate },
           { key: 'overdueDays', title: 'Late Days', render: (v) => v || 0 },
-          { key: 'fineAmount', title: 'Fine', render: (v) => `â‚¹${v || 0}` },
+          { key: 'fineAmount', title: 'Fine', render: (v) => `Ã¢âÂ¹${v || 0}` },
         ];
       case 'overdue':
         return [
@@ -117,13 +117,13 @@ export const LibraryReports = () => {
           { key: 'bookTitle', title: 'Book' },
           { key: 'dueDate', title: 'Due Date', render: formatDisplayDate },
           { key: 'overdueDays', title: 'Days Overdue', render: (v) => <span className="font-bold text-rose-600">{v || 0}</span> },
-          { key: 'fineAmount', title: 'Fine', render: (v) => `â‚¹${v || 0}` },
+          { key: 'fineAmount', title: 'Fine', render: (v) => `Ã¢âÂ¹${v || 0}` },
         ];
       case 'fine':
         return [
           { key: 'borrowerName', title: 'Borrower' },
           { key: 'bookTitle', title: 'Book' },
-          { key: 'fineAmount', title: 'Amount', render: (v) => `â‚¹${v || 0}` },
+          { key: 'fineAmount', title: 'Amount', render: (v) => `Ã¢âÂ¹${v || 0}` },
           { key: 'fineStatus', title: 'Status', render: (v) => <Badge variant={v === 'PAID' ? 'success' : v === 'WAIVED' ? 'default' : 'warning'}>{v}</Badge> },
           { key: 'returnDate', title: 'Date', render: (v, row) => formatDisplayDate(v || row.issueDate) },
         ];
@@ -280,7 +280,7 @@ export const LibraryReports = () => {
                   <tr key={row.id || idx} className="hover:bg-slate-50/80 dark:hover:bg-indigo-600/40">
                     {columns.map((c) => (
                       <td key={c.key} className="px-4 py-3 font-semibold text-slate-700 dark:text-slate-200">
-                        {c.render ? c.render(row[c.key], row) : (row[c.key] ?? 'â€”')}
+                        {c.render ? c.render(row[c.key], row) : (row[c.key] ?? 'Ã¢â¬â')}
                       </td>
                     ))}
                   </tr>

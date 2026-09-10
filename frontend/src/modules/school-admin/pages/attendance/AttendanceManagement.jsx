@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
@@ -1024,7 +1024,7 @@ export const AttendanceManagement = () => {
           {!loading && attendanceList.length > 0 && (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-1">
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Showing {(dailyPage - 1) * PAGE_SIZE + 1}â€“
+                Showing {(dailyPage - 1) * PAGE_SIZE + 1}Ã¢â¬â
                 {Math.min(dailyPage * PAGE_SIZE, attendanceList.length)} of {attendanceList.length} staff members
               </p>
 
@@ -1121,7 +1121,7 @@ export const AttendanceManagement = () => {
                             {r.employeeRole}
                           </span>
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                            {r.department || 'â€”'}
+                            {r.department || 'Ã¢â¬â'}
                           </p>
                         </td>
 
@@ -1151,7 +1151,7 @@ export const AttendanceManagement = () => {
                             </div>
                           ) : (
                             <span className="text-slate-500 dark:text-slate-400">
-                              {r.remarks || 'â€”'}
+                              {r.remarks || 'Ã¢â¬â'}
                             </span>
                           )}
                         </td>
@@ -1167,7 +1167,7 @@ export const AttendanceManagement = () => {
           {!rangeLoading && rangeRecords.length > 0 && (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-1">
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Showing {(rangePage - 1) * PAGE_SIZE + 1}â€“
+                Showing {(rangePage - 1) * PAGE_SIZE + 1}Ã¢â¬â
                 {Math.min(rangePage * PAGE_SIZE, rangeRecords.length)} of {rangeRecords.length} logs
               </p>
 
@@ -1225,7 +1225,7 @@ export const AttendanceManagement = () => {
               {targetEmployee?.employeeName} ({targetEmployee?.employeeId})
             </p>
             <p className="mt-0.5 text-slate-500 dark:text-slate-400">
-              Role: <strong>{targetEmployee?.employeeRole}</strong> â€¢ Date:{' '}
+              Role: <strong>{targetEmployee?.employeeRole}</strong> â¢ Date:{' '}
               <strong>{formatDisplayDate(date)}</strong>
             </p>
           </div>

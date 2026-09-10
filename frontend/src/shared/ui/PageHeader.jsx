@@ -1,6 +1,6 @@
 import React from 'react';
 
-// Canonical merged PageHeader — near-identical across all six gen-2
+// Canonical merged PageHeader â near-identical across all six gen-2
 // modules; only cosmetic spacing/weight differed.
 export const PageHeader = ({ title, subtitle, actions }) => {
   return (

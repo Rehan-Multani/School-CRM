@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+ï»¿import React, { useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useHRAuth } from '../../context/HRAuthContext';
 import { useHRTheme } from '../../context/HRThemeContext';
@@ -378,7 +378,7 @@ export const Settings = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">
-                  Unapproved Absent Deduction (â‚¹ / Day)
+                  Unapproved Absent Deduction (Ã¢âÂ¹ / Day)
                 </label>
                 <input
                   placeholder="e.g. 500"

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ServerTable } from '../../components/ui/ServerTable';
@@ -69,15 +69,15 @@ export const DuesPendingFees = () => {
   const columns = useMemo(
     () => [
       { key: 'admissionNumber', title: 'Admn No', render: (r) => (
-        <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{r.admissionNumber || 'â€”'}</span>
+        <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{r.admissionNumber || 'Ã¢â¬â'}</span>
       ) },
       { key: 'studentName', title: 'Student', render: (r) => (
         <div>
           <p className="font-bold text-slate-900 dark:text-white">{r.studentName}</p>
-          <p className="text-[10px] text-slate-400">{r.invoiceNumber} â€¢ {r.periodLabel}</p>
+          <p className="text-[10px] text-slate-400">{r.invoiceNumber} â¢ {r.periodLabel}</p>
         </div>
       ) },
-      { key: 'className', title: 'Class', render: (r) => [r.className, r.sectionName].filter(Boolean).join(' - ') || 'â€”' },
+      { key: 'className', title: 'Class', render: (r) => [r.className, r.sectionName].filter(Boolean).join(' - ') || 'Ã¢â¬â' },
       { key: 'totalAmount', title: 'Total Fee', align: 'right', render: (r) => formatCurrency(r.totalAmount) },
       { key: 'paidAmount', title: 'Paid', align: 'right', render: (r) => formatCurrency(r.paidAmount) },
       { key: 'discountAmount', title: 'Discount', align: 'right', render: (r) => formatCurrency(r.discountAmount) },
@@ -139,7 +139,7 @@ export const DuesPendingFees = () => {
           <input
             value={filters.search}
             onChange={(e) => set({ search: e.target.value })}
-            placeholder="Search student / invoiceâ€¦"
+            placeholder="Search student / invoiceâ¦"
             className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold outline-none focus:border-violet-500"
           />
         </div>
@@ -185,7 +185,7 @@ export const DuesPendingFees = () => {
       />
 
       {history && (
-        <Modal isOpen onClose={() => setHistory(null)} title={`Fee History â€” ${history.student?.name}`} size="lg">
+        <Modal isOpen onClose={() => setHistory(null)} title={`Fee History Ã¢â¬â ${history.student?.name}`} size="lg">
           <div className="space-y-5 text-xs">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Invoices</p>

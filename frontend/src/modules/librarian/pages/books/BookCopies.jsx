@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+ï»¿import React, { useState, useEffect } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
@@ -142,12 +142,12 @@ export const BookCopies = () => {
       sortable: true,
       render: (val, row) => (
         <div>
-          <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val || 'â€”'}</span>
-          <span className="text-3xs text-slate-400">Author: {row.bookAuthor || 'â€”'}</span>
+          <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val || 'Ã¢â¬â'}</span>
+          <span className="text-3xs text-slate-400">Author: {row.bookAuthor || 'Ã¢â¬â'}</span>
         </div>
       ),
     },
-    { title: 'Barcode', key: 'barcode', render: (val) => <span className="font-mono text-3xs text-slate-500">{val || 'â€”'}</span> },
+    { title: 'Barcode', key: 'barcode', render: (val) => <span className="font-mono text-3xs text-slate-500">{val || 'Ã¢â¬â'}</span> },
     {
       title: 'Status',
       key: 'status',
@@ -174,7 +174,7 @@ export const BookCopies = () => {
     {
       title: 'Location',
       key: 'rackNumber',
-      render: (val, row) => (val ? `Rack ${val}, Shelf ${row.shelfNumber || '1'}` : 'â€”'),
+      render: (val, row) => (val ? `Rack ${val}, Shelf ${row.shelfNumber || '1'}` : 'Ã¢â¬â'),
     },
     {
       title: 'Acquired Date',
@@ -305,7 +305,7 @@ export const BookCopies = () => {
                 <option value="">-- Choose Catalogue Title --</option>
                 {books.map((b) => (
                   <option key={b.id} value={b.id}>
-                    {b.title} (by {b.author}) â€” Code: {b.bookCode}
+                    {b.title} (by {b.author}) Ã¢â¬â Code: {b.bookCode}
                   </option>
                 ))}
               </select>
@@ -373,7 +373,7 @@ export const BookCopies = () => {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold text-slate-550 dark:text-slate-400">Acquisition Price (â‚¹)</label>
+              <label className="mb-1 block text-xs font-bold text-slate-550 dark:text-slate-400">Acquisition Price (Ã¢âÂ¹)</label>
               <input
                 placeholder="e.g. 450"
                 type="number"

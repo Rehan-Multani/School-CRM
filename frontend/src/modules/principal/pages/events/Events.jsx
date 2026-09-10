@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
 import { DataTable } from '../../components/ui/DataTable';
@@ -15,7 +15,7 @@ const STATUS_VARIANT = {
 };
 
 function fmt(value) {
-  if (!value) return 'â€”';
+  if (!value) return 'Ã¢â¬â';
   return new Date(value).toLocaleString('en-IN', {
     day: '2-digit',
     month: 'short',
@@ -58,8 +58,8 @@ export const Events = () => {
       { key: 'title', title: 'School Event Name', sortable: true },
       { key: 'category', title: 'Category', render: (val) => <Badge variant="info">{val}</Badge> },
       { key: 'startAt', title: 'Scheduled', sortable: true, render: (val) => fmt(val) },
-      { key: 'venue', title: 'Venue', render: (val) => val || 'â€”' },
-      { key: 'leadName', title: 'Lead Representative', render: (val) => val || 'â€”' },
+      { key: 'venue', title: 'Venue', render: (val) => val || 'Ã¢â¬â' },
+      { key: 'leadName', title: 'Lead Representative', render: (val) => val || 'Ã¢â¬â' },
       {
         key: 'status',
         title: 'Status',
@@ -133,7 +133,7 @@ export const Events = () => {
         />
       ) : loading ? (
         <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-indigo-600">
-          Loading eventsâ€¦
+          Loading eventsâ¦
         </div>
       ) : upcoming.length === 0 ? (
         <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-indigo-600">

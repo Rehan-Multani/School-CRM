@@ -1,4 +1,4 @@
-﻿import React from 'react';
+ï»¿import React from 'react';
 import { BookOpen, MapPin, Hash, User, Trash2, Pencil } from 'lucide-react';
 import { Badge } from './Badge';
 import { cn } from '../../utils/cn';
@@ -94,7 +94,7 @@ export const BookCard = ({ book, onView, onEdit, onDelete, onToggleStatus }) => 
         <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2 text-xs">
           <div className="flex items-center gap-1 min-w-0 text-slate-500 dark:text-slate-400">
             <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-400 dark:text-slate-500" />
-            <span className="truncate">Rack {book.rackNumber || 'â€”'}, Shelf {book.shelfNumber || 'â€”'}</span>
+            <span className="truncate">Rack {book.rackNumber || 'Ã¢â¬â'}, Shelf {book.shelfNumber || 'Ã¢â¬â'}</span>
           </div>
           <span className="shrink-0 font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-950 px-2 py-0.5 rounded-lg border border-slate-100 dark:border-slate-850">
             {book.category}

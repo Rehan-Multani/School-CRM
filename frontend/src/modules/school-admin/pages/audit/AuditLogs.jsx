@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { useToast } from '../../components/ui/Toast';
@@ -63,7 +63,7 @@ export const AuditLogs = () => {
     <div className="space-y-6">
       <PageHeader
         title="Audit Logs Registry"
-        subtitle="Every write action taken across the school portal â€” who did what, and when."
+        subtitle="Every write action taken across the school portal Ã¢â¬â who did what, and when."
       />
 
       <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
@@ -156,7 +156,7 @@ export const AuditLogs = () => {
                         <Badge variant={MODULE_VARIANT[r.module] || 'default'}>{r.module}</Badge>
                       </td>
                       <td className="px-4 py-3 font-mono text-[11px] font-bold text-indigo-600 dark:text-indigo-400">{r.action}</td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{r.summary || 'â€”'}</td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{r.summary || 'Ã¢â¬â'}</td>
                       <td className="px-2 py-3 text-center">
                         {(r.before || r.after) && (
                           <button
@@ -176,13 +176,13 @@ export const AuditLogs = () => {
                             <div>
                               <span className="text-[10px] font-black uppercase text-slate-400">Before</span>
                               <pre className="mt-1 max-h-48 overflow-auto rounded-lg bg-white p-2 text-[10px] dark:bg-indigo-600">
-                                {r.before ? JSON.stringify(r.before, null, 2) : 'â€”'}
+                                {r.before ? JSON.stringify(r.before, null, 2) : 'Ã¢â¬â'}
                               </pre>
                             </div>
                             <div>
                               <span className="text-[10px] font-black uppercase text-slate-400">After</span>
                               <pre className="mt-1 max-h-48 overflow-auto rounded-lg bg-white p-2 text-[10px] dark:bg-indigo-600">
-                                {r.after ? JSON.stringify(r.after, null, 2) : 'â€”'}
+                                {r.after ? JSON.stringify(r.after, null, 2) : 'Ã¢â¬â'}
                               </pre>
                             </div>
                           </div>
@@ -197,7 +197,7 @@ export const AuditLogs = () => {
 
           <div className="flex items-center justify-between border-t border-slate-100 px-6 py-3 dark:border-slate-800">
             <p className="text-xs font-medium text-slate-500">
-              {pagination.total} entr{pagination.total === 1 ? 'y' : 'ies'} Â· page {pagination.page} / {pagination.totalPages}
+              {pagination.total} entr{pagination.total === 1 ? 'y' : 'ies'} ÃÂ· page {pagination.page} / {pagination.totalPages}
             </p>
             <div className="flex gap-1.5">
               <button

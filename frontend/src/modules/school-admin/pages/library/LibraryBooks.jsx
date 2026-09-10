@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   BookOpen,
   Search,
@@ -357,7 +357,7 @@ export const LibraryBooks = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-3 py-3.5 font-semibold text-slate-700 dark:text-slate-300">{b.publisher || 'â€”'}</td>
+                    <td className="px-3 py-3.5 font-semibold text-slate-700 dark:text-slate-300">{b.publisher || 'Ã¢â¬â'}</td>
                     <td className="px-3 py-3.5 font-semibold text-slate-800 dark:text-slate-200">{b.author}</td>
                     <td className="px-3 py-3.5">
                       <Badge variant={categoryBadgeVariant(b.category)}>{b.category}</Badge>
@@ -402,7 +402,7 @@ export const LibraryBooks = () => {
           {/* Server-side pagination */}
           <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-100 px-5 py-3.5 dark:border-slate-800 sm:flex-row">
             <span className="text-[11px] font-bold text-slate-400">
-              Showing {(pagination.page - 1) * pagination.limit + 1}â€“{Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} books
+              Showing {(pagination.page - 1) * pagination.limit + 1}Ã¢â¬â{Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} books
             </span>
             <div className="flex items-center gap-1">
               <button
@@ -619,13 +619,13 @@ export const LibraryBooks = () => {
             <div className="grid grid-cols-2 gap-3">
               {[
                 ['Author', viewBook.author],
-                ['Publisher', viewBook.publisher || 'â€”'],
+                ['Publisher', viewBook.publisher || 'Ã¢â¬â'],
                 ['Category', viewBook.category],
-                ['Subject', viewBook.subject || 'â€”'],
-                ['Edition', viewBook.edition || 'â€”'],
-                ['Publication Year', viewBook.publicationYear || 'â€”'],
-                ['Language', viewBook.language || 'â€”'],
-                ['Book Cost', `â‚¹${viewBook.price || 0}`],
+                ['Subject', viewBook.subject || 'Ã¢â¬â'],
+                ['Edition', viewBook.edition || 'Ã¢â¬â'],
+                ['Publication Year', viewBook.publicationYear || 'Ã¢â¬â'],
+                ['Language', viewBook.language || 'Ã¢â¬â'],
+                ['Book Cost', `Ã¢âÂ¹${viewBook.price || 0}`],
                 ['Total Copies', viewBook.totalCopies],
                 ['Available Copies', viewBook.availableCopies],
               ].map(([label, value]) => (
@@ -646,7 +646,7 @@ export const LibraryBooks = () => {
       </Modal>
 
       {/* Manage Copies Modal */}
-      <Modal isOpen={!!copiesBook} onClose={() => setCopiesBook(null)} title={copiesBook ? `Manage Copies â€” ${copiesBook.title}` : ''} size="lg">
+      <Modal isOpen={!!copiesBook} onClose={() => setCopiesBook(null)} title={copiesBook ? `Manage Copies Ã¢â¬â ${copiesBook.title}` : ''} size="lg">
         {copiesBook && (
           <div className="space-y-4">
             <form onSubmit={handleAddCopy} className="grid grid-cols-1 gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5 dark:border-slate-800 dark:bg-slate-950/40 sm:grid-cols-4">
@@ -682,7 +682,7 @@ export const LibraryBooks = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {loadingCopies ? (
-                    <tr><td colSpan={4} className="py-8 text-center text-slate-400">Loading copiesâ€¦</td></tr>
+                    <tr><td colSpan={4} className="py-8 text-center text-slate-400">Loading copiesâ¦</td></tr>
                   ) : copies.length === 0 ? (
                     <tr><td colSpan={4} className="py-8 text-center text-slate-400">No physical copies registered yet.</td></tr>
                   ) : (
@@ -696,7 +696,7 @@ export const LibraryBooks = () => {
                             type="button"
                             disabled={c.status === 'ISSUED'}
                             onClick={() => setDeleteCopyTarget(c)}
-                            title={c.status === 'ISSUED' ? 'Cannot remove â€” currently issued' : 'Remove copy'}
+                            title={c.status === 'ISSUED' ? 'Cannot remove Ã¢â¬â currently issued' : 'Remove copy'}
                             className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:border-rose-300 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-30 dark:border-slate-800"
                           >
                             <X className="h-3.5 w-3.5" />

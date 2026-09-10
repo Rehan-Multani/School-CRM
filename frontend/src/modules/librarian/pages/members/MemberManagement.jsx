@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+ï»¿import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
@@ -88,7 +88,7 @@ export const MemberManagement = () => {
       sortable: true,
       render: (val) => (
         <span className="font-bold font-mono text-xs text-slate-900 dark:text-white bg-slate-100 dark:bg-indigo-600 px-2 py-0.5 rounded">
-          {val || 'â€”'}
+          {val || 'Ã¢â¬â'}
         </span>
       ),
     },

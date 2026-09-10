@@ -1,4 +1,4 @@
-﻿import React from 'react';
+ï»¿import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudentAuth } from '../context/StudentAuthContext';
 import { useStudentNotifications } from '../context/NotificationContext';
@@ -152,7 +152,7 @@ export const StudentDashboard = () => {
           />
           <StatCard 
             title="Pending Fees" 
-            value={`â‚¹${fees?.pendingFees ?? 0}`}
+            value={`Ã¢âÂ¹${fees?.pendingFees ?? 0}`}
             subtext="Fee balance"
             icon={CreditCard} 
             colorClass="bg-indigo-600"
@@ -223,14 +223,14 @@ export const StudentDashboard = () => {
             </button>
           </div>
           {todayClasses.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">No Result â€” No classes scheduled today</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result Ã¢â¬â No classes scheduled today</p>
           ) : (
             <div className="space-y-3 flex-1 overflow-y-auto max-h-[300px] no-scrollbar">
               {todayClasses.map((cl, i) => (
                 <div key={i} className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-slate-50/50 dark:bg-indigo-600/50">
                   <div>
                     <h4 className="text-xs font-bold text-foreground leading-tight">{cl.subject}</h4>
-                    <span className="text-[10px] text-slate-400 mt-0.5 block">{cl.teacher} â€¢ Room {cl.room}</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">{cl.teacher} â¢ Room {cl.room}</span>
                   </div>
                   <div className="text-right">
                     <Badge variant="info" className="text-[9px]">{cl.time}</Badge>
@@ -252,7 +252,7 @@ export const StudentDashboard = () => {
             </button>
           </div>
           {todayAnnouncements.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">No Result â€” No announcements posted</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result Ã¢â¬â No announcements posted</p>
           ) : (
             <div className="space-y-3 flex-1 overflow-y-auto max-h-[300px] no-scrollbar">
               {todayAnnouncements.map((ann) => (
@@ -283,7 +283,7 @@ export const StudentDashboard = () => {
             </button>
           </div>
           {recentNotifications.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">No Result â€” No notifications</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result Ã¢â¬â No notifications</p>
           ) : (
             <div className="space-y-3 flex-1 overflow-y-auto max-h-[300px] no-scrollbar">
               {recentNotifications.map((notif) => (

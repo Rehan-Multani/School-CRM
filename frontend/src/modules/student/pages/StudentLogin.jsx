@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+ï»¿import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useStudentAuth } from '../context/StudentAuthContext';
 import { Card } from '../components/ui/Card';
@@ -83,7 +83,7 @@ export const StudentLogin = () => {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+              placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
               className="w-full px-4 py-3 rounded-xl border border-border bg-slate-50 dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-xs"
             />
           </div>
@@ -107,14 +107,14 @@ export const StudentLogin = () => {
           onClick={handleQuickLogin}
           className="w-full border border-blue-500/50 text-blue-600 dark:text-blue-400 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 select-none hover:bg-indigo-500/5"
         >
-          ðŸš€ Quick Demo Login
+          Ã°Å¸Å¡â¬ Quick Demo Login
         </button>
 
         <div className="mt-6 flex flex-col items-center gap-1.5 text-center">
           <div className="flex items-center gap-1.5 text-xs text-slate-400">
             <span>Looking for another panel?</span>
             <Link to="/login" className="inline-flex items-center gap-1 font-semibold text-blue-600 dark:text-blue-400 hover:underline">
-              <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals â†’
+              <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals Ã¢â â
             </Link>
           </div>
         </div>

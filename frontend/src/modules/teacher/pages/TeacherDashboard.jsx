@@ -1,4 +1,4 @@
-﻿import React from 'react';
+ï»¿import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTeacherAuth } from '../context/TeacherAuthContext';
 import { useTeacherNotifications } from '../context/TeacherNotificationContext';
@@ -43,7 +43,7 @@ export const TeacherDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* â”€â”€ Hero Teacher Card â”€â”€ */}
+      {/* Ã¢ââ¬Ã¢ââ¬ Hero Teacher Card Ã¢ââ¬Ã¢ââ¬ */}
       <Card className="bg-gradient-to-br from-primary via-indigo-600 to-accent text-white border-none p-6 shadow-premium relative overflow-hidden">
         <div className="absolute right-0 top-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16" />
         <div className="absolute left-1/3 bottom-0 w-36 h-36 bg-secondary/20 rounded-full blur-2xl -mb-10" />
@@ -88,7 +88,7 @@ export const TeacherDashboard = () => {
         </div>
       </Card>
 
-      {/* â”€â”€ Quick Stats â”€â”€ */}
+      {/* Ã¢ââ¬Ã¢ââ¬ Quick Stats Ã¢ââ¬Ã¢ââ¬ */}
       <div>
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Today's Overview</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -101,7 +101,7 @@ export const TeacherDashboard = () => {
         </div>
       </div>
 
-      {/* â”€â”€ Quick Actions â”€â”€ */}
+      {/* Ã¢ââ¬Ã¢ââ¬ Quick Actions Ã¢ââ¬Ã¢ââ¬ */}
       <div>
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Quick Actions</h3>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
@@ -126,7 +126,7 @@ export const TeacherDashboard = () => {
         </div>
       </div>
 
-      {/* â”€â”€ Split Layout â”€â”€ */}
+      {/* Ã¢ââ¬Ã¢ââ¬ Split Layout Ã¢ââ¬Ã¢ââ¬ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Today's Timetable */}
         <Card className="lg:col-span-1 flex flex-col">
@@ -138,14 +138,14 @@ export const TeacherDashboard = () => {
             </button>
           </div>
           {todayClasses.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">No Result â€” No classes scheduled today</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result Ã¢â¬â No classes scheduled today</p>
           ) : (
             <div className="space-y-3 flex-1 overflow-y-auto max-h-72 no-scrollbar">
               {todayClasses.map((cl, i) => (
                 <div key={i} className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-slate-50/50 dark:bg-indigo-600/50">
                   <div>
                     <h4 className="text-xs font-bold text-foreground leading-tight">{cl.subject}</h4>
-                    <span className="text-[10px] text-slate-400 mt-0.5 block">{cl.class} â€¢ Room {cl.room}</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">{cl.class} â¢ Room {cl.room}</span>
                   </div>
                   <div className="text-right">
                     <Badge variant="info" className="text-[9px]">{cl.time}</Badge>
@@ -167,7 +167,7 @@ export const TeacherDashboard = () => {
             </button>
           </div>
           {upcomingExams.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">No Result â€” No exams scheduled</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result Ã¢â¬â No exams scheduled</p>
           ) : (
             <div className="space-y-3 flex-1 overflow-y-auto max-h-72 no-scrollbar">
               {upcomingExams.map(exam => (
@@ -177,7 +177,7 @@ export const TeacherDashboard = () => {
                     <span className="text-[9px] text-slate-400 font-medium">{exam.date}</span>
                   </div>
                   <h4 className="text-xs font-bold text-foreground">{exam.subject}</h4>
-                  <span className="text-[10px] text-slate-400">{exam.class} â€¢ {exam.time} â€¢ {exam.venue}</span>
+                  <span className="text-[10px] text-slate-400">{exam.class} â¢ {exam.time} â¢ {exam.venue}</span>
                 </div>
               ))}
             </div>
@@ -194,7 +194,7 @@ export const TeacherDashboard = () => {
             </button>
           </div>
           {recentAnnouncements.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">No Result â€” No announcements posted</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result Ã¢â¬â No announcements posted</p>
           ) : (
             <div className="space-y-3 flex-1 overflow-y-auto max-h-72 no-scrollbar">
               {recentAnnouncements.map(ann => (
@@ -204,7 +204,7 @@ export const TeacherDashboard = () => {
                       variant={ann.isUrgent ? 'danger' : ann.type === 'Exam' ? 'warning' : ann.type === 'Holiday' ? 'success' : 'info'}
                       className="text-[8px] tracking-wide uppercase"
                     >
-                      {ann.isUrgent ? 'ðŸš¨ Urgent' : ann.type}
+                      {ann.isUrgent ? 'Ã°Å¸Å¡Â¨ Urgent' : ann.type}
                     </Badge>
                     <span className="text-[9px] text-slate-400 font-medium">{ann.date}</span>
                   </div>
@@ -217,7 +217,7 @@ export const TeacherDashboard = () => {
         </Card>
       </div>
 
-      {/* â”€â”€ Upcoming Events â”€â”€ */}
+      {/* Ã¢ââ¬Ã¢ââ¬ Upcoming Events Ã¢ââ¬Ã¢ââ¬ */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Upcoming Events & Duties</h3>
@@ -227,7 +227,7 @@ export const TeacherDashboard = () => {
           </button>
         </div>
         {upcomingEvents.length === 0 ? (
-          <p className="text-xs text-slate-400 text-center py-6">No Result â€” No upcoming events scheduled</p>
+          <p className="text-xs text-slate-400 text-center py-6">No Result Ã¢â¬â No upcoming events scheduled</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {upcomingEvents.map(ev => (
@@ -240,7 +240,7 @@ export const TeacherDashboard = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="text-xs font-bold text-foreground leading-tight mb-0.5">{ev.title}</h4>
-                  <p className="text-[10px] text-slate-400 mb-1.5">{ev.venue} â€¢ {ev.time}</p>
+                  <p className="text-[10px] text-slate-400 mb-1.5">{ev.venue} â¢ {ev.time}</p>
                   {ev.duty && (
                     <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-lg">
                       <ClipboardList className="w-3 h-3" /> {ev.duty}

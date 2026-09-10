@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+ï»¿import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Moon, Smartphone, Sun } from 'lucide-react';
 import BrandLogo from '../../../shared/ui/BrandLogo';
@@ -22,7 +22,7 @@ const ThemeButton = () => {
 
 const PortalPicker = () => {
   useEffect(() => {
-    document.title = `Sign in â€” ${PRODUCT.name}`;
+    document.title = `Sign in Ã¢â¬â ${PRODUCT.name}`;
   }, []);
 
   return (
@@ -57,7 +57,7 @@ const PortalPicker = () => {
             Sign in to your portal
           </h1>
           <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-slate-400">
-            Choose the workspace built for your role. Office staff sign in here on the web â€” each
+            Choose the workspace built for your role. Office staff sign in here on the web Ã¢â¬â each
             portal has its own login and password reset.
           </p>
         </div>
@@ -100,7 +100,7 @@ const PortalPicker = () => {
 
       <footer className="border-t border-slate-200 dark:border-slate-800">
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-slate-500 sm:flex-row sm:px-6">
-          <p>Â© {new Date().getFullYear()} {PRODUCT.name}</p>
+          <p>ÃÂ© {new Date().getFullYear()} {PRODUCT.name}</p>
           <p className="flex items-center gap-4">
             <Link to="/privacy" className="hover:text-slate-800 dark:hover:text-slate-300">Privacy</Link>
             <Link to="/terms" className="hover:text-slate-800 dark:hover:text-slate-300">Terms</Link>

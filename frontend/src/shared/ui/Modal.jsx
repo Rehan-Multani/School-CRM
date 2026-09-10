@@ -1,9 +1,9 @@
-﻿import React, { useEffect } from 'react';
+ï»¿import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '../lib/cn';
 
-// Canonical merged Modal â€” superset of gen-1 (teacher/parent) and gen-2
+// Canonical merged Modal Ã¢â¬â superset of gen-1 (teacher/parent) and gen-2
 // (HR/accountant/librarian/principal/school-admin/transport) Modals.
 // Supports every size key and the optional `footer`/`className` props
 // used by individual modules.

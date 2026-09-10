@@ -1,4 +1,4 @@
-import React from 'react';
+ï»¿import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutGrid, Library, FolderTree, SlidersHorizontal, BookMarked } from 'lucide-react';
 import { cn } from '../../utils/cn';
@@ -9,14 +9,14 @@ export const inputClass =
 export const labelClass = 'mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300';
 
 export function formatDisplayDate(dateStr) {
-  if (!dateStr) return '—';
+  if (!dateStr) return 'â';
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return dateStr;
   return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 export function formatDateTime(dateStr) {
-  if (!dateStr) return '—';
+  if (!dateStr) return 'â';
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return dateStr;
   return d.toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });

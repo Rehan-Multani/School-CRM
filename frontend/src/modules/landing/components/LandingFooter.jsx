@@ -1,4 +1,4 @@
-import React from 'react';
+ï»¿import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight, Mail, MapPin, Phone, ShieldCheck } from 'lucide-react';
 import BrandLogo from '../../../shared/ui/BrandLogo';
@@ -167,7 +167,7 @@ export const LandingFooter = () => (
 
       {/* Bottom Legal bar */}
       <div className="mt-14 flex flex-col items-center justify-between gap-4 border-t border-slate-200/80 pt-8 text-xs text-slate-500 dark:border-slate-800 sm:flex-row">
-        <p>© {new Date().getFullYear()} {PRODUCT.name}. Enterprise School Operating System.</p>
+        <p>Â© {new Date().getFullYear()} {PRODUCT.name}. Enterprise School Operating System.</p>
         <div className="flex items-center gap-6">
           <Link to="/privacy" className="transition hover:text-slate-900 dark:hover:text-slate-300">
             Privacy Policy

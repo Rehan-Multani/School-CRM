@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../lib/cn';
 
-// Canonical merged Select — superset of all six gen-2 modules.
+// Canonical merged Select â superset of all six gen-2 modules.
 // `onChange` is always called with the raw *value* (not the event), which
 // matches HR/accountant/librarian/principal/transport; school-admin's
 // version passed the raw event instead, but a repo-wide grep found zero

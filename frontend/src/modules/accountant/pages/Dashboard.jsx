@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+ï»¿import React, { useEffect, useState } from 'react';
 import { useAccountantAuth } from '../context/AccountantAuthContext';
 import { useAccountantNotifications } from '../context/AccountantNotificationContext';
 import {
@@ -85,7 +85,7 @@ export const Dashboard = () => {
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">
               {[user?.employeeId, user?.department, user?.academicSession && `Session ${user.academicSession}`]
                 .filter(Boolean)
-                .join(' â€¢ ')}
+                .join(' â¢ ')}
             </p>
           </div>
         </div>
@@ -189,8 +189,8 @@ export const Dashboard = () => {
                           <Badge variant={item.status === 'COMPLETED' ? 'success' : 'warning'}>{item.status}</Badge>
                         </div>
                         <p className="text-[10px] text-slate-400 mt-0.5">
-                          {item.receiptNumber} â€¢ {item.paymentMethod}
-                          {item.invoiceNumber ? ` â€¢ ${item.invoiceNumber}` : ''}
+                          {item.receiptNumber} â¢ {item.paymentMethod}
+                          {item.invoiceNumber ? ` â¢ ${item.invoiceNumber}` : ''}
                         </p>
                       </div>
                       <div className="text-right">

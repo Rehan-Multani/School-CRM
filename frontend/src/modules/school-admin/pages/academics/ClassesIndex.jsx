@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
@@ -462,7 +462,7 @@ export const ClassesIndex = () => {
           {/* Super Admin Style Pagination Bar */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-1">
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Showing {(page - 1) * PAGE_SIZE + 1}â€“
+              Showing {(page - 1) * PAGE_SIZE + 1}Ã¢â¬â
               {Math.min(page * PAGE_SIZE, filteredClasses.length)} of {filteredClasses.length} classes
             </p>
             {Math.ceil(filteredClasses.length / PAGE_SIZE) > 1 && (

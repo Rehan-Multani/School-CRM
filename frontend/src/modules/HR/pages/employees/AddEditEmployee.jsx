@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+ï»¿import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
@@ -443,10 +443,10 @@ export const AddEditEmployee = () => {
 
       if (isEdit) {
         await hrApi.updateEmployee(id, payload);
-        showToast('âœ“ Employee profile updated successfully!', 'success');
+        showToast('Ã¢Åâ Employee profile updated successfully!', 'success');
       } else {
         await hrApi.createEmployee(payload);
-        showToast(`âœ“ ${isTeacher ? 'Teacher' : 'Staff Member'} registered for Admin Approval!`, 'success');
+        showToast(`Ã¢Åâ ${isTeacher ? 'Teacher' : 'Staff Member'} registered for Admin Approval!`, 'success');
       }
 
       navigate('/hr/employees');
@@ -716,7 +716,7 @@ export const AddEditEmployee = () => {
                       type={showPassword ? 'text' : 'password'}
                       value={form.password}
                       onChange={(e) => updateField('password', e.target.value)}
-                      placeholder={isEdit ? 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢' : 'Min 6 characters'}
+                      placeholder={isEdit ? 'â¢â¢â¢â¢â¢â¢â¢â¢' : 'Min 6 characters'}
                       required={!isEdit}
                       minLength={6}
                       className={`${inputClass} pr-10`}
@@ -916,7 +916,7 @@ export const AddEditEmployee = () => {
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div>
-              <label className="mb-1 block text-[11px] font-bold text-slate-500">Basic Salary (â‚¹ / Month)</label>
+              <label className="mb-1 block text-[11px] font-bold text-slate-500">Basic Salary (Ã¢âÂ¹ / Month)</label>
               <input
                 type="number"
                 min="0"
@@ -1056,7 +1056,7 @@ export const AddEditEmployee = () => {
         ) : (
           <SectionBlock
             title="4. KYC & Verification Documents (Max 3 Images)"
-            subtitle="Attach Aadhaar, PAN Card, Qualification Degrees, or Identity Proof (JPG, PNG, WebP â€” Max 5MB each)"
+            subtitle="Attach Aadhaar, PAN Card, Qualification Degrees, or Identity Proof (JPG, PNG, WebP Ã¢â¬â Max 5MB each)"
             icon={FileText}
             action={
               <span className="rounded-lg bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">

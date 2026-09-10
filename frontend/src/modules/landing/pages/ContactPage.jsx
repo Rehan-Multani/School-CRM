@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+ï»¿import React, { useEffect, useState } from 'react';
 import { CheckCircle2, LifeBuoy, Mail, MapPin, Phone, Send, ShieldCheck } from 'lucide-react';
 import Reveal from '../components/Reveal';
 import { PRODUCT } from '../data/content';
@@ -18,14 +18,14 @@ export const ContactPage = () => {
   const [sent, setSent] = useState(false);
 
   useEffect(() => {
-    document.title = `Contact â€” ${PRODUCT.name}`;
+    document.title = `Contact Ã¢â¬â ${PRODUCT.name}`;
   }, []);
 
   const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const subject = encodeURIComponent(`School CRM enquiry â€” ${form.school || form.name || 'Website'}`);
+    const subject = encodeURIComponent(`School CRM enquiry Ã¢â¬â ${form.school || form.name || 'Website'}`);
     const body = encodeURIComponent(
       `Name: ${form.name}\nEmail: ${form.email}\nSchool: ${form.school}\n\n${form.message}`,
     );
@@ -43,7 +43,7 @@ export const ContactPage = () => {
           Talk to us about your school
         </h1>
         <p className="mt-4 text-base leading-relaxed text-slate-600 dark:text-slate-400">
-          Tell us your school size, board and the modules you need. Weâ€™ll get back with a plan
+          Tell us your school size, board and the modules you need. We'll get back with a plan
           and a walkthrough.
         </p>
       </Reveal>
@@ -97,7 +97,7 @@ export const ContactPage = () => {
                   Almost there
                 </h2>
                 <p className="mt-2 max-w-sm text-sm text-slate-600 dark:text-slate-400">
-                  Your email app should have opened with the message ready to send. If it didnâ€™t,
+                  Your email app should have opened with the message ready to send. If it didn't,
                   write to{' '}
                   <a className="font-semibold text-indigo-600 dark:text-indigo-400" href={`mailto:${PRODUCT.email}`}>
                     {PRODUCT.email}
@@ -162,7 +162,7 @@ export const ContactPage = () => {
                   Send message
                 </button>
                 <p className="text-center text-xs text-slate-400">
-                  This opens your email app with the details filled in â€” nothing is stored on this page.
+                  This opens your email app with the details filled in Ã¢â¬â nothing is stored on this page.
                 </p>
               </form>
             )}

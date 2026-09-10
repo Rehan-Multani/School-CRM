@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+ï»¿import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, CornerDownLeft, Sparkles, Navigation } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -151,8 +151,8 @@ export const CommandPalette = ({ isOpen, onClose }) => {
                 <span>Tip: Use arrow keys to navigate routes</span>
               </div>
               <div className="flex items-center gap-3">
-                <span>â†‘â†“ Navigate</span>
-                <span>â†µ Enter</span>
+                <span>Ã¢â âÃ¢â â Navigate</span>
+                <span>Ã¢â Âµ Enter</span>
               </div>
             </div>
           </motion.div>

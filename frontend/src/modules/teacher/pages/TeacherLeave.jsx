@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { FilterBar } from '../components/ui/FilterBar';
@@ -192,7 +192,7 @@ export const TeacherLeave = () => {
                       <Badge variant={statusVariant[l.status] || 'default'}>{l.status}</Badge>
                     </div>
                     <p className="text-xs text-slate-500 mt-0.5">{l.reason}</p>
-                    <span className="text-[10px] text-slate-400 font-semibold">{l.startDate} to {l.endDate} ({l.days} days) â€¢ Approver: {l.approverName || 'Principal Dr. Chatterjee'}</span>
+                    <span className="text-[10px] text-slate-400 font-semibold">{l.startDate} to {l.endDate} ({l.days} days) â¢ Approver: {l.approverName || 'Principal Dr. Chatterjee'}</span>
                   </div>
                   {l.comments && (
                     <div className="text-xs text-indigo-600 bg-indigo-50 dark:bg-indigo-950 px-2.5 py-1 rounded-lg">
@@ -223,7 +223,7 @@ export const TeacherLeave = () => {
                       <Badge variant={statusVariant[sl.status] || 'default'}>{sl.status}</Badge>
                     </div>
                     <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">{sl.reason}</p>
-                    <span className="text-[10px] text-slate-400 font-semibold">{sl.startDate} to {sl.endDate} ({sl.days} days) â€¢ Category: {sl.leaveType}</span>
+                    <span className="text-[10px] text-slate-400 font-semibold">{sl.startDate} to {sl.endDate} ({sl.days} days) â¢ Category: {sl.leaveType}</span>
                   </div>
 
                   {sl.status === 'Pending' ? (

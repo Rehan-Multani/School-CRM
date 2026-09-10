@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+ï»¿import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, CornerDownLeft } from 'lucide-react';
 import { NAVIGATION_ITEMS } from '../../utils/constants';

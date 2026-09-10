@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+ï»¿import { useEffect } from 'react';
 import { useSchoolAdminAuth } from '../../context/SchoolAdminAuthContext';
 
 const DEFAULT_FAVICON = '/School_logo.png';
@@ -26,7 +26,7 @@ export function SchoolAdminBrandingEffect() {
 
   useEffect(() => {
     if (!user) {
-      // Not logged in — keep / restore the static default
+      // Not logged in â keep / restore the static default
       setFavicon(DEFAULT_FAVICON);
       return;
     }

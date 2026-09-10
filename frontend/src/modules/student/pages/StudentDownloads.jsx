@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Download, FileText, FileBadge, Receipt, Shield } from 'lucide-react';
@@ -64,7 +64,7 @@ export const StudentDownloads = () => {
                 <div className="flex items-center gap-2 text-[9px] text-slate-400 mt-1 font-semibold">
                   <Badge variant="secondary" className="px-1.5 py-0 text-[8px]">{file.type}</Badge>
                   <span>{file.size}</span>
-                  <span>â€¢</span>
+                  <span>â¢</span>
                   <span>Issued: {file.date}</span>
                 </div>
               </div>

@@ -1,11 +1,11 @@
-﻿import React, { useEffect } from 'react';
+ï»¿import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Compass } from 'lucide-react';
 import { PRODUCT } from '../data/content';
 
 export const NotFoundPage = () => {
   useEffect(() => {
-    document.title = `Page not found â€” ${PRODUCT.name}`;
+    document.title = `Page not found Ã¢â¬â ${PRODUCT.name}`;
   }, []);
 
   return (
@@ -15,7 +15,7 @@ export const NotFoundPage = () => {
       </span>
       <p className="mt-6 text-5xl font-black tracking-tight text-slate-900 dark:text-white">404</p>
       <h1 className="mt-2 text-lg font-bold text-slate-800 dark:text-slate-200">
-        We couldnâ€™t find that page
+        We couldn't find that page
       </h1>
       <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
         The link may be broken or the page may have moved.

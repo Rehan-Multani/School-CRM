@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+ï»¿import React, { createContext, useState, useContext, useEffect } from 'react';
 import { MOCK_PARENT } from '../data/mockData';
 import { SCHOOL } from '../../../shared/data/school';
 

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+ï»¿import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -67,7 +67,7 @@ export const HeroSection = () => {
               <p className="mt-6 text-base leading-relaxed text-slate-600 dark:text-slate-300 sm:text-lg lg:max-w-xl">
                 One seamless platform bridging administrators, teachers, parents, and students.
                 Automate admissions, daily biometric attendance, exams, real-time fee payments,
-                and live bus GPS â€” with 9 specialized portals.
+                and live bus GPS Ã¢â¬â with 9 specialized portals.
               </p>
             </Reveal>
 
@@ -282,7 +282,7 @@ export const HeroSection = () => {
                   <FloatingCard
                     icon={IndianRupee}
                     title="Fee Collection"
-                    value="â‚¹14.2 Lakhs"
+                    value="Ã¢âÂ¹14.2 Lakhs"
                     trend="Reconciled"
                     trendPositive={true}
                     badgeText="Today"

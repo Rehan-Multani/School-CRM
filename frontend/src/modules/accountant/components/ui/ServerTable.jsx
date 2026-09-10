@@ -1,4 +1,4 @@
-﻿import React from 'react';
+ï»¿import React from 'react';
 import { ChevronLeft, ChevronRight, Loader2, Inbox } from 'lucide-react';
 
 /**
@@ -75,7 +75,7 @@ export const ServerTable = ({
                         col.align === 'right' ? 'text-right' : 'text-left'
                       }`}
                     >
-                      {col.render ? col.render(row) : row[col.key] ?? 'â€”'}
+                      {col.render ? col.render(row) : row[col.key] ?? 'Ã¢â¬â'}
                     </td>
                   ))}
                 </tr>

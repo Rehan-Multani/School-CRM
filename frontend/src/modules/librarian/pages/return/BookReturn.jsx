@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+ï»¿import React, { useState, useEffect } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
@@ -139,7 +139,7 @@ export const BookReturn = () => {
       render: (val, row) => (
         <div>
           <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val}</span>
-          <span className="text-3xs text-slate-400">{row.borrowerType} â€¢ {row.borrowerCode || 'STU'}</span>
+          <span className="text-3xs text-slate-400">{row.borrowerType} â¢ {row.borrowerCode || 'STU'}</span>
         </div>
       ),
     },
@@ -264,7 +264,7 @@ export const BookReturn = () => {
             {/* Overdue Fine Calculation */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-3xs font-bold text-slate-500 uppercase">Fine Amount (â‚¹)</label>
+                <label className="text-3xs font-bold text-slate-500 uppercase">Fine Amount (Ã¢âÂ¹)</label>
                 <input
                   placeholder="e.g. 50"
                   type="number"

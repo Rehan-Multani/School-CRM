@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -9,7 +9,7 @@ import { User, ShieldAlert, Phone, MapPin, Stethoscope, FileText, Download } fro
 const InfoRow = ({ label, value }) => (
   <div className="flex flex-col sm:flex-row sm:items-center gap-1 py-3 border-b border-border last:border-b-0">
     <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider sm:w-40 shrink-0">{label}</span>
-    <span className="text-xs font-semibold text-foreground">{value || '—'}</span>
+    <span className="text-xs font-semibold text-foreground">{value || 'â'}</span>
   </div>
 );
 
@@ -41,9 +41,9 @@ export const StudentProfile = () => {
               <Badge variant="primary">Roll No. {profile.rollNo}</Badge>
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
-              {profile.class} - Section {profile.section} • Session {profile.academicSession}
+              {profile.class} - Section {profile.section} â¢ Session {profile.academicSession}
             </p>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Student ID: {profile.id} • Admission No: {profile.admissionNo}</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Student ID: {profile.id} â¢ Admission No: {profile.admissionNo}</p>
           </div>
         </div>
       </Card>
@@ -95,7 +95,7 @@ export const StudentProfile = () => {
                 </div>
                 <div>
                   <h4 className="text-xs font-bold text-foreground">{doc.name}</h4>
-                  <p className="text-[10px] text-slate-400 mt-0.5">{doc.type} • {doc.size}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{doc.type} â¢ {doc.size}</p>
                 </div>
               </div>
               <button

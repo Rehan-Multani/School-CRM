@@ -3,14 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, AlertTriangle, AlertCircle, Info, X } from 'lucide-react';
 import { cn } from '../lib/cn';
 
-// Canonical "local hook" Toast — Pattern A.
+// Canonical "local hook" Toast â Pattern A.
 // Used by HR, accountant, principal and school-admin: call `useToast()`,
 // destructure `{ showToast, ToastComponent }`, call `showToast(message, type)`
 // and render `<ToastComponent />` once in the page tree.
 //
 // NOTE: this is a genuinely different consumption contract than the
 // context/provider based Toast (see shared/ui/ToastProvider.jsx, used by
-// librarian, transport, teacher, parent — consumed as
+// librarian, transport, teacher, parent â consumed as
 // `const toast = useToast(); toast.success(msg)` with a <ToastProvider>
 // mounted higher up). The two were kept as separate canonical files
 // because merging them would break one call-site style or the other.
@@ -66,7 +66,7 @@ export const Toast = ({ message, type = 'success', onClose, duration = 3000 }) =
   );
 };
 
-// Local hook creator — avoids a context/provider entirely.
+// Local hook creator â avoids a context/provider entirely.
 export const useToast = () => {
   const [toast, setToast] = React.useState(null);
 

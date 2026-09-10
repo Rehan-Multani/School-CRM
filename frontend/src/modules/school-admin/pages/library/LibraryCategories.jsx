@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, FolderTree } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
@@ -129,7 +129,7 @@ export const LibraryCategories = () => {
           searchKeys={['name', 'description']}
           columns={[
             { key: 'name', title: 'Category', sortable: true, render: (v) => <span className="font-bold text-slate-900 dark:text-white">{v}</span> },
-            { key: 'description', title: 'Description', render: (v) => v || 'â€”' },
+            { key: 'description', title: 'Description', render: (v) => v || 'Ã¢â¬â' },
             { key: 'count', title: 'Books', sortable: true, render: (v) => <span className="font-black">{v || 0}</span> },
             { key: 'availableCopies', title: 'Available Copies', sortable: true },
             {
@@ -179,7 +179,7 @@ export const LibraryCategories = () => {
           <div className="flex justify-end gap-2.5 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setFormModalOpen(false)} className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 dark:border-slate-800 dark:text-slate-300">Cancel</button>
             <button type="submit" disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-primary/90 disabled:opacity-60">
-              {saving ? 'Savingâ€¦' : editing ? 'Save Changes' : 'Add Category'}
+              {saving ? 'Savingâ¦' : editing ? 'Save Changes' : 'Add Category'}
             </button>
           </div>
         </form>

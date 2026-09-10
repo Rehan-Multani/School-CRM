@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+ï»¿import React, { useEffect, useRef, useState } from 'react';
 import { cn } from '../../../shared/lib/cn';
 
 // Scroll-reveal wrapper for the landing sections.

@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+ï»¿import React, { useState, useMemo } from 'react';
 import {
   Search,
   ChevronDown,
@@ -494,7 +494,7 @@ export const DataTable = ({
                             col.align === 'right' && 'text-right'
                           )}
                         >
-                          {col.render ? col.render(row[getKey(col)], row, serialNo) : row[getKey(col)] ?? 'â€”'}
+                          {col.render ? col.render(row[getKey(col)], row, serialNo) : row[getKey(col)] ?? 'Ã¢â¬â'}
                         </td>
                       ))}
 

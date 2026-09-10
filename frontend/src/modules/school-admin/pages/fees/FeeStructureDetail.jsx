@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+ï»¿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
@@ -260,7 +260,7 @@ export const FeeStructureDetail = () => {
 
       <PageHeader
         title={structure.name}
-        subtitle={`${structure.class?.name || 'Class'} â€¢ ${structure.academicYear?.name || 'Academic Session'} â€¢ Status: ${structure.status}`}
+        subtitle={`${structure.class?.name || 'Class'} â¢ ${structure.academicYear?.name || 'Academic Session'} â¢ Status: ${structure.status}`}
         actions={
           <button
             type="button"
@@ -344,7 +344,7 @@ export const FeeStructureDetail = () => {
           <table className="w-full text-xs">
             <thead className="border-b border-slate-100 bg-slate-50/70 text-slate-500 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-400">
               <tr>
-                {['#', 'Fee Component', 'Category', 'Amount (â‚¹)', 'Frequency', 'Due Day', 'Obligation', 'Actions'].map((h) => (
+                {['#', 'Fee Component', 'Category', 'Amount (Ã¢âÂ¹)', 'Frequency', 'Due Day', 'Obligation', 'Actions'].map((h) => (
                   <th key={h} className="px-4 py-3 text-center font-bold text-slate-500 dark:text-slate-400">
                     {h}
                   </th>
@@ -581,7 +581,7 @@ export const FeeStructureDetail = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1 block text-xs font-bold text-slate-500">Amount (â‚¹) *</label>
+              <label className="mb-1 block text-xs font-bold text-slate-500">Amount (Ã¢âÂ¹) *</label>
               <input
                 type="number"
                 min="0"

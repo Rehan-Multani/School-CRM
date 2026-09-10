@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+ï»¿import React, { useState } from 'react';
 import { useLibrarianAuth } from '../../context/LibrarianAuthContext';
 import { useLibrarianTheme } from '../../context/LibrarianThemeContext';
 import { useLibrarianNotifications } from '../../context/LibrarianNotificationContext';
@@ -146,7 +146,7 @@ export const TopBar = ({ toggleSidebar, onSearchTrigger }) => {
                   }}
                   className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
                 >
-                  View All Alerts â†’
+                  View All Alerts Ã¢â â
                 </button>
               </div>
             </div>
