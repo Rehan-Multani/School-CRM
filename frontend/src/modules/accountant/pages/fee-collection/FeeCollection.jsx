@@ -8,13 +8,13 @@ import { useAccountantAuth } from '../../context/AccountantAuthContext';
 import { Search, ArrowLeft, Loader2, Plus } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 
+// FIX #4: Align payment methods with backend enum
 const PAYMENT_METHODS = [
   ['CASH', 'Cash (Counter Deposit)'],
+  ['BANK_TRANSFER', 'Bank Transfer / Cheque / DD'],
   ['UPI', 'UPI (QR / App Transfer)'],
-  ['CARD', 'POS Card Swipe'],
-  ['NET_BANKING', 'Net Banking NEFT/RTGS'],
-  ['CHEQUE', 'Bank Cheque'],
-  ['DD', 'Demand Draft (DD)'],
+  ['CARD', 'POS Card / Online Card'],
+  ['ONLINE', 'Online Payment'],
   ['OTHER', 'Other'],
 ];
 

@@ -48,6 +48,29 @@ export const FinancialReports = () => {
   const fetchReport = () => {
     setLoading(true);
     setError(null);
+
+    // FIX #2: Date validation
+    if (dateFrom && dateTo) {
+      const from = new Date(dateFrom);
+      const to = new Date(dateTo);
+      if (isNaN(from.getTime()) || isNaN(to.getTime())) {
+        setError('Invalid date format');
+        setLoading(false);
+        return;
+      }
+      if (to <= from) {
+        setError('End date must be after start date');
+        setLoading(false);
+        return;
+      }
+      const daysDiff = (to - from) / (1000 * 60 * 60 * 24);
+      if (daysDiff > 365) {
+        setError('Date range cannot exceed 1 year');
+        setLoading(false);
+        return;
+      }
+    }
+
     const params = {};
     if (dateFrom) params.dateFrom = dateFrom;
     if (dateTo) params.dateTo = dateTo;
@@ -163,6 +186,21 @@ export const FinancialReports = () => {
           <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
         </button>
       </div>
+
+      {error && (
+        <div className="bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center justify-between">
+          <div>
+            <p className="font-bold text-red-700 dark:text-red-300 text-sm">Report Generation Failed</p>
+            <p className="text-red-600 dark:text-red-400 text-[13px] mt-1">{error}</p>
+          </div>
+          <button
+            onClick={fetchReport}
+            className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-lg whitespace-nowrap ml-4"
+          >
+            Retry
+          </button>
+        </div>
+      )}
 
       {summary && (
         <div className="flex flex-wrap gap-3">

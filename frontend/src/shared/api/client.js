@@ -1167,8 +1167,8 @@ export const accountantApi = {
   // Transactions
   transactions: (params) =>
     accountantClient.get('/platform/school-portal/accountant/transactions', { params }).then((r) => r.data),
-  getTransaction: (id) =>
-    accountantClient.get(`/platform/school-portal/accountant/transactions/${id}`).then((r) => r.data),
+  getTransaction: (id, options = {}) =>
+    accountantClient.get(`/platform/school-portal/accountant/transactions/${id}`, { params: options }).then((r) => r.data),
 
   // Notifications (read/unread is tracked client-side, like the other staff portals)
   notifications: (params) =>

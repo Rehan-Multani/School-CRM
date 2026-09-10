@@ -15,6 +15,11 @@ import { TrendingDown, Plus, Receipt, Trash2, Pencil, Download, Search } from 'l
 const PAYMENT_STATUSES = ['PAID', 'PENDING', 'PARTIAL'];
 const APPROVAL_STATUSES = ['APPROVED', 'PENDING', 'REJECTED'];
 
+// FIX #3: Validation constants for enums
+const VALID_PAYMENT_METHODS = ['CASH', 'BANK_TRANSFER', 'UPI', 'CARD', 'ONLINE', 'OTHER'];
+const VALID_PAYMENT_STATUSES = PAYMENT_STATUSES;
+const VALID_APPROVAL_STATUSES = APPROVAL_STATUSES;
+
 const emptyForm = () => ({
   title: '',
   category: '',
@@ -81,12 +86,35 @@ export const Expenses = () => {
     if (!f.title || !f.category || !f.amount) {
       return showToast('Title, category and amount are required', 'error');
     }
+
+    // FIX #3: Validate category against loaded categories
+    if (!categories.find(c => c.id === f.category)) {
+      return showToast('Invalid expense category selected', 'error');
+    }
+
+    // FIX #3: Validate amount
+    const amount = Number(f.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return showToast('Amount must be a positive number', 'error');
+    }
+
+    // FIX #3: Validate enums
+    if (!VALID_PAYMENT_METHODS.includes(f.paymentMethod)) {
+      return showToast('Invalid payment method', 'error');
+    }
+    if (!VALID_PAYMENT_STATUSES.includes(f.paymentStatus)) {
+      return showToast('Invalid payment status', 'error');
+    }
+    if (!VALID_APPROVAL_STATUSES.includes(f.approvalStatus)) {
+      return showToast('Invalid approval status', 'error');
+    }
+
     setSaving(true);
     const payload = {
       title: f.title,
       category: f.category,
       vendorName: f.vendorName,
-      amount: Number(f.amount),
+      amount,
       paymentMethod: f.paymentMethod,
       paymentStatus: f.paymentStatus,
       approvalStatus: f.approvalStatus,
