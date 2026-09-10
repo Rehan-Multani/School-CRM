@@ -1,299 +1,156 @@
 import { Hostel } from '../models/Hostel.js';
 import { HostelRoom } from '../models/HostelRoom.js';
 import { HostelBed } from '../models/HostelBed.js';
+import { HostelWarden } from '../models/HostelWarden.js';
 import { HostelAllocation } from '../models/HostelAllocation.js';
-import { HostelAttendance } from '../models/HostelAttendance.js';
-import { HostelOuting } from '../models/HostelOuting.js';
-import { HostelComplaint } from '../models/HostelComplaint.js';
+import { HostelFee } from '../models/HostelFee.js';
+import { AcademicYear } from '../models/AcademicYear.js';
 
+/**
+ * Data access for the Hostel module. Every method takes `schoolId` first and
+ * folds it into the filter — a query that cannot name a school cannot leak
+ * across tenants.
+ */
 export const hostelRepository = {
-  // --- HOSTELS ---
-  async listHostels(schoolId, filter = {}) {
-    return Hostel.find({ schoolId, ...filter })
-      .populate('wardenId', 'fullName email phone designation role')
-      .populate('assistantWardenId', 'fullName email phone designation role')
-      .sort({ createdAt: -1 })
-      .lean();
+  /* -------------------------------- hostels ------------------------------ */
+  listHostels(schoolId, filter = {}) {
+    return Hostel.find({ schoolId, ...filter }).sort({ name: 1 });
   },
-
-  async getHostelById(schoolId, id) {
-    return Hostel.findOne({ _id: id, schoolId })
-      .populate('wardenId', 'fullName email phone designation role')
-      .populate('assistantWardenId', 'fullName email phone designation role')
-      .lean();
+  getHostel(schoolId, id) {
+    return Hostel.findOne({ _id: id, schoolId });
   },
-
-  async createHostel(data) {
-    return Hostel.create(data);
+  findHostelByName(schoolId, name) {
+    return Hostel.findOne({ schoolId, name });
   },
-
-  async updateHostel(schoolId, id, updateData) {
-    return Hostel.findOneAndUpdate({ _id: id, schoolId }, updateData, { new: true })
-      .populate('wardenId', 'fullName email phone designation role')
-      .lean();
+  findHostelByCode(schoolId, code) {
+    return Hostel.findOne({ schoolId, code });
   },
-
-  async deleteHostel(schoolId, id) {
+  createHostel(payload) {
+    return Hostel.create(payload);
+  },
+  deleteHostel(schoolId, id) {
     return Hostel.findOneAndDelete({ _id: id, schoolId });
   },
 
-  // --- ROOMS ---
-  async listRooms(schoolId, filter = {}) {
+  /* --------------------------------- rooms ------------------------------- */
+  listRooms(schoolId, filter = {}) {
     return HostelRoom.find({ schoolId, ...filter })
       .populate('hostelId', 'name type')
-      .sort({ blockName: 1, floorNumber: 1, roomNumber: 1 })
-      .lean();
+      .sort({ floorNumber: 1, roomNumber: 1 });
   },
-
-  async getRoomById(schoolId, id) {
-    return HostelRoom.findOne({ _id: id, schoolId })
-      .populate('hostelId', 'name type')
-      .lean();
+  getRoom(schoolId, id) {
+    return HostelRoom.findOne({ _id: id, schoolId }).populate('hostelId', 'name type');
   },
-
-  async createRoom(data) {
-    return HostelRoom.create(data);
+  findRoomByNumber(schoolId, hostelId, roomNumber) {
+    return HostelRoom.findOne({ schoolId, hostelId, roomNumber });
   },
-
-  async updateRoom(schoolId, id, updateData) {
-    return HostelRoom.findOneAndUpdate({ _id: id, schoolId }, updateData, { new: true })
-      .populate('hostelId', 'name type')
-      .lean();
+  countRooms(schoolId, hostelId) {
+    return HostelRoom.countDocuments({ schoolId, hostelId });
   },
-
-  async deleteRoom(schoolId, id) {
+  createRoom(payload) {
+    return HostelRoom.create(payload);
+  },
+  deleteRoom(schoolId, id) {
     return HostelRoom.findOneAndDelete({ _id: id, schoolId });
   },
 
-  // --- BEDS ---
-  async listBeds(schoolId, filter = {}) {
+  /* --------------------------------- beds -------------------------------- */
+  listBeds(schoolId, filter = {}) {
     return HostelBed.find({ schoolId, ...filter })
-      .populate('hostelId', 'name type')
-      .populate('roomId', 'roomNumber blockName floorNumber roomType monthlyRent')
-      .populate({
-        path: 'currentStudentId',
-        select: 'firstName lastName rollNumber admissionNumber className sectionName classId sectionId photoUrl phone email',
-      })
-      .sort({ bedCode: 1 })
-      .lean();
+      .populate('currentStudentId', 'firstName lastName admissionNumber')
+      .sort({ bedNumber: 1 });
   },
-
-  async getBedById(schoolId, id) {
-    return HostelBed.findOne({ _id: id, schoolId })
-      .populate('hostelId', 'name type')
-      .populate('roomId')
-      .populate({
-        path: 'currentStudentId',
-        select: 'firstName lastName rollNumber admissionNumber className sectionName classId sectionId photoUrl phone email',
-      })
-      .lean();
+  getBed(schoolId, id) {
+    return HostelBed.findOne({ _id: id, schoolId });
   },
-
-  async createBed(data) {
-    return HostelBed.create(data);
+  insertBeds(rows) {
+    return HostelBed.insertMany(rows);
   },
-
-  async createManyBeds(beds) {
-    return HostelBed.insertMany(beds);
+  countBeds(schoolId, filter = {}) {
+    return HostelBed.countDocuments({ schoolId, ...filter });
   },
-
-  async updateBed(schoolId, id, updateData) {
-    return HostelBed.findOneAndUpdate({ _id: id, schoolId }, updateData, { new: true }).lean();
+  deleteBedsAbove(schoolId, roomId, bedNumber) {
+    return HostelBed.deleteMany({ schoolId, roomId, bedNumber: { $gt: bedNumber } });
   },
-
-  async deleteBedsByRoom(schoolId, roomId) {
+  deleteBedsOfRoom(schoolId, roomId) {
     return HostelBed.deleteMany({ schoolId, roomId });
   },
 
-  // --- ALLOCATIONS ---
-  async listAllocations(schoolId, filter = {}) {
+  /* -------------------------------- wardens ------------------------------ */
+  listWardens(schoolId, filter = {}) {
+    return HostelWarden.find({ schoolId, ...filter }).populate('hostelId', 'name type').sort({ name: 1 });
+  },
+  getWarden(schoolId, id) {
+    return HostelWarden.findOne({ _id: id, schoolId }).populate('hostelId', 'name type');
+  },
+  findWardenByMobile(schoolId, mobile) {
+    return HostelWarden.findOne({ schoolId, mobile });
+  },
+  findWardenOfHostel(schoolId, hostelId) {
+    return HostelWarden.findOne({ schoolId, hostelId });
+  },
+  createWarden(payload) {
+    return HostelWarden.create(payload);
+  },
+  deleteWarden(schoolId, id) {
+    return HostelWarden.findOneAndDelete({ _id: id, schoolId });
+  },
+
+  /* ------------------------------ allocations ---------------------------- */
+  listAllocations(schoolId, filter = {}) {
     return HostelAllocation.find({ schoolId, ...filter })
-      .populate({
-        path: 'studentId',
-        select: 'firstName lastName rollNumber admissionNumber className sectionName classId sectionId photoUrl phone email guardianName guardianPhone',
-      })
+      .populate('studentId', 'firstName lastName admissionNumber')
       .populate('hostelId', 'name type')
-      .populate('roomId', 'roomNumber blockName floorNumber roomType monthlyRent')
-      .populate('bedId', 'bedCode status')
-      .populate('allocatedBy', 'fullName email')
-      .sort({ allocationDate: -1, createdAt: -1 })
-      .lean();
+      .populate('roomId', 'roomNumber floorNumber capacity')
+      .populate('bedId', 'bedCode bedNumber')
+      .populate('academicYearId', 'name code isCurrent')
+      .sort({ createdAt: -1 });
   },
-
-  async getAllocationById(schoolId, id) {
+  getAllocation(schoolId, id) {
     return HostelAllocation.findOne({ _id: id, schoolId })
-      .populate({
-        path: 'studentId',
-        select: 'firstName lastName rollNumber admissionNumber className sectionName classId sectionId photoUrl phone email guardianName guardianPhone',
-      })
+      .populate('studentId', 'firstName lastName admissionNumber')
       .populate('hostelId', 'name type')
-      .populate('roomId', 'roomNumber blockName floorNumber roomType monthlyRent')
-      .populate('bedId', 'bedCode status')
-      .populate('allocatedBy', 'fullName email')
-      .lean();
+      .populate('roomId', 'roomNumber floorNumber capacity')
+      .populate('bedId', 'bedCode bedNumber')
+      .populate('academicYearId', 'name code isCurrent');
   },
-
-  async getActiveAllocationByStudent(schoolId, studentId) {
+  findActiveAllocationForStudent(schoolId, studentId) {
     return HostelAllocation.findOne({ schoolId, studentId, status: 'ACTIVE' })
-      .populate('hostelId', 'name type')
-      .populate('roomId', 'roomNumber blockName floorNumber roomType monthlyRent')
-      .populate('bedId', 'bedCode status')
-      .lean();
-  },
-
-  async createAllocation(data) {
-    return HostelAllocation.create(data);
-  },
-
-  async updateAllocation(schoolId, id, updateData) {
-    return HostelAllocation.findOneAndUpdate({ _id: id, schoolId }, updateData, { new: true }).lean();
-  },
-
-  // --- ATTENDANCE ---
-  async getAttendanceByDate(schoolId, hostelId, dateStr) {
-    return HostelAttendance.findOne({ schoolId, hostelId, date: dateStr })
-      .populate({
-        path: 'records.studentId',
-        select: 'firstName lastName rollNumber admissionNumber className sectionName',
-      })
-      .populate('records.bedId', 'bedCode')
-      .populate('recordedBy', 'fullName email')
-      .lean();
-  },
-
-  async listAttendanceHistory(schoolId, filter = {}) {
-    return HostelAttendance.find({ schoolId, ...filter })
       .populate('hostelId', 'name')
-      .populate('recordedBy', 'fullName email')
-      .sort({ date: -1 })
-      .limit(30)
-      .lean();
+      .populate('roomId', 'roomNumber')
+      .populate('bedId', 'bedCode');
+  },
+  countActiveAllocations(schoolId, filter = {}) {
+    return HostelAllocation.countDocuments({ schoolId, status: 'ACTIVE', ...filter });
+  },
+  createAllocation(payload) {
+    return HostelAllocation.create(payload);
   },
 
-  async saveAttendance(schoolId, hostelId, dateStr, data) {
-    return HostelAttendance.findOneAndUpdate(
-      { schoolId, hostelId, date: dateStr },
-      { ...data, schoolId, hostelId, date: dateStr },
-      { upsert: true, new: true }
-    ).lean();
+  /* ------------------------------ yearly fee ----------------------------- */
+  listAcademicYears(schoolId) {
+    return AcademicYear.find({ schoolId }).sort({ startDate: -1 });
   },
-
-  // --- OUTINGS ---
-  async listOutings(schoolId, filter = {}) {
-    return HostelOuting.find({ schoolId, ...filter })
-      .populate({
-        path: 'studentId',
-        select: 'firstName lastName rollNumber admissionNumber className sectionName phone guardianPhone',
-      })
-      .populate('hostelId', 'name type')
-      .populate('approvedBy', 'fullName email')
-      .sort({ outDateTime: -1, createdAt: -1 })
-      .lean();
+  getAcademicYear(schoolId, id) {
+    return AcademicYear.findOne({ _id: id, schoolId });
   },
-
-  async getOutingById(schoolId, id) {
-    return HostelOuting.findOne({ _id: id, schoolId })
-      .populate({
-        path: 'studentId',
-        select: 'firstName lastName rollNumber admissionNumber className sectionName phone guardianPhone',
-      })
-      .populate('hostelId', 'name type')
-      .populate('approvedBy', 'fullName email')
-      .lean();
+  getCurrentAcademicYear(schoolId) {
+    return AcademicYear.findOne({ schoolId, isCurrent: true });
   },
-
-  async createOuting(data) {
-    return HostelOuting.create(data);
+  listFees(schoolId) {
+    return HostelFee.find({ schoolId });
   },
-
-  async updateOuting(schoolId, id, updateData) {
-    return HostelOuting.findOneAndUpdate({ _id: id, schoolId }, updateData, { new: true })
-      .populate({
-        path: 'studentId',
-        select: 'firstName lastName rollNumber admissionNumber className sectionName phone guardianPhone',
-      })
-      .populate('hostelId', 'name type')
-      .lean();
+  findFee(schoolId, academicYearId) {
+    return HostelFee.findOne({ schoolId, academicYearId });
   },
-
-  // --- COMPLAINTS ---
-  async listComplaints(schoolId, filter = {}) {
-    return HostelComplaint.find({ schoolId, ...filter })
-      .populate('hostelId', 'name')
-      .populate('roomId', 'roomNumber blockName floorNumber')
-      .populate({
-        path: 'studentId',
-        select: 'firstName lastName rollNumber admissionNumber className sectionName',
-      })
-      .populate('assignedStaffId', 'fullName email designation phone')
-      .sort({ createdAt: -1 })
-      .lean();
+  upsertFee(schoolId, academicYearId, yearlyAmount) {
+    return HostelFee.findOneAndUpdate(
+      { schoolId, academicYearId },
+      { $set: { yearlyAmount } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
   },
-
-  async getComplaintById(schoolId, id) {
-    return HostelComplaint.findOne({ _id: id, schoolId })
-      .populate('hostelId', 'name')
-      .populate('roomId', 'roomNumber blockName floorNumber')
-      .populate({
-        path: 'studentId',
-        select: 'firstName lastName rollNumber admissionNumber className sectionName',
-      })
-      .populate('assignedStaffId', 'fullName email designation phone')
-      .lean();
-  },
-
-  async createComplaint(data) {
-    return HostelComplaint.create(data);
-  },
-
-  async updateComplaint(schoolId, id, updateData) {
-    return HostelComplaint.findOneAndUpdate({ _id: id, schoolId }, updateData, { new: true })
-      .populate('hostelId', 'name')
-      .populate('roomId', 'roomNumber blockName floorNumber')
-      .populate({
-        path: 'studentId',
-        select: 'firstName lastName rollNumber admissionNumber className sectionName',
-      })
-      .populate('assignedStaffId', 'fullName email designation phone')
-      .lean();
-  },
-
-  // --- OVERALL METRICS ---
-  async getDashboardMetrics(schoolId) {
-    const [
-      totalHostels,
-      totalRooms,
-      totalBeds,
-      occupiedBeds,
-      maintenanceBeds,
-      activeAllocations,
-      openComplaints,
-      activeOutings,
-    ] = await Promise.all([
-      Hostel.countDocuments({ schoolId, status: 'ACTIVE' }),
-      HostelRoom.countDocuments({ schoolId, status: 'ACTIVE' }),
-      HostelBed.countDocuments({ schoolId }),
-      HostelBed.countDocuments({ schoolId, status: 'OCCUPIED' }),
-      HostelBed.countDocuments({ schoolId, status: 'UNDER_MAINTENANCE' }),
-      HostelAllocation.countDocuments({ schoolId, status: 'ACTIVE' }),
-      HostelComplaint.countDocuments({ schoolId, status: { $in: ['OPEN', 'IN_PROGRESS'] } }),
-      HostelOuting.countDocuments({ schoolId, status: { $in: ['REQUESTED', 'APPROVED', 'OUT'] } }),
-    ]);
-
-    const availableBeds = Math.max(0, totalBeds - occupiedBeds - maintenanceBeds);
-    const occupancyRate = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
-
-    return {
-      totalHostels,
-      totalRooms,
-      totalBeds,
-      occupiedBeds,
-      availableBeds,
-      maintenanceBeds,
-      occupancyRate,
-      activeAllocations,
-      openComplaints,
-      activeOutings,
-    };
+  deleteFee(schoolId, academicYearId) {
+    return HostelFee.findOneAndDelete({ schoolId, academicYearId });
   },
 };

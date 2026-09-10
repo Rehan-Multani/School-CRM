@@ -4,2292 +4,1564 @@ import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
-import { useSchoolAdminAuth } from '../../context/SchoolAdminAuthContext';
+import { SkeletonTable } from '../../components/ui/SkeletonLoader';
 import { hostelPortalApi } from '../../../../shared/api/client';
+import { sanitizeMobileInput, isValid10DigitMobile } from '../../../../shared/utils/mobileValidation';
 import {
-  AlertCircle,
-  AlertTriangle,
-  ArrowRightLeft,
   Bed,
-  Building,
   Building2,
-  Calendar,
-  CheckCircle2,
-  Clock,
-  Coins,
-  DoorClosed,
-  DoorOpen,
-  FileCheck,
-  FileSpreadsheet,
-  FileText,
-  Filter,
-  GraduationCap,
-  Home,
-  Info,
-  Layers,
-  LayoutGrid,
-  List,
+  Check,
+  IndianRupee,
   Loader2,
-  LogOut,
-  MapPin,
   Pencil,
-  Phone,
   Plus,
-  Printer,
   RefreshCw,
   Search,
-  Shield,
-  ShieldAlert,
-  ShieldCheck,
-  Sparkles,
-  Tag,
   Trash2,
-  UserCheck,
+  Unlink,
+  UserCog,
   UserPlus,
   Users,
-  Utensils,
-  Wrench,
-  XCircle,
-  Zap,
 } from 'lucide-react';
-import { SkeletonStatCard, SkeletonTable } from '../../components/ui/SkeletonLoader';
+
+/**
+ * Hostel — the whole module, in the order it must be set up:
+ *
+ *   1 Hostel  →  2 Room  →  3 Beds (from the room's capacity)
+ *   →  4 Warden + Hostel  →  5 Student + Hostel + Room + Bed
+ *   →  6 Yearly hostel fee (per academic year)
+ *
+ * Every action on this page calls the real backend; there is no local fixture.
+ */
 
 const inputClass =
   'h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-xs font-semibold outline-none focus:border-indigo-500 focus:bg-white dark:border-slate-800 dark:bg-slate-950 dark:text-white';
+const labelClass = 'text-[11px] font-bold uppercase tracking-wider text-slate-400';
+const cardClass =
+  'rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900';
+const primaryBtn =
+  'inline-flex items-center gap-2 rounded-xl bg-indigo-650 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:opacity-60';
+const ghostBtn =
+  'inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-60 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800';
+const iconBtn =
+  'inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800 disabled:opacity-40 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800';
 
-const ROOM_TYPES = [
-  { id: 'SINGLE', label: 'Single Room (1 Bed)', capacity: 1 },
-  { id: 'DOUBLE', label: 'Double Sharing (2 Beds)', capacity: 2 },
-  { id: 'TRIPLE', label: 'Triple Sharing (3 Beds)', capacity: 3 },
-  { id: 'FOUR_BED', label: '4-Bed Dorm (4 Beds)', capacity: 4 },
-  { id: 'DORMITORY', label: 'Large Dormitory (6 Beds)', capacity: 6 },
+const HOSTEL_TYPES = [
+  { id: 'BOYS', label: 'Boys' },
+  { id: 'GIRLS', label: 'Girls' },
+  { id: 'CO_ED', label: 'Co-ed' },
 ];
 
-const COMPLAINT_CATEGORIES = [
-  { id: 'ELECTRICAL', label: 'Electrical (Fan/Light/Socket)', icon: Zap },
-  { id: 'PLUMBING', label: 'Plumbing (Tap/Washroom/Water)', icon: Wrench },
-  { id: 'CARPENTRY', label: 'Carpentry (Bed/Door/Cupboard)', icon: Building },
-  { id: 'CLEANLINESS', label: 'Cleanliness & Housekeeping', icon: Sparkles },
-  { id: 'MESS_FOOD', label: 'Mess & Food Quality', icon: Utensils },
-  { id: 'INTERNET', label: 'Wi-Fi & Internet', icon: Info },
-  { id: 'SECURITY', label: 'Security & Safety', icon: Shield },
-  { id: 'OTHER', label: 'Other General Issue', icon: AlertCircle },
+const TABS = [
+  { id: 'hostels', label: 'Hostels', icon: Building2 },
+  { id: 'rooms', label: 'Rooms & Beds', icon: Bed },
+  { id: 'wardens', label: 'Wardens', icon: UserCog },
+  { id: 'allocations', label: 'Student Assignments', icon: Users },
+  { id: 'fees', label: 'Yearly Fee', icon: IndianRupee },
 ];
 
-const OUTING_TYPES = [
-  { id: 'DAY_OUTING', label: 'Day Outing (Market/Tuition)' },
-  { id: 'NIGHT_STAY', label: 'Night Stay / Weekend Off' },
-  { id: 'HOME_VISIT', label: 'Home Visit / Vacation' },
-  { id: 'MEDICAL', label: 'Medical / Hospital Visit' },
-  { id: 'EMERGENCY', label: 'Emergency Leave' },
+const HOSTEL_CATEGORIES = [
+  { id: '', label: 'Not set' },
+  { id: 'RESIDENTIAL', label: 'Residential' },
+  { id: 'DAY_BOARDING', label: 'Day Boarding' },
 ];
+
+const emptyHostel = {
+  name: '',
+  code: '',
+  type: 'BOYS',
+  category: '',
+  wardenId: '',
+  contactNumber: '',
+  address: '',
+  totalFloors: '',
+  totalRooms: '',
+  totalCapacity: 50,
+  description: '',
+  status: 'ACTIVE',
+};
+const emptyRoom = { hostelId: '', roomNumber: '', floorNumber: 'Ground Floor', capacity: 4 };
+const emptyWarden = { name: '', mobile: '', hostelId: '', status: 'ACTIVE' };
+const emptyAllocation = { studentId: '', hostelId: '', roomId: '', bedId: '' };
+
+/** Surface the backend's own message — it already explains exactly what failed. */
+const apiError = (error, fallback) => error?.response?.data?.message || error?.message || fallback;
+
+const hostelTypeLabel = (id) => HOSTEL_TYPES.find((t) => t.id === id)?.label || id;
+const hostelCategoryLabel = (id) => HOSTEL_CATEGORIES.find((c) => c.id === id)?.label || id;
+
+/** ₹60,000 — or an em dash when the school has not set an amount yet. */
+const money = (amount) =>
+  amount === null || amount === undefined ? '—' : `₹${Number(amount).toLocaleString('en-IN')}`;
 
 export const HostelManagement = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('hostels');
   const { showToast, ToastComponent } = useToast();
-  const { currentRole } = useSchoolAdminAuth();
 
-  // Core State
-  const [loading, setLoading] = useState(false);
-  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [hostels, setHostels] = useState([]);
   const [rooms, setRooms] = useState([]);
-  const [beds, setBeds] = useState([]);
+  const [wardens, setWardens] = useState([]);
   const [allocations, setAllocations] = useState([]);
-  const [outings, setOutings] = useState([]);
-  const [complaints, setComplaints] = useState([]);
-  const [visualizerData, setVisualizerData] = useState([]);
-  const [eligibleEntities, setEligibleEntities] = useState({ students: [], staff: [] });
+  const [fees, setFees] = useState([]); // one row per academic year
+  const [feeDrafts, setFeeDrafts] = useState({}); // academicYearId -> amount being typed
+  const [lookups, setLookups] = useState({ students: [], hostels: [], wardens: [] });
 
-  // Filters
-  const [selectedHostelId, setSelectedHostelId] = useState('');
-  const [roomFilterFloor, setRoomFilterFloor] = useState('ALL');
-  const [searchStudent, setSearchStudent] = useState('');
-  const [complaintFilterStatus, setComplaintFilterStatus] = useState('ALL');
-  const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
-  const [attendanceSheet, setAttendanceSheet] = useState(null);
-  const [attendanceLoading, setAttendanceLoading] = useState(false);
+  const [search, setSearch] = useState('');
+  const [selectedHostelId, setSelectedHostelId] = useState(''); // Rooms & Beds panel
 
-  // Modals Control
-  const [hostelModalOpen, setHostelModalOpen] = useState(false);
-  const [editingHostel, setEditingHostel] = useState(null);
-  const [hostelForm, setHostelForm] = useState({
-    name: '',
-    type: 'BOYS',
-    wardenId: '',
-    contactNumber: '',
-    address: { addressLine: '', city: '', state: '', pincode: '' },
-    totalBlocks: 1,
-    totalFloors: 3,
-    description: '',
-  });
+  const [hostelModal, setHostelModal] = useState(null); // null | { editing, form }
+  const [roomModal, setRoomModal] = useState(null);
+  const [wardenModal, setWardenModal] = useState(null);
+  const [assignWardenModal, setAssignWardenModal] = useState(null); // warden → hostel
+  const [residentModal, setResidentModal] = useState(null);
+  const [confirm, setConfirm] = useState(null);
 
-  const [roomModalOpen, setRoomModalOpen] = useState(false);
-  const [roomForm, setRoomForm] = useState({
-    hostelId: '',
-    blockName: 'Block A',
-    floorNumber: 'Ground Floor',
-    roomNumber: '',
-    roomType: 'DOUBLE',
-    capacity: 2,
-    monthlyRent: 5000,
-    amenitiesText: 'Attached Washroom, Study Table, Cupboard',
-    description: '',
-  });
+  /* ------------------------------- loading ------------------------------- */
 
-  const [allocateModalOpen, setAllocateModalOpen] = useState(false);
-  const [allocateForm, setAllocateForm] = useState({
-    studentId: '',
-    hostelId: '',
-    roomId: '',
-    bedId: '',
-    monthlyFee: 5000,
-    securityDeposit: 2000,
-    remarks: '',
-  });
-
-  const [transferModalOpen, setTransferModalOpen] = useState(false);
-  const [transferTargetAlloc, setTransferTargetAlloc] = useState(null);
-  const [transferBedId, setTransferBedId] = useState('');
-
-  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
-  const [checkoutTargetAlloc, setCheckoutTargetAlloc] = useState(null);
-  const [checkoutForm, setCheckoutForm] = useState({
-    checkoutDate: new Date().toISOString().split('T')[0],
-    checkoutReason: 'Session End / Normal Vacation',
-    checkoutRemarks: '',
-    depositRefunded: 0,
-  });
-
-  const [outingModalOpen, setOutingModalOpen] = useState(false);
-  const [outingForm, setOutingForm] = useState({
-    studentId: '',
-    hostelId: '',
-    outingType: 'DAY_OUTING',
-    outDateTime: new Date().toISOString().slice(0, 16),
-    expectedReturnDateTime: new Date(Date.now() + 5 * 3600 * 1000).toISOString().slice(0, 16),
-    reason: '',
-    destination: '',
-    parentPermissionStatus: 'APPROVED',
-    remarks: '',
-  });
-
-  const [complaintModalOpen, setComplaintModalOpen] = useState(false);
-  const [complaintForm, setComplaintForm] = useState({
-    hostelId: '',
-    roomId: '',
-    studentId: '',
-    category: 'ELECTRICAL',
-    title: '',
-    description: '',
-    priority: 'MEDIUM',
-    assignedStaffId: '',
-  });
-
-  const [confirmDialog, setConfirmDialog] = useState({
-    isOpen: false,
-    title: '',
-    message: '',
-    onConfirm: () => {},
-  });
-
-  // --- DATA FETCHING ---
-  const fetchAllData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const [dashRes, hostelsRes, roomsRes, allocRes, outingsRes, complaintsRes, eligRes, visRes] = await Promise.all([
-        hostelPortalApi.dashboard().catch(() => ({ data: null })),
-        hostelPortalApi.hostels().catch(() => ({ data: [] })),
-        hostelPortalApi.rooms().catch(() => ({ data: [] })),
-        hostelPortalApi.allocations().catch(() => ({ data: [] })),
-        hostelPortalApi.outings().catch(() => ({ data: [] })),
-        hostelPortalApi.complaints().catch(() => ({ data: [] })),
-        hostelPortalApi.eligibleEntities().catch(() => ({ data: { students: [], staff: [] } })),
-        hostelPortalApi.bedVisualizer().catch(() => ({ data: [] })),
-      ]);
-
-      if (dashRes?.data) setDashboardData(dashRes.data);
-      if (hostelsRes?.data) {
-        setHostels(hostelsRes.data);
-        if (!selectedHostelId && hostelsRes.data.length > 0) {
-          setSelectedHostelId(hostelsRes.data[0]._id);
-        }
+  const loadAll = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!silent) setLoading(true);
+      try {
+        const [hos, rms, wrd, alc, fee, lk] = await Promise.all([
+          hostelPortalApi.hostels(),
+          hostelPortalApi.rooms(),
+          hostelPortalApi.wardens(),
+          hostelPortalApi.allocations(),
+          hostelPortalApi.fees(),
+          hostelPortalApi.lookups(),
+        ]);
+        setHostels(hos.data || []);
+        setRooms(rms.data || []);
+        setWardens(wrd.data || []);
+        setAllocations(alc.data || []);
+        setFees(fee.data || []);
+        // The fee inputs mirror what the server holds; anything half-typed is
+        // dropped on a refresh rather than silently kept.
+        setFeeDrafts(
+          Object.fromEntries((fee.data || []).map((row) => [row.academicYearId, row.yearlyAmount ?? '']))
+        );
+        setLookups(lk.data || { students: [], hostels: [], wardens: [] });
+      } catch (error) {
+        showToast(apiError(error, 'Could not load hostel data'), 'error');
+      } finally {
+        setLoading(false);
       }
-      if (roomsRes?.data) setRooms(roomsRes.data);
-      if (allocRes?.data) setAllocations(allocRes.data);
-      if (outingsRes?.data) setOutings(outingsRes.data);
-      if (complaintsRes?.data) setComplaints(complaintsRes.data);
-      if (eligRes?.data) setEligibleEntities(eligRes.data);
-      if (visRes?.data) setVisualizerData(visRes.data);
-    } catch (err) {
-      showToast(err.message || 'Failed to load hostel records', 'error');
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedHostelId, showToast]);
+    },
+    [showToast]
+  );
 
   useEffect(() => {
-    fetchAllData();
-  }, []);
+    loadAll();
+  }, [loadAll]);
 
-  // Fetch Attendance when tab or hostel or date changes
-  const fetchAttendanceSheet = useCallback(async () => {
-    if (!selectedHostelId) return;
-    setAttendanceLoading(true);
-    try {
-      const res = await hostelPortalApi.getAttendance(selectedHostelId, { date: attendanceDate });
-      if (res?.data) {
-        setAttendanceSheet(res.data);
-      }
-    } catch (err) {
-      showToast(err.message || 'Failed to load attendance roll call', 'error');
-    } finally {
-      setAttendanceLoading(false);
-    }
-  }, [selectedHostelId, attendanceDate, showToast]);
-
+  // Keep the rooms panel pointed at a hostel that still exists.
   useEffect(() => {
-    if (activeTab === 'attendance' && selectedHostelId) {
-      fetchAttendanceSheet();
+    if (!hostels.length) {
+      setSelectedHostelId('');
+      return;
     }
-  }, [activeTab, selectedHostelId, attendanceDate, fetchAttendanceSheet]);
+    if (!hostels.some((h) => h.id === selectedHostelId)) setSelectedHostelId(hostels[0].id);
+  }, [hostels, selectedHostelId]);
 
-  // --- SEED DEMO DATA ---
-  const handleSeedDemo = async () => {
-    try {
-      setLoading(true);
-      const res = await hostelPortalApi.seedDemo();
-      showToast(res?.message || 'Hostel infrastructure ready!', 'success');
-      await fetchAllData();
-    } catch (err) {
-      showToast(err.message || 'Seed demo failed', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+  /* ------------------------------- helpers ------------------------------- */
 
-  // --- HOSTEL CRUD HANDLERS ---
-  const handleOpenHostelModal = (hostel = null) => {
-    if (hostel) {
-      setEditingHostel(hostel);
-      setHostelForm({
-        name: hostel.name,
-        type: hostel.type,
-        wardenId: hostel.wardenId?._id || hostel.wardenId || '',
-        contactNumber: hostel.contactNumber || '',
-        address: hostel.address || { addressLine: '', city: '', state: '', pincode: '' },
-        totalBlocks: hostel.totalBlocks || 1,
-        totalFloors: hostel.totalFloors || 3,
-        description: hostel.description || '',
-      });
-    } else {
-      setEditingHostel(null);
-      setHostelForm({
-        name: '',
-        type: 'BOYS',
-        wardenId: '',
-        contactNumber: '',
-        address: { addressLine: '', city: '', state: '', pincode: '' },
-        totalBlocks: 1,
-        totalFloors: 3,
-        description: '',
-      });
-    }
-    setHostelModalOpen(true);
-  };
+  const selectedHostel = useMemo(
+    () => hostels.find((h) => h.id === selectedHostelId) || null,
+    [hostels, selectedHostelId]
+  );
+  const selectedRooms = useMemo(
+    () => rooms.filter((r) => r.hostelId === selectedHostelId),
+    [rooms, selectedHostelId]
+  );
 
-  const handleSaveHostel = async (e) => {
-    e.preventDefault();
-    try {
-      if (editingHostel) {
-        await hostelPortalApi.updateHostel(editingHostel._id, hostelForm);
-        showToast('Hostel updated successfully', 'success');
-      } else {
-        await hostelPortalApi.createHostel(hostelForm);
-        showToast('Hostel building created successfully', 'success');
-      }
-      setHostelModalOpen(false);
-      await fetchAllData();
-    } catch (err) {
-      showToast(err.message || 'Failed to save hostel', 'error');
-    }
-  };
-
-  const handleDeleteHostel = (hostel) => {
-    setConfirmDialog({
-      isOpen: true,
-      title: `Delete Hostel: ${hostel.name}?`,
-      message: 'Are you sure you want to delete this hostel building? This can only be done if all rooms and beds have been vacated.',
-      onConfirm: async () => {
-        try {
-          await hostelPortalApi.deleteHostel(hostel._id);
-          showToast('Hostel deleted successfully', 'success');
-          setConfirmDialog({ isOpen: false, title: '', message: '', onConfirm: () => {} });
-          await fetchAllData();
-        } catch (err) {
-          showToast(err.message || 'Failed to delete hostel', 'error');
-        }
+  const flow = useMemo(
+    () => [
+      { label: 'Hostel created', done: hostels.length > 0 },
+      { label: 'Room created', done: rooms.length > 0 },
+      { label: 'Beds defined', done: rooms.some((r) => (r.beds || []).length > 0) },
+      { label: 'Warden runs a hostel', done: wardens.some((w) => w.hostelId) },
+      { label: 'Student assigned', done: allocations.length > 0 },
+      {
+        label: 'Yearly fee set',
+        done: fees.some((f) => f.academicYear?.isCurrent && f.yearlyAmount !== null),
       },
-    });
-  };
+    ],
+    [hostels, rooms, wardens, allocations, fees]
+  );
 
-  // --- ROOM CRUD HANDLERS ---
-  const handleOpenRoomModal = () => {
-    setRoomForm({
-      hostelId: selectedHostelId || (hostels[0]?._id || ''),
-      blockName: 'Block A',
-      floorNumber: 'Ground Floor',
-      roomNumber: '',
-      roomType: 'DOUBLE',
-      capacity: 2,
-      monthlyRent: 5000,
-      amenitiesText: 'Attached Washroom, Study Table, Cupboard',
-      description: '',
-    });
-    setRoomModalOpen(true);
-  };
+  const term = search.trim().toLowerCase();
+  const filteredHostels = useMemo(
+    () =>
+      term
+        ? hostels.filter(
+            (h) =>
+              h.name.toLowerCase().includes(term) || (h.code || '').toLowerCase().includes(term)
+          )
+        : hostels,
+    [hostels, term]
+  );
+  /**
+   * A hostel holds at most one warden, so the picker offers the ones nobody
+   * has claimed — plus, when editing, the hostel's own warden.
+   */
+  const hostelWardenOptions = useMemo(() => {
+    const editingId = hostelModal?.editing?.id || '';
+    return wardens.filter(
+      (w) => w.status === 'ACTIVE' && (!w.hostelId || String(w.hostelId) === String(editingId))
+    );
+  }, [wardens, hostelModal]);
 
-  const handleSaveRoom = async (e) => {
-    e.preventDefault();
-    try {
-      const amenities = roomForm.amenitiesText
-        ? roomForm.amenitiesText.split(',').map((s) => s.trim()).filter(Boolean)
-        : [];
-      const payload = {
-        ...roomForm,
-        amenities,
-      };
-      await hostelPortalApi.createRoom(payload);
-      showToast(`Room ${roomForm.roomNumber} & its beds generated automatically!`, 'success');
-      setRoomModalOpen(false);
-      await fetchAllData();
-    } catch (err) {
-      showToast(err.message || 'Failed to create room', 'error');
-    }
-  };
+  const filteredWardens = useMemo(
+    () =>
+      term
+        ? wardens.filter((w) => w.name.toLowerCase().includes(term) || w.mobile.includes(term))
+        : wardens,
+    [wardens, term]
+  );
+  const filteredAllocations = useMemo(
+    () =>
+      term
+        ? allocations.filter(
+            (a) =>
+              (a.student?.name || '').toLowerCase().includes(term) ||
+              (a.hostel?.name || '').toLowerCase().includes(term) ||
+              (a.room?.roomNumber || '').toLowerCase().includes(term)
+          )
+        : allocations,
+    [allocations, term]
+  );
 
-  const handleDeleteRoom = (room) => {
-    setConfirmDialog({
-      isOpen: true,
-      title: `Delete Room ${room.roomNumber}?`,
-      message: `Are you sure you want to delete Room ${room.roomNumber}? This will remove the room and all its associated beds.`,
-      onConfirm: async () => {
-        try {
-          await hostelPortalApi.deleteRoom(room._id);
-          showToast('Room and beds removed', 'success');
-          setConfirmDialog({ isOpen: false, title: '', message: '', onConfirm: () => {} });
-          await fetchAllData();
-        } catch (err) {
-          showToast(err.message || 'Failed to delete room', 'error');
-        }
-      },
-    });
-  };
-
-  // --- ALLOCATION HANDLERS ---
-  const handleOpenAllocateModal = (prefillHostelId = '', prefillRoomId = '', prefillBedId = '') => {
-    const defaultHostel = prefillHostelId || selectedHostelId || (hostels[0]?._id || '');
-    setAllocateForm({
-      studentId: '',
-      hostelId: defaultHostel,
-      roomId: prefillRoomId || '',
-      bedId: prefillBedId || '',
-      monthlyFee: 5000,
-      securityDeposit: 2000,
-      remarks: 'Admitted into campus residence',
-    });
-    setAllocateModalOpen(true);
-  };
-
-  const handleSaveAllocation = async (e) => {
-    e.preventDefault();
-    try {
-      await hostelPortalApi.allocateStudent(allocateForm);
-      showToast('Student successfully allocated to bed!', 'success');
-      setAllocateModalOpen(false);
-      await fetchAllData();
-    } catch (err) {
-      showToast(err.message || 'Failed to allocate bed', 'error');
-    }
-  };
-
-  const handleOpenTransferModal = (alloc) => {
-    setTransferTargetAlloc(alloc);
-    setTransferBedId('');
-    setTransferModalOpen(true);
-  };
-
-  const handleSaveTransfer = async (e) => {
-    e.preventDefault();
-    try {
-      await hostelPortalApi.transferStudent(transferTargetAlloc._id, { newBedId: transferBedId });
-      showToast('Student transferred to new bed successfully!', 'success');
-      setTransferModalOpen(false);
-      await fetchAllData();
-    } catch (err) {
-      showToast(err.message || 'Failed to transfer bed', 'error');
-    }
-  };
-
-  const handleOpenCheckoutModal = (alloc) => {
-    setCheckoutTargetAlloc(alloc);
-    setCheckoutForm({
-      checkoutDate: new Date().toISOString().split('T')[0],
-      checkoutReason: 'Vacating hostel / Session completion',
-      checkoutRemarks: 'Cleared all room inventory and keys handed over.',
-      depositRefunded: alloc.securityDeposit || 0,
-    });
-    setCheckoutModalOpen(true);
-  };
-
-  const handleSaveCheckout = async (e) => {
-    e.preventDefault();
-    try {
-      await hostelPortalApi.checkoutStudent(checkoutTargetAlloc._id, checkoutForm);
-      showToast('Student checkout processed & bed released to Available!', 'success');
-      setCheckoutModalOpen(false);
-      await fetchAllData();
-    } catch (err) {
-      showToast(err.message || 'Failed to process checkout', 'error');
-    }
-  };
-
-  // --- ATTENDANCE HANDLERS ---
-  const handleMarkAllAttendance = (status) => {
-    if (!attendanceSheet || !attendanceSheet.records) return;
-    setAttendanceSheet((prev) => ({
-      ...prev,
-      records: prev.records.map((r) => ({ ...r, status })),
-    }));
-  };
-
-  const handleToggleStudentAttendance = (studentId, status) => {
-    if (!attendanceSheet) return;
-    setAttendanceSheet((prev) => ({
-      ...prev,
-      records: prev.records.map((r) => {
-        const sId = r.studentId?._id || r.studentId;
-        if (sId === studentId) {
-          return { ...r, status };
-        }
-        return r;
-      }),
-    }));
-  };
-
-  const handleSaveAttendance = async () => {
-    if (!attendanceSheet || !selectedHostelId) return;
-    try {
-      await hostelPortalApi.saveAttendance(selectedHostelId, {
-        date: attendanceDate,
-        records: attendanceSheet.records,
-      });
-      showToast('Night roll call attendance recorded successfully!', 'success');
-      await fetchAttendanceSheet();
-      await fetchAllData();
-    } catch (err) {
-      showToast(err.message || 'Failed to save attendance', 'error');
-    }
-  };
-
-  // --- OUTING HANDLERS ---
-  const handleOpenOutingModal = () => {
-    setOutingForm({
-      studentId: '',
-      hostelId: selectedHostelId || (hostels[0]?._id || ''),
-      outingType: 'DAY_OUTING',
-      outDateTime: new Date().toISOString().slice(0, 16),
-      expectedReturnDateTime: new Date(Date.now() + 5 * 3600 * 1000).toISOString().slice(0, 16),
-      reason: '',
-      destination: 'City Market',
-      parentPermissionStatus: 'APPROVED',
-      remarks: '',
-    });
-    setOutingModalOpen(true);
-  };
-
-  const handleSaveOuting = async (e) => {
-    e.preventDefault();
-    try {
-      await hostelPortalApi.createOuting(outingForm);
-      showToast('Gate pass generated successfully!', 'success');
-      setOutingModalOpen(false);
-      await fetchAllData();
-    } catch (err) {
-      showToast(err.message || 'Failed to create outing pass', 'error');
-    }
-  };
-
-  const handleUpdateOutingStatus = async (outingId, status) => {
-    try {
-      await hostelPortalApi.updateOutingStatus(outingId, { status });
-      showToast(`Outing status updated to ${status}`, 'success');
-      await fetchAllData();
-    } catch (err) {
-      showToast(err.message || 'Failed to update outing status', 'error');
-    }
-  };
-
-  // --- COMPLAINTS HANDLERS ---
-  const handleOpenComplaintModal = () => {
-    setComplaintForm({
-      hostelId: selectedHostelId || (hostels[0]?._id || ''),
-      roomId: '',
-      studentId: '',
-      category: 'ELECTRICAL',
-      title: '',
-      description: '',
-      priority: 'MEDIUM',
-      assignedStaffId: '',
-    });
-    setComplaintModalOpen(true);
-  };
-
-  const handleSaveComplaint = async (e) => {
-    e.preventDefault();
-    try {
-      await hostelPortalApi.createComplaint(complaintForm);
-      showToast('Hostel maintenance ticket logged!', 'success');
-      setComplaintModalOpen(false);
-      await fetchAllData();
-    } catch (err) {
-      showToast(err.message || 'Failed to register complaint', 'error');
-    }
-  };
-
-  const handleUpdateComplaintStatus = async (complaintId, status) => {
-    try {
-      await hostelPortalApi.updateComplaint(complaintId, { status });
-      showToast(`Complaint status updated to ${status}`, 'success');
-      await fetchAllData();
-    } catch (err) {
-      showToast(err.message || 'Failed to update complaint status', 'error');
-    }
-  };
-
-  // --- COMPUTED / FILTERED DATA ---
-  const filteredAllocations = useMemo(() => {
-    return allocations.filter((a) => {
-      if (selectedHostelId && (a.hostelId?._id || a.hostelId) !== selectedHostelId) return false;
-      if (searchStudent) {
-        const name = `${a.studentId?.firstName || ''} ${a.studentId?.lastName || ''}`.toLowerCase();
-        const roll = (a.studentId?.rollNumber || '').toLowerCase();
-        const adm = (a.studentId?.admissionNumber || '').toLowerCase();
-        const room = (a.roomId?.roomNumber || '').toLowerCase();
-        const q = searchStudent.toLowerCase();
-        return name.includes(q) || roll.includes(q) || adm.includes(q) || room.includes(q);
+  /** Every mutation goes through here: run it, toast, refresh, close the modal. */
+  const run = useCallback(
+    async (action, { success, onDone } = {}) => {
+      setSaving(true);
+      try {
+        const res = await action();
+        showToast(success || res?.message || 'Saved', 'success');
+        await loadAll({ silent: true });
+        onDone?.();
+        return true;
+      } catch (error) {
+        showToast(apiError(error, 'Something went wrong'), 'error');
+        return false;
+      } finally {
+        setSaving(false);
       }
-      return true;
-    });
-  }, [allocations, selectedHostelId, searchStudent]);
+    },
+    [loadAll, showToast]
+  );
 
-  const filteredComplaints = useMemo(() => {
-    return complaints.filter((c) => {
-      if (selectedHostelId && (c.hostelId?._id || c.hostelId) !== selectedHostelId) return false;
-      if (complaintFilterStatus !== 'ALL' && c.status !== complaintFilterStatus) return false;
-      return true;
-    });
-  }, [complaints, selectedHostelId, complaintFilterStatus]);
+  /* ------------------------------ allocation ----------------------------- */
 
-  const filteredRooms = useMemo(() => {
-    return rooms.filter((r) => {
-      if (selectedHostelId && (r.hostelId?._id || r.hostelId) !== selectedHostelId) return false;
-      if (roomFilterFloor !== 'ALL' && r.floorNumber !== roomFilterFloor) return false;
-      return true;
-    });
-  }, [rooms, selectedHostelId, roomFilterFloor]);
+  const residentHostel = useMemo(
+    () => lookups.hostels.find((h) => h.id === residentModal?.form.hostelId) || null,
+    [lookups.hostels, residentModal]
+  );
+  const residentRoom = useMemo(
+    () => residentHostel?.rooms.find((r) => r.id === residentModal?.form.roomId) || null,
+    [residentHostel, residentModal]
+  );
 
-  const activeVisualizer = useMemo(() => {
-    if (!selectedHostelId) return visualizerData[0] || null;
-    return visualizerData.find((v) => v.hostelId === selectedHostelId) || visualizerData[0] || null;
-  }, [visualizerData, selectedHostelId]);
-
-  // Available beds for allocate dropdown
-  const availableBedsForModal = useMemo(() => {
-    if (!allocateForm.hostelId) return [];
-    return rooms
-      .filter((r) => (r.hostelId?._id || r.hostelId) === allocateForm.hostelId)
-      .map((room) => {
-        const roomBeds = room.beds || [];
-        return {
-          room,
-          beds: roomBeds.filter((b) => b.status === 'AVAILABLE'),
-        };
-      });
-  }, [rooms, allocateForm.hostelId]);
-
-  // Available beds for transfer dropdown
-  const availableBedsForTransfer = useMemo(() => {
-    return rooms.flatMap((r) => (r.beds || []).filter((b) => b.status === 'AVAILABLE'));
-  }, [rooms]);
+  /* -------------------------------- render ------------------------------- */
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* PAGE HEADER */}
+    <div className="space-y-6">
+      <ToastComponent />
+
       <PageHeader
-        title="Hostel & Residential Life Management"
-        subtitle="Manage student hostel infrastructure, room inventories, bed matrices, night roll calls, gate passes, and maintenance tickets."
+        title="Hostel"
+        subtitle="Hostel → Room → Beds → Warden → Student assignment → Yearly fee"
         actions={
-          <div className="flex items-center gap-2.5 shrink-0 flex-nowrap">
-            <button
-              onClick={() => handleOpenAllocateModal()}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all whitespace-nowrap"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>Allocate Bed</span>
-            </button>
-            <button
-              onClick={handleOpenRoomModal}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all whitespace-nowrap"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add Room</span>
-            </button>
-          </div>
+          <button className={ghostBtn} onClick={() => loadAll()} disabled={loading}>
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
         }
       />
 
-      {/* TABS NAVIGATION */}
-      <div className="flex items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-2 overflow-x-auto no-scrollbar">
-        <div className="flex items-center gap-2 min-w-max">
-          {[
-            { id: 'dashboard', label: 'Overview & Analytics', icon: LayoutGrid },
-            { id: 'hostels', label: 'Hostels & Buildings', icon: Building2, count: hostels.length },
-            { id: 'rooms', label: 'Rooms & Bed Visualizer', icon: Bed, count: rooms.length },
-            { id: 'allocations', label: 'Student Allocations', icon: Users, count: allocations.filter((a) => a.status === 'ACTIVE').length },
-            { id: 'attendance', label: 'Night Roll Call', icon: CheckCircle2 },
-            { id: 'outings', label: 'Outings & Gate Passes', icon: DoorOpen, count: outings.filter((o) => o.status === 'OUT' || o.status === 'REQUESTED').length },
-            { id: 'complaints', label: 'Maintenance Desk', icon: Wrench, count: complaints.filter((c) => c.status === 'OPEN' || c.status === 'IN_PROGRESS').length },
-          ].map((tab) => {
+      {/* SETUP PROGRESS — the flow this module is required to follow, in order */}
+      <div className={`${cardClass} p-4`}>
+        <div className="flex flex-wrap items-center gap-2">
+          {flow.map((step, index) => (
+            <React.Fragment key={step.label}>
+              <div
+                className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-[11px] font-bold ${
+                  step.done
+                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+                    : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                }`}
+              >
+                <span
+                  className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-black ${
+                    step.done ? 'bg-emerald-600 text-white' : 'bg-slate-300 text-slate-600 dark:bg-slate-700'
+                  }`}
+                >
+                  {step.done ? <Check className="h-2.5 w-2.5" /> : index + 1}
+                </span>
+                {step.label}
+              </div>
+              {index < flow.length - 1 && <span className="text-slate-300 dark:text-slate-700">›</span>}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+
+      {/* TABS + SEARCH */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex gap-1.5 overflow-x-auto pb-1">
+          {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
+            const count =
+              tab.id === 'hostels'
+                ? hostels.length
+                : tab.id === 'rooms'
+                  ? rooms.length
+                  : tab.id === 'wardens'
+                    ? wardens.length
+                    : tab.id === 'fees'
+                      ? fees.filter((f) => f.yearlyAmount !== null).length
+                      : allocations.length;
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setSearch('');
+                }}
+                className={`flex items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-xs font-bold transition-all ${
                   isActive
                     ? 'bg-indigo-650 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="h-4 w-4" />
                 <span>{tab.label}</span>
-                {tab.count !== undefined && (
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                      isActive ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-                    }`}
-                  >
-                    {tab.count}
-                  </span>
-                )}
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                    isActive
+                      ? 'bg-white/20 text-white'
+                      : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
+                  }`}
+                >
+                  {count}
+                </span>
               </button>
             );
           })}
         </div>
 
-        {/* Global Hostel Picker Filter */}
-        {hostels.length > 0 && (
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Hostel:</span>
-            <select
-              value={selectedHostelId}
-              onChange={(e) => setSelectedHostelId(e.target.value)}
-              className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-800 outline-none dark:border-slate-800 dark:bg-slate-900 dark:text-white"
-            >
-              {hostels.map((h) => (
-                <option key={h._id} value={h._id}>
-                  {h.name} ({h.type})
-                </option>
-              ))}
-            </select>
+        {activeTab !== 'rooms' && activeTab !== 'fees' && (
+          <div className="relative shrink-0 lg:w-72">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={`Search ${activeTab}…`}
+              className={`${inputClass} pl-9`}
+            />
           </div>
         )}
       </div>
 
-      {/* LOADING STATE */}
-      {loading && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <SkeletonStatCard />
-            <SkeletonStatCard />
-            <SkeletonStatCard />
-            <SkeletonStatCard />
-          </div>
-          <SkeletonTable rows={6} columns={5} />
-        </div>
-      )}
+      {loading && <SkeletonTable rows={6} columns={5} />}
 
-      {/* TAB 1: DASHBOARD & OVERVIEW */}
-      {!loading && activeTab === 'dashboard' && (
-        <div className="space-y-6">
-          {/* KPI CARDS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center justify-between">
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Bed Capacity</span>
-                <h3 className="text-2xl font-black text-slate-900 dark:text-white">
-                  {dashboardData?.metrics?.totalBeds || 0}
-                </h3>
-                <span className="text-[11px] text-slate-500 font-semibold block">
-                  Across {dashboardData?.metrics?.totalHostels || 0} Hostels & {dashboardData?.metrics?.totalRooms || 0} Rooms
-                </span>
-              </div>
-              <div className="h-12 w-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                <Bed className="w-6 h-6" />
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center justify-between">
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Occupancy Rate</span>
-                <div className="flex items-baseline gap-2">
-                  <h3 className="text-2xl font-black text-indigo-650">
-                    {dashboardData?.metrics?.occupancyRate || 0}%
-                  </h3>
-                  <span className="text-xs font-bold text-slate-400">
-                    ({dashboardData?.metrics?.occupiedBeds || 0} / {dashboardData?.metrics?.totalBeds || 0})
-                  </span>
-                </div>
-                <div className="w-32 bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden mt-1">
-                  <div
-                    className="bg-indigo-650 h-full rounded-full transition-all"
-                    style={{ width: `${dashboardData?.metrics?.occupancyRate || 0}%` }}
-                  />
-                </div>
-              </div>
-              <div className="h-12 w-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                <Users className="w-6 h-6" />
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center justify-between">
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Available Beds</span>
-                <h3 className="text-2xl font-black text-emerald-600">
-                  {dashboardData?.metrics?.availableBeds || 0}
-                </h3>
-                <span className="text-[11px] text-slate-500 font-semibold block">
-                  {dashboardData?.metrics?.maintenanceBeds || 0} under maintenance
-                </span>
-              </div>
-              <div className="h-12 w-12 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                <DoorOpen className="w-6 h-6" />
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center justify-between">
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Active Gate Passes</span>
-                <h3 className="text-2xl font-black text-amber-600">
-                  {dashboardData?.metrics?.activeOutings || 0}
-                </h3>
-                <span className="text-[11px] text-slate-500 font-semibold block">
-                  {dashboardData?.metrics?.openComplaints || 0} Open maintenance issues
-                </span>
-              </div>
-              <div className="h-12 w-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                <ShieldAlert className="w-6 h-6" />
-              </div>
-            </div>
-          </div>
-
-          {/* HOSTEL BUILDINGS BREAKDOWN */}
-          <div className="space-y-3">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Hostel Infrastructure Summary</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {dashboardData?.hostelBreakdown?.map((h) => (
-                <div
-                  key={h.id}
-                  className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-4"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-base font-bold text-slate-900 dark:text-white">{h.name}</h4>
-                        <Badge variant={h.type === 'BOYS' ? 'primary' : h.type === 'GIRLS' ? 'pink' : 'secondary'}>
-                          {h.type} HOSTEL
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-slate-500 flex items-center gap-1.5">
-                        <UserCheck className="w-3.5 h-3.5 text-indigo-650" />
-                        <span>Warden: <strong>{h.warden}</strong></span>
-                      </p>
-                    </div>
-                    <span className="text-xs font-black text-indigo-650 bg-indigo-50 dark:bg-indigo-950/50 px-3 py-1 rounded-xl">
-                      {h.occupancyRate}% Occupied
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 text-center">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase text-slate-400 block">Rooms</span>
-                      <span className="text-base font-black text-slate-900 dark:text-white mt-0.5 block">{h.totalRooms}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-bold uppercase text-slate-400 block">Total Beds</span>
-                      <span className="text-base font-black text-slate-900 dark:text-white mt-0.5 block">{h.totalBeds}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-bold uppercase text-emerald-500 block">Available</span>
-                      <span className="text-base font-black text-emerald-600 mt-0.5 block">{h.availableBeds}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-500 pt-1">
-                    <span>Occupancy Progress</span>
-                    <span>{h.occupiedBeds} / {h.totalBeds} Beds Taken</span>
-                  </div>
-                  <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${h.occupancyRate > 90 ? 'bg-rose-500' : 'bg-indigo-650'}`}
-                      style={{ width: `${h.occupancyRate}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* RECENT ACTIVITIES (ALLOCTIONS, OUTINGS, COMPLAINTS) */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Recent Allocations */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-4">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-indigo-650" />
-                <span>Recent Bed Allocations</span>
-              </h4>
-              <div className="space-y-3">
-                {dashboardData?.recentAllocations?.length === 0 ? (
-                  <p className="text-xs text-slate-400 text-center py-6">No recent allocations</p>
-                ) : (
-                  dashboardData?.recentAllocations?.map((a) => (
-                    <div key={a._id} className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <h5 className="text-xs font-bold text-slate-900 dark:text-white">
-                          {a.studentId?.firstName} {a.studentId?.lastName}
-                        </h5>
-                        <span className="text-[10px] text-slate-400 block">
-                          Room {a.roomId?.roomNumber} • Bed {a.bedId?.bedCode}
-                        </span>
-                      </div>
-                      <Badge variant="success">Active</Badge>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* Recent Outing Passes */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-4">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <DoorOpen className="w-4 h-4 text-amber-500" />
-                <span>Active Gate Passes</span>
-              </h4>
-              <div className="space-y-3">
-                {dashboardData?.recentOutings?.length === 0 ? (
-                  <p className="text-xs text-slate-400 text-center py-6">No recent outing requests</p>
-                ) : (
-                  dashboardData?.recentOutings?.map((o) => (
-                    <div key={o._id} className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <h5 className="text-xs font-bold text-slate-900 dark:text-white">
-                          {o.studentId?.firstName} {o.studentId?.lastName}
-                        </h5>
-                        <span className="text-[10px] text-slate-400 block">
-                          {o.gatePassCode} • {o.reason}
-                        </span>
-                      </div>
-                      <Badge variant={o.status === 'OUT' ? 'warning' : 'primary'}>{o.status}</Badge>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* Open Maintenance Complaints */}
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-4">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Wrench className="w-4 h-4 text-rose-500" />
-                <span>Open Maintenance Issues</span>
-              </h4>
-              <div className="space-y-3">
-                {dashboardData?.recentComplaints?.length === 0 ? (
-                  <p className="text-xs text-slate-400 text-center py-6">No pending maintenance complaints</p>
-                ) : (
-                  dashboardData?.recentComplaints?.map((c) => (
-                    <div key={c._id} className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950/60 flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <h5 className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[140px]">
-                          {c.title}
-                        </h5>
-                        <span className="text-[10px] text-slate-400 block">
-                          Room {c.roomId?.roomNumber || 'Common'} • {c.category}
-                        </span>
-                      </div>
-                      <Badge variant={c.priority === 'URGENT' ? 'danger' : 'warning'}>{c.priority}</Badge>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 2: HOSTELS & BUILDINGS */}
+      {/* ============================= 1 · HOSTELS =========================== */}
       {!loading && activeTab === 'hostels' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
+        <div className={`${cardClass} overflow-hidden`}>
+          <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Hostel Buildings & Blocks</h3>
-              <p className="text-xs text-slate-400">Configure residential hostel blocks and assigned warden staff</p>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Hostels</h3>
+              <p className="text-[11px] font-semibold text-slate-400">
+                Step 1 — the building and how many students it holds
+              </p>
             </div>
-            <button
-              onClick={() => handleOpenHostelModal()}
-              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add Hostel</span>
+            <button className={primaryBtn} onClick={() => setHostelModal({ editing: null, form: emptyHostel })}>
+              <Plus className="h-3.5 w-3.5" /> Add Hostel
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {hostels.map((h) => (
-              <div
-                key={h._id}
-                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex flex-col justify-between space-y-4"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="text-base font-bold text-slate-900 dark:text-white">{h.name}</h4>
-                      <span className="text-xs text-slate-400 block mt-0.5">{h.address?.addressLine || 'Campus Wing'}</span>
-                    </div>
-                    <Badge variant={h.type === 'BOYS' ? 'primary' : h.type === 'GIRLS' ? 'pink' : 'secondary'}>
-                      {h.type}
-                    </Badge>
-                  </div>
-
-                  <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 space-y-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-400 font-bold">Warden:</span>
-                      <span className="font-bold text-slate-800 dark:text-slate-200">
-                        {h.wardenId?.fullName || 'Not Assigned'}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-400 font-bold">Contact:</span>
-                      <span className="font-bold text-slate-800 dark:text-slate-200">{h.contactNumber || 'N/A'}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-400 font-bold">Floors & Blocks:</span>
-                      <span className="font-bold text-slate-800 dark:text-slate-200">
-                        {h.totalFloors} Floors, {h.totalBlocks} Block(s)
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-400 font-bold">Rated Bed Capacity:</span>
-                      <span className="font-bold text-indigo-650">{h.capacity || 0} Beds</span>
-                    </div>
-                  </div>
-
-                  {h.description && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">{h.description}</p>
-                  )}
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-                  <button
-                    onClick={() => handleOpenHostelModal(h)}
-                    className="p-2 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded-xl"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteHostel(h)}
-                    className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-xl"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          {filteredHostels.length === 0 ? (
+            <EmptyState icon={Building2} message="No hostels yet. Add one to start the flow." />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <TableHead
+                  columns={['Hostel', 'Type', 'Warden', 'Contact', 'Rooms', 'Beds', 'Residents', 'Status', '']}
+                />
+                <tbody>
+                  {filteredHostels.map((row) => (
+                    <tr key={row.id} className="border-b border-slate-100 last:border-0 dark:border-slate-800">
+                      <td className="px-5 py-3.5 font-black text-slate-900 dark:text-white">
+                        {row.name}
+                        <div className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+                          {row.code}
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
+                        {hostelTypeLabel(row.type)}
+                        {row.category ? (
+                          <div className="text-[11px] font-semibold text-slate-400">
+                            {hostelCategoryLabel(row.category)}
+                          </div>
+                        ) : null}
+                      </td>
+                      <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
+                        {row.warden ? (
+                          <>
+                            {row.warden.name}
+                            <div className="text-[11px] font-semibold text-slate-400">{row.warden.mobile}</div>
+                          </>
+                        ) : (
+                          <span className="text-amber-600 dark:text-amber-400">Not assigned</span>
+                        )}
+                      </td>
+                      <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
+                        {row.contactNumber || '—'}
+                        {row.address ? (
+                          <div className="max-w-[180px] truncate text-[11px] font-semibold text-slate-400">
+                            {row.address}
+                          </div>
+                        ) : null}
+                      </td>
+                      <td className="px-5 py-3.5 font-bold text-slate-700 dark:text-slate-200">
+                        {row.roomsCreated}
+                        {row.totalRooms ? (
+                          <span className="font-semibold text-slate-400"> / {row.totalRooms}</span>
+                        ) : null}
+                      </td>
+                      <td className="px-5 py-3.5 font-bold text-slate-700 dark:text-slate-200">
+                        {row.occupiedBeds} / {row.totalBeds}
+                      </td>
+                      <td className="px-5 py-3.5 font-bold text-slate-700 dark:text-slate-200">
+                        {row.residents} / {row.totalCapacity}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <Badge variant={row.status === 'ACTIVE' ? 'success' : 'default'}>{row.status}</Badge>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex justify-end gap-1.5">
+                          <button
+                            className={iconBtn}
+                            title="Edit hostel"
+                            onClick={() =>
+                              setHostelModal({
+                                editing: row,
+                                form: {
+                                  name: row.name,
+                                  code: row.code || '',
+                                  type: row.type,
+                                  category: row.category || '',
+                                  wardenId: row.warden?.id || '',
+                                  contactNumber: row.contactNumber || '',
+                                  address: row.address || '',
+                                  totalFloors: row.totalFloors ?? '',
+                                  totalRooms: row.totalRooms ?? '',
+                                  totalCapacity: row.totalCapacity,
+                                  description: row.description || '',
+                                  status: row.status,
+                                },
+                              })
+                            }
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            className={iconBtn}
+                            title="Delete hostel"
+                            onClick={() =>
+                              setConfirm({
+                                title: 'Delete hostel',
+                                message: `Delete ${row.name}? Its rooms must be deleted and its residents vacated first.`,
+                                confirmText: 'Delete',
+                                onConfirm: () =>
+                                  run(() => hostelPortalApi.deleteHostel(row.id), { success: 'Hostel deleted' }),
+                              })
+                            }
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
-      {/* TAB 3: ROOMS & BED VISUALIZER */}
+      {/* ========================= 2 + 3 · ROOMS & BEDS ====================== */}
       {!loading && activeTab === 'rooms' && (
-        <div className="space-y-6">
-          {/* Controls Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center gap-3">
-              <span className="text-xs font-bold text-slate-400">Filter Floor:</span>
-              <select
-                value={roomFilterFloor}
-                onChange={(e) => setRoomFilterFloor(e.target.value)}
-                className="h-9 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold outline-none dark:border-slate-800 dark:bg-slate-950"
-              >
-                <option value="ALL">All Floors</option>
-                <option value="Ground Floor">Ground Floor</option>
-                <option value="1st Floor">1st Floor</option>
-                <option value="2nd Floor">2nd Floor</option>
-                <option value="3rd Floor">3rd Floor</option>
-              </select>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[260px_1fr]">
+          {/* hostel picker */}
+          <div className={`${cardClass} h-fit overflow-hidden`}>
+            <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-800">
+              <h3 className="text-xs font-bold text-slate-900 dark:text-white">Hostels</h3>
             </div>
-
-            {/* Bed Legend */}
-            <div className="flex items-center gap-4 text-xs font-bold">
-              <div className="flex items-center gap-1.5">
-                <span className="h-3 w-3 rounded-full bg-emerald-500" />
-                <span className="text-slate-600 dark:text-slate-400">Available Bed</span>
+            {hostels.length === 0 ? (
+              <EmptyState icon={Building2} message="Add a hostel first." />
+            ) : (
+              <div className="p-2">
+                {hostels.map((hostel) => (
+                  <button
+                    key={hostel.id}
+                    onClick={() => setSelectedHostelId(hostel.id)}
+                    className={`mb-1 w-full rounded-xl px-3 py-2.5 text-left text-xs font-bold transition-colors ${
+                      hostel.id === selectedHostelId
+                        ? 'bg-indigo-50 text-indigo-650 dark:bg-indigo-950/40 dark:text-indigo-400'
+                        : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    {hostel.name}
+                    <div className="text-[11px] font-semibold text-slate-400">
+                      {hostel.roomsCreated} room(s) · {hostel.occupiedBeds}/{hostel.totalBeds} beds
+                    </div>
+                  </button>
+                ))}
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="h-3 w-3 rounded-full bg-indigo-600" />
-                <span className="text-slate-600 dark:text-slate-400">Occupied Bed</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="h-3 w-3 rounded-full bg-amber-500" />
-                <span className="text-slate-600 dark:text-slate-400">Maintenance</span>
-              </div>
-            </div>
+            )}
           </div>
 
-          {/* VISUALIZER BED MATRIX */}
-          {activeVisualizer?.floors?.length === 0 ? (
-            <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
-              <Bed className="w-10 h-10 text-slate-300 mx-auto" />
-              <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">No rooms registered yet</h4>
-              <p className="text-xs text-slate-400">Click &quot;Add Room&quot; to create rooms and auto-generate beds.</p>
+          {/* rooms of the selected hostel */}
+          <div className={`${cardClass} overflow-hidden`}>
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  {selectedHostel ? `Rooms in ${selectedHostel.name}` : 'Rooms'}
+                </h3>
+                <p className="text-[11px] font-semibold text-slate-400">
+                  Steps 2 + 3 — a room's capacity defines its beds, which are created with it
+                </p>
+              </div>
               <button
-                onClick={handleOpenRoomModal}
-                className="px-4 py-2 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl"
+                className={primaryBtn}
+                disabled={!selectedHostelId}
+                onClick={() =>
+                  setRoomModal({ editing: null, form: { ...emptyRoom, hostelId: selectedHostelId } })
+                }
               >
-                Add First Room
+                <Plus className="h-3.5 w-3.5" /> Add Room
               </button>
             </div>
-          ) : (
-            <div className="space-y-8">
-              {activeVisualizer?.floors
-                ?.filter((f) => roomFilterFloor === 'ALL' || f.floorName === roomFilterFloor)
-                .map((floor) => (
-                  <div key={floor.floorName} className="space-y-4">
-                    <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
-                      <Layers className="w-4 h-4 text-indigo-650" />
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                        {floor.floorName}
-                      </h4>
-                      <span className="text-xs font-bold text-slate-400">({floor.rooms.length} Rooms)</span>
+
+            {selectedRooms.length === 0 ? (
+              <EmptyState
+                icon={Bed}
+                message={selectedHostelId ? 'No rooms in this hostel yet.' : 'Pick a hostel first.'}
+              />
+            ) : (
+              <div className="space-y-3 p-4">
+                {selectedRooms.map((room) => (
+                  <div
+                    key={room.id}
+                    className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-black text-slate-900 dark:text-white">
+                          Room {room.roomNumber}
+                        </p>
+                        <p className="text-[11px] font-semibold text-slate-400">
+                          {room.floorNumber} · occupancy {room.occupiedBeds} / {room.capacity}
+                        </p>
+                      </div>
+                      <div className="flex gap-1.5">
+                        <button
+                          className={iconBtn}
+                          title="Edit room"
+                          onClick={() =>
+                            setRoomModal({
+                              editing: room,
+                              form: {
+                                hostelId: room.hostelId,
+                                roomNumber: room.roomNumber,
+                                floorNumber: room.floorNumber,
+                                capacity: room.capacity,
+                              },
+                            })
+                          }
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          className={iconBtn}
+                          title="Delete room"
+                          onClick={() =>
+                            setConfirm({
+                              title: 'Delete room',
+                              message: `Delete room ${room.roomNumber} and its ${room.capacity} bed(s)?`,
+                              confirmText: 'Delete',
+                              onConfirm: () =>
+                                run(() => hostelPortalApi.deleteRoom(room.id), { success: 'Room deleted' }),
+                            })
+                          }
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                      {floor.rooms.map((room) => {
-                        const occupiedBedsCount = (room.beds || []).filter((b) => b.status === 'OCCUPIED').length;
-                        return (
-                          <div
-                            key={room._id}
-                            className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-4 hover:border-indigo-200 dark:hover:border-indigo-900 transition-all"
-                          >
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <h5 className="text-base font-black text-slate-900 dark:text-white">
-                                    Room {room.roomNumber}
-                                  </h5>
-                                  <Badge variant="primary">{room.roomType}</Badge>
-                                </div>
-                                <span className="text-[11px] text-slate-400 block mt-0.5">
-                                  {room.blockName} • ₹{room.monthlyRent?.toLocaleString()}/mo
-                                </span>
-                              </div>
-                              <button
-                                onClick={() => handleDeleteRoom(room)}
-                                className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg"
-                                title="Delete Room"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-
-                            {/* BEDS VISUAL GRID IN ROOM */}
-                            <div className="space-y-2">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                                Beds Matrix ({occupiedBedsCount}/{room.capacity} Filled)
-                              </span>
-                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                {(room.beds || []).map((bed) => {
-                                  const isAvailable = bed.status === 'AVAILABLE';
-                                  const isOccupied = bed.status === 'OCCUPIED';
-                                  return (
-                                    <div
-                                      key={bed._id}
-                                      onClick={() => {
-                                        if (isAvailable) {
-                                          handleOpenAllocateModal(room.hostelId?._id || room.hostelId, room._id, bed._id);
-                                        }
-                                      }}
-                                      className={`p-2.5 rounded-2xl border text-center transition-all cursor-pointer ${
-                                        isAvailable
-                                          ? 'border-emerald-200 bg-emerald-50/70 hover:bg-emerald-100 dark:border-emerald-950 dark:bg-emerald-950/30'
-                                          : isOccupied
-                                          ? 'border-indigo-200 bg-indigo-50/70 dark:border-indigo-950 dark:bg-indigo-950/30'
-                                          : 'border-amber-200 bg-amber-50/70 dark:border-amber-950 dark:bg-amber-950/30'
-                                      }`}
-                                    >
-                                      <div className="flex items-center justify-center gap-1">
-                                        <Bed
-                                          className={`w-3.5 h-3.5 ${
-                                            isAvailable
-                                              ? 'text-emerald-600'
-                                              : isOccupied
-                                              ? 'text-indigo-600'
-                                              : 'text-amber-600'
-                                          }`}
-                                        />
-                                        <span className="text-xs font-black text-slate-800 dark:text-slate-100">
-                                          {bed.bedCode}
-                                        </span>
-                                      </div>
-                                      {isOccupied && bed.currentStudentId ? (
-                                        <span className="text-[10px] font-bold text-indigo-650 block truncate mt-1">
-                                          {bed.currentStudentId?.firstName}
-                                        </span>
-                                      ) : (
-                                        <span className="text-[10px] font-bold text-emerald-600 block mt-1">
-                                          + Free
-                                        </span>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-
-                            {room.amenities?.length > 0 && (
-                              <div className="flex flex-wrap gap-1 pt-2 border-t border-slate-100 dark:border-slate-800">
-                                {room.amenities.map((a, i) => (
-                                  <span
-                                    key={i}
-                                    className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300"
-                                  >
-                                    {a}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
+                    {/* the beds themselves — step 3, maintained by the server */}
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {(room.beds || []).map((bed) => (
+                        <div
+                          key={bed.id}
+                          className={`rounded-xl px-3 py-2 text-[11px] font-bold ${
+                            bed.status === 'OCCUPIED'
+                              ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'
+                              : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+                          }`}
+                        >
+                          {bed.bedCode}
+                          <div className="text-[10px] font-semibold opacity-80">
+                            {bed.status === 'OCCUPIED' ? bed.student?.name || 'Occupied' : 'Available'}
                           </div>
-                        );
-                      })}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* TAB 4: STUDENT ALLOCATIONS & CHECKOUT */}
-      {!loading && activeTab === 'allocations' && (
-        <div className="space-y-6">
-          {/* Search & Filter Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-            <div className="relative flex-1 min-w-[240px]">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search student name, roll number, admission no, or room..."
-                value={searchStudent}
-                onChange={(e) => setSearchStudent(e.target.value)}
-                className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/80 pl-9 pr-3.5 text-xs font-semibold outline-none focus:border-indigo-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-              />
-            </div>
-            <button
-              onClick={() => handleOpenAllocateModal()}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>New Allocation</span>
-            </button>
-          </div>
-
-          {/* ALLOCATIONS TABLE */}
-          <div className="rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50/80 dark:bg-slate-950/60 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  <tr>
-                    <th className="px-5 py-4">Student</th>
-                    <th className="px-5 py-4">Hostel & Block</th>
-                    <th className="px-5 py-4">Room & Bed</th>
-                    <th className="px-5 py-4">Stay Duration</th>
-                    <th className="px-5 py-4">Fee / Deposit</th>
-                    <th className="px-5 py-4">Status</th>
-                    <th className="px-5 py-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-semibold text-slate-700 dark:text-slate-300">
-                  {filteredAllocations.length === 0 ? (
-                    <tr>
-                      <td colSpan="7" className="px-5 py-12 text-center text-slate-400">
-                        No student residential allocations match the filter.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredAllocations.map((alloc) => (
-                      <tr key={alloc._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-950/40">
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-650 flex items-center justify-center font-black">
-                              {alloc.studentId?.firstName?.[0] || 'S'}
-                            </div>
-                            <div>
-                              <h5 className="font-bold text-slate-900 dark:text-white">
-                                {alloc.studentId?.firstName} {alloc.studentId?.lastName}
-                              </h5>
-                              <span className="text-[10px] text-slate-400 block">
-                                Roll #{alloc.studentId?.rollNumber || 'N/A'} • Adm: {alloc.studentId?.admissionNumber || 'N/A'}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4">
-                          <span className="font-bold text-slate-900 dark:text-white">{alloc.hostelId?.name}</span>
-                          <span className="text-[10px] text-slate-400 block">{alloc.roomId?.blockName}</span>
-                        </td>
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-1.5">
-                            <Badge variant="primary">Room {alloc.roomId?.roomNumber}</Badge>
-                            <Badge variant="secondary">Bed {alloc.bedId?.bedCode}</Badge>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4">
-                          <span className="text-slate-800 dark:text-slate-200">
-                            From: {new Date(alloc.allocationDate).toLocaleDateString()}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4">
-                          <span className="font-bold text-slate-900 dark:text-white">₹{alloc.monthlyFee?.toLocaleString()}/mo</span>
-                          <span className="text-[10px] text-slate-400 block">Dep: ₹{alloc.securityDeposit?.toLocaleString()}</span>
-                        </td>
-                        <td className="px-5 py-4">
-                          <Badge variant={alloc.status === 'ACTIVE' ? 'success' : alloc.status === 'TRANSFERRED' ? 'info' : 'secondary'}>
-                            {alloc.status}
-                          </Badge>
-                        </td>
-                        <td className="px-5 py-4 text-right">
-                          {alloc.status === 'ACTIVE' && (
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                onClick={() => handleOpenTransferModal(alloc)}
-                                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl flex items-center gap-1"
-                              >
-                                <ArrowRightLeft className="w-3.5 h-3.5" />
-                                <span>Transfer</span>
-                              </button>
-                              <button
-                                onClick={() => handleOpenCheckoutModal(alloc)}
-                                className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:hover:bg-rose-950 text-xs font-bold rounded-xl flex items-center gap-1"
-                              >
-                                <LogOut className="w-3.5 h-3.5" />
-                                <span>Vacate</span>
-                              </button>
-                            </div>
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 5: NIGHT ATTENDANCE ROLL CALL */}
-      {!loading && activeTab === 'attendance' && (
-        <div className="space-y-6">
-          {/* Header Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center gap-3">
-              <Calendar className="w-5 h-5 text-indigo-650" />
-              <div>
-                <h4 className="text-sm font-bold text-slate-900 dark:text-white">Daily Night Roll Call</h4>
-                <p className="text-xs text-slate-400">Record residency night check attendance per student bed</p>
               </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <input
-                type="date"
-                value={attendanceDate}
-                onChange={(e) => setAttendanceDate(e.target.value)}
-                className="h-10 rounded-xl border border-slate-200 bg-slate-50 px-3.5 text-xs font-bold outline-none dark:border-slate-800 dark:bg-slate-950"
-              />
-              <button
-                onClick={() => handleMarkAllAttendance('PRESENT')}
-                className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:hover:bg-emerald-950 text-xs font-bold rounded-xl"
-              >
-                Mark All Present
-              </button>
-              <button
-                onClick={handleSaveAttendance}
-                className="px-5 py-2 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm"
-              >
-                Save Attendance
-              </button>
-            </div>
-          </div>
-
-          {/* Roll Call Attendance Table */}
-          {attendanceLoading ? (
-            <SkeletonTable rows={5} columns={4} />
-          ) : !attendanceSheet || attendanceSheet.records?.length === 0 ? (
-            <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-2">
-              <Users className="w-10 h-10 text-slate-300 mx-auto" />
-              <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">No active students allocated</h4>
-              <p className="text-xs text-slate-400">Allocate students to beds in this hostel to take attendance.</p>
-            </div>
-          ) : (
-            <div className="rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50/80 dark:bg-slate-950/60 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    <tr>
-                      <th className="px-5 py-4">Student Details</th>
-                      <th className="px-5 py-4">Room & Bed</th>
-                      <th className="px-5 py-4">Attendance Status</th>
-                      <th className="px-5 py-4">Notes / Remarks</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-semibold text-slate-700 dark:text-slate-300">
-                    {attendanceSheet.records.map((rec) => {
-                      const s = rec.studentId;
-                      const sId = s?._id || s;
-                      return (
-                        <tr key={sId} className="hover:bg-slate-50/50 dark:hover:bg-slate-950/40">
-                          <td className="px-5 py-4">
-                            <span className="font-bold text-slate-900 dark:text-white block">
-                              {s?.firstName} {s?.lastName}
-                            </span>
-                            <span className="text-[10px] text-slate-400 block">Roll #{s?.rollNumber || 'N/A'}</span>
-                          </td>
-                          <td className="px-5 py-4">
-                            <span className="font-bold text-indigo-650">
-                              Bed {rec.bedId?.bedCode || 'Allocated'}
-                            </span>
-                          </td>
-                          <td className="px-5 py-4">
-                            <div className="flex items-center gap-1.5">
-                              {[
-                                { id: 'PRESENT', label: 'Present', color: 'bg-emerald-600 text-white' },
-                                { id: 'ABSENT', label: 'Absent', color: 'bg-rose-600 text-white' },
-                                { id: 'OUTING', label: 'Outing', color: 'bg-amber-600 text-white' },
-                                { id: 'LEAVE', label: 'Leave', color: 'bg-purple-600 text-white' },
-                                { id: 'MEDICAL', label: 'Medical', color: 'bg-blue-600 text-white' },
-                              ].map((btn) => {
-                                const isSelected = rec.status === btn.id;
-                                return (
-                                  <button
-                                    key={btn.id}
-                                    type="button"
-                                    onClick={() => handleToggleStudentAttendance(sId, btn.id)}
-                                    className={`px-3 py-1 rounded-xl text-[11px] font-black transition-all ${
-                                      isSelected
-                                        ? btn.color
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
-                                    }`}
-                                  >
-                                    {btn.label}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </td>
-                          <td className="px-5 py-4">
-                            <input
-                              type="text"
-                              placeholder="Add roll-call remark..."
-                              value={rec.remarks || ''}
-                              onChange={(e) => {
-                                const text = e.target.value;
-                                setAttendanceSheet((prev) => ({
-                                  ...prev,
-                                  records: prev.records.map((r) =>
-                                    (r.studentId?._id || r.studentId) === sId ? { ...r, remarks: text } : r
-                                  ),
-                                }));
-                              }}
-                              className="h-8 w-full max-w-xs rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-xs outline-none dark:border-slate-800 dark:bg-slate-950"
-                            />
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* TAB 6: OUTINGS & GATE PASSES */}
-      {!loading && activeTab === 'outings' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Gate Passes & Student Outings</h3>
-              <p className="text-xs text-slate-400">Track student campus exit permits, expected returns, and parent permissions</p>
-            </div>
-            <button
-              onClick={handleOpenOutingModal}
-              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Issue Gate Pass</span>
-            </button>
-          </div>
-
-          <div className="rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50/80 dark:bg-slate-950/60 border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  <tr>
-                    <th className="px-5 py-4">Gate Pass #</th>
-                    <th className="px-5 py-4">Student</th>
-                    <th className="px-5 py-4">Outing Type & Reason</th>
-                    <th className="px-5 py-4">Schedule</th>
-                    <th className="px-5 py-4">Approvals</th>
-                    <th className="px-5 py-4">Gate Status</th>
-                    <th className="px-5 py-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-semibold text-slate-700 dark:text-slate-300">
-                  {outings.length === 0 ? (
-                    <tr>
-                      <td colSpan="7" className="px-5 py-12 text-center text-slate-400">
-                        No outing records logged yet.
-                      </td>
-                    </tr>
-                  ) : (
-                    outings.map((o) => (
-                      <tr key={o._id} className="hover:bg-slate-50/50 dark:hover:bg-slate-950/40">
-                        <td className="px-5 py-4">
-                          <span className="font-mono font-black text-indigo-650 bg-indigo-50 dark:bg-indigo-950/50 px-2.5 py-1 rounded-lg">
-                            {o.gatePassCode}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4">
-                          <span className="font-bold text-slate-900 dark:text-white block">
-                            {o.studentId?.firstName} {o.studentId?.lastName}
-                          </span>
-                          <span className="text-[10px] text-slate-400 block">{o.hostelId?.name}</span>
-                        </td>
-                        <td className="px-5 py-4">
-                          <Badge variant="secondary">{o.outingType}</Badge>
-                          <span className="text-[11px] text-slate-600 dark:text-slate-300 block mt-1">{o.reason}</span>
-                        </td>
-                        <td className="px-5 py-4">
-                          <span className="block text-slate-800 dark:text-slate-200">
-                            Out: {new Date(o.outDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}
-                          </span>
-                          <span className="block text-[10px] text-slate-400">
-                            Exp: {new Date(o.expectedReturnDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4">
-                          <div className="space-y-1">
-                            <span className="text-[10px] font-bold text-emerald-600 block">Parent: {o.parentPermissionStatus}</span>
-                            <span className="text-[10px] font-bold text-indigo-650 block">Warden: {o.wardenApprovalStatus}</span>
-                          </div>
-                        </td>
-                        <td className="px-5 py-4">
-                          <Badge
-                            variant={
-                              o.status === 'OUT'
-                                ? 'warning'
-                                : o.status === 'RETURNED'
-                                ? 'success'
-                                : o.status === 'OVERDUE'
-                                ? 'danger'
-                                : 'primary'
-                            }
-                          >
-                            {o.status}
-                          </Badge>
-                        </td>
-                        <td className="px-5 py-4 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            {o.status === 'APPROVED' && (
-                              <button
-                                onClick={() => handleUpdateOutingStatus(o._id, 'OUT')}
-                                className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl"
-                              >
-                                Mark Out
-                              </button>
-                            )}
-                            {o.status === 'OUT' && (
-                              <button
-                                onClick={() => handleUpdateOutingStatus(o._id, 'RETURNED')}
-                                className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl"
-                              >
-                                Mark Returned
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 7: MAINTENANCE & COMPLAINTS */}
-      {!loading && activeTab === 'complaints' && (
-        <div className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Hostel Maintenance & Complaints Desk</h3>
-              <p className="text-xs text-slate-400">Log electrical, plumbing, carpentry, and cleanliness maintenance tickets</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <select
-                value={complaintFilterStatus}
-                onChange={(e) => setComplaintFilterStatus(e.target.value)}
-                className="h-10 rounded-xl border border-slate-200 bg-white px-3.5 text-xs font-bold outline-none dark:border-slate-800 dark:bg-slate-900"
-              >
-                <option value="ALL">All Statuses</option>
-                <option value="OPEN">Open</option>
-                <option value="IN_PROGRESS">In Progress</option>
-                <option value="RESOLVED">Resolved</option>
-              </select>
-              <button
-                onClick={handleOpenComplaintModal}
-                className="flex items-center gap-1.5 px-4 py-2 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-sm"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Log Complaint</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredComplaints.length === 0 ? (
-              <div className="col-span-full py-16 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
-                <Wrench className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">No complaints registered</h4>
-                <p className="text-xs text-slate-400">All hostel rooms and facilities are in good condition.</p>
-              </div>
-            ) : (
-              filteredComplaints.map((c) => (
-                <div
-                  key={c._id}
-                  className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex flex-col justify-between space-y-4"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                      <Badge variant={c.priority === 'URGENT' ? 'danger' : c.priority === 'HIGH' ? 'warning' : 'secondary'}>
-                        {c.priority} PRIORITY
-                      </Badge>
-                      <Badge variant={c.status === 'RESOLVED' ? 'success' : c.status === 'IN_PROGRESS' ? 'info' : 'primary'}>
-                        {c.status}
-                      </Badge>
-                    </div>
-
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">{c.title}</h4>
-                      <span className="text-[11px] text-slate-400 block mt-0.5">
-                        {c.hostelId?.name} • Room {c.roomId?.roomNumber || 'Common Area'}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-3">{c.description}</p>
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-slate-400">
-                      Category: <strong>{c.category}</strong>
-                    </span>
-                    {c.status !== 'RESOLVED' && (
-                      <button
-                        onClick={() => handleUpdateComplaintStatus(c._id, 'RESOLVED')}
-                        className="px-3 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 text-xs font-bold rounded-xl"
-                      >
-                        Mark Resolved
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))
             )}
           </div>
         </div>
       )}
 
-      {/* --- MODAL 1: ADD/EDIT HOSTEL --- */}
-      <Modal isOpen={hostelModalOpen} onClose={() => setHostelModalOpen(false)} title={editingHostel ? 'Edit Hostel Building' : 'Add Hostel Building'}>
-        <form onSubmit={handleSaveHostel} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-400">Hostel Name *</label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Rabindranath Tagore Boys Hostel"
-              value={hostelForm.name}
-              onChange={(e) => setHostelForm({ ...hostelForm, name: e.target.value })}
-              className={inputClass}
-            />
+      {/* ============================= 4 · WARDENS =========================== */}
+      {!loading && activeTab === 'wardens' && (
+        <div className={`${cardClass} overflow-hidden`}>
+          <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Wardens</h3>
+              <p className="text-[11px] font-semibold text-slate-400">
+                Step 4 — who is responsible for a hostel. One warden per hostel.
+              </p>
+            </div>
+            <button className={primaryBtn} onClick={() => setWardenModal({ editing: null, form: emptyWarden })}>
+              <Plus className="h-3.5 w-3.5" /> Add Warden
+            </button>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Hostel Type *</label>
-              <select
-                value={hostelForm.type}
-                onChange={(e) => setHostelForm({ ...hostelForm, type: e.target.value })}
-                className={inputClass}
-              >
-                <option value="BOYS">Boys Hostel</option>
-                <option value="GIRLS">Girls Hostel</option>
-                <option value="CO_ED">Co-Ed Hostel</option>
-                <option value="STAFF">Staff Quarters</option>
-              </select>
+          {filteredWardens.length === 0 ? (
+            <EmptyState icon={UserCog} message="No wardens yet. A hostel needs one before it can take students." />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <TableHead columns={['Warden', 'Mobile', 'Hostel', 'Status', '']} />
+                <tbody>
+                  {filteredWardens.map((row) => (
+                    <tr key={row.id} className="border-b border-slate-100 last:border-0 dark:border-slate-800">
+                      <td className="px-5 py-3.5 font-black text-slate-900 dark:text-white">{row.name}</td>
+                      <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
+                        {row.mobile}
+                      </td>
+                      <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
+                        {row.hostel?.name || <span className="text-slate-400">Not assigned</span>}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <Badge variant={row.status === 'ACTIVE' ? 'success' : 'default'}>{row.status}</Badge>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex justify-end gap-1.5">
+                          <button
+                            className={iconBtn}
+                            title={row.hostelId ? 'Change hostel' : 'Assign to a hostel'}
+                            onClick={() => setAssignWardenModal({ warden: row, hostelId: row.hostelId || '' })}
+                          >
+                            <Building2 className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            className={iconBtn}
+                            title="Remove from hostel"
+                            disabled={!row.hostelId}
+                            onClick={() =>
+                              run(() => hostelPortalApi.unassignWardenFromHostel(row.id), {
+                                success: 'Warden removed from hostel',
+                              })
+                            }
+                          >
+                            <Unlink className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            className={iconBtn}
+                            title="Edit warden"
+                            onClick={() =>
+                              setWardenModal({
+                                editing: row,
+                                form: {
+                                  name: row.name,
+                                  mobile: row.mobile,
+                                  hostelId: row.hostelId || '',
+                                  status: row.status,
+                                },
+                              })
+                            }
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            className={iconBtn}
+                            title="Delete warden"
+                            onClick={() =>
+                              setConfirm({
+                                title: 'Delete warden',
+                                message: `Delete ${row.name}? A warden who still runs a hostel must be unassigned first.`,
+                                confirmText: 'Delete',
+                                onConfirm: () =>
+                                  run(() => hostelPortalApi.deleteWarden(row.id), { success: 'Warden deleted' }),
+                              })
+                            }
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Warden (Staff User)</label>
-              <select
-                value={hostelForm.wardenId}
-                onChange={(e) => setHostelForm({ ...hostelForm, wardenId: e.target.value })}
+          )}
+        </div>
+      )}
+
+      {/* ======================= 5 · STUDENT ASSIGNMENTS ===================== */}
+      {!loading && activeTab === 'allocations' && (
+        <div className={`${cardClass} overflow-hidden`}>
+          <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Student Assignments</h3>
+              <p className="text-[11px] font-semibold text-slate-400">
+                Step 5 — taking a bed marks it occupied; the yearly fee is stamped on at that moment
+              </p>
+            </div>
+            <button
+              className={primaryBtn}
+              onClick={() => setResidentModal({ editing: null, form: emptyAllocation })}
+              disabled={!lookups.hostels.some((h) => h.warden && h.rooms.length > 0)}
+              title={
+                lookups.hostels.some((h) => h.warden && h.rooms.length > 0)
+                  ? undefined
+                  : 'A hostel needs rooms and a warden first'
+              }
+            >
+              <UserPlus className="h-3.5 w-3.5" /> Assign Student
+            </button>
+          </div>
+
+          {filteredAllocations.length === 0 ? (
+            <EmptyState
+              icon={Users}
+              message={
+                lookups.hostels.some((h) => h.warden && h.rooms.length > 0)
+                  ? 'No students in the hostel yet.'
+                  : 'Finish steps 1–4 first: a hostel with rooms and a warden.'
+              }
+            />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <TableHead
+                  columns={['Student', 'Class', 'Hostel', 'Room', 'Bed', 'Year', 'Yearly fee', '']}
+                />
+                <tbody>
+                  {filteredAllocations.map((row) => (
+                    <tr key={row.id} className="border-b border-slate-100 last:border-0 dark:border-slate-800">
+                      <td className="px-5 py-3.5">
+                        <div className="font-black text-slate-900 dark:text-white">{row.student?.name}</div>
+                        <div className="text-[11px] font-semibold text-slate-400">
+                          {row.student?.admissionNumber}
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
+                        {row.student?.className || '—'}
+                      </td>
+                      <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
+                        {row.hostel?.name}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className="font-bold text-slate-800 dark:text-slate-200">
+                          {row.room?.roomNumber}
+                        </span>
+                        <div className="text-[11px] font-semibold text-slate-400">{row.room?.floorNumber}</div>
+                      </td>
+                      <td className="px-5 py-3.5 font-bold text-indigo-650 dark:text-indigo-400">
+                        {row.bed?.bedCode}
+                      </td>
+                      <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
+                        {row.academicYear?.name || '—'}
+                      </td>
+                      <td className="px-5 py-3.5 font-black text-slate-900 dark:text-white">
+                        {money(row.yearlyFeeAmount)}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex justify-end gap-1.5">
+                          <button
+                            className={iconBtn}
+                            title="Move to another room or bed"
+                            onClick={() =>
+                              setResidentModal({
+                                editing: row,
+                                form: {
+                                  studentId: row.student?.id || '',
+                                  hostelId: row.hostel?.id || '',
+                                  roomId: row.room?.id || '',
+                                  bedId: row.bed?.id || '',
+                                },
+                              })
+                            }
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            className={iconBtn}
+                            title="Vacate"
+                            onClick={() =>
+                              setConfirm({
+                                title: 'Vacate student',
+                                message: `Move ${row.student?.name} out of ${row.hostel?.name} (room ${row.room?.roomNumber}, ${row.bed?.bedCode})? The bed becomes available again.`,
+                                confirmText: 'Vacate',
+                                onConfirm: () =>
+                                  run(() => hostelPortalApi.vacateAllocation(row.id), {
+                                    success: 'Student vacated from hostel',
+                                  }),
+                              })
+                            }
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* =========================== 6 · YEARLY FEE ========================== */}
+      {!loading && activeTab === 'fees' && (
+        <div className={`${cardClass} overflow-hidden`}>
+          <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">Yearly Hostel Fee</h3>
+            <p className="text-[11px] font-semibold text-slate-400">
+              Step 6 — one amount per academic year for the whole school. Every resident pays the same,
+              whatever their class or hostel.
+            </p>
+          </div>
+
+          {fees.length === 0 ? (
+            <EmptyState
+              icon={IndianRupee}
+              message="No academic years yet. Create one under Academic Years, then set its hostel fee here."
+            />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <TableHead columns={['Academic year', 'Yearly fee', 'Residents on this year', '']} />
+                <tbody>
+                  {fees.map((row) => {
+                    const draft = feeDrafts[row.academicYearId] ?? '';
+                    const unchanged = String(draft) === String(row.yearlyAmount ?? '');
+                    return (
+                      <tr
+                        key={row.academicYearId}
+                        className="border-b border-slate-100 last:border-0 dark:border-slate-800"
+                      >
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-2">
+                            <span className="font-black text-slate-900 dark:text-white">
+                              {row.academicYear?.name}
+                            </span>
+                            {row.academicYear?.isCurrent && <Badge variant="success">Current</Badge>}
+                          </div>
+                          <div className="text-[11px] font-semibold text-slate-400">{row.academicYear?.code}</div>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-black text-slate-400">₹</span>
+                            <input
+                              type="number"
+                              min={0}
+                              step={1}
+                              placeholder="Not set"
+                              className={`${inputClass} w-40`}
+                              value={draft}
+                              onChange={(e) =>
+                                setFeeDrafts((d) => ({ ...d, [row.academicYearId]: e.target.value }))
+                              }
+                            />
+                          </div>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className="font-bold text-slate-700 dark:text-slate-200">
+                            {row.assignedStudents}
+                          </span>
+                          <div className="text-[11px] font-semibold text-slate-400">
+                            keep the amount they were assigned on
+                          </div>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <div className="flex justify-end gap-1.5">
+                            <button
+                              className={primaryBtn}
+                              disabled={saving || unchanged || draft === ''}
+                              onClick={() =>
+                                run(() => hostelPortalApi.setFee(row.academicYearId, Number(draft)), {
+                                  success: `Hostel fee saved for ${row.academicYear?.name}`,
+                                })
+                              }
+                            >
+                              <Check className="h-3.5 w-3.5" /> Save
+                            </button>
+                            <button
+                              className={iconBtn}
+                              title="Clear this year's fee"
+                              disabled={row.yearlyAmount === null}
+                              onClick={() =>
+                                setConfirm({
+                                  title: 'Clear hostel fee',
+                                  message: `Remove the yearly hostel fee for ${row.academicYear?.name}? Students already assigned keep the amount they were assigned on.`,
+                                  confirmText: 'Clear',
+                                  onConfirm: () =>
+                                    run(() => hostelPortalApi.clearFee(row.academicYearId), {
+                                      success: 'Hostel fee cleared',
+                                    }),
+                                })
+                              }
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ============================== MODALS ============================== */}
+
+      {/* Hostel */}
+      <Modal
+        isOpen={Boolean(hostelModal)}
+        onClose={() => setHostelModal(null)}
+        title={hostelModal?.editing ? 'Edit hostel' : 'Add hostel'}
+        size="lg"
+        footer={
+          <ModalFooter
+            saving={saving}
+            onCancel={() => setHostelModal(null)}
+            onSave={() => {
+              const { editing, form } = hostelModal;
+              // Blank optional numbers are sent as '' so the server clears them
+              // rather than reading a stray 0.
+              const payload = {
+                ...form,
+                totalCapacity: Number(form.totalCapacity),
+                totalFloors: form.totalFloors === '' ? '' : Number(form.totalFloors),
+                totalRooms: form.totalRooms === '' ? '' : Number(form.totalRooms),
+              };
+              run(
+                () =>
+                  editing
+                    ? hostelPortalApi.updateHostel(editing.id, payload)
+                    : hostelPortalApi.createHostel(payload),
+                { onDone: () => setHostelModal(null) }
+              );
+            }}
+          />
+        }
+      >
+        {hostelModal && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Hostel name" required>
+              <input
                 className={inputClass}
+                placeholder="Boys Hostel A"
+                value={hostelModal.form.name}
+                onChange={(e) => setHostelModal((m) => ({ ...m, form: { ...m.form, name: e.target.value } }))}
+              />
+            </Field>
+            <Field label="Hostel code" required hint="Short handle, unique in the school">
+              <input
+                className={inputClass}
+                placeholder="BH-01"
+                value={hostelModal.form.code}
+                onChange={(e) =>
+                  setHostelModal((m) => ({ ...m, form: { ...m.form, code: e.target.value.toUpperCase() } }))
+                }
+              />
+            </Field>
+            <Field label="Hostel type" required>
+              <select
+                className={inputClass}
+                value={hostelModal.form.type}
+                onChange={(e) => setHostelModal((m) => ({ ...m, form: { ...m.form, type: e.target.value } }))}
               >
-                <option value="">Select Staff Warden</option>
-                {eligibleEntities.staff.map((st) => (
-                  <option key={st._id} value={st._id}>
-                    {st.fullName} ({st.designation || st.role})
+                {HOSTEL_TYPES.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.label}
                   </option>
                 ))}
               </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Contact Number</label>
-              <input
-                type="text"
-                placeholder="e.g. +91 9876543210"
-                value={hostelForm.contactNumber}
-                onChange={(e) => setHostelForm({ ...hostelForm, contactNumber: e.target.value })}
+            </Field>
+            <Field label="Hostel category" hint="Optional">
+              <select
                 className={inputClass}
+                value={hostelModal.form.category}
+                onChange={(e) =>
+                  setHostelModal((m) => ({ ...m, form: { ...m.form, category: e.target.value } }))
+                }
+              >
+                {HOSTEL_CATEGORIES.map((c) => (
+                  <option key={c.id || 'none'} value={c.id}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field
+              label="Warden"
+              hint={
+                hostelWardenOptions.length
+                  ? 'Only free wardens are listed'
+                  : 'Add a warden on the Wardens tab first'
+              }
+            >
+              <select
+                className={inputClass}
+                value={hostelModal.form.wardenId}
+                onChange={(e) =>
+                  setHostelModal((m) => ({ ...m, form: { ...m.form, wardenId: e.target.value } }))
+                }
+              >
+                <option value="">No warden yet</option>
+                {hostelWardenOptions.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {w.name} · {w.mobile}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Contact number" hint="Optional · 10 digits">
+              <input
+                className={inputClass}
+                placeholder="9876543210"
+                inputMode="numeric"
+                value={hostelModal.form.contactNumber}
+                onChange={(e) =>
+                  setHostelModal((m) => ({
+                    ...m,
+                    form: { ...m.form, contactNumber: sanitizeMobileInput(e.target.value) },
+                  }))
+                }
               />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Total Floors</label>
+            </Field>
+            <Field label="Address" hint="Optional" className="sm:col-span-2">
+              <input
+                className={inputClass}
+                placeholder="School Campus, Block A"
+                value={hostelModal.form.address}
+                onChange={(e) => setHostelModal((m) => ({ ...m, form: { ...m.form, address: e.target.value } }))}
+              />
+            </Field>
+            <Field label="Total floors" hint="Optional">
               <input
                 type="number"
-                min="1"
-                value={hostelForm.totalFloors}
-                onChange={(e) => setHostelForm({ ...hostelForm, totalFloors: Number(e.target.value) })}
+                min={1}
+                max={50}
                 className={inputClass}
+                placeholder="e.g. 3"
+                value={hostelModal.form.totalFloors}
+                onChange={(e) =>
+                  setHostelModal((m) => ({ ...m, form: { ...m.form, totalFloors: e.target.value } }))
+                }
               />
-            </div>
+            </Field>
+            <Field label="Total rooms" hint="Optional · rooms are added in step 2">
+              <input
+                type="number"
+                min={1}
+                max={500}
+                className={inputClass}
+                placeholder="e.g. 30"
+                value={hostelModal.form.totalRooms}
+                onChange={(e) =>
+                  setHostelModal((m) => ({ ...m, form: { ...m.form, totalRooms: e.target.value } }))
+                }
+              />
+            </Field>
+            <Field label="Total capacity" required hint="Residents this building can hold">
+              <input
+                placeholder="e.g. 120"
+                type="number"
+                min={1}
+                max={2000}
+                className={inputClass}
+                value={hostelModal.form.totalCapacity}
+                onChange={(e) =>
+                  setHostelModal((m) => ({ ...m, form: { ...m.form, totalCapacity: e.target.value } }))
+                }
+              />
+            </Field>
+            <Field label="Status" required>
+              <select
+                className={inputClass}
+                value={hostelModal.form.status}
+                onChange={(e) => setHostelModal((m) => ({ ...m, form: { ...m.form, status: e.target.value } }))}
+              >
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+              </select>
+            </Field>
+            <Field label="Description" hint="Optional" className="sm:col-span-2">
+              <textarea
+                rows={2}
+                className={inputClass}
+                placeholder="Boys hostel near main building"
+                value={hostelModal.form.description}
+                onChange={(e) =>
+                  setHostelModal((m) => ({ ...m, form: { ...m.form, description: e.target.value } }))
+                }
+              />
+            </Field>
           </div>
-
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-400">Hostel Description / Facilities</label>
-            <textarea
-              rows="2"
-              placeholder="e.g. Air cooled block, 24x7 water supply, reading room..."
-              value={hostelForm.description}
-              onChange={(e) => setHostelForm({ ...hostelForm, description: e.target.value })}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-xs font-semibold outline-none focus:border-indigo-500 dark:border-slate-800 dark:bg-slate-950"
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <button type="button" onClick={() => setHostelModalOpen(false)} className="px-4 py-2 text-xs font-semibold rounded-xl hover:bg-slate-100">
-              Cancel
-            </button>
-            <button type="submit" className="px-5 py-2 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">
-              Save Hostel
-            </button>
-          </div>
-        </form>
+        )}
       </Modal>
 
-      {/* --- MODAL 2: ADD ROOM & AUTO-BEDS --- */}
-      <Modal isOpen={roomModalOpen} onClose={() => setRoomModalOpen(false)} title="Add Hostel Room (Auto-Generates Beds)">
-        <form onSubmit={handleSaveRoom} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Hostel *</label>
+      {/* Room */}
+      <Modal
+        isOpen={Boolean(roomModal)}
+        onClose={() => setRoomModal(null)}
+        title={roomModal?.editing ? 'Edit room' : 'Add room'}
+        size="md"
+        footer={
+          <ModalFooter
+            saving={saving}
+            onCancel={() => setRoomModal(null)}
+            onSave={() => {
+              const { editing, form } = roomModal;
+              const payload = { ...form, capacity: Number(form.capacity) };
+              run(
+                () =>
+                  editing ? hostelPortalApi.updateRoom(editing.id, payload) : hostelPortalApi.createRoom(payload),
+                { onDone: () => setRoomModal(null) }
+              );
+            }}
+          />
+        }
+      >
+        {roomModal && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Hostel" required className="sm:col-span-2">
               <select
-                required
-                value={roomForm.hostelId}
-                onChange={(e) => setRoomForm({ ...roomForm, hostelId: e.target.value })}
                 className={inputClass}
+                disabled={Boolean(roomModal.editing)}
+                value={roomModal.form.hostelId}
+                onChange={(e) => setRoomModal((m) => ({ ...m, form: { ...m.form, hostelId: e.target.value } }))}
               >
-                <option value="">Select Hostel</option>
+                <option value="">Select a hostel…</option>
                 {hostels.map((h) => (
-                  <option key={h._id} value={h._id}>
+                  <option key={h.id} value={h.id}>
                     {h.name}
                   </option>
                 ))}
               </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Room Number *</label>
+            </Field>
+            <Field label="Room number" required>
               <input
-                type="text"
-                required
-                placeholder="e.g. 101, 102"
-                value={roomForm.roomNumber}
-                onChange={(e) => setRoomForm({ ...roomForm, roomNumber: e.target.value })}
                 className={inputClass}
+                placeholder="101"
+                value={roomModal.form.roomNumber}
+                onChange={(e) => setRoomModal((m) => ({ ...m, form: { ...m.form, roomNumber: e.target.value } }))}
               />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Floor *</label>
-              <select
-                value={roomForm.floorNumber}
-                onChange={(e) => setRoomForm({ ...roomForm, floorNumber: e.target.value })}
-                className={inputClass}
-              >
-                <option value="Ground Floor">Ground Floor</option>
-                <option value="1st Floor">1st Floor</option>
-                <option value="2nd Floor">2nd Floor</option>
-                <option value="3rd Floor">3rd Floor</option>
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Block Name</label>
+            </Field>
+            <Field label="Floor" required>
               <input
-                type="text"
-                placeholder="e.g. Block A"
-                value={roomForm.blockName}
-                onChange={(e) => setRoomForm({ ...roomForm, blockName: e.target.value })}
                 className={inputClass}
+                placeholder="1st Floor"
+                value={roomModal.form.floorNumber}
+                onChange={(e) =>
+                  setRoomModal((m) => ({ ...m, form: { ...m.form, floorNumber: e.target.value } }))
+                }
               />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Sharing Layout & Beds *</label>
-              <select
-                value={roomForm.roomType}
-                onChange={(e) => {
-                  const sel = ROOM_TYPES.find((rt) => rt.id === e.target.value);
-                  setRoomForm({
-                    ...roomForm,
-                    roomType: e.target.value,
-                    capacity: sel ? sel.capacity : 2,
-                  });
-                }}
-                className={inputClass}
-              >
-                {ROOM_TYPES.map((rt) => (
-                  <option key={rt.id} value={rt.id}>
-                    {rt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Monthly Rent (₹)</label>
+            </Field>
+            <Field
+              label="Capacity"
+              required
+              hint="Beds are created from this — Bed 1 … Bed n"
+              className="sm:col-span-2"
+            >
               <input
+                placeholder="e.g. 4"
                 type="number"
-                min="0"
-                value={roomForm.monthlyRent}
-                onChange={(e) => setRoomForm({ ...roomForm, monthlyRent: Number(e.target.value) })}
+                min={1}
+                max={50}
                 className={inputClass}
+                value={roomModal.form.capacity}
+                onChange={(e) => setRoomModal((m) => ({ ...m, form: { ...m.form, capacity: e.target.value } }))}
               />
-            </div>
+            </Field>
           </div>
-
-          <div className="p-3.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50">
-            <span className="text-[11px] font-bold text-indigo-650 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>
-                System will auto-create <strong>{roomForm.capacity} Beds</strong> ({roomForm.roomNumber || 'Room'}-A,{' '}
-                {roomForm.roomNumber || 'Room'}-B...) with status <strong>AVAILABLE</strong>.
-              </span>
-            </span>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-400">Amenities (comma-separated)</label>
-            <input
-              type="text"
-              placeholder="e.g. Attached Washroom, Study Table, Cupboard, Balcony"
-              value={roomForm.amenitiesText}
-              onChange={(e) => setRoomForm({ ...roomForm, amenitiesText: e.target.value })}
-              className={inputClass}
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <button type="button" onClick={() => setRoomModalOpen(false)} className="px-4 py-2 text-xs font-semibold rounded-xl hover:bg-slate-100">
-              Cancel
-            </button>
-            <button type="submit" className="px-5 py-2 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">
-              Create Room & Beds
-            </button>
-          </div>
-        </form>
+        )}
       </Modal>
 
-      {/* --- MODAL 3: ALLOCATE STUDENT TO BED --- */}
-      <Modal isOpen={allocateModalOpen} onClose={() => setAllocateModalOpen(false)} title="Allocate Student to Bed">
-        <form onSubmit={handleSaveAllocation} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-400">Select Student *</label>
-            <select
-              required
-              value={allocateForm.studentId}
-              onChange={(e) => setAllocateForm({ ...allocateForm, studentId: e.target.value })}
-              className={inputClass}
-            >
-              <option value="">Choose Enrolled Student</option>
-              {eligibleEntities.students.map((st) => (
-                <option key={st._id} value={st._id}>
-                  {st.firstName} {st.lastName} (Roll #{st.rollNumber || 'N/A'}, Class: {st.className || 'N/A'})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Hostel *</label>
-              <select
-                required
-                value={allocateForm.hostelId}
-                onChange={(e) => setAllocateForm({ ...allocateForm, hostelId: e.target.value, roomId: '', bedId: '' })}
+      {/* Warden */}
+      <Modal
+        isOpen={Boolean(wardenModal)}
+        onClose={() => setWardenModal(null)}
+        title={wardenModal?.editing ? 'Edit warden' : 'Add warden'}
+        size="md"
+        footer={
+          <ModalFooter
+            saving={saving}
+            onCancel={() => setWardenModal(null)}
+            onSave={() => {
+              const { editing, form } = wardenModal;
+              if (!form.name?.trim()) {
+                showToast('Warden name is required', 'error');
+                return;
+              }
+              if (!isValid10DigitMobile(form.mobile, true)) {
+                showToast('Mobile number must be exactly 10 digits', 'error');
+                return;
+              }
+              const cleanMobile = sanitizeMobileInput(form.mobile);
+              // On edit the hostel link has its own endpoint, so it is not sent here.
+              const payload = editing
+                ? { name: form.name.trim(), mobile: cleanMobile, status: form.status }
+                : { ...form, name: form.name.trim(), mobile: cleanMobile, hostelId: form.hostelId || undefined };
+              run(
+                () =>
+                  editing
+                    ? hostelPortalApi.updateWarden(editing.id, payload)
+                    : hostelPortalApi.createWarden(payload),
+                { onDone: () => setWardenModal(null) }
+              );
+            }}
+          />
+        }
+      >
+        {wardenModal && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Warden name" required>
+              <input
                 className={inputClass}
-              >
-                <option value="">Select Hostel</option>
-                {hostels.map((h) => (
-                  <option key={h._id} value={h._id}>
-                    {h.name} ({h.type})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Available Bed *</label>
-              <select
-                required
-                value={allocateForm.bedId}
-                onChange={(e) => {
-                  const bId = e.target.value;
-                  // Find room for this bed
-                  for (const g of availableBedsForModal) {
-                    const found = g.beds.find((b) => b._id === bId);
-                    if (found) {
-                      setAllocateForm({
-                        ...allocateForm,
-                        bedId: bId,
-                        roomId: g.room._id,
-                        monthlyFee: g.room.monthlyRent || 5000,
-                      });
-                      break;
-                    }
+                placeholder="Rajesh Sharma"
+                value={wardenModal.form.name}
+                onChange={(e) => setWardenModal((m) => ({ ...m, form: { ...m.form, name: e.target.value } }))}
+              />
+            </Field>
+            <Field
+              label="Mobile"
+              required
+              hint={wardenModal.form.mobile ? `${wardenModal.form.mobile.length}/10 digits` : '10 digits'}
+            >
+              <input
+                type="tel"
+                inputMode="numeric"
+                maxLength={10}
+                className={inputClass}
+                placeholder="9876543210"
+                value={wardenModal.form.mobile}
+                onChange={(e) =>
+                  setWardenModal((m) => ({
+                    ...m,
+                    form: { ...m.form, mobile: sanitizeMobileInput(e.target.value) },
+                  }))
+                }
+              />
+            </Field>
+            {!wardenModal.editing && (
+              <Field label="Hostel" hint="Optional — can be assigned later" className="sm:col-span-2">
+                <select
+                  className={inputClass}
+                  value={wardenModal.form.hostelId}
+                  onChange={(e) =>
+                    setWardenModal((m) => ({ ...m, form: { ...m.form, hostelId: e.target.value } }))
                   }
-                }}
-                className={inputClass}
-              >
-                <option value="">Select Free Bed</option>
-                {availableBedsForModal.flatMap((g) =>
-                  g.beds.map((b) => (
-                    <option key={b._id} value={b._id}>
-                      Room {g.room.roomNumber} → Bed {b.bedCode}
-                    </option>
-                  ))
-                )}
-              </select>
-            </div>
+                >
+                  <option value="">Not assigned yet</option>
+                  {hostels
+                    .filter((h) => h.status === 'ACTIVE' && !h.warden)
+                    .map((h) => (
+                      <option key={h.id} value={h.id}>
+                        {h.name}
+                      </option>
+                    ))}
+                </select>
+              </Field>
+            )}
+            {wardenModal.editing && (
+              <Field label="Status" className="sm:col-span-2">
+                <select
+                  className={inputClass}
+                  value={wardenModal.form.status}
+                  onChange={(e) =>
+                    setWardenModal((m) => ({ ...m, form: { ...m.form, status: e.target.value } }))
+                  }
+                >
+                  <option value="ACTIVE">Active</option>
+                  <option value="INACTIVE">Inactive</option>
+                </select>
+              </Field>
+            )}
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Monthly Hostel Fee (₹)</label>
-              <input
-                type="number"
-                value={allocateForm.monthlyFee}
-                onChange={(e) => setAllocateForm({ ...allocateForm, monthlyFee: Number(e.target.value) })}
-                className={inputClass}
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Caution / Security Deposit (₹)</label>
-              <input
-                type="number"
-                value={allocateForm.securityDeposit}
-                onChange={(e) => setAllocateForm({ ...allocateForm, securityDeposit: Number(e.target.value) })}
-                className={inputClass}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-400">Remarks / Special Medical Requirements</label>
-            <input
-              type="text"
-              placeholder="e.g. Ground floor preferred due to medical condition"
-              value={allocateForm.remarks}
-              onChange={(e) => setAllocateForm({ ...allocateForm, remarks: e.target.value })}
-              className={inputClass}
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <button type="button" onClick={() => setAllocateModalOpen(false)} className="px-4 py-2 text-xs font-semibold rounded-xl hover:bg-slate-100">
-              Cancel
-            </button>
-            <button type="submit" className="px-5 py-2 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">
-              Confirm Allocation
-            </button>
-          </div>
-        </form>
+        )}
       </Modal>
 
-      {/* --- MODAL 4: TRANSFER BED --- */}
-      <Modal isOpen={transferModalOpen} onClose={() => setTransferModalOpen(false)} title="Transfer Student to Another Bed">
-        <form onSubmit={handleSaveTransfer} className="space-y-4">
-          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 space-y-1 text-xs">
-            <span className="text-slate-400 font-bold block">Current Residency:</span>
-            <p className="font-bold text-slate-900 dark:text-white">
-              {transferTargetAlloc?.studentId?.firstName} {transferTargetAlloc?.studentId?.lastName}
-            </p>
-            <p className="text-slate-500">
-              {transferTargetAlloc?.hostelId?.name} • Room {transferTargetAlloc?.roomId?.roomNumber} (Bed {transferTargetAlloc?.bedId?.bedCode})
-            </p>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-400">Target Available Bed *</label>
+      {/* Warden → hostel */}
+      <Modal
+        isOpen={Boolean(assignWardenModal)}
+        onClose={() => setAssignWardenModal(null)}
+        title="Assign warden to hostel"
+        size="sm"
+        footer={
+          <ModalFooter
+            saving={saving}
+            saveLabel="Assign"
+            onCancel={() => setAssignWardenModal(null)}
+            onSave={() =>
+              run(
+                () =>
+                  hostelPortalApi.assignWardenToHostel(
+                    assignWardenModal.warden.id,
+                    assignWardenModal.hostelId
+                  ),
+                { success: 'Warden assigned to hostel', onDone: () => setAssignWardenModal(null) }
+              )
+            }
+          />
+        }
+      >
+        {assignWardenModal && (
+          <Field label={`Hostel for ${assignWardenModal.warden.name}`} required>
             <select
-              required
-              value={transferBedId}
-              onChange={(e) => setTransferBedId(e.target.value)}
               className={inputClass}
+              value={assignWardenModal.hostelId}
+              onChange={(e) => setAssignWardenModal((m) => ({ ...m, hostelId: e.target.value }))}
             >
-              <option value="">Select Destination Bed</option>
-              {availableBedsForTransfer.map((b) => (
-                <option key={b._id} value={b._id}>
-                  {b.hostelId?.name} → Bed {b.bedCode}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <button type="button" onClick={() => setTransferModalOpen(false)} className="px-4 py-2 text-xs font-semibold rounded-xl hover:bg-slate-100">
-              Cancel
-            </button>
-            <button type="submit" className="px-5 py-2 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">
-              Process Transfer
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* --- MODAL 5: VACATE / CHECKOUT CLEARANCE --- */}
-      <Modal isOpen={checkoutModalOpen} onClose={() => setCheckoutModalOpen(false)} title="Hostel Checkout & Clearance Clearance">
-        <form onSubmit={handleSaveCheckout} className="space-y-4">
-          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/60 space-y-1 text-xs">
-            <span className="text-slate-400 font-bold block">Student to Vacate:</span>
-            <p className="font-bold text-slate-900 dark:text-white">
-              {checkoutTargetAlloc?.studentId?.firstName} {checkoutTargetAlloc?.studentId?.lastName}
-            </p>
-            <p className="text-slate-500">
-              Bed: {checkoutTargetAlloc?.bedId?.bedCode} • Room {checkoutTargetAlloc?.roomId?.roomNumber}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Vacating Date *</label>
-              <input
-                type="date"
-                required
-                value={checkoutForm.checkoutDate}
-                onChange={(e) => setCheckoutForm({ ...checkoutForm, checkoutDate: e.target.value })}
-                className={inputClass}
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Caution Deposit Refund (₹)</label>
-              <input
-                type="number"
-                value={checkoutForm.depositRefunded}
-                onChange={(e) => setCheckoutForm({ ...checkoutForm, depositRefunded: Number(e.target.value) })}
-                className={inputClass}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-400">Reason for Vacating</label>
-            <input
-              type="text"
-              value={checkoutForm.checkoutReason}
-              onChange={(e) => setCheckoutForm({ ...checkoutForm, checkoutReason: e.target.value })}
-              className={inputClass}
-            />
-          </div>
-
-          <div className="p-3 rounded-2xl bg-rose-50/70 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-900/50">
-            <span className="text-[11px] font-bold text-rose-600 flex items-center gap-1.5">
-              <Info className="w-3.5 h-3.5" />
-              <span>
-                Bed {checkoutTargetAlloc?.bedId?.bedCode} will automatically reset to <strong>AVAILABLE</strong> for new allocations.
-              </span>
-            </span>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <button type="button" onClick={() => setCheckoutModalOpen(false)} className="px-4 py-2 text-xs font-semibold rounded-xl hover:bg-slate-100">
-              Cancel
-            </button>
-            <button type="submit" className="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl">
-              Complete Checkout
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* --- MODAL 6: ISSUE GATE PASS --- */}
-      <Modal isOpen={outingModalOpen} onClose={() => setOutingModalOpen(false)} title="Issue Student Outing Gate Pass">
-        <form onSubmit={handleSaveOuting} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-400">Resident Student *</label>
-            <select
-              required
-              value={outingForm.studentId}
-              onChange={(e) => {
-                const sId = e.target.value;
-                const alloc = allocations.find((a) => (a.studentId?._id || a.studentId) === sId);
-                setOutingForm({
-                  ...outingForm,
-                  studentId: sId,
-                  hostelId: alloc?.hostelId?._id || alloc?.hostelId || outingForm.hostelId,
-                });
-              }}
-              className={inputClass}
-            >
-              <option value="">Select Active Resident</option>
-              {allocations
-                .filter((a) => a.status === 'ACTIVE')
-                .map((a) => (
-                  <option key={a._id} value={a.studentId?._id || a.studentId}>
-                    {a.studentId?.firstName} {a.studentId?.lastName} (Room {a.roomId?.roomNumber})
-                  </option>
-                ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Outing Type</label>
-              <select
-                value={outingForm.outingType}
-                onChange={(e) => setOutingForm({ ...outingForm, outingType: e.target.value })}
-                className={inputClass}
-              >
-                {OUTING_TYPES.map((ot) => (
-                  <option key={ot.id} value={ot.id}>
-                    {ot.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Destination</label>
-              <input
-                type="text"
-                placeholder="e.g. City Market / Home"
-                value={outingForm.destination}
-                onChange={(e) => setOutingForm({ ...outingForm, destination: e.target.value })}
-                className={inputClass}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Out Date & Time *</label>
-              <input
-                type="datetime-local"
-                required
-                value={outingForm.outDateTime}
-                onChange={(e) => setOutingForm({ ...outingForm, outDateTime: e.target.value })}
-                className={inputClass}
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Expected Return *</label>
-              <input
-                type="datetime-local"
-                required
-                value={outingForm.expectedReturnDateTime}
-                onChange={(e) => setOutingForm({ ...outingForm, expectedReturnDateTime: e.target.value })}
-                className={inputClass}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-400">Reason for Outing *</label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Buying academic books / Weekend family visit"
-              value={outingForm.reason}
-              onChange={(e) => setOutingForm({ ...outingForm, reason: e.target.value })}
-              className={inputClass}
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <button type="button" onClick={() => setOutingModalOpen(false)} className="px-4 py-2 text-xs font-semibold rounded-xl hover:bg-slate-100">
-              Cancel
-            </button>
-            <button type="submit" className="px-5 py-2 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">
-              Generate Gate Pass
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* --- MODAL 7: LOG COMPLAINT --- */}
-      <Modal isOpen={complaintModalOpen} onClose={() => setComplaintModalOpen(false)} title="Register Maintenance Ticket">
-        <form onSubmit={handleSaveComplaint} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Hostel *</label>
-              <select
-                required
-                value={complaintForm.hostelId}
-                onChange={(e) => setComplaintForm({ ...complaintForm, hostelId: e.target.value })}
-                className={inputClass}
-              >
-                <option value="">Select Hostel</option>
-                {hostels.map((h) => (
-                  <option key={h._id} value={h._id}>
+              <option value="">Select a hostel…</option>
+              {hostels
+                .filter(
+                  (h) =>
+                    h.status === 'ACTIVE' && (!h.warden || h.warden.id === assignWardenModal.warden.id)
+                )
+                .map((h) => (
+                  <option key={h.id} value={h.id}>
                     {h.name}
                   </option>
                 ))}
-              </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Issue Category *</label>
-              <select
-                value={complaintForm.category}
-                onChange={(e) => setComplaintForm({ ...complaintForm, category: e.target.value })}
-                className={inputClass}
-              >
-                {COMPLAINT_CATEGORIES.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+            </select>
+          </Field>
+        )}
+      </Modal>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Room Number</label>
+      {/* Student → hostel + room + bed */}
+      <Modal
+        isOpen={Boolean(residentModal)}
+        onClose={() => setResidentModal(null)}
+        title={residentModal?.editing ? 'Move to another room or bed' : 'Assign student to hostel'}
+        size="md"
+        footer={
+          <ModalFooter
+            saving={saving}
+            saveLabel={residentModal?.editing ? 'Save' : 'Assign'}
+            onCancel={() => setResidentModal(null)}
+            onSave={() => {
+              const { editing, form } = residentModal;
+              run(
+                () =>
+                  editing
+                    ? hostelPortalApi.updateAllocation(editing.id, {
+                        hostelId: form.hostelId,
+                        roomId: form.roomId,
+                        bedId: form.bedId,
+                      })
+                    : hostelPortalApi.allocateStudent(form),
+                { onDone: () => setResidentModal(null) }
+              );
+            }}
+          />
+        }
+      >
+        {residentModal && (
+          <div className="space-y-4">
+            <Field label="Student" required>
               <select
-                value={complaintForm.roomId}
-                onChange={(e) => setComplaintForm({ ...complaintForm, roomId: e.target.value })}
                 className={inputClass}
+                disabled={Boolean(residentModal.editing)}
+                value={residentModal.form.studentId}
+                onChange={(e) =>
+                  setResidentModal((m) => ({ ...m, form: { ...m.form, studentId: e.target.value } }))
+                }
               >
-                <option value="">Common Facility / Corridors</option>
-                {rooms
-                  .filter((r) => !complaintForm.hostelId || (r.hostelId?._id || r.hostelId) === complaintForm.hostelId)
-                  .map((r) => (
-                    <option key={r._id} value={r._id}>
-                      Room {r.roomNumber} ({r.floorNumber})
+                <option value="">Select a student…</option>
+                {lookups.students
+                  .filter((s) => !s.alreadyAssigned || s.id === residentModal.form.studentId)
+                  .map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name} {s.className ? `· ${s.className}` : ''} ({s.admissionNumber})
                     </option>
                   ))}
               </select>
-            </div>
-            <div className="space-y-1">
-              <label className="text-[11px] font-bold text-slate-400">Priority *</label>
+            </Field>
+
+            <Field label="Hostel" required>
               <select
-                value={complaintForm.priority}
-                onChange={(e) => setComplaintForm({ ...complaintForm, priority: e.target.value })}
                 className={inputClass}
+                value={residentModal.form.hostelId}
+                onChange={(e) =>
+                  setResidentModal((m) => ({
+                    ...m,
+                    form: { ...m.form, hostelId: e.target.value, roomId: '', bedId: '' },
+                  }))
+                }
               >
-                <option value="LOW">Low</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="HIGH">High</option>
-                <option value="URGENT">Urgent (Water/Electric breakdown)</option>
+                <option value="">Select a hostel…</option>
+                {lookups.hostels.map((h) => (
+                  <option key={h.id} value={h.id} disabled={!h.warden}>
+                    {h.name} {h.warden ? `· warden ${h.warden.name}` : '· no warden yet'}
+                  </option>
+                ))}
               </select>
-            </div>
-          </div>
+            </Field>
 
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-400">Issue Title *</label>
-            <input
-              type="text"
-              required
-              placeholder="e.g. Ceiling fan regulator not functioning"
-              value={complaintForm.title}
-              onChange={(e) => setComplaintForm({ ...complaintForm, title: e.target.value })}
-              className={inputClass}
-            />
-          </div>
+            <Field label="Room" required>
+              <select
+                className={inputClass}
+                disabled={!residentHostel}
+                value={residentModal.form.roomId}
+                onChange={(e) =>
+                  setResidentModal((m) => ({ ...m, form: { ...m.form, roomId: e.target.value, bedId: '' } }))
+                }
+              >
+                <option value="">Select a room…</option>
+                {(residentHostel?.rooms || []).map((r) => (
+                  <option key={r.id} value={r.id}>
+                    Room {r.roomNumber} · {r.floorNumber} ({r.beds.filter((b) => b.status === 'AVAILABLE').length}{' '}
+                    free of {r.capacity})
+                  </option>
+                ))}
+              </select>
+            </Field>
 
-          <div className="space-y-1">
-            <label className="text-[11px] font-bold text-slate-400">Detailed Description *</label>
-            <textarea
-              rows="3"
-              required
-              placeholder="Describe the issue and specific location within room..."
-              value={complaintForm.description}
-              onChange={(e) => setComplaintForm({ ...complaintForm, description: e.target.value })}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-xs font-semibold outline-none focus:border-indigo-500 dark:border-slate-800 dark:bg-slate-950"
-            />
-          </div>
+            <Field label="Bed" required hint="Occupied beds cannot be picked">
+              <select
+                className={inputClass}
+                disabled={!residentRoom}
+                value={residentModal.form.bedId}
+                onChange={(e) => setResidentModal((m) => ({ ...m, form: { ...m.form, bedId: e.target.value } }))}
+              >
+                <option value="">Select a bed…</option>
+                {(residentRoom?.beds || []).map((b) => (
+                  <option
+                    key={b.id}
+                    value={b.id}
+                    disabled={b.status === 'OCCUPIED' && b.id !== residentModal.form.bedId}
+                  >
+                    {b.bedCode} {b.status === 'OCCUPIED' ? '· occupied' : '· available'}
+                  </option>
+                ))}
+              </select>
+            </Field>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <button type="button" onClick={() => setComplaintModalOpen(false)} className="px-4 py-2 text-xs font-semibold rounded-xl hover:bg-slate-100">
-              Cancel
-            </button>
-            <button type="submit" className="px-5 py-2 bg-indigo-650 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl">
-              Submit Ticket
-            </button>
+            {/* Step 6 — what this student will be charged, before it is stamped
+                onto the allocation. Editing it later does not reach back. */}
+            {!residentModal.editing && (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950">
+                <p className={labelClass}>Yearly hostel fee</p>
+                {lookups.currentAcademicYear ? (
+                  <p className="mt-1.5 text-sm font-black text-slate-900 dark:text-white">
+                    {money(lookups.currentYearlyFee)}{' '}
+                    <span className="text-[11px] font-semibold text-slate-400">
+                      for {lookups.currentAcademicYear.name}
+                      {lookups.currentYearlyFee === null ? ' — not set yet, set it on the Yearly Fee tab' : ''}
+                    </span>
+                  </p>
+                ) : (
+                  <p className="mt-1.5 text-xs font-semibold text-rose-500">
+                    No current academic year is set for this school.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
-        </form>
+        )}
       </Modal>
 
-      {/* CONFIRM DIALOG */}
       <ConfirmDialog
-        isOpen={confirmDialog.isOpen}
-        title={confirmDialog.title}
-        message={confirmDialog.message}
-        onConfirm={confirmDialog.onConfirm}
-        onClose={() => setConfirmDialog({ isOpen: false, title: '', message: '', onConfirm: () => {} })}
+        isOpen={Boolean(confirm)}
+        onClose={() => setConfirm(null)}
+        title={confirm?.title}
+        message={confirm?.message}
+        variant={confirm?.variant || 'danger'}
+        confirmText={confirm?.confirmText || 'Delete'}
+        onConfirm={() => confirm?.onConfirm?.()}
       />
-
-      <ToastComponent />
     </div>
   );
 };
+
+/* ------------------------------ small pieces ------------------------------ */
+
+const TableHead = ({ columns }) => (
+  <thead className="bg-slate-50 dark:bg-slate-950/50">
+    <tr>
+      {columns.map((column, index) => (
+        <th
+          key={`${column}-${index}`}
+          className={`px-5 py-3 text-[10px] font-black uppercase tracking-wider text-slate-400 ${
+            index === columns.length - 1 ? 'text-right' : ''
+          }`}
+        >
+          {column}
+        </th>
+      ))}
+    </tr>
+  </thead>
+);
+
+const EmptyState = ({ icon: Icon, message }) => (
+  <div className="flex flex-col items-center justify-center gap-3 px-5 py-14 text-center">
+    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-800">
+      <Icon className="h-5 w-5" />
+    </div>
+    <p className="max-w-xs text-xs font-semibold text-slate-400">{message}</p>
+  </div>
+);
+
+const Field = ({ label, required, hint, className = '', children }) => (
+  <div className={`space-y-1.5 ${className}`}>
+    <label className={labelClass}>
+      {label} {required && <span className="text-rose-500">*</span>}
+    </label>
+    {children}
+    {hint && <p className="text-[11px] font-semibold text-slate-400">{hint}</p>}
+  </div>
+);
+
+const ModalFooter = ({ saving, onCancel, onSave, saveLabel = 'Save' }) => (
+  <>
+    <button className={ghostBtn} onClick={onCancel} disabled={saving}>
+      Cancel
+    </button>
+    <button className={primaryBtn} onClick={onSave} disabled={saving}>
+      {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+      {saveLabel}
+    </button>
+  </>
+);
 
 export default HostelManagement;

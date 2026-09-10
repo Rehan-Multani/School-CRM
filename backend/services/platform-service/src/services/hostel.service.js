@@ -1,706 +1,1089 @@
+import mongoose from 'mongoose';
 import { AppError } from '../../../shared/AppError.js';
+import { HOSTEL_ERR } from '../constants/hostelErrorCodes.js';
 import { hostelRepository } from '../repositories/hostel.repository.js';
-import { Student } from '../models/Student.js';
-import { SchoolUser } from '../models/SchoolUser.js';
+import { HOSTEL_TYPES, HOSTEL_CATEGORIES } from '../models/Hostel.js';
 import { HostelBed } from '../models/HostelBed.js';
+import { HostelRoom } from '../models/HostelRoom.js';
+import { HostelAllocation } from '../models/HostelAllocation.js';
+import { Student } from '../models/Student.js';
+import { StudentEnrollment } from '../models/StudentEnrollment.js';
+import { SchoolClass } from '../models/SchoolClass.js';
+import { Section } from '../models/Section.js';
+import { normalizeMobile as normalizeMobileNumber } from '../utils/mobile.js';
 
-function requireText(value, label) {
+/* The 10-digit rule itself lives in utils/mobile.js — shared with every other
+   module — and is re-thrown here with this module's error code. */
+
+/* ============================= small helpers ============================= */
+
+function bad(message, code = HOSTEL_ERR.VALIDATION_ERROR) {
+  return new AppError(message, 400, code);
+}
+
+function conflict(message, code = HOSTEL_ERR.IN_USE) {
+  return new AppError(message, 409, code);
+}
+
+function notFound(what) {
+  return new AppError(`${what} not found`, 404, HOSTEL_ERR.NOT_FOUND);
+}
+
+function requireText(value, label, { max = 120 } = {}) {
   const text = typeof value === 'string' ? value.trim() : '';
-  if (!text) throw new AppError(`${label} is required`, 400);
+  if (!text) throw bad(`${label} is required`);
+  if (text.length > max) throw bad(`${label} must be ${max} characters or fewer`);
   return text;
 }
 
-function getBedLetters(capacity) {
-  const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-  return letters.slice(0, capacity);
+/** An optional free-text field: blank is a legitimate answer, too long is not. */
+function optionalText(value, label, { max = 250 } = {}) {
+  if (value === null || value === undefined) return '';
+  const text = String(value).trim();
+  if (text.length > max) throw bad(`${label} must be ${max} characters or fewer`);
+  return text;
 }
 
+function requireId(value, label) {
+  const raw = String(value ?? '').trim();
+  if (!raw || !mongoose.isValidObjectId(raw)) throw bad(`${label} is required`);
+  return raw;
+}
+
+function requireSchool(schoolId) {
+  if (!schoolId || !mongoose.isValidObjectId(String(schoolId))) {
+    throw new AppError('School context is missing on this session', 401, HOSTEL_ERR.UNAUTHORIZED);
+  }
+  return String(schoolId);
+}
+
+function normalizeMobile(value) {
+  try {
+    return normalizeMobileNumber(value, 'Mobile number');
+  } catch (error) {
+    throw bad(error.message);
+  }
+}
+
+function normalizeStatus(value, label) {
+  const raw = String(value ?? 'ACTIVE').trim().toUpperCase();
+  if (!['ACTIVE', 'INACTIVE'].includes(raw)) throw bad(`${label} status must be ACTIVE or INACTIVE`);
+  return raw;
+}
+
+function normalizeHostelType(value) {
+  const raw = String(value ?? 'BOYS').trim().toUpperCase();
+  if (!HOSTEL_TYPES.includes(raw)) throw bad(`Hostel type must be one of ${HOSTEL_TYPES.join(', ')}`);
+  return raw;
+}
+
+/** "BH-01" — the admin's own handle for a hostel. Letters, digits, - _ / only. */
+function normalizeHostelCode(value) {
+  const code = requireText(value, 'Hostel code', { max: 20 }).toUpperCase();
+  if (!/^[A-Z0-9][A-Z0-9\-_/]*$/.test(code)) {
+    throw bad('Hostel code may use letters, numbers, hyphen, underscore and slash only');
+  }
+  return code;
+}
+
+/** Optional — an empty category means the school does not track one. */
+function normalizeHostelCategory(value) {
+  if (value === null || value === undefined || String(value).trim() === '') return null;
+  const raw = String(value).trim().toUpperCase().replace(/[\s-]+/g, '_');
+  if (!HOSTEL_CATEGORIES.includes(raw)) {
+    throw bad(`Hostel category must be one of ${HOSTEL_CATEGORIES.join(', ')}`);
+  }
+  return raw;
+}
+
+function normalizeCount(value, label, { min = 1, max = 2000 } = {}) {
+  const count = Number(value);
+  if (!Number.isInteger(count) || count < min || count > max) {
+    throw bad(`${label} must be a whole number between ${min} and ${max}`);
+  }
+  return count;
+}
+
+/** Same rules as `normalizeCount`, but blank clears the field. */
+function optionalCount(value, label, { min = 1, max = 2000 } = {}) {
+  if (value === null || value === undefined || String(value).trim() === '') return null;
+  return normalizeCount(value, label, { min, max });
+}
+
+/** Blank clears the number; anything else must be a real 10-digit mobile. */
+function optionalMobile(value) {
+  if (value === null || value === undefined || String(value).trim() === '') return '';
+  return normalizeMobile(value);
+}
+
+/** A whole-rupee amount — the fee is set by hand and never has paise. */
+function normalizeAmount(value, label = 'Yearly fee') {
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || !Number.isInteger(amount) || amount < 0) {
+    throw bad(`${label} must be a whole number of rupees (0 or more)`);
+  }
+  if (amount > 10000000) throw bad(`${label} looks too large`);
+  return amount;
+}
+
+/**
+ * Class/section and roll number live on the student's ACTIVE enrollment, not on
+ * Student itself — resolve them in one batch so a list stays a fixed number of
+ * queries no matter how many students live in the hostel.
+ */
+async function studentMetaMap(schoolId, studentIds) {
+  const meta = new Map();
+  const ids = studentIds.filter(Boolean).map(String);
+  if (!ids.length) return meta;
+
+  const enrolments = await StudentEnrollment.find({
+    schoolId,
+    studentId: { $in: ids },
+    status: 'ACTIVE',
+  })
+    .select('studentId classId sectionId rollNumber')
+    .lean();
+  if (!enrolments.length) return meta;
+
+  const [classes, sections] = await Promise.all([
+    SchoolClass.find({ _id: { $in: enrolments.map((e) => e.classId) } }).select('name').lean(),
+    Section.find({ _id: { $in: enrolments.map((e) => e.sectionId) } }).select('name').lean(),
+  ]);
+  const classNames = new Map(classes.map((c) => [String(c._id), c.name]));
+  const sectionNames = new Map(sections.map((s) => [String(s._id), s.name]));
+
+  for (const e of enrolments) {
+    meta.set(String(e.studentId), {
+      rollNumber: e.rollNumber || '',
+      className: [classNames.get(String(e.classId)), sectionNames.get(String(e.sectionId))]
+        .filter(Boolean)
+        .join('-'),
+    });
+  }
+  return meta;
+}
+
+function studentView(student, meta = {}) {
+  if (!student) return null;
+  return {
+    id: String(student._id),
+    name: [student.firstName, student.lastName].filter(Boolean).join(' ').trim(),
+    admissionNumber: student.admissionNumber || '',
+    rollNumber: meta.rollNumber || '',
+    className: meta.className || '',
+  };
+}
+
+/** Allocation as the admin table renders it. */
+function allocationView(allocation, meta = new Map()) {
+  const student = allocation.studentId;
+  const hostel = allocation.hostelId;
+  const room = allocation.roomId;
+  const bed = allocation.bedId;
+  const year = allocation.academicYearId;
+  return {
+    id: allocation._id.toString(),
+    student: studentView(student, meta.get(String(student?._id || student)) || {}),
+    hostel: hostel?._id ? { id: String(hostel._id), name: hostel.name, type: hostel.type } : null,
+    room: room?._id
+      ? { id: String(room._id), roomNumber: room.roomNumber, floorNumber: room.floorNumber }
+      : null,
+    bed: bed?._id ? { id: String(bed._id), bedCode: bed.bedCode, bedNumber: bed.bedNumber } : null,
+    // The year the resident was admitted for, and what the hostel cost then — a
+    // snapshot, not a live lookup, so a later fee revision leaves it untouched.
+    academicYear: year?._id ? { id: String(year._id), name: year.name, code: year.code } : null,
+    yearlyFeeAmount: allocation.yearlyFeeAmount || 0,
+    status: allocation.status,
+    createdAt: allocation.createdAt,
+  };
+}
+
+/** "Bed 1" … "Bed n" for a room of `capacity` beds, starting after `from`. */
+function bedRows(schoolId, room, from, to) {
+  const rows = [];
+  for (let number = from; number <= to; number += 1) {
+    rows.push({
+      schoolId,
+      hostelId: room.hostelId._id || room.hostelId,
+      roomId: room._id,
+      bedCode: `Bed ${number}`,
+      bedNumber: number,
+      status: 'AVAILABLE',
+    });
+  }
+  return rows;
+}
+
+/** Free the bed a vacating/moving student was in. */
+async function releaseBed(schoolId, bedId) {
+  if (!bedId) return;
+  await HostelBed.updateOne(
+    { _id: bedId, schoolId },
+    { $set: { status: 'AVAILABLE', currentStudentId: null, currentAllocationId: null } }
+  );
+}
+
+/* ================================ service ================================ */
+
 export const hostelService = {
-  // --- DASHBOARD & METRICS ---
-  async getDashboardStats(schoolId) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
+  /* --------------------------- STEP 1 · HOSTELS -------------------------- */
 
-    const metrics = await hostelRepository.getDashboardMetrics(schoolId);
-    const hostels = await hostelRepository.listHostels(schoolId);
+  async listHostels(schoolIdRaw, query = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const filter = {};
+    if (query.status) filter.status = normalizeStatus(query.status, 'Hostel');
+    const hostels = await hostelRepository.listHostels(schoolId, filter);
 
-    // Calculate hostel-wise summary
-    const hostelBreakdown = await Promise.all(
-      hostels.map(async (hostel) => {
-        const rooms = await hostelRepository.listRooms(schoolId, { hostelId: hostel._id });
-        const beds = await hostelRepository.listBeds(schoolId, { hostelId: hostel._id });
-        const occupied = beds.filter((b) => b.status === 'OCCUPIED').length;
-        const available = beds.filter((b) => b.status === 'AVAILABLE').length;
+    // Rooms, beds, occupancy and warden are what make the list readable — one
+    // aggregate each rather than a query per hostel.
+    const hostelIds = hostels.map((h) => h._id);
+    const [roomCounts, bedCounts, residentCounts, wardens] = await Promise.all([
+      HostelRoom.aggregate([
+        { $match: { hostelId: { $in: hostelIds } } },
+        { $group: { _id: '$hostelId', rooms: { $sum: 1 }, beds: { $sum: '$capacity' } } },
+      ]),
+      HostelBed.aggregate([
+        { $match: { hostelId: { $in: hostelIds }, status: 'OCCUPIED' } },
+        { $group: { _id: '$hostelId', n: { $sum: 1 } } },
+      ]),
+      HostelAllocation.aggregate([
+        { $match: { hostelId: { $in: hostelIds }, status: 'ACTIVE' } },
+        { $group: { _id: '$hostelId', n: { $sum: 1 } } },
+      ]),
+      hostelRepository.listWardens(schoolId, { hostelId: { $in: hostelIds } }),
+    ]);
 
-        return {
-          id: hostel._id.toString(),
-          name: hostel.name,
-          type: hostel.type,
-          warden: hostel.wardenId?.fullName || 'Not Assigned',
-          totalRooms: rooms.length,
-          totalBeds: beds.length,
-          occupiedBeds: occupied,
-          availableBeds: available,
-          occupancyRate: beds.length > 0 ? Math.round((occupied / beds.length) * 100) : 0,
-        };
-      })
-    );
+    const roomsBy = new Map(roomCounts.map((r) => [String(r._id), r]));
+    const occupiedBy = new Map(bedCounts.map((b) => [String(b._id), b.n]));
+    const residentsBy = new Map(residentCounts.map((a) => [String(a._id), a.n]));
+    const wardenBy = new Map(wardens.map((w) => [String(w.hostelId?._id || w.hostelId), w]));
 
-    const recentAllocations = await hostelRepository.listAllocations(schoolId, {});
-    const recentOutings = await hostelRepository.listOutings(schoolId, {});
-    const recentComplaints = await hostelRepository.listComplaints(schoolId, {});
+    return hostels.map((hostel) => {
+      const key = String(hostel._id);
+      const warden = wardenBy.get(key);
+      return {
+        ...hostel.toPublicJSON(),
+        // `totalRooms` is what the admin declared on the form; this is how many
+        // rooms step 2 has actually produced so far.
+        roomsCreated: roomsBy.get(key)?.rooms || 0,
+        totalBeds: roomsBy.get(key)?.beds || 0,
+        occupiedBeds: occupiedBy.get(key) || 0,
+        residents: residentsBy.get(key) || 0,
+        warden: warden ? { id: String(warden._id), name: warden.name, mobile: warden.mobile } : null,
+      };
+    });
+  },
+
+  async getHostel(schoolIdRaw, id) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const hostel = await hostelRepository.getHostel(schoolId, requireId(id, 'Hostel'));
+    if (!hostel) throw notFound('Hostel');
+
+    const [rooms, warden, residents] = await Promise.all([
+      hostelRepository.listRooms(schoolId, { hostelId: hostel._id }),
+      hostelRepository.findWardenOfHostel(schoolId, hostel._id),
+      hostelRepository.countActiveAllocations(schoolId, { hostelId: hostel._id }),
+    ]);
 
     return {
-      metrics,
-      hostelBreakdown,
-      recentAllocations: recentAllocations.slice(0, 5),
-      recentOutings: recentOutings.slice(0, 5),
-      recentComplaints: recentComplaints.slice(0, 5),
+      ...hostel.toPublicJSON(),
+      rooms: rooms.map((r) => r.toPublicJSON()),
+      roomsCreated: rooms.length,
+      warden: warden ? warden.toPublicJSON() : null,
+      residents,
     };
   },
 
-  // --- SEED STARTER DEMO HOSTELS ---
-  async seedDemoData(schoolId, user) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
+  async createHostel(schoolIdRaw, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const name = requireText(data.name, 'Hostel name', { max: 80 });
+    const code = normalizeHostelCode(data.code);
 
-    const existing = await hostelRepository.listHostels(schoolId);
-    if (existing && existing.length > 0) {
-      return { message: 'Hostel data already exists for this school' };
-    }
-
-    // Find a staff user if available for warden
-    const staff = await SchoolUser.findOne({ schoolId, status: 'ACTIVE' }).lean();
-    const wardenId = staff?._id || null;
-
-    // 1. Create Boys Hostel
-    const boysHostel = await hostelRepository.createHostel({
-      schoolId,
-      name: "Rabindranath Tagore Boy's Hostel",
-      type: 'BOYS',
-      wardenId,
-      contactNumber: '+91 9876543210',
-      address: {
-        addressLine: 'Campus Block B, East Wing',
-        city: 'Jaipur',
-        state: 'Rajasthan',
-        pincode: '302001',
-      },
-      totalBlocks: 2,
-      totalFloors: 3,
-      capacity: 120,
-      description: 'Air-cooled residential block with reading hall, Wi-Fi and indoor sports room.',
-      status: 'ACTIVE',
-    });
-
-    // 2. Create Girls Hostel
-    const girlsHostel = await hostelRepository.createHostel({
-      schoolId,
-      name: "Sarojini Naidu Girl's Hostel",
-      type: 'GIRLS',
-      wardenId,
-      contactNumber: '+91 9876543211',
-      address: {
-        addressLine: 'Campus Block D, West Wing',
-        city: 'Jaipur',
-        state: 'Rajasthan',
-        pincode: '302001',
-      },
-      totalBlocks: 2,
-      totalFloors: 3,
-      capacity: 120,
-      description: 'Secure 24x7 guarded residential block with recreation room and solar water heating.',
-      status: 'ACTIVE',
-    });
-
-    // 3. Create Sample Rooms with auto-beds for Boys Hostel
-    const sampleRoomsBoys = [
-      { roomNumber: '101', floorNumber: 'Ground Floor', blockName: 'Block A', roomType: 'DOUBLE', capacity: 2, monthlyRent: 5000, amenities: ['Attached Washroom', 'Study Table', 'Balcony'] },
-      { roomNumber: '102', floorNumber: 'Ground Floor', blockName: 'Block A', roomType: 'TRIPLE', capacity: 3, monthlyRent: 4200, amenities: ['Study Table', 'Cupboard'] },
-      { roomNumber: '103', floorNumber: 'Ground Floor', blockName: 'Block A', roomType: 'SINGLE', capacity: 1, monthlyRent: 8000, amenities: ['AC', 'Attached Washroom', 'High-Speed Wi-Fi'] },
-      { roomNumber: '201', floorNumber: '1st Floor', blockName: 'Block A', roomType: 'DOUBLE', capacity: 2, monthlyRent: 5000, amenities: ['Attached Washroom', 'Balcony'] },
-      { roomNumber: '202', floorNumber: '1st Floor', blockName: 'Block A', roomType: 'DOUBLE', capacity: 2, monthlyRent: 5000, amenities: ['Attached Washroom'] },
-    ];
-
-    for (const r of sampleRoomsBoys) {
-      await this.createRoom(schoolId, { ...r, hostelId: boysHostel._id.toString() });
-    }
-
-    // 4. Create Sample Rooms with auto-beds for Girls Hostel
-    const sampleRoomsGirls = [
-      { roomNumber: 'G-101', floorNumber: 'Ground Floor', blockName: 'Main Block', roomType: 'DOUBLE', capacity: 2, monthlyRent: 5000, amenities: ['Attached Washroom', 'Study Table'] },
-      { roomNumber: 'G-102', floorNumber: 'Ground Floor', blockName: 'Main Block', roomType: 'TRIPLE', capacity: 3, monthlyRent: 4200, amenities: ['Study Table', 'Balcony'] },
-      { roomNumber: 'G-201', floorNumber: '1st Floor', blockName: 'Main Block', roomType: 'SINGLE', capacity: 1, monthlyRent: 8000, amenities: ['AC', 'Attached Washroom', 'Wi-Fi'] },
-    ];
-
-    for (const r of sampleRoomsGirls) {
-      await this.createRoom(schoolId, { ...r, hostelId: girlsHostel._id.toString() });
-    }
-
-    // 5. Try to allocate 1-2 students if students exist
-    const students = await Student.find({ schoolId, status: 'ACTIVE' }).limit(3).lean();
-    if (students && students.length > 0) {
-      const allBeds = await hostelRepository.listBeds(schoolId, { status: 'AVAILABLE' });
-      if (allBeds.length >= students.length) {
-        for (let i = 0; i < students.length; i++) {
-          const student = students[i];
-          const bed = allBeds[i];
-          await this.allocateStudent(
-            schoolId,
-            {
-              studentId: student._id.toString(),
-              hostelId: bed.hostelId?._id?.toString() || bed.hostelId.toString(),
-              roomId: bed.roomId?._id?.toString() || bed.roomId.toString(),
-              bedId: bed._id.toString(),
-              monthlyFee: bed.roomId?.monthlyRent || 5000,
-              securityDeposit: 2000,
-              remarks: 'Default admission allocation',
-            },
-            user
-          );
-        }
-      }
-    }
-
-    return { message: 'Demo hostel infrastructure created successfully' };
-  },
-
-  // --- HOSTELS CRUD ---
-  async listHostels(schoolId, query = {}) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const filter = {};
-    if (query.type) filter.type = query.type;
-    if (query.status) filter.status = query.status;
-    return hostelRepository.listHostels(schoolId, filter);
-  },
-
-  async getHostel(schoolId, id) {
-    const hostel = await hostelRepository.getHostelById(schoolId, id);
-    if (!hostel) throw new AppError('Hostel not found', 404);
-    return hostel;
-  },
-
-  async createHostel(schoolId, data) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const name = requireText(data.name, 'Hostel Name');
-    const type = data.type || 'BOYS';
+    const [byName, byCode] = await Promise.all([
+      hostelRepository.findHostelByName(schoolId, name),
+      hostelRepository.findHostelByCode(schoolId, code),
+    ]);
+    if (byName) throw conflict(`A hostel called "${name}" already exists`, HOSTEL_ERR.DUPLICATE);
+    if (byCode) throw conflict(`Hostel code ${code} is already used by ${byCode.name}`, HOSTEL_ERR.DUPLICATE);
 
     const hostel = await hostelRepository.createHostel({
       schoolId,
       name,
-      type,
-      wardenId: data.wardenId || null,
-      assistantWardenId: data.assistantWardenId || null,
-      contactNumber: data.contactNumber || '',
-      address: data.address || {},
-      totalBlocks: Number(data.totalBlocks) || 1,
-      totalFloors: Number(data.totalFloors) || 1,
-      capacity: Number(data.capacity) || 0,
-      description: data.description || '',
-      status: data.status || 'ACTIVE',
+      code,
+      type: normalizeHostelType(data.type),
+      category: normalizeHostelCategory(data.category),
+      contactNumber: optionalMobile(data.contactNumber),
+      address: optionalText(data.address, 'Address', { max: 250 }),
+      totalFloors: optionalCount(data.totalFloors, 'Total floors', { min: 1, max: 50 }),
+      totalRooms: optionalCount(data.totalRooms, 'Total rooms', { min: 1, max: 500 }),
+      totalCapacity: normalizeCount(data.totalCapacity, 'Total capacity', { min: 1, max: 2000 }),
+      description: optionalText(data.description, 'Description', { max: 500 }),
+      status: normalizeStatus(data.status, 'Hostel'),
     });
 
-    return hostelRepository.getHostelById(schoolId, hostel._id);
-  },
-
-  async updateHostel(schoolId, id, data) {
-    const hostel = await hostelRepository.updateHostel(schoolId, id, data);
-    if (!hostel) throw new AppError('Hostel not found', 404);
-    return hostel;
-  },
-
-  async deleteHostel(schoolId, id) {
-    const roomsCount = await HostelRoom.countDocuments({ schoolId, hostelId: id });
-    if (roomsCount > 0) {
-      throw new AppError(`Cannot delete hostel. It contains ${roomsCount} registered rooms. Please remove or reassign them first.`, 400);
+    // Step 4 folded into step 1 — picking the warden on the hostel form is the
+    // same link `assignWardenToHostel` makes, so it goes through that path.
+    if (data.wardenId) {
+      await this.assignWardenToHostel(schoolId, data.wardenId, hostel._id);
     }
-    const result = await hostelRepository.deleteHostel(schoolId, id);
-    if (!result) throw new AppError('Hostel not found', 404);
-    return { message: 'Hostel deleted successfully' };
+    return hostel.toPublicJSON();
   },
 
-  // --- ROOMS & AUTO-BED GENERATION ---
-  async listRooms(schoolId, query = {}) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
+  async updateHostel(schoolIdRaw, id, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const hostel = await hostelRepository.getHostel(schoolId, requireId(id, 'Hostel'));
+    if (!hostel) throw notFound('Hostel');
+
+    if (data.name !== undefined) {
+      const name = requireText(data.name, 'Hostel name', { max: 80 });
+      if (name !== hostel.name) {
+        const duplicate = await hostelRepository.findHostelByName(schoolId, name);
+        if (duplicate) throw conflict(`A hostel called "${name}" already exists`, HOSTEL_ERR.DUPLICATE);
+      }
+      hostel.name = name;
+    }
+
+    if (data.code !== undefined) {
+      const code = normalizeHostelCode(data.code);
+      if (code !== hostel.code) {
+        const duplicate = await hostelRepository.findHostelByCode(schoolId, code);
+        if (duplicate) {
+          throw conflict(`Hostel code ${code} is already used by ${duplicate.name}`, HOSTEL_ERR.DUPLICATE);
+        }
+      }
+      hostel.code = code;
+    }
+
+    if (data.type !== undefined) hostel.type = normalizeHostelType(data.type);
+    if (data.category !== undefined) hostel.category = normalizeHostelCategory(data.category);
+    if (data.contactNumber !== undefined) hostel.contactNumber = optionalMobile(data.contactNumber);
+    if (data.address !== undefined) hostel.address = optionalText(data.address, 'Address', { max: 250 });
+    if (data.description !== undefined) {
+      hostel.description = optionalText(data.description, 'Description', { max: 500 });
+    }
+    if (data.totalFloors !== undefined) {
+      hostel.totalFloors = optionalCount(data.totalFloors, 'Total floors', { min: 1, max: 50 });
+    }
+    if (data.totalRooms !== undefined) {
+      hostel.totalRooms = optionalCount(data.totalRooms, 'Total rooms', { min: 1, max: 500 });
+    }
+
+    if (data.totalCapacity !== undefined) {
+      const totalCapacity = normalizeCount(data.totalCapacity, 'Total capacity', { min: 1, max: 2000 });
+      // Shrinking below the residents already living here would leave the
+      // hostel permanently over capacity with no way back.
+      const residents = await hostelRepository.countActiveAllocations(schoolId, { hostelId: hostel._id });
+      if (totalCapacity < residents) {
+        throw conflict(
+          `Capacity cannot drop below ${residents} — that many students already live in ${hostel.name}`,
+          HOSTEL_ERR.CAPACITY_FULL
+        );
+      }
+      hostel.totalCapacity = totalCapacity;
+    }
+
+    if (data.status !== undefined) {
+      const status = normalizeStatus(data.status, 'Hostel');
+      if (status === 'INACTIVE') {
+        const residents = await hostelRepository.countActiveAllocations(schoolId, { hostelId: hostel._id });
+        if (residents) {
+          throw conflict(
+            `Cannot deactivate ${hostel.name} — ${residents} student(s) still live there. Vacate them first.`
+          );
+        }
+      }
+      hostel.status = status;
+    }
+
+    await hostel.save();
+
+    // A blank warden on the form means "this hostel has no warden" — the same
+    // unassign the wardens tab performs.
+    if (data.wardenId !== undefined) {
+      const current = await hostelRepository.findWardenOfHostel(schoolId, hostel._id);
+      const wanted = data.wardenId ? requireId(data.wardenId, 'Warden') : null;
+      if (String(current?._id || '') !== String(wanted || '')) {
+        if (current) await this.unassignWardenFromHostel(schoolId, current._id);
+        if (wanted) await this.assignWardenToHostel(schoolId, wanted, hostel._id);
+      }
+    }
+
+    return hostel.toPublicJSON();
+  },
+
+  async deleteHostel(schoolIdRaw, id) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const hostelId = requireId(id, 'Hostel');
+    const hostel = await hostelRepository.getHostel(schoolId, hostelId);
+    if (!hostel) throw notFound('Hostel');
+
+    const [rooms, residents, warden] = await Promise.all([
+      hostelRepository.countRooms(schoolId, hostelId),
+      hostelRepository.countActiveAllocations(schoolId, { hostelId }),
+      hostelRepository.findWardenOfHostel(schoolId, hostelId),
+    ]);
+    if (residents) {
+      throw conflict(`Cannot delete ${hostel.name} — ${residents} student(s) still live there`);
+    }
+    if (rooms) {
+      throw conflict(`Cannot delete ${hostel.name} — delete its ${rooms} room(s) first`);
+    }
+    if (warden) {
+      throw conflict(`Cannot delete ${hostel.name} — ${warden.name} is its warden. Unassign them first.`);
+    }
+
+    await hostelRepository.deleteHostel(schoolId, hostelId);
+    return { id: hostelId };
+  },
+
+  /* ------------------- STEPS 2 + 3 · ROOMS AND THEIR BEDS ---------------- */
+
+  async listRooms(schoolIdRaw, query = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
     const filter = {};
-    if (query.hostelId) filter.hostelId = query.hostelId;
-    if (query.floorNumber) filter.floorNumber = query.floorNumber;
-    if (query.roomType) filter.roomType = query.roomType;
-    if (query.status) filter.status = query.status;
-    return hostelRepository.listRooms(schoolId, filter);
-  },
+    if (query.hostelId) filter.hostelId = requireId(query.hostelId, 'Hostel');
+    const rooms = await hostelRepository.listRooms(schoolId, filter);
 
-  async getRoom(schoolId, id) {
-    const room = await hostelRepository.getRoomById(schoolId, id);
-    if (!room) throw new AppError('Room not found', 404);
-    const beds = await hostelRepository.listBeds(schoolId, { roomId: id });
-    return { ...room, beds };
-  },
-
-  async createRoom(schoolId, data) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const hostelId = requireText(data.hostelId, 'Hostel ID');
-    const roomNumber = requireText(data.roomNumber, 'Room Number');
-    const capacity = Math.max(1, Number(data.capacity) || 2);
-    const floorNumber = data.floorNumber || 'Ground Floor';
-    const blockName = data.blockName || 'Main Block';
-
-    // Verify unique room within this hostel
-    const existing = await HostelRoom.findOne({ schoolId, hostelId, roomNumber });
-    if (existing) {
-      throw new AppError(`Room Number ${roomNumber} already exists in this hostel`, 400);
+    // Beds are the room's whole substance — send them with the room so the
+    // admin never needs a second call to see who is where.
+    const beds = await hostelRepository.listBeds(schoolId, { roomId: { $in: rooms.map((r) => r._id) } });
+    const bedsByRoom = new Map();
+    for (const bed of beds) {
+      const key = String(bed.roomId);
+      if (!bedsByRoom.has(key)) bedsByRoom.set(key, []);
+      bedsByRoom.get(key).push({
+        ...bed.toPublicJSON(),
+        student: bed.currentStudentId
+          ? {
+              id: String(bed.currentStudentId._id),
+              name: [bed.currentStudentId.firstName, bed.currentStudentId.lastName]
+                .filter(Boolean)
+                .join(' ')
+                .trim(),
+              admissionNumber: bed.currentStudentId.admissionNumber || '',
+            }
+          : null,
+      });
     }
 
+    return rooms.map((room) => {
+      const roomBeds = bedsByRoom.get(String(room._id)) || [];
+      return {
+        ...room.toPublicJSON(),
+        beds: roomBeds,
+        occupiedBeds: roomBeds.filter((b) => b.status === 'OCCUPIED').length,
+      };
+    });
+  },
+
+  async getRoom(schoolIdRaw, id) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const room = await hostelRepository.getRoom(schoolId, requireId(id, 'Room'));
+    if (!room) throw notFound('Room');
+    const beds = await hostelRepository.listBeds(schoolId, { roomId: room._id });
+    return { ...room.toPublicJSON(), beds: beds.map((b) => b.toPublicJSON()) };
+  },
+
+  /** Creating a room creates its beds — step 3 is never done by hand. */
+  async createRoom(schoolIdRaw, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const hostelId = requireId(data.hostelId, 'Hostel');
+    const hostel = await hostelRepository.getHostel(schoolId, hostelId);
+    if (!hostel) throw notFound('Hostel');
+    if (hostel.status !== 'ACTIVE') {
+      throw conflict(`${hostel.name} is inactive`, HOSTEL_ERR.HOSTEL_INACTIVE);
+    }
+
+    const roomNumber = requireText(data.roomNumber, 'Room number', { max: 20 });
+    const duplicate = await hostelRepository.findRoomByNumber(schoolId, hostelId, roomNumber);
+    if (duplicate) {
+      throw conflict(`${hostel.name} already has a room ${roomNumber}`, HOSTEL_ERR.DUPLICATE);
+    }
+
+    const capacity = normalizeCount(data.capacity, 'Room capacity', { min: 1, max: 50 });
     const room = await hostelRepository.createRoom({
       schoolId,
       hostelId,
-      blockName,
-      floorNumber,
       roomNumber,
-      roomType: data.roomType || (capacity === 1 ? 'SINGLE' : capacity === 2 ? 'DOUBLE' : capacity === 3 ? 'TRIPLE' : 'DORMITORY'),
+      floorNumber: requireText(data.floorNumber, 'Floor', { max: 40 }),
       capacity,
-      monthlyRent: Number(data.monthlyRent) || 0,
-      amenities: Array.isArray(data.amenities) ? data.amenities : [],
-      description: data.description || '',
-      status: data.status || 'ACTIVE',
     });
+    await hostelRepository.insertBeds(bedRows(schoolId, room, 1, capacity));
 
-    // Auto-generate Beds e.g. "101-A", "101-B", "101-C"
-    const letters = getBedLetters(capacity);
-    const bedsToCreate = letters.map((letter) => ({
-      schoolId,
-      hostelId,
-      roomId: room._id,
-      bedCode: `${roomNumber}-${letter}`,
-      status: 'AVAILABLE',
-      currentAllocationId: null,
-      currentStudentId: null,
-    }));
-
-    await hostelRepository.createManyBeds(bedsToCreate);
-
-    // Update hostel total capacity
-    const allRooms = await hostelRepository.listRooms(schoolId, { hostelId });
-    const totalCapacity = allRooms.reduce((sum, r) => sum + (r.capacity || 0), 0);
-    await hostelRepository.updateHostel(schoolId, hostelId, { capacity: totalCapacity });
-
-    return this.getRoom(schoolId, room._id);
+    const beds = await hostelRepository.listBeds(schoolId, { roomId: room._id });
+    return { ...room.toPublicJSON(), beds: beds.map((b) => b.toPublicJSON()), occupiedBeds: 0 };
   },
 
-  async updateRoom(schoolId, id, data) {
-    const existing = await hostelRepository.getRoomById(schoolId, id);
-    if (!existing) throw new AppError('Room not found', 404);
+  async updateRoom(schoolIdRaw, id, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const room = await hostelRepository.getRoom(schoolId, requireId(id, 'Room'));
+    if (!room) throw notFound('Room');
 
-    const room = await hostelRepository.updateRoom(schoolId, id, data);
-    return this.getRoom(schoolId, room._id);
-  },
-
-  async deleteRoom(schoolId, id) {
-    const activeAllocations = await HostelAllocation.countDocuments({ schoolId, roomId: id, status: 'ACTIVE' });
-    if (activeAllocations > 0) {
-      throw new AppError(`Cannot delete room. There are ${activeAllocations} active students currently staying in this room. Please vacate them first.`, 400);
+    if (data.roomNumber !== undefined) {
+      const roomNumber = requireText(data.roomNumber, 'Room number', { max: 20 });
+      if (roomNumber !== room.roomNumber) {
+        const duplicate = await hostelRepository.findRoomByNumber(
+          schoolId,
+          room.hostelId._id || room.hostelId,
+          roomNumber
+        );
+        if (duplicate) throw conflict(`This hostel already has a room ${roomNumber}`, HOSTEL_ERR.DUPLICATE);
+      }
+      room.roomNumber = roomNumber;
     }
 
-    await hostelRepository.deleteBedsByRoom(schoolId, id);
-    const result = await hostelRepository.deleteRoom(schoolId, id);
-    if (!result) throw new AppError('Room not found', 404);
+    if (data.floorNumber !== undefined) room.floorNumber = requireText(data.floorNumber, 'Floor', { max: 40 });
 
-    return { message: 'Room and its associated beds deleted successfully' };
-  },
-
-  // --- BEDS & VISUALIZER ---
-  async listBeds(schoolId, query = {}) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const filter = {};
-    if (query.hostelId) filter.hostelId = query.hostelId;
-    if (query.roomId) filter.roomId = query.roomId;
-    if (query.status) filter.status = query.status;
-    return hostelRepository.listBeds(schoolId, filter);
-  },
-
-  async getBedVisualizer(schoolId, hostelId) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-
-    const filter = {};
-    if (hostelId) filter._id = hostelId;
-    const hostels = await hostelRepository.listHostels(schoolId, filter);
-
-    const visualData = await Promise.all(
-      hostels.map(async (hostel) => {
-        const rooms = await hostelRepository.listRooms(schoolId, { hostelId: hostel._id });
-        const beds = await hostelRepository.listBeds(schoolId, { hostelId: hostel._id });
-
-        // Group rooms by floor
-        const floorsMap = {};
-        rooms.forEach((room) => {
-          const floor = room.floorNumber || 'Ground Floor';
-          if (!floorsMap[floor]) floorsMap[floor] = [];
-          const roomBeds = beds.filter((b) => b.roomId?._id?.toString() === room._id.toString() || b.roomId?.toString() === room._id.toString());
-          floorsMap[floor].push({
-            ...room,
-            beds: roomBeds,
-          });
+    if (data.capacity !== undefined) {
+      const capacity = normalizeCount(data.capacity, 'Room capacity', { min: 1, max: 50 });
+      if (capacity > room.capacity) {
+        // Growing the room adds the missing beds at the end.
+        await hostelRepository.insertBeds(bedRows(schoolId, room, room.capacity + 1, capacity));
+      } else if (capacity < room.capacity) {
+        // Shrinking drops beds from the end — but never one somebody sleeps in.
+        const occupied = await hostelRepository.countBeds(schoolId, {
+          roomId: room._id,
+          bedNumber: { $gt: capacity },
+          status: 'OCCUPIED',
         });
+        if (occupied) {
+          throw conflict(
+            `Cannot shrink room ${room.roomNumber} to ${capacity} beds — ${occupied} of the beds being removed are occupied`,
+            HOSTEL_ERR.BED_OCCUPIED
+          );
+        }
+        await hostelRepository.deleteBedsAbove(schoolId, room._id, capacity);
+      }
+      room.capacity = capacity;
+    }
 
-        return {
-          hostelId: hostel._id.toString(),
-          hostelName: hostel.name,
-          hostelType: hostel.type,
-          warden: hostel.wardenId?.fullName || 'Not Assigned',
-          floors: Object.entries(floorsMap).map(([floorName, floorRooms]) => ({
-            floorName,
-            rooms: floorRooms,
-          })),
-        };
-      })
-    );
-
-    return visualData;
+    await room.save();
+    const beds = await hostelRepository.listBeds(schoolId, { roomId: room._id });
+    return {
+      ...room.toPublicJSON(),
+      beds: beds.map((b) => b.toPublicJSON()),
+      occupiedBeds: beds.filter((b) => b.status === 'OCCUPIED').length,
+    };
   },
 
-  // --- STUDENT ALLOCATION & TRANSFERS ---
-  async listAllocations(schoolId, query = {}) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const filter = {};
-    if (query.hostelId) filter.hostelId = query.hostelId;
-    if (query.roomId) filter.roomId = query.roomId;
-    if (query.status) filter.status = query.status;
-    if (query.studentId) filter.studentId = query.studentId;
-    return hostelRepository.listAllocations(schoolId, filter);
-  },
+  async deleteRoom(schoolIdRaw, id) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const roomId = requireId(id, 'Room');
+    const room = await hostelRepository.getRoom(schoolId, roomId);
+    if (!room) throw notFound('Room');
 
-  async allocateStudent(schoolId, data, user) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const studentId = requireText(data.studentId, 'Student');
-    const bedId = requireText(data.bedId, 'Bed');
-    const hostelId = requireText(data.hostelId, 'Hostel');
-    const roomId = requireText(data.roomId, 'Room');
-
-    // 1. Check if student already has an active allocation
-    const existingAlloc = await hostelRepository.getActiveAllocationByStudent(schoolId, studentId);
-    if (existingAlloc) {
-      throw new AppError(
-        `Student is already allocated to ${existingAlloc.hostelId?.name || 'a hostel'} (Room: ${existingAlloc.roomId?.roomNumber}, Bed: ${existingAlloc.bedId?.bedCode}). Please vacate or transfer first.`,
-        400
+    const residents = await hostelRepository.countActiveAllocations(schoolId, { roomId });
+    if (residents) {
+      throw conflict(
+        `Cannot delete room ${room.roomNumber} — ${residents} student(s) live there. Vacate them first.`
       );
     }
 
-    // 2. Check if bed is available
-    const bed = await HostelBed.findOne({ _id: bedId, schoolId });
-    if (!bed) throw new AppError('Bed not found', 404);
-    if (bed.status !== 'AVAILABLE') {
-      throw new AppError(`Selected bed (${bed.bedCode}) is currently ${bed.status}. Please choose an available bed.`, 400);
-    }
+    await hostelRepository.deleteRoom(schoolId, roomId);
+    await hostelRepository.deleteBedsOfRoom(schoolId, roomId);
+    return { id: roomId };
+  },
 
-    // 3. Create Allocation
-    const allocation = await hostelRepository.createAllocation({
+  /** Beds are read-only: they exist because the room says so. */
+  async listBeds(schoolIdRaw, query = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const filter = {};
+    if (query.hostelId) filter.hostelId = requireId(query.hostelId, 'Hostel');
+    if (query.roomId) filter.roomId = requireId(query.roomId, 'Room');
+    if (query.status) {
+      const status = String(query.status).toUpperCase();
+      if (!['AVAILABLE', 'OCCUPIED'].includes(status)) throw bad('status must be AVAILABLE or OCCUPIED');
+      filter.status = status;
+    }
+    const beds = await hostelRepository.listBeds(schoolId, filter);
+    return beds.map((bed) => ({
+      ...bed.toPublicJSON(),
+      student: bed.currentStudentId
+        ? {
+            id: String(bed.currentStudentId._id),
+            name: [bed.currentStudentId.firstName, bed.currentStudentId.lastName]
+              .filter(Boolean)
+              .join(' ')
+              .trim(),
+            admissionNumber: bed.currentStudentId.admissionNumber || '',
+          }
+        : null,
+    }));
+  },
+
+  /* --------------------------- STEP 4 · WARDENS -------------------------- */
+
+  async listWardens(schoolIdRaw, query = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const filter = {};
+    if (query.status) filter.status = normalizeStatus(query.status, 'Warden');
+    const wardens = await hostelRepository.listWardens(schoolId, filter);
+    return wardens.map((w) => w.toPublicJSON());
+  },
+
+  async getWarden(schoolIdRaw, id) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const warden = await hostelRepository.getWarden(schoolId, requireId(id, 'Warden'));
+    if (!warden) throw notFound('Warden');
+    return warden.toPublicJSON();
+  },
+
+  async createWarden(schoolIdRaw, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const name = requireText(data.name, 'Warden name');
+    const mobile = normalizeMobile(data.mobile);
+
+    const duplicate = await hostelRepository.findWardenByMobile(schoolId, mobile);
+    if (duplicate) throw conflict(`A warden with mobile ${mobile} already exists`, HOSTEL_ERR.DUPLICATE);
+
+    const warden = await hostelRepository.createWarden({
       schoolId,
-      studentId,
-      hostelId,
-      roomId,
-      bedId,
-      academicYearId: data.academicYearId || null,
-      allocationDate: data.allocationDate ? new Date(data.allocationDate) : new Date(),
-      expectedCheckoutDate: data.expectedCheckoutDate ? new Date(data.expectedCheckoutDate) : null,
-      monthlyFee: Number(data.monthlyFee) || 0,
-      securityDeposit: Number(data.securityDeposit) || 0,
-      status: 'ACTIVE',
-      remarks: data.remarks || '',
-      allocatedBy: user?.userId || null,
+      name,
+      mobile,
+      status: normalizeStatus(data.status, 'Warden'),
     });
-
-    // 4. Mark Bed as OCCUPIED
-    await HostelBed.findOneAndUpdate(
-      { _id: bedId, schoolId },
-      {
-        status: 'OCCUPIED',
-        currentAllocationId: allocation._id,
-        currentStudentId: studentId,
-      }
-    );
-
-    return hostelRepository.getAllocationById(schoolId, allocation._id);
+    // Creating and assigning in one step is the common case — "Rajesh Sharma →
+    // Boys Hostel" is a single action for the admin.
+    if (data.hostelId) return this.assignWardenToHostel(schoolId, warden._id, data.hostelId);
+    return warden.toPublicJSON();
   },
 
-  async transferStudent(schoolId, allocationId, data, user) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const newBedId = requireText(data.newBedId, 'New Bed');
+  async updateWarden(schoolIdRaw, id, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const warden = await hostelRepository.getWarden(schoolId, requireId(id, 'Warden'));
+    if (!warden) throw notFound('Warden');
 
-    const allocation = await hostelRepository.getAllocationById(schoolId, allocationId);
-    if (!allocation || allocation.status !== 'ACTIVE') {
-      throw new AppError('Active allocation not found', 404);
-    }
+    if (data.name !== undefined) warden.name = requireText(data.name, 'Warden name');
 
-    const newBed = await HostelBed.findOne({ _id: newBedId, schoolId }).populate('roomId');
-    if (!newBed) throw new AppError('New bed not found', 404);
-    if (newBed.status !== 'AVAILABLE') {
-      throw new AppError(`Target bed (${newBed.bedCode}) is not available`, 400);
-    }
-
-    // Release old bed
-    await HostelBed.findOneAndUpdate(
-      { _id: allocation.bedId?._id || allocation.bedId, schoolId },
-      { status: 'AVAILABLE', currentAllocationId: null, currentStudentId: null }
-    );
-
-    // Update old allocation as TRANSFERRED
-    await hostelRepository.updateAllocation(schoolId, allocationId, {
-      status: 'TRANSFERRED',
-      actualCheckoutDate: new Date(),
-      checkoutRemarks: `Transferred to Bed ${newBed.bedCode}`,
-    });
-
-    // Create new allocation
-    const newAllocation = await hostelRepository.createAllocation({
-      schoolId,
-      studentId: allocation.studentId?._id || allocation.studentId,
-      hostelId: newBed.hostelId,
-      roomId: newBed.roomId?._id || newBed.roomId,
-      bedId: newBed._id,
-      academicYearId: allocation.academicYearId,
-      allocationDate: new Date(),
-      monthlyFee: newBed.roomId?.monthlyRent || allocation.monthlyFee,
-      securityDeposit: allocation.securityDeposit,
-      status: 'ACTIVE',
-      remarks: `Transferred from Bed ${allocation.bedId?.bedCode || ''}`,
-      allocatedBy: user?.userId || null,
-    });
-
-    // Occupy new bed
-    await HostelBed.findOneAndUpdate(
-      { _id: newBedId, schoolId },
-      {
-        status: 'OCCUPIED',
-        currentAllocationId: newAllocation._id,
-        currentStudentId: allocation.studentId?._id || allocation.studentId,
+    if (data.mobile !== undefined) {
+      const mobile = normalizeMobile(data.mobile);
+      if (mobile !== warden.mobile) {
+        const duplicate = await hostelRepository.findWardenByMobile(schoolId, mobile);
+        if (duplicate) throw conflict(`A warden with mobile ${mobile} already exists`, HOSTEL_ERR.DUPLICATE);
       }
-    );
+      warden.mobile = mobile;
+    }
 
-    return hostelRepository.getAllocationById(schoolId, newAllocation._id);
+    if (data.status !== undefined) {
+      const status = normalizeStatus(data.status, 'Warden');
+      if (status === 'INACTIVE' && warden.hostelId) {
+        throw conflict(
+          `Cannot deactivate ${warden.name} — they are the warden of ${warden.hostelId.name || 'a hostel'}. Unassign them first.`
+        );
+      }
+      warden.status = status;
+    }
+
+    await warden.save();
+    const fresh = await hostelRepository.getWarden(schoolId, warden._id);
+    return fresh.toPublicJSON();
   },
 
-  async checkoutStudent(schoolId, allocationId, data, user) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
+  /** Step 4's actual link: Rajesh Sharma → Boys Hostel. One warden per hostel. */
+  async assignWardenToHostel(schoolIdRaw, wardenIdRaw, hostelIdRaw) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const wardenId = requireId(wardenIdRaw, 'Warden');
+    const hostelId = requireId(hostelIdRaw, 'Hostel');
 
-    const allocation = await hostelRepository.getAllocationById(schoolId, allocationId);
-    if (!allocation || allocation.status !== 'ACTIVE') {
-      throw new AppError('Active allocation not found', 404);
+    const [warden, hostel] = await Promise.all([
+      hostelRepository.getWarden(schoolId, wardenId),
+      hostelRepository.getHostel(schoolId, hostelId),
+    ]);
+    if (!warden) throw notFound('Warden');
+    if (!hostel) throw notFound('Hostel');
+    if (warden.status !== 'ACTIVE') {
+      throw conflict(`${warden.name} is inactive`, HOSTEL_ERR.WARDEN_INACTIVE);
+    }
+    if (hostel.status !== 'ACTIVE') {
+      throw conflict(`${hostel.name} is inactive`, HOSTEL_ERR.HOSTEL_INACTIVE);
     }
 
-    const bedId = allocation.bedId?._id || allocation.bedId;
+    const holder = await hostelRepository.findWardenOfHostel(schoolId, hostelId);
+    if (holder && String(holder._id) !== wardenId) {
+      throw conflict(
+        `${hostel.name} already has a warden — ${holder.name}`,
+        HOSTEL_ERR.ALREADY_ASSIGNED
+      );
+    }
 
-    // 1. Release Bed back to AVAILABLE
-    await HostelBed.findOneAndUpdate(
-      { _id: bedId, schoolId },
-      {
-        status: 'AVAILABLE',
-        currentAllocationId: null,
-        currentStudentId: null,
-      }
-    );
-
-    // 2. Mark Allocation as VACATED
-    const updated = await hostelRepository.updateAllocation(schoolId, allocationId, {
-      status: 'VACATED',
-      actualCheckoutDate: data.checkoutDate ? new Date(data.checkoutDate) : new Date(),
-      checkoutReason: data.checkoutReason || 'Graduation / Left Hostel',
-      checkoutRemarks: data.checkoutRemarks || '',
-      depositRefunded: Number(data.depositRefunded) || Number(allocation.securityDeposit) || 0,
-    });
-
-    return hostelRepository.getAllocationById(schoolId, updated._id);
+    warden.hostelId = hostel._id;
+    await warden.save();
+    const fresh = await hostelRepository.getWarden(schoolId, wardenId);
+    return fresh.toPublicJSON();
   },
 
-  // --- ATTENDANCE ROLL CALL ---
-  async getDailyAttendance(schoolId, hostelId, dateStr) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const targetDate = dateStr || new Date().toISOString().split('T')[0];
+  async unassignWardenFromHostel(schoolIdRaw, wardenIdRaw) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const wardenId = requireId(wardenIdRaw, 'Warden');
+    const warden = await hostelRepository.getWarden(schoolId, wardenId);
+    if (!warden) throw notFound('Warden');
 
-    // Find if already recorded
-    let attendance = await hostelRepository.getAttendanceByDate(schoolId, hostelId, targetDate);
+    warden.hostelId = null;
+    await warden.save();
+    const fresh = await hostelRepository.getWarden(schoolId, wardenId);
+    return fresh.toPublicJSON();
+  },
 
-    // If not yet recorded, prepare live list of active students in this hostel
-    if (!attendance) {
-      const activeAllocations = await hostelRepository.listAllocations(schoolId, {
+  async deleteWarden(schoolIdRaw, id) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const wardenId = requireId(id, 'Warden');
+    const warden = await hostelRepository.getWarden(schoolId, wardenId);
+    if (!warden) throw notFound('Warden');
+    if (warden.hostelId) {
+      throw conflict(
+        `Cannot delete ${warden.name} — they are the warden of ${warden.hostelId.name || 'a hostel'}`
+      );
+    }
+
+    await hostelRepository.deleteWarden(schoolId, wardenId);
+    return { id: wardenId };
+  },
+
+  /* -------------------- STEP 5 · STUDENT HOSTEL ASSIGNMENT --------------- */
+
+  async listAllocations(schoolIdRaw, query = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const filter = {};
+    if (query.hostelId) filter.hostelId = requireId(query.hostelId, 'Hostel');
+    if (query.roomId) filter.roomId = requireId(query.roomId, 'Room');
+    if (query.academicYearId) filter.academicYearId = requireId(query.academicYearId, 'Academic year');
+    filter.status = query.status ? String(query.status).toUpperCase() : 'ACTIVE';
+    if (!['ACTIVE', 'VACATED'].includes(filter.status)) throw bad('status must be ACTIVE or VACATED');
+
+    const allocations = await hostelRepository.listAllocations(schoolId, filter);
+    const meta = await studentMetaMap(schoolId, allocations.map((a) => a.studentId?._id));
+    return allocations.map((a) => allocationView(a, meta));
+  },
+
+  /**
+   * Ayan Khan → Boys Hostel → Room 101 → Bed 1, for 2026-27 at ₹60,000.
+   *
+   * Everything the flow promises is checked here: the bed is free, it really is
+   * in that room of that hostel, the hostel has room and a warden, and the
+   * student is not already living somewhere else.
+   */
+  async assignStudent(schoolIdRaw, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const studentId = requireId(data.studentId, 'Student');
+    const hostelId = requireId(data.hostelId, 'Hostel');
+    const roomId = requireId(data.roomId, 'Room');
+    const bedId = requireId(data.bedId, 'Bed');
+
+    const [student, hostel, room, bed] = await Promise.all([
+      Student.findOne({ _id: studentId, schoolId }).select('firstName lastName admissionNumber status'),
+      hostelRepository.getHostel(schoolId, hostelId),
+      hostelRepository.getRoom(schoolId, roomId),
+      hostelRepository.getBed(schoolId, bedId),
+    ]);
+    if (!student) throw notFound('Student');
+    if (student.status !== 'ACTIVE') throw conflict('This student is not active');
+    if (!hostel) throw notFound('Hostel');
+    if (hostel.status !== 'ACTIVE') throw conflict(`${hostel.name} is inactive`, HOSTEL_ERR.HOSTEL_INACTIVE);
+    if (!room) throw notFound('Room');
+    if (String(room.hostelId._id || room.hostelId) !== hostelId) {
+      throw bad(`Room ${room.roomNumber} is not in ${hostel.name}`);
+    }
+    if (!bed) throw notFound('Bed');
+    if (String(bed.roomId) !== roomId) throw bad(`${bed.bedCode} is not in room ${room.roomNumber}`);
+
+    // The flow is ordered for a reason: a hostel with nobody responsible for it
+    // is not ready to take residents.
+    const warden = await hostelRepository.findWardenOfHostel(schoolId, hostelId);
+    if (!warden) {
+      throw conflict(
+        `${hostel.name} has no warden assigned yet. Complete step 4 first.`,
+        HOSTEL_ERR.NOT_READY
+      );
+    }
+
+    if (bed.status === 'OCCUPIED') {
+      throw conflict(
+        `${bed.bedCode} in room ${room.roomNumber} is already occupied`,
+        HOSTEL_ERR.BED_OCCUPIED
+      );
+    }
+
+    const existing = await hostelRepository.findActiveAllocationForStudent(schoolId, studentId);
+    if (existing) {
+      throw conflict(
+        `${student.firstName} already lives in ${existing.hostelId?.name || 'a hostel'} (room ${existing.roomId?.roomNumber || '?'}, ${existing.bedId?.bedCode || 'a bed'}). Vacate that first.`,
+        HOSTEL_ERR.ALREADY_ASSIGNED
+      );
+    }
+
+    const residents = await hostelRepository.countActiveAllocations(schoolId, { hostelId });
+    if (residents >= hostel.totalCapacity) {
+      throw conflict(
+        `${hostel.name} is full — it holds ${hostel.totalCapacity} students`,
+        HOSTEL_ERR.CAPACITY_FULL
+      );
+    }
+
+    // Step 6 — the applicable yearly fee rides along with the allocation. The
+    // year is the school's current one (or one the admin names explicitly), and
+    // the amount is copied, not referenced.
+    const academicYear = data.academicYearId
+      ? await hostelRepository.getAcademicYear(schoolId, requireId(data.academicYearId, 'Academic year'))
+      : await hostelRepository.getCurrentAcademicYear(schoolId);
+    if (!academicYear) {
+      throw bad('No current academic year is set for this school. Set one before assigning a hostel.');
+    }
+    const fee = await hostelRepository.findFee(schoolId, academicYear._id);
+
+    let created;
+    try {
+      created = await hostelRepository.createAllocation({
+        schoolId,
+        studentId,
         hostelId,
+        roomId,
+        bedId,
+        academicYearId: academicYear._id,
+        yearlyFeeAmount: fee?.yearlyAmount || 0,
         status: 'ACTIVE',
       });
-
-      // Also check active outings for today to auto-flag
-      const activeOutings = await hostelRepository.listOutings(schoolId, {
-        hostelId,
-        status: { $in: ['OUT', 'APPROVED'] },
-      });
-      const outingStudentIds = new Set(activeOutings.map((o) => (o.studentId?._id || o.studentId).toString()));
-
-      const records = activeAllocations.map((alloc) => {
-        const sId = (alloc.studentId?._id || alloc.studentId).toString();
-        const isOuting = outingStudentIds.has(sId);
-        return {
-          studentId: alloc.studentId,
-          bedId: alloc.bedId,
-          roomId: alloc.roomId,
-          status: isOuting ? 'OUTING' : 'PRESENT',
-          remarks: isOuting ? 'Auto-detected active outing pass' : '',
-        };
-      });
-
-      return {
-        hostelId,
-        date: targetDate,
-        isRecorded: false,
-        totalStudents: records.length,
-        presentCount: records.filter((r) => r.status === 'PRESENT').length,
-        absentCount: 0,
-        outingCount: records.filter((r) => r.status === 'OUTING').length,
-        leaveCount: 0,
-        medicalCount: 0,
-        records,
-      };
+    } catch (error) {
+      // Lost a race against a concurrent assign for the same student or bed.
+      if (error?.code === 11000) {
+        throw conflict('That student or bed was just taken by another assignment', HOSTEL_ERR.ALREADY_ASSIGNED);
+      }
+      throw error;
     }
 
-    return { ...attendance, isRecorded: true };
+    await HostelBed.updateOne(
+      { _id: bedId, schoolId },
+      { $set: { status: 'OCCUPIED', currentStudentId: studentId, currentAllocationId: created._id } }
+    );
+
+    const allocation = await hostelRepository.getAllocation(schoolId, created._id);
+    const meta = await studentMetaMap(schoolId, [studentId]);
+    return allocationView(allocation, meta);
   },
 
-  async saveDailyAttendance(schoolId, hostelId, data, user) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const dateStr = data.date || new Date().toISOString().split('T')[0];
-    const records = Array.isArray(data.records) ? data.records : [];
+  /** Moving a resident to another room/bed — same validations as assigning. */
+  async updateAllocation(schoolIdRaw, id, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const allocation = await hostelRepository.getAllocation(schoolId, requireId(id, 'Allocation'));
+    if (!allocation) throw notFound('Hostel allocation');
+    if (allocation.status !== 'ACTIVE') throw conflict('This allocation is no longer active');
 
-    const presentCount = records.filter((r) => r.status === 'PRESENT').length;
-    const absentCount = records.filter((r) => r.status === 'ABSENT').length;
-    const outingCount = records.filter((r) => r.status === 'OUTING').length;
-    const leaveCount = records.filter((r) => r.status === 'LEAVE').length;
-    const medicalCount = records.filter((r) => r.status === 'MEDICAL').length;
+    const currentHostelId = String(allocation.hostelId?._id || allocation.hostelId);
+    const currentBedId = String(allocation.bedId?._id || allocation.bedId);
+    const hostelId = data.hostelId ? requireId(data.hostelId, 'Hostel') : currentHostelId;
+    const roomId = requireId(data.roomId ?? allocation.roomId?._id ?? allocation.roomId, 'Room');
+    const bedId = requireId(data.bedId ?? allocation.bedId?._id ?? allocation.bedId, 'Bed');
 
-    const saved = await hostelRepository.saveAttendance(schoolId, hostelId, dateStr, {
-      totalStudents: records.length,
-      presentCount,
-      absentCount,
-      outingCount,
-      leaveCount,
-      medicalCount,
-      recordedBy: user?.userId || null,
-      records,
-    });
-
-    return saved;
-  },
-
-  // --- OUTINGS & GATE PASSES ---
-  async listOutings(schoolId, query = {}) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const filter = {};
-    if (query.hostelId) filter.hostelId = query.hostelId;
-    if (query.status) filter.status = query.status;
-    if (query.studentId) filter.studentId = query.studentId;
-    return hostelRepository.listOutings(schoolId, filter);
-  },
-
-  async createOuting(schoolId, data, user) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const studentId = requireText(data.studentId, 'Student');
-    const hostelId = requireText(data.hostelId, 'Hostel');
-    const reason = requireText(data.reason, 'Outing Reason');
-    const outDateTime = new Date(data.outDateTime || Date.now());
-    const expectedReturnDateTime = new Date(data.expectedReturnDateTime || Date.now() + 4 * 3600 * 1000);
-
-    const gatePassCode = `GP-${Math.floor(1000 + Math.random() * 9000)}`;
-
-    const outing = await hostelRepository.createOuting({
-      schoolId,
-      hostelId,
-      studentId,
-      outingType: data.outingType || 'DAY_OUTING',
-      outDateTime,
-      expectedReturnDateTime,
-      reason,
-      destination: data.destination || '',
-      parentPermissionStatus: data.parentPermissionStatus || 'APPROVED',
-      wardenApprovalStatus: data.wardenApprovalStatus || 'APPROVED',
-      gatePassCode,
-      status: 'APPROVED',
-      approvedBy: user?.userId || null,
-      remarks: data.remarks || '',
-    });
-
-    return hostelRepository.getOutingById(schoolId, outing._id);
-  },
-
-  async updateOutingStatus(schoolId, id, data, user) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const { status, actualReturnDateTime, remarks } = data;
-
-    const updateData = {};
-    if (status) updateData.status = status;
-    if (status === 'RETURNED') {
-      updateData.actualReturnDateTime = actualReturnDateTime ? new Date(actualReturnDateTime) : new Date();
+    const [hostel, room, bed] = await Promise.all([
+      hostelRepository.getHostel(schoolId, hostelId),
+      hostelRepository.getRoom(schoolId, roomId),
+      hostelRepository.getBed(schoolId, bedId),
+    ]);
+    if (!hostel) throw notFound('Hostel');
+    if (hostel.status !== 'ACTIVE') throw conflict(`${hostel.name} is inactive`, HOSTEL_ERR.HOSTEL_INACTIVE);
+    if (!room) throw notFound('Room');
+    if (String(room.hostelId._id || room.hostelId) !== hostelId) {
+      throw bad(`Room ${room.roomNumber} is not in ${hostel.name}`);
     }
-    if (remarks) updateData.remarks = remarks;
+    if (!bed) throw notFound('Bed');
+    if (String(bed.roomId) !== roomId) throw bad(`${bed.bedCode} is not in room ${room.roomNumber}`);
 
-    const updated = await hostelRepository.updateOuting(schoolId, id, updateData);
-    if (!updated) throw new AppError('Outing record not found', 404);
-    return updated;
-  },
-
-  // --- COMPLAINTS & MAINTENANCE ---
-  async listComplaints(schoolId, query = {}) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const filter = {};
-    if (query.hostelId) filter.hostelId = query.hostelId;
-    if (query.status) filter.status = query.status;
-    if (query.priority) filter.priority = query.priority;
-    if (query.category) filter.category = query.category;
-    return hostelRepository.listComplaints(schoolId, filter);
-  },
-
-  async createComplaint(schoolId, data) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const hostelId = requireText(data.hostelId, 'Hostel');
-    const title = requireText(data.title, 'Issue Title');
-    const description = requireText(data.description, 'Description');
-
-    const complaint = await hostelRepository.createComplaint({
-      schoolId,
-      hostelId,
-      roomId: data.roomId || null,
-      studentId: data.studentId || null,
-      category: data.category || 'OTHER',
-      title,
-      description,
-      priority: data.priority || 'MEDIUM',
-      status: 'OPEN',
-      assignedStaffId: data.assignedStaffId || null,
-    });
-
-    return hostelRepository.getComplaintById(schoolId, complaint._id);
-  },
-
-  async updateComplaint(schoolId, id, data) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const updateData = { ...data };
-    if (data.status === 'RESOLVED') {
-      updateData.resolvedAt = new Date();
+    const warden = await hostelRepository.findWardenOfHostel(schoolId, hostelId);
+    if (!warden) {
+      throw conflict(`${hostel.name} has no warden assigned yet. Complete step 4 first.`, HOSTEL_ERR.NOT_READY);
     }
 
-    const updated = await hostelRepository.updateComplaint(schoolId, id, updateData);
-    if (!updated) throw new AppError('Complaint record not found', 404);
-    return updated;
+    if (bedId !== currentBedId && bed.status === 'OCCUPIED') {
+      throw conflict(`${bed.bedCode} in room ${room.roomNumber} is already occupied`, HOSTEL_ERR.BED_OCCUPIED);
+    }
+
+    // Capacity only matters when the student is actually moving to a new hostel.
+    if (hostelId !== currentHostelId) {
+      const residents = await hostelRepository.countActiveAllocations(schoolId, { hostelId });
+      if (residents >= hostel.totalCapacity) {
+        throw conflict(
+          `${hostel.name} is full — it holds ${hostel.totalCapacity} students`,
+          HOSTEL_ERR.CAPACITY_FULL
+        );
+      }
+    }
+
+    allocation.hostelId = hostel._id;
+    allocation.roomId = room._id;
+    allocation.bedId = bed._id;
+    // The fee snapshot and academic year deliberately stay as they were: moving
+    // rooms is not a re-admission and must not re-price the resident.
+    await allocation.save();
+
+    if (bedId !== currentBedId) {
+      await releaseBed(schoolId, currentBedId);
+      await HostelBed.updateOne(
+        { _id: bedId, schoolId },
+        {
+          $set: {
+            status: 'OCCUPIED',
+            currentStudentId: allocation.studentId?._id || allocation.studentId,
+            currentAllocationId: allocation._id,
+          },
+        }
+      );
+    }
+
+    const fresh = await hostelRepository.getAllocation(schoolId, allocation._id);
+    const meta = await studentMetaMap(schoolId, [fresh.studentId?._id]);
+    return allocationView(fresh, meta);
   },
 
-  // --- ELIGIBLE PICKS (STUDENTS & STAFF) ---
-  async getEligibleEntities(schoolId) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
+  async vacateAllocation(schoolIdRaw, id) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const allocation = await hostelRepository.getAllocation(schoolId, requireId(id, 'Allocation'));
+    if (!allocation) throw notFound('Hostel allocation');
+    if (allocation.status !== 'ACTIVE') throw conflict('This allocation is already vacated');
 
-    const [students, staff] = await Promise.all([
-      Student.find({ schoolId, status: 'ACTIVE' })
-        .select('firstName lastName rollNumber admissionNumber className sectionName classId sectionId photoUrl phone email')
-        .sort({ firstName: 1 })
-        .lean(),
-      SchoolUser.find({ schoolId, status: 'ACTIVE' })
-        .select('fullName email phone designation role')
-        .sort({ fullName: 1 })
-        .lean(),
+    // Soft-close rather than delete: the partial-unique indexes free both the
+    // student and the bed while the old row stays auditable.
+    allocation.status = 'VACATED';
+    await allocation.save();
+    await releaseBed(schoolId, allocation.bedId?._id || allocation.bedId);
+
+    const fresh = await hostelRepository.getAllocation(schoolId, allocation._id);
+    const meta = await studentMetaMap(schoolId, [fresh.studentId?._id]);
+    return allocationView(fresh, meta);
+  },
+
+  /* ----------------------- STEP 6 · YEARLY HOSTEL FEE -------------------- */
+
+  /**
+   * Every academic year the school has, each with the hostel fee set for it (or
+   * null where none is set yet). One amount per year, the same for every class
+   * and every hostel — that is the whole rule.
+   */
+  async listFees(schoolIdRaw) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const [years, fees, residents] = await Promise.all([
+      hostelRepository.listAcademicYears(schoolId),
+      hostelRepository.listFees(schoolId),
+      HostelAllocation.aggregate([
+        { $match: { schoolId: new mongoose.Types.ObjectId(schoolId), status: 'ACTIVE' } },
+        { $group: { _id: '$academicYearId', n: { $sum: 1 } } },
+      ]),
     ]);
 
-    return { students, staff };
+    const feeBy = new Map(fees.map((f) => [String(f.academicYearId), f]));
+    const residentsBy = new Map(residents.map((r) => [String(r._id), r.n]));
+
+    return years.map((year) => {
+      const fee = feeBy.get(String(year._id));
+      return {
+        academicYearId: String(year._id),
+        academicYear: { id: String(year._id), name: year.name, code: year.code, isCurrent: year.isCurrent },
+        yearlyAmount: fee ? fee.yearlyAmount : null,
+        // Residents already priced off this year — they keep their snapshot even
+        // if the amount below is changed.
+        assignedStudents: residentsBy.get(String(year._id)) || 0,
+        updatedAt: fee?.updatedAt || null,
+      };
+    });
+  },
+
+  async setFee(schoolIdRaw, academicYearIdRaw, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const academicYearId = requireId(academicYearIdRaw, 'Academic year');
+    const year = await hostelRepository.getAcademicYear(schoolId, academicYearId);
+    if (!year) throw notFound('Academic year');
+
+    const yearlyAmount = normalizeAmount(data.yearlyAmount);
+    const fee = await hostelRepository.upsertFee(schoolId, academicYearId, yearlyAmount);
+    return {
+      academicYearId,
+      academicYear: { id: String(year._id), name: year.name, code: year.code, isCurrent: year.isCurrent },
+      yearlyAmount: fee.yearlyAmount,
+      updatedAt: fee.updatedAt,
+    };
+  },
+
+  async deleteFee(schoolIdRaw, academicYearIdRaw) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const academicYearId = requireId(academicYearIdRaw, 'Academic year');
+    const removed = await hostelRepository.deleteFee(schoolId, academicYearId);
+    if (!removed) throw notFound('Hostel fee for this academic year');
+    // Residents assigned under this fee keep their snapshot on purpose.
+    return { academicYearId };
+  },
+
+  /* ---------------------------- form lookups ----------------------------- */
+
+  /**
+   * Everything the admin forms need to populate their dropdowns, in one call —
+   * real records only, so the UI never has to invent placeholder data.
+   */
+  async getLookups(schoolIdRaw) {
+    const schoolId = requireSchool(schoolIdRaw);
+
+    const [students, hostels, wardens, activeAllocations, currentYear] = await Promise.all([
+      Student.find({ schoolId, status: 'ACTIVE' })
+        .select('firstName lastName admissionNumber')
+        .sort({ firstName: 1 })
+        .lean(),
+      hostelRepository.listHostels(schoolId, { status: 'ACTIVE' }),
+      hostelRepository.listWardens(schoolId, { status: 'ACTIVE' }),
+      HostelAllocation.find({ schoolId, status: 'ACTIVE' }).select('studentId').lean(),
+      hostelRepository.getCurrentAcademicYear(schoolId),
+    ]);
+
+    const assigned = new Set(activeAllocations.map((a) => String(a.studentId)));
+    const meta = await studentMetaMap(schoolId, students.map((s) => s._id));
+
+    const hostelIds = hostels.map((h) => h._id);
+    const [rooms, beds, currentFee] = await Promise.all([
+      HostelRoom.find({ schoolId, hostelId: { $in: hostelIds } }).sort({ roomNumber: 1 }).lean(),
+      HostelBed.find({ schoolId, hostelId: { $in: hostelIds } }).sort({ bedNumber: 1 }).lean(),
+      currentYear ? hostelRepository.findFee(schoolId, currentYear._id) : null,
+    ]);
+
+    const bedsByRoom = new Map();
+    for (const bed of beds) {
+      const key = String(bed.roomId);
+      if (!bedsByRoom.has(key)) bedsByRoom.set(key, []);
+      bedsByRoom.get(key).push({
+        id: String(bed._id),
+        bedCode: bed.bedCode,
+        bedNumber: bed.bedNumber,
+        status: bed.status,
+      });
+    }
+    const roomsByHostel = new Map();
+    for (const room of rooms) {
+      const key = String(room.hostelId);
+      if (!roomsByHostel.has(key)) roomsByHostel.set(key, []);
+      roomsByHostel.get(key).push({
+        id: String(room._id),
+        roomNumber: room.roomNumber,
+        floorNumber: room.floorNumber,
+        capacity: room.capacity,
+        beds: bedsByRoom.get(String(room._id)) || [],
+      });
+    }
+    const wardenByHostel = new Map(
+      wardens
+        .filter((w) => w.hostelId)
+        .map((w) => [String(w.hostelId._id || w.hostelId), { id: String(w._id), name: w.name, mobile: w.mobile }])
+    );
+
+    return {
+      currentAcademicYear: currentYear
+        ? { id: String(currentYear._id), name: currentYear.name, code: currentYear.code }
+        : null,
+      currentYearlyFee: currentFee ? currentFee.yearlyAmount : null,
+      students: students.map((s) => ({
+        ...studentView(s, meta.get(String(s._id)) || {}),
+        alreadyAssigned: assigned.has(String(s._id)),
+      })),
+      hostels: hostels.map((h) => ({
+        ...h.toPublicJSON(),
+        warden: wardenByHostel.get(String(h._id)) || null,
+        rooms: roomsByHostel.get(String(h._id)) || [],
+      })),
+      wardens: wardens.map((w) => w.toPublicJSON()),
+    };
   },
 };
