@@ -13,7 +13,7 @@ function bad(message, code = FEE_ERR.VALIDATION_ERROR) {
 }
 
 function notFound(what) {
-  return new AppError(, 404, FEE_ERR.NOT_FOUND);
+  return new AppError(`${what} not found`, 404, FEE_ERR.NOT_FOUND);
 }
 
 function requireSchool(schoolId) {
@@ -25,28 +25,32 @@ function requireSchool(schoolId) {
 
 function requireText(value, label, { max = 100 } = {}) {
   const text = typeof value === 'string' ? value.trim() : '';
-  if (!text) throw bad();
-  if (text.length > max) throw bad();
+  if (!text) throw bad(`${label} is required`);
+  if (text.length > max) throw bad(`${label} must be ${max} characters or fewer`);
   return text;
 }
 
 function requireId(value, label) {
   const raw = String(value ?? '').trim();
-  if (!raw || !mongoose.isValidObjectId(raw)) throw bad();
+  if (!raw || !mongoose.isValidObjectId(raw)) throw bad(`${label} is required`);
   return raw;
 }
 
+/**
+ * Fee Service — CRUD for fee structure and student assignments.
+ */
 export const feeService = {
   async listFeeHeads(schoolIdRaw) {
     const schoolId = requireSchool(schoolIdRaw);
-    return (await feeRepository.listFeeHeads(schoolId)).map(h => h.toPublicJSON());
+    const heads = await feeRepository.listFeeHeads(schoolId);
+    return heads.map((h) => h.toPublicJSON());
   },
 
   async createFeeHead(schoolIdRaw, data = {}) {
     const schoolId = requireSchool(schoolIdRaw);
     const name = requireText(data.name, 'Fee head name');
     const code = requireText(data.code, 'Code', { max: 20 }).toUpperCase();
-    
+
     const head = await feeRepository.createFeeHead({
       schoolId,
       name,
@@ -54,35 +58,41 @@ export const feeService = {
       description: data.description || '',
       status: 'ACTIVE',
     });
+
     return head.toPublicJSON();
   },
 
   async listFeeStructures(schoolIdRaw) {
     const schoolId = requireSchool(schoolIdRaw);
-    return (await feeRepository.listFeeStructures(schoolId)).map(s => s.toPublicJSON());
+    const structures = await feeRepository.listFeeStructures(schoolId);
+    return structures.map((s) => s.toPublicJSON());
   },
 
   async createFeeStructure(schoolIdRaw, data = {}) {
     const schoolId = requireSchool(schoolIdRaw);
     const academicYearId = requireId(data.academicYearId, 'Academic Year');
     const classId = requireId(data.classId, 'Class');
+
     const items = Array.isArray(data.items) ? data.items : [];
-    
     if (items.length === 0) throw bad('At least one fee item is required');
-    
+
     let totalAmount = 0;
     const processedItems = [];
-    
+
     for (const item of items) {
       const feeHeadId = requireId(item.feeHeadId, 'Fee Head');
       const amount = Number(item.amount);
-      if (!Number.isFinite(amount) || amount <= 0) throw bad('Amount must be positive');
-      
-      processedItems.push({ feeHeadId, amount, frequency: item.frequency || 'YEARLY' });
+      if (!Number.isFinite(amount) || amount <= 0) throw bad('Fee amount must be positive');
+
+      processedItems.push({
+        feeHeadId,
+        amount,
+        frequency: item.frequency || 'YEARLY',
+      });
       totalAmount += amount;
     }
-    
-    const struct = await feeRepository.createFeeStructure({
+
+    const structure = await feeRepository.createFeeStructure({
       schoolId,
       academicYearId,
       classId,
@@ -90,12 +100,14 @@ export const feeService = {
       totalAmount,
       status: 'ACTIVE',
     });
-    return struct.toPublicJSON();
+
+    return structure.toPublicJSON();
   },
 
   async listStudentFeeAssignments(schoolIdRaw, query = {}) {
     const schoolId = requireSchool(schoolIdRaw);
-    return (await feeRepository.listStudentFeeAssignments(schoolId, query)).map(a => a.toPublicJSON());
+    const assignments = await feeRepository.listStudentFeeAssignments(schoolId, query);
+    return assignments.map((a) => a.toPublicJSON());
   },
 
   async createStudentFeeAssignment(schoolIdRaw, data = {}) {
@@ -103,28 +115,38 @@ export const feeService = {
     const studentId = requireId(data.studentId, 'Student');
     const academicYearId = requireId(data.academicYearId, 'Academic Year');
     const classId = requireId(data.classId, 'Class');
-    
-    const struct = await feeRepository.findFeeStructureByYearAndClass(schoolId, academicYearId, classId);
-    if (!struct) throw notFound('Fee Structure for this class and year');
-    
+
+    // Find the applicable fee structure
+    const structure = await feeRepository.findFeeStructureByYearAndClass(
+      schoolId,
+      academicYearId,
+      classId
+    );
+
+    if (!structure) {
+      throw notFound('Fee Structure for this class and year');
+    }
+
     const { StudentFeeAssignment } = await import('../models/StudentFeeAssignment.js');
-    const assign = await StudentFeeAssignment.create({
+
+    const assignment = await StudentFeeAssignment.create({
       schoolId,
       studentId,
       academicYearId,
       classId,
-      feeStructureId: struct._id,
-      totalAmount: struct.totalAmount,
+      feeStructureId: structure._id,
+      totalAmount: structure.totalAmount,
       discountAmount: 0,
       paidAmount: 0,
       status: 'PENDING',
     });
-    return assign.toPublicJSON();
+
+    return assignment.toPublicJSON();
   },
 
   async getFeeDues(schoolIdRaw) {
     const schoolId = requireSchool(schoolIdRaw);
     const assignments = await feeRepository.listStudentFeeAssignments(schoolId);
-    return assignments.filter(a => a.getDueAmount() > 0).map(a => a.toPublicJSON());
+    return assignments.filter((a) => a.getDueAmount() > 0).map((a) => a.toPublicJSON());
   },
 };
