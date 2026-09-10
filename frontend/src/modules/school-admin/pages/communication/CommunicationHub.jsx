@@ -420,7 +420,7 @@ export const CommunicationHub = () => {
           </div>
           <div>
             <label className="mb-1 block text-[11px] font-bold text-slate-400">Message</label>
-            <textarea rows={4} className={`${inputCls} resize-y`} value={annForm.body} onChange={(e) => setAnnForm({ ...annForm, body: e.target.value })} />
+            <textarea placeholder="Write the announcement message here" rows={4} className={`${inputCls} resize-y`} value={annForm.body} onChange={(e) => setAnnForm({ ...annForm, body: e.target.value })} />
           </div>
           <div>
             <label className="mb-1.5 block text-[11px] font-bold text-slate-400">Audience</label>
@@ -469,7 +469,7 @@ export const CommunicationHub = () => {
             </div>
             <div>
               <label className="mb-1 block text-[11px] font-bold text-slate-400">Recipient Group</label>
-              <input className={inputCls} value={bcForm.audienceLabel} onChange={(e) => setBcForm({ ...bcForm, audienceLabel: e.target.value })} />
+              <input placeholder="e.g. All Parents" className={inputCls} value={bcForm.audienceLabel} onChange={(e) => setBcForm({ ...bcForm, audienceLabel: e.target.value })} />
             </div>
           </div>
           <div>

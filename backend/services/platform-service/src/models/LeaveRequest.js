@@ -110,6 +110,18 @@ leaveRequestSchema.index({ schoolId: 1, status: 1 });
 leaveRequestSchema.index({ schoolId: 1, employeeRefId: 1, startDate: 1 });
 leaveRequestSchema.index({ schoolId: 1, employeeType: 1, employeeRefId: 1, startDate: 1 });
 
+// Validate that endDate > startDate
+leaveRequestSchema.pre('save', function(next) {
+  if (this.startDate && this.endDate) {
+    const start = new Date(this.startDate);
+    const end = new Date(this.endDate);
+    if (end <= start) {
+      throw new Error('End date must be after start date');
+    }
+  }
+  next();
+});
+
 leaveRequestSchema.methods.toPublicJSON = function toPublicJSON() {
   return {
     id: this._id.toString(),

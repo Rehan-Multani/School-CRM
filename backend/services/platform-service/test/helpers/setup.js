@@ -183,59 +183,41 @@ async function buildSchool(models, name, slug) {
     { secret: env.jwtSecret, expiresIn: '1h' }
   );
 
-  // ---- Transport APK fixtures: driver + manager + vehicle + route + trip ----
-  const { SchoolUser, Vehicle, TransportRoute, RouteStop, StudentTransportAssignment, Trip, TripStudent, TransportSettings } = models;
-  const driver = await SchoolUser.create({
-    schoolId: school._id, employeeId: `TRP-${slug}-01`, firstName: 'Ravi', lastName: 'Driver', name: 'Ravi Driver',
-    email: `driver@${slug}.edu`, role: 'TRANSPORT', transportRole: 'DRIVER', phone: '9820000001', status: 'ACTIVE',
-    passwordHash: await bcrypt.hash('Driver@1', 10),
-  });
-  const manager = await SchoolUser.create({
-    schoolId: school._id, employeeId: `TRP-${slug}-M1`, firstName: 'Meena', lastName: 'Manager', name: 'Meena Manager',
-    email: `tmgr@${slug}.edu`, role: 'TRANSPORT', transportRole: 'TRANSPORT_MANAGER', phone: '9820000002', status: 'ACTIVE',
-    passwordHash: await bcrypt.hash('Mgr@1', 10),
-  });
+  // ---- Transport module fixtures: vehicle -> driver -> route -> stops -> rider ----
+  const { Vehicle, Driver, TransportRoute, RouteStop, StudentTransportAssignment } = models;
+  const isA = slug === 'schoola';
   const vehicle = await Vehicle.create({
-    schoolId: school._id, vehicleNumber: 'BUS-01', registrationNumber: `MH12${slug === 'schoola' ? 'AA' : 'BB'}0001`,
-    vehicleType: 'BUS', model: 'Tata Starbus', capacity: 40, status: 'ACTIVE',
+    schoolId: school._id, vehicleNumber: isA ? 'MP09AA1234' : 'MP09BB1234',
+    vehicleType: 'SCHOOL_BUS', capacity: 40, status: 'ACTIVE',
+  });
+  // Mobile is the driver's login id and is matched across schools, so the two
+  // fixture schools must not share one.
+  const driver = await Driver.create({
+    schoolId: school._id, name: 'Rahul Sharma',
+    mobile: isA ? '9876543210' : '9876543211',
+    licenseNumber: isA ? 'MP123456789' : 'MP987654321',
+    vehicleId: vehicle._id, status: 'ACTIVE',
+    passwordHash: await bcrypt.hash('Driver@1', 10), loginEnabled: true,
   });
   const troute = await TransportRoute.create({
-    schoolId: school._id, routeName: 'Route 01', routeCode: 'R01', vehicleId: vehicle._id, driverId: driver._id,
-    startPoint: 'City Centre', endPoint: 'School', status: 'ACTIVE',
+    schoolId: school._id, routeName: 'Route 01',
+    vehicleId: vehicle._id, driverId: driver._id, status: 'ACTIVE',
   });
   const rstops = await RouteStop.insertMany([
-    { schoolId: school._id, routeId: troute._id, stopName: 'City Centre', sequenceOrder: 1, pickupTime: '07:15 AM', dropTime: '03:45 PM', monthlyFee: 1500, latitude: 22.7196, longitude: 75.8577 },
-    { schoolId: school._id, routeId: troute._id, stopName: 'School Gate', sequenceOrder: 2, pickupTime: '07:55 AM', dropTime: '03:10 PM', monthlyFee: 0, latitude: 22.7300, longitude: 75.8800 },
+    { schoolId: school._id, routeId: troute._id, stopName: 'Teen Imli', sequenceOrder: 1, pickupTime: '07:30 AM', dropTime: '04:00 PM' },
+    { schoolId: school._id, routeId: troute._id, stopName: 'School', sequenceOrder: 2, pickupTime: '08:20 AM', dropTime: '03:10 PM' },
   ]);
-  await SchoolUser.updateOne({ _id: driver._id }, { $set: { assignedVehicleId: vehicle._id, assignedRouteId: troute._id } });
   await StudentTransportAssignment.create({
-    schoolId: school._id, studentId: student._id, academicYearId: year._id, routeId: troute._id,
-    pickupStopId: rstops[0]._id, dropStopId: rstops[1]._id, startDate: new Date(), monthlyFee: 1500, status: 'ACTIVE',
+    schoolId: school._id, studentId: student._id, routeId: troute._id,
+    stopId: rstops[0]._id, status: 'ACTIVE',
   });
-  await TransportSettings.getOrDefault(school._id);
-  const tripDate = new Date().toISOString().slice(0, 10);
-  const trip = await Trip.create({
-    schoolId: school._id, routeId: troute._id, vehicleId: vehicle._id, driverId: driver._id,
-    tripType: 'MORNING_PICKUP', date: tripDate, status: 'SCHEDULED',
-    counts: { studentsExpected: 1, boarded: 0, dropped: 0, absent: 0 },
-    stops: rstops.map((s) => ({ stopId: s._id, stopName: s.stopName, sequenceOrder: s.sequenceOrder, lat: s.latitude, lng: s.longitude, studentsExpected: s.sequenceOrder === 1 ? 1 : 0 })),
-  });
-  await TripStudent.create({
-    schoolId: school._id, tripId: trip._id, studentId: student._id, studentName: 'Sam Student', routeId: troute._id,
-    pickupStopId: rstops[0]._id, dropStopId: rstops[1]._id, status: 'NOT_BOARDED',
-  });
-  const mkTransportToken = (u) =>
-    signAccessToken(
-      {
-        sub: u._id.toString(), userId: u._id.toString(), schoolId: school._id.toString(), role: 'TRANSPORT',
-        transportRole: u.transportRole, assignedVehicleId: u.assignedVehicleId ? u.assignedVehicleId.toString() : (u === driver ? vehicle._id.toString() : null),
-        assignedRouteId: u.assignedRouteId ? u.assignedRouteId.toString() : (u === driver ? troute._id.toString() : null),
-        name: u.name, email: u.email,
-      },
-      { secret: env.jwtSecret, expiresIn: '1h' }
-    );
-  const transportToken = mkTransportToken(driver);
-  const transportManagerToken = mkTransportToken(manager);
+  const driverToken = signAccessToken(
+    {
+      sub: driver._id.toString(), driverId: driver._id.toString(), schoolId: school._id.toString(),
+      role: 'DRIVER', name: driver.name, mobile: driver.mobile,
+    },
+    { secret: env.jwtSecret, expiresIn: '1h' }
+  );
 
   return {
     schoolId: school._id.toString(),
@@ -255,16 +237,14 @@ async function buildSchool(models, name, slug) {
     parentLoginEmail: `parent@${slug}.edu`,
     parentPhone: parent.phone,
     parentPassword: 'Parent@1',
-    transportToken,
-    transportManagerToken,
-    driverStaffId: driver._id.toString(),
-    driverLoginEmail: `driver@${slug}.edu`,
+    driverToken,
+    driverId: driver._id.toString(),
+    driverMobile: driver.mobile,
     driverPassword: 'Driver@1',
     vehicleId: vehicle._id.toString(),
     routeId: troute._id.toString(),
     stopId: rstops[0]._id.toString(),
     stopId2: rstops[1]._id.toString(),
-    tripId: trip._id.toString(),
     homeworkId: homework._id.toString(),
     examId: exam._id.toString(),
     examDraftId: examDraft._id.toString(),
@@ -302,9 +282,8 @@ export async function seed() {
     TransportRoute: (await import('../../src/models/TransportRoute.js')).TransportRoute,
     RouteStop: (await import('../../src/models/RouteStop.js')).RouteStop,
     StudentTransportAssignment: (await import('../../src/models/StudentTransportAssignment.js')).StudentTransportAssignment,
-    Trip: (await import('../../src/models/Trip.js')).Trip,
-    TripStudent: (await import('../../src/models/TripStudent.js')).TripStudent,
-    TransportSettings: (await import('../../src/models/TransportSettings.js')).TransportSettings,
+    Driver: (await import('../../src/models/Driver.js')).Driver,
+    TransportDailyStatus: (await import('../../src/models/TransportDailyStatus.js')).TransportDailyStatus,
   };
   const a = await buildSchool(models, 'School A', 'schoola');
   const b = await buildSchool(models, 'School B', 'schoolb');

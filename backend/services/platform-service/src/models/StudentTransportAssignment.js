@@ -1,5 +1,15 @@
 import mongoose from 'mongoose';
 
+export const ASSIGNMENT_STATUSES = ['ACTIVE', 'DISCONTINUED'];
+
+/**
+ * Step 5 of the transport flow — student → route → stop.
+ *
+ * Only the stop is stored. Pickup and drop TIMES are never copied here: they are
+ * read live from the RouteStop, so editing a stop's schedule instantly updates
+ * every student riding from it (which is exactly what "the student's pickup/drop
+ * time comes from the selected route stop" means).
+ */
 const studentTransportAssignmentSchema = new mongoose.Schema(
   {
     schoolId: {
@@ -14,69 +24,53 @@ const studentTransportAssignmentSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    academicYearId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'AcademicYear',
-      default: null,
-    },
     routeId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'TransportRoute',
       required: true,
       index: true,
     },
-    pickupStopId: {
+    stopId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'RouteStop',
       required: true,
+      index: true,
     },
-    dropStopId: {
+    // The year this rider belongs to, and what transport cost that year.
+    //
+    // `yearlyFeeAmount` is a SNAPSHOT of the TransportFee taken when the student
+    // was assigned — editing a year's fee later never silently re-prices anyone
+    // already riding. Nullable only so rows written before the fee existed still
+    // load; the service requires a year on every new assignment.
+    academicYearId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'RouteStop',
-      required: true,
-    },
-    startDate: {
-      type: Date,
-      required: true,
-      default: Date.now,
-    },
-    endDate: {
-      type: Date,
+      ref: 'AcademicYear',
       default: null,
+      index: true,
     },
-    monthlyFee: {
+    yearlyFeeAmount: {
       type: Number,
-      required: true,
       default: 0,
       min: 0,
     },
     status: {
       type: String,
-      enum: ['ACTIVE', 'SUSPENDED', 'DISCONTINUED'],
+      enum: ASSIGNMENT_STATUSES,
       default: 'ACTIVE',
       index: true,
-    },
-    discontinueReason: {
-      type: String,
-      default: '',
-      trim: true,
-    },
-    remarks: {
-      type: String,
-      default: '',
-      trim: true,
-    },
-    assignedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'SchoolUser',
-      default: null,
     },
   },
   { timestamps: true }
 );
 
-studentTransportAssignmentSchema.index({ schoolId: 1, studentId: 1, status: 1 });
+// A student rides exactly one route at a time. Discontinued rows are excluded so
+// a student can be re-assigned later without tripping the constraint.
+studentTransportAssignmentSchema.index(
+  { schoolId: 1, studentId: 1 },
+  { unique: true, partialFilterExpression: { status: 'ACTIVE' } }
+);
 studentTransportAssignmentSchema.index({ schoolId: 1, routeId: 1, status: 1 });
+studentTransportAssignmentSchema.index({ schoolId: 1, stopId: 1, status: 1 });
 
 export const StudentTransportAssignment = mongoose.model(
   'StudentTransportAssignment',

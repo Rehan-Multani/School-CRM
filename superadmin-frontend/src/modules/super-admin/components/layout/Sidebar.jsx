@@ -4,10 +4,10 @@ import { motion } from 'framer-motion';
 import {
   LayoutDashboard,
   School,
+  Layers,
   CreditCard,
   Bell,
   DollarSign,
-  Receipt,
   FileText,
   Scale,
   LifeBuoy,
@@ -25,8 +25,8 @@ import BrandLogo from '../../../../shared/ui/BrandLogo';
 const menuItems = [
   { name: 'Dashboard', path: '/super-admin/dashboard', icon: LayoutDashboard },
   { name: 'Schools', path: '/super-admin/schools', icon: School },
-  { name: 'Subscription', path: '/super-admin/subscriptions', icon: CreditCard },
-  { name: 'Billings', path: '/super-admin/billing', icon: Receipt },
+  { name: 'Plans', path: '/super-admin/plans', icon: Layers },
+  { name: 'Subscriptions', path: '/super-admin/subscriptions', icon: CreditCard },
   { name: 'Revenue', path: '/super-admin/revenue', icon: DollarSign },
   { name: 'Reports', path: '/super-admin/reports', icon: FileText },
   { name: 'Notifications', path: '/super-admin/notifications', icon: Bell },

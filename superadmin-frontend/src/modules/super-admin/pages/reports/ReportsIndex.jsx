@@ -651,7 +651,7 @@ export default function ReportsIndex() {
 
   const kpis = [
     { label: 'Total schools', value: stats.totalSchools, hint: `${stats.activeSchools} active`, icon: Building2, tone: 'indigo', to: '/super-admin/schools' },
-    { label: 'Collected revenue', value: formatInr(stats.collectedAmount), hint: `${formatInr(stats.outstandingAmount)} outstanding`, icon: IndianRupee, tone: 'emerald', to: '/super-admin/billing' },
+    { label: 'Collected revenue', value: formatInr(stats.collectedAmount), hint: `${formatInr(stats.outstandingAmount)} outstanding`, icon: IndianRupee, tone: 'emerald', to: '/super-admin/subscriptions' },
     { label: 'Estimated MRR', value: formatInr(stats.estimatedMonthlyRevenue), hint: `${formatInr(stats.estimatedAnnualRevenue)} ARR`, icon: CreditCard, tone: 'violet', to: '/super-admin/revenue' },
     { label: 'Notifications', value: stats.notificationsSent, hint: `${stats.notificationDevicesReached} devices reached`, icon: Bell, tone: 'sky', to: '/super-admin/notifications' },
   ];

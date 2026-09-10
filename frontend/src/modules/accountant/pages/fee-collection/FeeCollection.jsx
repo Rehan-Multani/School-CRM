@@ -326,6 +326,7 @@ export const FeeCollection = () => {
                     <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300">
                       Amount *
                       <input
+                        placeholder="e.g. 5000"
                         type="number"
                         required
                         min="1"
@@ -352,6 +353,7 @@ export const FeeCollection = () => {
                     <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300">
                       Reference / Cheque No
                       <input
+                        placeholder="e.g. Cheque 004521"
                         value={form.paymentReference}
                         onChange={(e) => setForm((f) => ({ ...f, paymentReference: e.target.value }))}
                         className="mt-1 w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs"
@@ -360,6 +362,7 @@ export const FeeCollection = () => {
                     <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300">
                       Remarks
                       <input
+                        placeholder="Optional note for this payment"
                         value={form.remarks}
                         onChange={(e) => setForm((f) => ({ ...f, remarks: e.target.value }))}
                         className="mt-1 w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs"

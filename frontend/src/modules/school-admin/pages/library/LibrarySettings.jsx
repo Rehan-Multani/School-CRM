@@ -121,7 +121,7 @@ export const LibrarySettings = () => {
         <Section icon={AlertOctagon} title="Return & Overdue Policy" description="Grace period and whether overdue borrowers are blocked from new issues.">
           <div>
             <label className={labelClass}>Grace Period (days)</label>
-            <input type="number" min="0" value={form.gracePeriodDays} onChange={(e) => set('gracePeriodDays', e.target.value)} className={inputClass} />
+            <input placeholder="e.g. 2" type="number" min="0" value={form.gracePeriodDays} onChange={(e) => set('gracePeriodDays', e.target.value)} className={inputClass} />
           </div>
           <ToggleRow label="Block Issue on Overdue" description="Prevent a borrower with overdue books from being issued a new one" checked={form.blockIssueOnOverdue} onChange={(v) => set('blockIssueOnOverdue', v)} />
         </Section>
@@ -129,11 +129,11 @@ export const LibrarySettings = () => {
         <Section icon={AlertOctagon} title="Lost / Damaged Charges" description="Multiplier applied to the book's catalog price when returned lost or damaged.">
           <div>
             <label className={labelClass}>Lost Book Fine Multiplier</label>
-            <input type="number" min="0" step="0.1" value={form.lostBookFineMultiplier} onChange={(e) => set('lostBookFineMultiplier', e.target.value)} className={inputClass} />
+            <input placeholder="e.g. 1.5" type="number" min="0" step="0.1" value={form.lostBookFineMultiplier} onChange={(e) => set('lostBookFineMultiplier', e.target.value)} className={inputClass} />
           </div>
           <div>
             <label className={labelClass}>Damaged Book Fine Multiplier</label>
-            <input type="number" min="0" step="0.1" value={form.damagedBookFineMultiplier} onChange={(e) => set('damagedBookFineMultiplier', e.target.value)} className={inputClass} />
+            <input placeholder="e.g. 0.5" type="number" min="0" step="0.1" value={form.damagedBookFineMultiplier} onChange={(e) => set('damagedBookFineMultiplier', e.target.value)} className={inputClass} />
           </div>
         </Section>
 

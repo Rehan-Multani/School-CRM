@@ -1,28 +1,8 @@
 import mongoose from 'mongoose';
 
-export const FEE_ASSIGNMENT_STATUSES = ['PENDING', 'PARTIAL', 'PAID'];
+export const DISCOUNT_TYPES = ['NONE', 'PERCENTAGE', 'FIXED'];
+export const ASSIGNMENT_STATUSES = ['ACTIVE', 'WAIVED', 'CANCELLED', 'PENDING', 'PARTIAL', 'PAID'];
 
-/**
- * Student Fee Assignment — tracks the fee lifecycle for one student.
- *
- * Example:
- * - Student: Rahul
- * - Academic Year: 2026-27
- * - Class: 5
- * - Total Fee: ₹5,500
- * - Discount: ₹500
- * - Paid: ₹3,000
- * - Due: ₹2,000
- * - Status: PARTIAL
- *
- * Calculation (backend-authoritative):
- * - totalAmount: from fee structure
- * - discountAmount: sum of approved discounts
- * - payableAmount = totalAmount - discountAmount
- * - paidAmount: sum of successful payments
- * - dueAmount = payableAmount - paidAmount
- * - status: PENDING (due > 0) | PARTIAL (0 < due < payable) | PAID (due = 0)
- */
 const studentFeeAssignmentSchema = new mongoose.Schema(
   {
     schoolId: {
@@ -35,63 +15,85 @@ const studentFeeAssignmentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Student',
       required: true,
+      index: true,
+    },
+    enrollmentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'StudentEnrollment',
     },
     academicYearId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'AcademicYear',
-      required: true,
     },
     classId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'SchoolClass',
-      required: true,
     },
     feeStructureId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'FeeStructure',
       required: true,
     },
-    // Backend-calculated from fee structure
-    totalAmount: {
-      type: Number,
-      required: true,
-      min: 0,
+    feeStructureItemId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'FeeStructureItem',
     },
-    // Sum of approved discounts for this student
-    discountAmount: {
+    feeHeadId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'FeeHead',
+    },
+
+    // Snapshot values
+    feeHeadName: { type: String, trim: true },
+    originalAmount: { type: Number, min: 0 },
+    frequency: { type: String },
+
+    // Student-specific adjustments
+    discountType: {
+      type: String,
+      enum: DISCOUNT_TYPES,
+      default: 'NONE',
+    },
+    discountValue: { type: Number, default: 0, min: 0 },
+    discountAmount: { type: Number, default: 0, min: 0 },
+    concessionAmount: { type: Number, default: 0, min: 0 },
+    finalAmount: { type: Number, default: 0, min: 0 },
+
+    totalAmount: {
       type: Number,
       default: 0,
       min: 0,
     },
-    // payableAmount = totalAmount - discountAmount
-    // (not stored, derived)
-    // Sum of all successful payments
     paidAmount: {
       type: Number,
       default: 0,
       min: 0,
     },
-    // dueAmount = (totalAmount - discountAmount) - paidAmount
-    // (not stored, derived)
+
+    isOptedIn: { type: Boolean, default: true },
     status: {
       type: String,
-      enum: FEE_ASSIGNMENT_STATUSES,
-      default: 'PENDING',
+      enum: ASSIGNMENT_STATUSES,
+      default: 'ACTIVE',
       index: true,
     },
+    remarks: { type: String, default: '', trim: true },
   },
   { timestamps: true }
 );
 
-// One assignment per student per year (or per class)
-studentFeeAssignmentSchema.index({ schoolId: 1, studentId: 1, academicYearId: 1 }, { unique: true });
+studentFeeAssignmentSchema.index({ schoolId: 1, studentId: 1, feeStructureItemId: 1 });
+studentFeeAssignmentSchema.index({ schoolId: 1, enrollmentId: 1 });
 
 studentFeeAssignmentSchema.methods.getPayableAmount = function getPayableAmount() {
-  return this.totalAmount - this.discountAmount;
+  if (this.finalAmount !== undefined && this.finalAmount > 0) {
+    return this.finalAmount;
+  }
+  return Math.max(0, (this.totalAmount || 0) - (this.discountAmount || 0));
 };
 
 studentFeeAssignmentSchema.methods.getDueAmount = function getDueAmount() {
-  return Math.max(0, this.getPayableAmount() - this.paidAmount);
+  return Math.max(0, this.getPayableAmount() - (this.paidAmount || 0));
 };
 
 studentFeeAssignmentSchema.methods.updateStatus = function updateStatus() {
@@ -111,16 +113,30 @@ studentFeeAssignmentSchema.methods.toPublicJSON = function toPublicJSON() {
   const due = this.getDueAmount();
   return {
     id: this._id.toString(),
-    studentId: this.studentId.toString(),
-    academicYearId: this.academicYearId.toString(),
-    classId: this.classId.toString(),
-    feeStructureId: this.feeStructureId.toString(),
-    totalAmount: this.totalAmount,
+    schoolId: this.schoolId?.toString(),
+    studentId: this.studentId?._id?.toString ? this.studentId._id.toString() : this.studentId?.toString(),
+    enrollmentId: this.enrollmentId?._id?.toString ? this.enrollmentId._id.toString() : this.enrollmentId?.toString(),
+    academicYearId: this.academicYearId?._id?.toString ? this.academicYearId._id.toString() : this.academicYearId?.toString(),
+    classId: this.classId?._id?.toString ? this.classId._id.toString() : this.classId?.toString(),
+    feeStructureId: this.feeStructureId?._id?.toString ? this.feeStructureId._id.toString() : this.feeStructureId?.toString(),
+    feeStructureItemId: this.feeStructureItemId?._id?.toString ? this.feeStructureItemId._id.toString() : this.feeStructureItemId?.toString(),
+    feeHeadId: this.feeHeadId?._id?.toString ? this.feeHeadId._id.toString() : this.feeHeadId?.toString(),
+    feeHeadName: this.feeHeadName,
+    originalAmount: this.originalAmount,
+    frequency: this.frequency,
+    discountType: this.discountType,
+    discountValue: this.discountValue,
     discountAmount: this.discountAmount,
+    concessionAmount: this.concessionAmount,
+    finalAmount: this.finalAmount,
+    totalAmount: this.totalAmount || this.originalAmount || 0,
+    discountAmount: this.discountAmount || 0,
     payableAmount: payable,
-    paidAmount: this.paidAmount,
+    paidAmount: this.paidAmount || 0,
     dueAmount: due,
+    isOptedIn: this.isOptedIn,
     status: this.status,
+    remarks: this.remarks,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

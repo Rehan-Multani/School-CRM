@@ -15,6 +15,8 @@ const inputCls =
 
 const CONDITIONS = ['NEW', 'GOOD', 'FAIR', 'POOR', 'DAMAGED'];
 const STATUSES = ['IN_STORE', 'ISSUED', 'UNDER_REPAIR', 'WRITTEN_OFF'];
+// ISSUED / WRITTEN_OFF follow from stock movements — only these two are a manual call.
+const MANUAL_STATUSES = ['IN_STORE', 'UNDER_REPAIR'];
 const STATUS_VARIANT = { IN_STORE: 'success', ISSUED: 'info', UNDER_REPAIR: 'warning', WRITTEN_OFF: 'danger' };
 
 function inr(n) {
@@ -38,6 +40,7 @@ const emptyAsset = {
   unitCost: 0,
   vendor: '',
   condition: 'GOOD',
+  status: 'IN_STORE',
   warrantyExpiry: '',
   notes: '',
 };
@@ -118,6 +121,7 @@ export const InventoryManagement = () => {
       unitCost: row.unitCost ?? 0,
       vendor: row.vendor || '',
       condition: row.condition || 'GOOD',
+      status: row.status || 'IN_STORE',
       warrantyExpiry: toDateInput(row.warrantyExpiry),
       notes: row.notes || '',
     });
@@ -138,9 +142,11 @@ export const InventoryManagement = () => {
         warrantyExpiry: assetForm.warrantyExpiry || null,
       };
       if (editingAsset) {
+        if (editingAsset.issuedQuantity > 0 || editingAsset.status === 'WRITTEN_OFF') delete payload.status;
         await inventoryApi.updateAsset(editingAsset.id, payload);
         showToast('Asset updated', 'success');
       } else {
+        delete payload.status;
         await inventoryApi.createAsset(payload);
         showToast('Asset added', 'success');
       }
@@ -467,7 +473,7 @@ export const InventoryManagement = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Asset Name *</label>
-              <input className={inputCls} value={assetForm.name} onChange={(e) => setAssetForm({ ...assetForm, name: e.target.value })} required />
+              <input placeholder="e.g. Classroom Projector" className={inputCls} value={assetForm.name} onChange={(e) => setAssetForm({ ...assetForm, name: e.target.value })} required />
             </div>
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Asset Code</label>
@@ -486,22 +492,22 @@ export const InventoryManagement = () => {
             </div>
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Location / Room</label>
-              <input className={inputCls} value={assetForm.location} onChange={(e) => setAssetForm({ ...assetForm, location: e.target.value })} />
+              <input placeholder="e.g. Block A - Room 101" className={inputCls} value={assetForm.location} onChange={(e) => setAssetForm({ ...assetForm, location: e.target.value })} />
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Quantity</label>
-              <input type="number" min="0" className={inputCls} value={assetForm.quantity} onChange={(e) => setAssetForm({ ...assetForm, quantity: e.target.value })} disabled={Boolean(editingAsset)} />
+              <input placeholder="e.g. 10" type="number" min="0" className={inputCls} value={assetForm.quantity} onChange={(e) => setAssetForm({ ...assetForm, quantity: e.target.value })} disabled={Boolean(editingAsset)} />
               {editingAsset && <p className="mt-1 text-[10px] text-slate-400">Use the movement action to change quantity</p>}
             </div>
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Unit</label>
-              <input className={inputCls} value={assetForm.unit} onChange={(e) => setAssetForm({ ...assetForm, unit: e.target.value })} />
+              <input placeholder="e.g. pcs" className={inputCls} value={assetForm.unit} onChange={(e) => setAssetForm({ ...assetForm, unit: e.target.value })} />
             </div>
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Unit Cost (₹)</label>
-              <input type="number" min="0" className={inputCls} value={assetForm.unitCost} onChange={(e) => setAssetForm({ ...assetForm, unitCost: e.target.value })} />
+              <input placeholder="e.g. 2500" type="number" min="0" className={inputCls} value={assetForm.unitCost} onChange={(e) => setAssetForm({ ...assetForm, unitCost: e.target.value })} />
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4">
@@ -522,19 +528,45 @@ export const InventoryManagement = () => {
               <input type="date" className={inputCls} value={assetForm.warrantyExpiry} onChange={(e) => setAssetForm({ ...assetForm, warrantyExpiry: e.target.value })} />
             </div>
           </div>
+          {editingAsset && (
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-500">Status</label>
+              {editingAsset.issuedQuantity > 0 || editingAsset.status === 'WRITTEN_OFF' ? (
+                <div className="flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-slate-100/70 px-3.5 dark:border-slate-800 dark:bg-slate-900">
+                  <Badge variant={STATUS_VARIANT[editingAsset.status] || 'default'}>{editingAsset.status.replace('_', ' ')}</Badge>
+                  <span className="text-[11px] text-slate-500">
+                    {editingAsset.status === 'WRITTEN_OFF'
+                      ? 'Written off — status is final.'
+                      : `${editingAsset.issuedQuantity} unit(s) issued out — return them to change status.`}
+                  </span>
+                </div>
+              ) : (
+                <>
+                  <select className={inputCls} value={assetForm.status} onChange={(e) => setAssetForm({ ...assetForm, status: e.target.value })}>
+                    {MANUAL_STATUSES.map((st) => (
+                      <option key={st} value={st}>{st.replace('_', ' ')}</option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-[10px] text-slate-400">
+                    Mark UNDER REPAIR while the item is away being fixed. ISSUED and WRITTEN OFF are set by stock movements.
+                  </p>
+                </>
+              )}
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Vendor</label>
-              <input className={inputCls} value={assetForm.vendor} onChange={(e) => setAssetForm({ ...assetForm, vendor: e.target.value })} />
+              <input placeholder="e.g. Sharma Traders" className={inputCls} value={assetForm.vendor} onChange={(e) => setAssetForm({ ...assetForm, vendor: e.target.value })} />
             </div>
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Custodian</label>
-              <input className={inputCls} value={assetForm.custodianName} onChange={(e) => setAssetForm({ ...assetForm, custodianName: e.target.value })} />
+              <input placeholder="e.g. Mr. Verma" className={inputCls} value={assetForm.custodianName} onChange={(e) => setAssetForm({ ...assetForm, custodianName: e.target.value })} />
             </div>
           </div>
           <div>
             <label className="mb-1 block text-xs font-bold text-slate-500">Notes</label>
-            <textarea rows={2} className={`${inputCls} h-auto py-2`} value={assetForm.notes} onChange={(e) => setAssetForm({ ...assetForm, notes: e.target.value })} />
+            <textarea placeholder="Any extra detail about this asset" rows={2} className={`${inputCls} h-auto py-2`} value={assetForm.notes} onChange={(e) => setAssetForm({ ...assetForm, notes: e.target.value })} />
           </div>
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setAssetModal(false)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>
@@ -575,11 +607,11 @@ export const InventoryManagement = () => {
           </div>
           <div>
             <label className="mb-1 block text-xs font-bold text-slate-500">To / From (person or dept)</label>
-            <input className={inputCls} value={moveForm.toWhom} onChange={(e) => setMoveForm({ ...moveForm, toWhom: e.target.value })} />
+            <input placeholder="e.g. Science Dept / Mr. Khan" className={inputCls} value={moveForm.toWhom} onChange={(e) => setMoveForm({ ...moveForm, toWhom: e.target.value })} />
           </div>
           <div>
             <label className="mb-1 block text-xs font-bold text-slate-500">Note</label>
-            <input className={inputCls} value={moveForm.note} onChange={(e) => setMoveForm({ ...moveForm, note: e.target.value })} />
+            <input placeholder="Reason for this movement" className={inputCls} value={moveForm.note} onChange={(e) => setMoveForm({ ...moveForm, note: e.target.value })} />
           </div>
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setMoveModal(null)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>
@@ -595,15 +627,15 @@ export const InventoryManagement = () => {
         <form onSubmit={submitCat} className="space-y-4">
           <div>
             <label className="mb-1 block text-xs font-bold text-slate-500">Name *</label>
-            <input className={inputCls} value={catForm.name} onChange={(e) => setCatForm({ ...catForm, name: e.target.value })} required />
+            <input placeholder="e.g. Furniture" className={inputCls} value={catForm.name} onChange={(e) => setCatForm({ ...catForm, name: e.target.value })} required />
           </div>
           <div>
             <label className="mb-1 block text-xs font-bold text-slate-500">Code</label>
-            <input className={inputCls} value={catForm.code} onChange={(e) => setCatForm({ ...catForm, code: e.target.value })} />
+            <input placeholder="e.g. FURN" className={inputCls} value={catForm.code} onChange={(e) => setCatForm({ ...catForm, code: e.target.value })} />
           </div>
           <div>
             <label className="mb-1 block text-xs font-bold text-slate-500">Description</label>
-            <textarea rows={2} className={`${inputCls} h-auto py-2`} value={catForm.description} onChange={(e) => setCatForm({ ...catForm, description: e.target.value })} />
+            <textarea placeholder="Short note about what this category covers" rows={2} className={`${inputCls} h-auto py-2`} value={catForm.description} onChange={(e) => setCatForm({ ...catForm, description: e.target.value })} />
           </div>
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setCatModal(false)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>

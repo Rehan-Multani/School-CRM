@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Save, Users, CalendarClock, Coins, BookmarkPlus } from 'lucide-react';
+import { Save, Users, CalendarClock, Coins } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
 import { SkeletonForm } from '../../components/ui/SkeletonLoader';
@@ -66,11 +66,9 @@ export const LibraryRules = () => {
         fineEnabled: form.fineEnabled,
         finePerDay: Number(form.finePerDay),
         maxFineAmount: Number(form.maxFineAmount),
-        reservationEnabled: form.reservationEnabled,
-        maxActiveReservations: Number(form.maxActiveReservations),
       });
       setForm(res.data);
-      showToast('Library rules saved — enforced immediately for new issues and reservations', 'success');
+      showToast('Library rules saved — enforced immediately for new issues', 'success');
     } catch (err) {
       showToast(apiMessage(err, 'Failed to save library rules'), 'error');
     } finally {
@@ -81,7 +79,7 @@ export const LibraryRules = () => {
   if (loading || !form) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Rules" subtitle="Borrowing limits, fines and reservation policy enforced by the circulation backend." />
+        <PageHeader title="Rules" subtitle="Borrowing limits and fines enforced by the circulation backend." />
         <LibraryTabsNav />
         <SkeletonForm fields={6} />
       </div>
@@ -93,7 +91,7 @@ export const LibraryRules = () => {
       <ToastComponent />
       <PageHeader
         title="Rules"
-        subtitle="Borrowing limits, fines and reservation policy — enforced server-side on every issue, return and reservation."
+        subtitle="Borrowing limits and fines — enforced server-side on every issue and return."
       />
       <LibraryTabsNav />
 
@@ -101,22 +99,22 @@ export const LibraryRules = () => {
         <RuleSection icon={Users} title="Borrowing Limits" description="Maximum unreturned books allowed per borrower type.">
           <div>
             <label className={labelClass}>Max Books — Student</label>
-            <input type="number" min="1" value={form.maxBooksStudent} onChange={(e) => set('maxBooksStudent', e.target.value)} className={inputClass} />
+            <input placeholder="e.g. 3" type="number" min="1" value={form.maxBooksStudent} onChange={(e) => set('maxBooksStudent', e.target.value)} className={inputClass} />
           </div>
           <div>
             <label className={labelClass}>Max Books — Teacher</label>
-            <input type="number" min="1" value={form.maxBooksTeacher} onChange={(e) => set('maxBooksTeacher', e.target.value)} className={inputClass} />
+            <input placeholder="e.g. 5" type="number" min="1" value={form.maxBooksTeacher} onChange={(e) => set('maxBooksTeacher', e.target.value)} className={inputClass} />
           </div>
         </RuleSection>
 
         <RuleSection icon={CalendarClock} title="Issue Duration" description="Default loan period before a book becomes overdue.">
           <div>
             <label className={labelClass}>Student Issue Duration (days)</label>
-            <input type="number" min="1" value={form.issueDaysStudent} onChange={(e) => set('issueDaysStudent', e.target.value)} className={inputClass} />
+            <input placeholder="e.g. 14" type="number" min="1" value={form.issueDaysStudent} onChange={(e) => set('issueDaysStudent', e.target.value)} className={inputClass} />
           </div>
           <div>
             <label className={labelClass}>Teacher Issue Duration (days)</label>
-            <input type="number" min="1" value={form.issueDaysTeacher} onChange={(e) => set('issueDaysTeacher', e.target.value)} className={inputClass} />
+            <input placeholder="e.g. 30" type="number" min="1" value={form.issueDaysTeacher} onChange={(e) => set('issueDaysTeacher', e.target.value)} className={inputClass} />
           </div>
         </RuleSection>
 
@@ -124,19 +122,11 @@ export const LibraryRules = () => {
           <ToggleRow label="Fine Enabled" description="Charge a fine for books returned after the due date" checked={form.fineEnabled} onChange={(v) => set('fineEnabled', v)} />
           <div>
             <label className={labelClass}>Fine Per Overdue Day (₹)</label>
-            <input type="number" min="0" disabled={!form.fineEnabled} value={form.finePerDay} onChange={(e) => set('finePerDay', e.target.value)} className={`${inputClass} disabled:opacity-50`} />
+            <input placeholder="e.g. 5" type="number" min="0" disabled={!form.fineEnabled} value={form.finePerDay} onChange={(e) => set('finePerDay', e.target.value)} className={`${inputClass} disabled:opacity-50`} />
           </div>
           <div>
             <label className={labelClass}>Maximum Fine Amount (₹)</label>
-            <input type="number" min="0" disabled={!form.fineEnabled} value={form.maxFineAmount} onChange={(e) => set('maxFineAmount', e.target.value)} className={`${inputClass} disabled:opacity-50`} />
-          </div>
-        </RuleSection>
-
-        <RuleSection icon={BookmarkPlus} title="Reservation Policy" description="Controls whether borrowers can place holds on unavailable books.">
-          <ToggleRow label="Reservations Enabled" description="Allow students and teachers to reserve books that are currently out" checked={form.reservationEnabled} onChange={(v) => set('reservationEnabled', v)} />
-          <div>
-            <label className={labelClass}>Maximum Active Reservations per Borrower</label>
-            <input type="number" min="1" disabled={!form.reservationEnabled} value={form.maxActiveReservations} onChange={(e) => set('maxActiveReservations', e.target.value)} className={`${inputClass} disabled:opacity-50`} />
+            <input placeholder="e.g. 500" type="number" min="0" disabled={!form.fineEnabled} value={form.maxFineAmount} onChange={(e) => set('maxFineAmount', e.target.value)} className={`${inputClass} disabled:opacity-50`} />
           </div>
         </RuleSection>
 

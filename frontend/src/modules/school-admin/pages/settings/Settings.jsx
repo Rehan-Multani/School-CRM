@@ -415,6 +415,7 @@ export const Settings = () => {
             <div className="mt-4 flex max-w-xs items-center gap-3">
               <div className="h-11 w-11 shrink-0 rounded-xl border border-slate-200 shadow-inner dark:border-slate-700" style={{ backgroundColor: primaryColor }} />
               <input
+                placeholder="#4F46E5"
                 value={hexDraft}
                 onChange={(event) => {
                   let next = event.target.value.toUpperCase();
@@ -681,6 +682,7 @@ export const Settings = () => {
 
           <Field id="templateBody" label="Template body" hint="Merge tags: {ParentName}, {Amount}, {Date}, {ReceiptNo}">
             <textarea
+              placeholder="Dear {ParentName}, we have received Rs. {Amount} on {Date}."
               id="templateBody"
               rows={7}
               value={templateBody}

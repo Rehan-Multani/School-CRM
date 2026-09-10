@@ -35,7 +35,6 @@ import { LibraryBooks } from '../pages/library/LibraryBooks';
 import { LibraryCategories } from '../pages/library/LibraryCategories';
 import { LibraryRules } from '../pages/library/LibraryRules';
 import { LibraryReports } from '../pages/library/LibraryReports';
-import { LibrarySettings } from '../pages/library/LibrarySettings';
 import { HRAndPayroll } from '../pages/hr/HRAndPayroll';
 import { DepartmentManagement } from '../pages/hr/DepartmentManagement';
 import { DesignationManagement } from '../pages/hr/DesignationManagement';
@@ -90,7 +89,7 @@ export const SchoolAdminRoutes = () => {
       <Route path="library/categories" element={<LibraryCategories />} />
       <Route path="library/rules" element={<LibraryRules />} />
       <Route path="library/reports" element={<LibraryReports />} />
-      <Route path="library/settings" element={<LibrarySettings />} />
+      <Route path="library/settings" element={<Navigate to="/school-admin/library/rules" replace />} />
       <Route path="hr" element={<HRAndPayroll />} />
       <Route path="hr/departments" element={<DepartmentManagement />} />
       <Route path="hr/designations" element={<DesignationManagement />} />

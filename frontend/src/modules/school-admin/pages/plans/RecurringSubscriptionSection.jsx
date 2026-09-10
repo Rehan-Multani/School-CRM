@@ -163,7 +163,12 @@ export default function RecurringSubscriptionSection({ schoolName }) {
     );
   }
 
-  const statusMeta = sub ? STATUS_LABEL[sub.status] || STATUS_LABEL.created : null;
+  const isSubCancelled = Boolean(sub?.cancelAtPeriodEnd || sub?.status === 'cancelled');
+  const statusMeta = sub
+    ? isSubCancelled
+      ? { label: 'Cancelled', tone: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' }
+      : (STATUS_LABEL[sub.status] || STATUS_LABEL.created)
+    : null;
 
   return (
     <section className="space-y-6 rounded-3xl border border-slate-200/80 bg-white/70 p-6 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/60 sm:p-8">

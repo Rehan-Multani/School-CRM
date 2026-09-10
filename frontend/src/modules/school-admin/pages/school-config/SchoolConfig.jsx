@@ -282,6 +282,7 @@ export const SchoolConfig = () => {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field id="name" label="School Name" hint="Registered name of the school">
               <input
+                placeholder="e.g. Green Valley Public School"
                 id="name"
                 className={inputClass}
                 value={form.name}
@@ -394,6 +395,7 @@ export const SchoolConfig = () => {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field id="contact.email" label="Official Email">
               <input
+                placeholder="e.g. office@school.edu.in"
                 id="contact.email"
                 type="email"
                 className={inputClass}
@@ -419,6 +421,7 @@ export const SchoolConfig = () => {
             </Field>
             <Field id="contact.principalName" label="Principal Name">
               <input
+                placeholder="e.g. Dr. Anita Rao"
                 id="contact.principalName"
                 className={inputClass}
                 value={form.contact.principalName}
@@ -433,6 +436,7 @@ export const SchoolConfig = () => {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field id="address.line1" label="Address Line 1">
               <input
+                placeholder="e.g. 12 MG Road"
                 id="address.line1"
                 className={inputClass}
                 value={form.address.line1}
@@ -442,6 +446,7 @@ export const SchoolConfig = () => {
             </Field>
             <Field id="address.line2" label="Address Line 2">
               <input
+                placeholder="e.g. Near City Mall"
                 id="address.line2"
                 className={inputClass}
                 value={form.address.line2}
@@ -450,6 +455,7 @@ export const SchoolConfig = () => {
             </Field>
             <Field id="address.city" label="City">
               <input
+                placeholder="e.g. Pune"
                 id="address.city"
                 className={inputClass}
                 value={form.address.city}
@@ -459,6 +465,7 @@ export const SchoolConfig = () => {
             </Field>
             <Field id="address.state" label="State">
               <input
+                placeholder="e.g. Maharashtra"
                 id="address.state"
                 className={inputClass}
                 value={form.address.state}
@@ -468,6 +475,7 @@ export const SchoolConfig = () => {
             </Field>
             <Field id="address.country" label="Country">
               <input
+                placeholder="e.g. India"
                 id="address.country"
                 className={inputClass}
                 value={form.address.country}
@@ -477,6 +485,7 @@ export const SchoolConfig = () => {
             </Field>
             <Field id="address.pincode" label="Pincode">
               <input
+                placeholder="e.g. 411001"
                 id="address.pincode"
                 className={inputClass}
                 value={form.address.pincode}

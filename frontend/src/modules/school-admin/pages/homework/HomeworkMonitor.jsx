@@ -433,15 +433,15 @@ export const HomeworkMonitor = () => {
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Total Students</label>
-              <input type="number" min="0" className={inputClass} value={form.totalStudents} onChange={(e) => setForm({ ...form, totalStudents: e.target.value })} />
+              <input placeholder="e.g. 40" type="number" min="0" className={inputClass} value={form.totalStudents} onChange={(e) => setForm({ ...form, totalStudents: e.target.value })} />
             </div>
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Submitted</label>
-              <input type="number" min="0" className={inputClass} value={form.submittedCount} onChange={(e) => setForm({ ...form, submittedCount: e.target.value })} />
+              <input placeholder="e.g. 35" type="number" min="0" className={inputClass} value={form.submittedCount} onChange={(e) => setForm({ ...form, submittedCount: e.target.value })} />
             </div>
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Evaluated</label>
-              <input type="number" min="0" className={inputClass} value={form.evaluatedCount} onChange={(e) => setForm({ ...form, evaluatedCount: e.target.value })} />
+              <input placeholder="e.g. 30" type="number" min="0" className={inputClass} value={form.evaluatedCount} onChange={(e) => setForm({ ...form, evaluatedCount: e.target.value })} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -455,7 +455,7 @@ export const HomeworkMonitor = () => {
           </div>
           <div>
             <label className="mb-1 block text-xs font-bold text-slate-500">Description / Instructions</label>
-            <textarea rows={3} className={`${inputClass} h-auto py-2`} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            <textarea placeholder="Instructions shared with students" rows={3} className={`${inputClass} h-auto py-2`} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           </div>
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setModalOpen(false)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>

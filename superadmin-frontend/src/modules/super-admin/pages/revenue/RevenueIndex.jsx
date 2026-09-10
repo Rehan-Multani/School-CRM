@@ -113,9 +113,9 @@ export default function RevenueIndex() {
             Estimated MRR from assigned plans, collected invoices, and outstanding renewals.
           </p>
         </div>
-        <Button size="sm" variant="secondary" onClick={() => navigate('/super-admin/billing')}>
+        <Button size="sm" variant="secondary" onClick={() => navigate('/super-admin/subscriptions')}>
           <Receipt size={14} className="mr-1.5" />
-          Open billings
+          Open invoices
         </Button>
       </div>
 

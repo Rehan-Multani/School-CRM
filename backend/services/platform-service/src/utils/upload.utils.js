@@ -1,11 +1,16 @@
+
+
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import sharp from 'sharp';
 import { AppError } from '../../../shared/AppError.js';
 
+sharp.cache(false);
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 
 export const uploadsRoot = process.env.VERCEL
   ? path.join('/tmp', 'uploads')
@@ -17,6 +22,8 @@ export const teacherDocumentsDir = path.join(teacherUploadsDir, 'documents');
 export const teacherResourcesDir = path.join(uploadsRoot, 'teacher-resources');
 export const userUploadsDir = path.join(uploadsRoot, 'users');
 export const userDocumentsDir = path.join(userUploadsDir, 'documents');
+export const driverUploadsDir = path.join(uploadsRoot, 'drivers');
+export const driverDocumentsDir = path.join(driverUploadsDir, 'documents');
 
 export function ensureUploadDirs() {
   fs.mkdirSync(studentUploadsDir, { recursive: true });
@@ -26,6 +33,8 @@ export function ensureUploadDirs() {
   fs.mkdirSync(teacherResourcesDir, { recursive: true });
   fs.mkdirSync(userUploadsDir, { recursive: true });
   fs.mkdirSync(userDocumentsDir, { recursive: true });
+  fs.mkdirSync(driverUploadsDir, { recursive: true });
+  fs.mkdirSync(driverDocumentsDir, { recursive: true });
 }
 
 export function toTeacherResourcePublicPath(filename) {
@@ -54,6 +63,14 @@ export function toUserPhotoPublicPath(filename) {
 
 export function toUserDocumentPublicPath(filename) {
   return `/uploads/users/documents/${filename}`;
+}
+
+export function toDriverPhotoPublicPath(filename) {
+  return `/uploads/drivers/${filename}`;
+}
+
+export function toDriverLicensePublicPath(filename) {
+  return `/uploads/drivers/documents/${filename}`;
 }
 
 export function resolveUploadPath(publicPath) {
@@ -152,13 +169,15 @@ export async function convertUploadedImageToWebp(file, options = {}) {
   assertNotDangerousUpload(file.path);
 
   const parsed = path.parse(file.path);
-  const tempDestPath = path.join(parsed.dir, `${parsed.name}-optimized.webp`);
   const finalDestPath = path.join(parsed.dir, `${parsed.name}.webp`);
 
   try {
-    const image = sharp(file.path, { failOn: 'none' }).rotate(); // Auto-orient based on EXIF
+    // Read input file into memory buffer so libvips/sharp never holds an OS file lock on Windows
+    const inputBuffer = fs.readFileSync(file.path);
 
-    // Resize if excessive (e.g. > 2000px width/height) to save storage & bandwidth
+    const image = sharp(inputBuffer, { failOn: 'none' }).rotate(); // Auto-orient based on EXIF
+
+    // Resize if excessive (e.g. > 2048px width/height) to save storage & bandwidth
     const metadata = await image.metadata();
     if (metadata.width > 2048 || metadata.height > 2048) {
       image.resize({
@@ -169,27 +188,26 @@ export async function convertUploadedImageToWebp(file, options = {}) {
       });
     }
 
-    // Convert to WebP with balanced quality and compression
-    await image
+    // Convert to WebP buffer with balanced quality and compression
+    const webpBuffer = await image
       .webp({
         quality: options.quality || 82,
         effort: 4,
         lossless: false,
       })
-      .toFile(tempDestPath);
+      .toBuffer();
 
-    // Remove original uploaded file
-    if (fs.existsSync(file.path)) {
-      fs.unlinkSync(file.path);
-    }
-
-    // Rename optimized WebP to final destination
-    if (tempDestPath !== finalDestPath) {
-      if (fs.existsSync(finalDestPath)) {
-        fs.unlinkSync(finalDestPath);
+    // Remove original uploaded file if different from final destination
+    if (file.path !== finalDestPath && fs.existsSync(file.path)) {
+      try {
+        fs.unlinkSync(file.path);
+      } catch {
+        // Ignore deletion failure
       }
-      fs.renameSync(tempDestPath, finalDestPath);
     }
+
+    // Write final WebP file
+    fs.writeFileSync(finalDestPath, webpBuffer);
 
     // Update Multer file reference
     file.filename = `${parsed.name}.webp`;
@@ -197,8 +215,12 @@ export async function convertUploadedImageToWebp(file, options = {}) {
     file.mimetype = 'image/webp';
     return file;
   } catch (error) {
-    if (fs.existsSync(tempDestPath)) fs.unlinkSync(tempDestPath);
-    if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+    if (file.path !== finalDestPath && fs.existsSync(file.path)) {
+      try { fs.unlinkSync(file.path); } catch {}
+    }
+    if (fs.existsSync(finalDestPath)) {
+      try { fs.unlinkSync(finalDestPath); } catch {}
+    }
     throw new AppError(`Failed to process and convert image to WebP: ${error.message}`, 400);
   }
 }

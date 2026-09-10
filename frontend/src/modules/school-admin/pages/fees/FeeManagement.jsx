@@ -674,6 +674,7 @@ export const FeeManagement = () => {
               <div>
                 <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Payment Amount (₹) *</label>
                 <input
+                  placeholder="e.g. 5000"
                   type="number"
                   min="1"
                   max={selectedInvoice.balanceAmount}

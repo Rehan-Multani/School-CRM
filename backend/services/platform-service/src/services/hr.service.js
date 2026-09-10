@@ -10,6 +10,8 @@ import { Payroll } from '../models/Payroll.js';
 import { PlatformNotification } from '../models/PlatformNotification.js';
 import { School } from '../models/School.js';
 import { EmployeeDocument } from '../models/EmployeeDocument.js';
+import { LeaveRequest } from '../models/LeaveRequest.js';
+import { PerformanceReview } from '../models/PerformanceReview.js';
 import { deleteUploadedFile } from '../utils/upload.utils.js';
 
 function normalizeTeacher(teacher) {
@@ -667,13 +669,31 @@ class HRService {
   }
 
   async deleteEmployee(schoolId, id) {
-    const staff = await SchoolUser.findOneAndDelete({ schoolId, _id: id });
-    if (staff) return { success: true, message: 'Employee deleted successfully' };
+    const staff = await SchoolUser.findOne({ schoolId, _id: id });
+    const teacher = staff ? null : await Teacher.findOne({ schoolId, _id: id });
 
-    const teacher = await Teacher.findOneAndDelete({ schoolId, _id: id });
-    if (teacher) return { success: true, message: 'Employee deleted successfully' };
+    if (!staff && !teacher) {
+      throw new AppError('Employee not found', 404);
+    }
 
-    throw new AppError('Employee not found', 404);
+    // FIX #6: Cascading deletes - clean up all related records
+    await Promise.all([
+      LeaveRequest.deleteMany({ employeeRefId: id }),
+      StaffAttendance.deleteMany({ employeeRefId: id }),
+      EmployeeDocument.deleteMany({ employeeRefId: id }),
+      Payroll.deleteMany({ employeeRefId: id }),
+      PerformanceReview.deleteMany({ employeeRefId: id }),
+      PlatformNotification.deleteMany({ recipientRefId: id }),
+    ]);
+
+    // Delete the employee itself
+    if (staff) {
+      await SchoolUser.findOneAndDelete({ schoolId, _id: id });
+    } else {
+      await Teacher.findOneAndDelete({ schoolId, _id: id });
+    }
+
+    return { success: true, message: 'Employee and all associated records deleted successfully' };
   }
 
   // ==========================================
@@ -1146,6 +1166,31 @@ class HRService {
       createdBy: creatorName,
     });
     return notification.toPublicJSON();
+  }
+
+  async updateAnnouncement(schoolId, id, payload = {}) {
+    const sId = schoolId.toString();
+    const { title, description, priority } = payload;
+
+    if (!title && !description && !priority) {
+      throw new AppError('At least one field (title, description, or priority) is required to update', 400);
+    }
+
+    const updateData = {};
+    if (title !== undefined) updateData.title = title.trim();
+    if (description !== undefined) updateData.description = description.trim();
+    if (priority !== undefined) updateData.priority = priority;
+
+    const updated = await PlatformNotification.findOneAndUpdate(
+      { _id: id, schoolId: sId },
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!updated) {
+      throw new AppError('Announcement not found or access denied', 404);
+    }
+    return updated;
   }
 
   async deleteAnnouncement(schoolId, id) {

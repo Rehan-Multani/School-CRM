@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
 import { hrApi } from '../../../../shared/api/client';
+import { sanitizeMobileInput, isValid10DigitMobile } from '../../../../shared/utils/mobileValidation';
 import {
   ArrowLeft,
   Camera,
@@ -350,6 +351,14 @@ export const AddEditEmployee = () => {
       setError('Department and Designation are required');
       return;
     }
+    if (!isValid10DigitMobile(form.mobileNumber, true)) {
+      setError('Mobile number must be exactly 10 digits');
+      return;
+    }
+    if (form.emergencyPhone && !isValid10DigitMobile(form.emergencyPhone, false)) {
+      setError('Emergency contact phone must be exactly 10 digits');
+      return;
+    }
 
     setSaving(true);
     try {
@@ -620,13 +629,22 @@ export const AddEditEmployee = () => {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-bold text-slate-500">Mobile Number *</label>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-slate-500">Mobile Number *</label>
+                  {form.mobileNumber ? (
+                    <span className={`text-[10px] font-bold ${form.mobileNumber.length === 10 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                      {form.mobileNumber.length}/10 digits
+                    </span>
+                  ) : null}
+                </div>
                 <input
-                  type="text"
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
                   className={inputClass}
                   value={form.mobileNumber}
-                  onChange={(e) => updateField('mobileNumber', e.target.value)}
-                  placeholder="+91 98XXXXXXXX"
+                  onChange={(e) => updateField('mobileNumber', sanitizeMobileInput(e.target.value))}
+                  placeholder="9876543210"
                   required
                 />
               </div>
@@ -733,12 +751,21 @@ export const AddEditEmployee = () => {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-[11px] font-bold text-slate-500">Phone / Mobile</label>
+                  <div className="mb-1 flex items-center justify-between">
+                    <label className="text-[11px] font-bold text-slate-500">Phone / Mobile</label>
+                    {form.mobileNumber ? (
+                      <span className={`text-[10px] font-bold ${form.mobileNumber.length === 10 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                        {form.mobileNumber.length}/10 digits
+                      </span>
+                    ) : null}
+                  </div>
                   <input
-                    type="text"
+                    type="tel"
+                    inputMode="numeric"
+                    maxLength={10}
                     value={form.mobileNumber}
-                    onChange={(e) => updateField('mobileNumber', e.target.value)}
-                    placeholder="+91 98765 43210"
+                    onChange={(e) => updateField('mobileNumber', sanitizeMobileInput(e.target.value))}
+                    placeholder="9876543210"
                     className={inputClass}
                   />
                 </div>

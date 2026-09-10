@@ -1,7 +1,16 @@
 import React, { createContext, useContext, useState } from 'react';
-import toast, { Toaster } from 'react-hot-toast';
+import { AppToaster, showToast } from '../../../shared/ui/Toast';
 
 const SuperAdminNotificationContext = createContext(null);
+
+// The notification feed uses richer types than the toast palette, so map them down.
+const TOAST_VARIANT_BY_TYPE = {
+  success: 'success',
+  error: 'error',
+  warning: 'warning',
+  alert: 'warning',
+  info: 'info',
+};
 
 export const SuperAdminNotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([
@@ -21,11 +30,7 @@ export const SuperAdminNotificationProvider = ({ children }) => {
     setNotifications((prev) => [newNotif, ...prev]);
 
     // Trigger visual toast
-    if (type === 'error' || type === 'alert') {
-      toast.error(message, { style: { background: '#111118', color: '#f1f5f9', border: '1px solid #ef4444' } });
-    } else {
-      toast.success(message, { style: { background: '#111118', color: '#f1f5f9', border: '1px solid #6366f1' } });
-    }
+    showToast(TOAST_VARIANT_BY_TYPE[type] || 'info', message);
   };
 
   const markAllRead = () => {
@@ -37,7 +42,7 @@ export const SuperAdminNotificationProvider = ({ children }) => {
   return (
     <SuperAdminNotificationContext.Provider value={{ notifications, unreadCount, addNotification, markAllRead }}>
       {children}
-      <Toaster position="top-right" />
+      <AppToaster />
     </SuperAdminNotificationContext.Provider>
   );
 };

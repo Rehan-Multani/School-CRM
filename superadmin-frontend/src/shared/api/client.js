@@ -54,9 +54,11 @@ const refreshClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('super_admin_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (!config.headers.Authorization) {
+    const token = localStorage.getItem('super_admin_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
   return config;
 });
@@ -448,7 +450,6 @@ export const schoolSubscriptionApi = {
 
 export const platformBillingApi = {
   list: (params) => apiClient.get('/platform/billings', { params }).then((res) => res.data),
-  create: (payload) => apiClient.post('/platform/billings', payload).then((res) => res.data),
   get: (id) => apiClient.get(`/platform/billings/${id}`).then((res) => res.data),
   gateway: () => apiClient.get('/platform/billings/gateway').then((res) => res.data),
   createRazorpayOrder: (id) =>

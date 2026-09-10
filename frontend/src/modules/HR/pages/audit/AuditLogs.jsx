@@ -29,17 +29,19 @@ const EVENT_CONFIG = {
 export const AuditLogs = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('ALL');
   const { showToast, ToastComponent } = useToast();
 
   const fetchAuditTrail = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const [leavesRes, payrollRes, empRes] = await Promise.all([
-        hrApi.leaves({ limit: 40 }),
-        hrApi.payrolls({ limit: 40 }),
-        hrApi.employees({ limit: 40 }),
+        hrApi.leaves({ limit: 40 }).catch(() => ({ data: [] })),
+        hrApi.payrolls({ limit: 40 }).catch(() => ({ data: [] })),
+        hrApi.employees({ limit: 40 }).catch(() => ({ data: [] })),
       ]);
 
       const events = [];
@@ -87,7 +89,8 @@ export const AuditLogs = () => {
       });
 
       setLogs(events.sort((a, b) => (a.date < b.date ? 1 : -1)));
-    } catch {
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Failed to load audit trail');
       setLogs([]);
     } finally {
       setLoading(false);
@@ -151,6 +154,23 @@ export const AuditLogs = () => {
         }
       />
 
+      {/* Error Alert */}
+      {error && (
+        <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-400">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <div className="flex-1">
+            <p className="font-bold">{error}</p>
+            <p className="text-xs mt-1">Some audit events could not be loaded. Please try again.</p>
+          </div>
+          <button
+            onClick={fetchAuditTrail}
+            className="text-xs font-bold underline hover:no-underline whitespace-nowrap"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
@@ -213,7 +233,7 @@ export const AuditLogs = () => {
             placeholder="Search audit trail by actor, action description, or reference ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-50/80 dark:bg-slate-950 text-slate-900 dark:text-white pl-9.5 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none text-xs font-semibold"
+            className="w-full bg-slate-50/80 dark:bg-slate-950 text-slate-900 dark:text-white pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none text-xs font-semibold"
           />
         </div>
 

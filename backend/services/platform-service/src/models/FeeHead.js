@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 export const FEE_HEAD_STATUSES = ['ACTIVE', 'INACTIVE'];
+export const FEE_CATEGORIES = ['ACADEMIC', 'TRANSPORT', 'HOSTEL', 'ACTIVITY', 'OTHER'];
 
 /**
  * Fee Head — a category of fee the school charges.
@@ -29,6 +30,12 @@ const feeHeadSchema = new mongoose.Schema(
       uppercase: true,
       maxlength: 20,
     },
+    category: {
+      type: String,
+      enum: FEE_CATEGORIES,
+      default: 'ACADEMIC',
+      index: true,
+    },
     description: {
       type: String,
       trim: true,
@@ -52,8 +59,10 @@ feeHeadSchema.index({ schoolId: 1, code: 1 }, { unique: true });
 feeHeadSchema.methods.toPublicJSON = function toPublicJSON() {
   return {
     id: this._id.toString(),
+    schoolId: this.schoolId?.toString(),
     name: this.name,
     code: this.code,
+    category: this.category || 'ACADEMIC',
     description: this.description,
     status: this.status,
     createdAt: this.createdAt,

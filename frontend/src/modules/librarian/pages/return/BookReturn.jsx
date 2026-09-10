@@ -266,6 +266,7 @@ export const BookReturn = () => {
               <div className="space-y-1">
                 <label className="text-3xs font-bold text-slate-500 uppercase">Fine Amount (₹)</label>
                 <input
+                  placeholder="e.g. 50"
                   type="number"
                   min="0"
                   value={fineAmount}

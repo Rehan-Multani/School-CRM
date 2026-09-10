@@ -279,11 +279,11 @@ export const RolesAndPermissions = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="mb-1 block text-[11px] font-bold text-slate-400">Role Name *</label>
-              <input className={inputCls} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} disabled={editing?.isSystem} required />
+              <input placeholder="e.g. Front Desk Staff" className={inputCls} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} disabled={editing?.isSystem} required />
             </div>
             <div>
               <label className="mb-1 block text-[11px] font-bold text-slate-400">Description</label>
-              <input className={inputCls} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              <input placeholder="Short note about what this role can do" className={inputCls} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
             </div>
           </div>
 

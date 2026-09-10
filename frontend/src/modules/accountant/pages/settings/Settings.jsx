@@ -5,6 +5,7 @@ import { useAccountantAuth } from '../../context/AccountantAuthContext';
 import { useAccountantTheme } from '../../context/AccountantThemeContext';
 import { useToast } from '../../components/ui/Toast';
 import { accountantAuthApi, accountantApi } from '../../../../shared/api/client';
+import { sanitizeMobileInput, isValid10DigitMobile } from '../../../../shared/utils/mobileValidation';
 import { Save, Lock, Moon, Sun } from 'lucide-react';
 
 const TABS = [
@@ -67,9 +68,13 @@ export const Settings = () => {
 
   const saveProfile = (e) => {
     e.preventDefault();
+    if (profile.phone && !isValid10DigitMobile(profile.phone, false)) {
+      showToast('Phone number must be exactly 10 digits', 'error');
+      return;
+    }
     setSaving(true);
     accountantAuthApi
-      .updateProfile({ firstName: profile.firstName, lastName: profile.lastName, phone: profile.phone })
+      .updateProfile({ firstName: profile.firstName, lastName: profile.lastName, phone: sanitizeMobileInput(profile.phone) })
       .then((res) => {
         const u = res?.user || {};
         updateProfile({ name: u.name || `${profile.firstName} ${profile.lastName}`.trim(), phone: profile.phone });
@@ -115,19 +120,34 @@ export const Settings = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <label className="space-y-1 block">
               <span>First Name</span>
-              <input value={profile.firstName} onChange={(e) => setProfile((p) => ({ ...p, firstName: e.target.value }))} required className={inp} />
+              <input placeholder="e.g. Rahul" value={profile.firstName} onChange={(e) => setProfile((p) => ({ ...p, firstName: e.target.value }))} required className={inp} />
             </label>
             <label className="space-y-1 block">
               <span>Last Name</span>
-              <input value={profile.lastName} onChange={(e) => setProfile((p) => ({ ...p, lastName: e.target.value }))} className={inp} />
+              <input placeholder="e.g. Sharma" value={profile.lastName} onChange={(e) => setProfile((p) => ({ ...p, lastName: e.target.value }))} className={inp} />
             </label>
             <label className="space-y-1 block">
               <span>Email (read-only)</span>
               <input value={profile.email} readOnly className={`${inp} opacity-60`} />
             </label>
             <label className="space-y-1 block">
-              <span>Phone</span>
-              <input value={profile.phone} onChange={(e) => setProfile((p) => ({ ...p, phone: e.target.value }))} className={inp} />
+              <div className="flex items-center justify-between">
+                <span>Phone</span>
+                {profile.phone ? (
+                  <span className={`text-[10px] font-bold ${profile.phone.length === 10 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                    {profile.phone.length}/10 digits
+                  </span>
+                ) : null}
+              </div>
+              <input
+                type="tel"
+                inputMode="numeric"
+                maxLength={10}
+                placeholder="e.g. 9876543210"
+                value={profile.phone}
+                onChange={(e) => setProfile((p) => ({ ...p, phone: sanitizeMobileInput(e.target.value) }))}
+                className={inp}
+              />
             </label>
           </div>
           <div className="flex justify-end pt-2">
@@ -144,22 +164,22 @@ export const Settings = () => {
             <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Receipt</p>
             <label className="space-y-1 block">
               <span>Header Text</span>
-              <input value={prefs.receipt.header} onChange={(e) => setPrefs((p) => ({ ...p, receipt: { ...p.receipt, header: e.target.value } }))} className={inp} />
+              <input placeholder="e.g. Fee Receipt" value={prefs.receipt.header} onChange={(e) => setPrefs((p) => ({ ...p, receipt: { ...p.receipt, header: e.target.value } }))} className={inp} />
             </label>
             <label className="space-y-1 block">
               <span>Footer Text</span>
-              <textarea rows={2} value={prefs.receipt.footer} onChange={(e) => setPrefs((p) => ({ ...p, receipt: { ...p.receipt, footer: e.target.value } }))} className={inp} />
+              <textarea placeholder="e.g. This is a computer generated receipt" rows={2} value={prefs.receipt.footer} onChange={(e) => setPrefs((p) => ({ ...p, receipt: { ...p.receipt, footer: e.target.value } }))} className={inp} />
             </label>
           </div>
           <div className="space-y-3">
             <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Invoice</p>
             <label className="space-y-1 block">
               <span>Header Text</span>
-              <input value={prefs.invoice.header} onChange={(e) => setPrefs((p) => ({ ...p, invoice: { ...p.invoice, header: e.target.value } }))} className={inp} />
+              <input placeholder="e.g. Tax Invoice" value={prefs.invoice.header} onChange={(e) => setPrefs((p) => ({ ...p, invoice: { ...p.invoice, header: e.target.value } }))} className={inp} />
             </label>
             <label className="space-y-1 block">
               <span>Footer Text</span>
-              <textarea rows={2} value={prefs.invoice.footer} onChange={(e) => setPrefs((p) => ({ ...p, invoice: { ...p.invoice, footer: e.target.value } }))} className={inp} />
+              <textarea placeholder="e.g. Payable within 7 days" rows={2} value={prefs.invoice.footer} onChange={(e) => setPrefs((p) => ({ ...p, invoice: { ...p.invoice, footer: e.target.value } }))} className={inp} />
             </label>
           </div>
           <div className="flex justify-end">
@@ -200,11 +220,11 @@ export const Settings = () => {
         <form onSubmit={savePassword} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4 max-w-xl">
           <label className="space-y-1 block">
             <span>Current Password</span>
-            <input type="password" value={pw.currentPassword} onChange={(e) => setPw((p) => ({ ...p, currentPassword: e.target.value }))} required className={inp} />
+            <input placeholder="Enter current password" type="password" value={pw.currentPassword} onChange={(e) => setPw((p) => ({ ...p, currentPassword: e.target.value }))} required className={inp} />
           </label>
           <label className="space-y-1 block">
             <span>New Password (min 8 chars)</span>
-            <input type="password" value={pw.newPassword} onChange={(e) => setPw((p) => ({ ...p, newPassword: e.target.value }))} required className={inp} />
+            <input placeholder="At least 8 characters" type="password" value={pw.newPassword} onChange={(e) => setPw((p) => ({ ...p, newPassword: e.target.value }))} required className={inp} />
           </label>
           <div className="flex justify-end">
             <button type="submit" disabled={saving} className="flex items-center gap-1.5 px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-bold disabled:opacity-50">

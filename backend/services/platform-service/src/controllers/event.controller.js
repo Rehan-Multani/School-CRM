@@ -41,19 +41,27 @@ export async function createEvent(req, res, next) {
 
 export async function updateEvent(req, res, next) {
   try {
-    if (req.body && Object.prototype.hasOwnProperty.call(req.body, 'cancelled')) {
-      const data = await eventService.setCancelled(schoolId(req), req.params.id, Boolean(req.body.cancelled));
-      auditLogService.record(req, { module: 'EVENTS', action: data.cancelled ? 'CANCEL' : 'REINSTATE', entityType: 'Event', entityId: data.id, summary: `${data.cancelled ? 'Cancelled' : 'Reinstated'} event "${data.title}"` });
-      res.json({
-        success: true,
-        data,
-        message: data.cancelled ? 'Event cancelled' : 'Event reinstated',
-      });
-      return;
-    }
     const data = await eventService.update(schoolId(req), req.params.id, req.body);
     auditLogService.record(req, { module: 'EVENTS', action: 'UPDATE', entityType: 'Event', entityId: data.id, summary: `Updated event "${data.title}"` });
     res.json({ success: true, data, message: 'Event updated' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** PATCH /events/:id/cancel — the only manual status transition (sticky CANCELLED). */
+export async function setEventCancelled(req, res, next) {
+  try {
+    const cancelled = req.body?.cancelled === undefined ? true : Boolean(req.body.cancelled);
+    const data = await eventService.setCancelled(schoolId(req), req.params.id, cancelled);
+    auditLogService.record(req, {
+      module: 'EVENTS',
+      action: data.cancelled ? 'CANCEL' : 'REINSTATE',
+      entityType: 'Event',
+      entityId: data.id,
+      summary: `${data.cancelled ? 'Cancelled' : 'Reinstated'} event "${data.title}"`,
+    });
+    res.json({ success: true, data, message: data.cancelled ? 'Event cancelled' : 'Event reinstated' });
   } catch (error) {
     next(error);
   }

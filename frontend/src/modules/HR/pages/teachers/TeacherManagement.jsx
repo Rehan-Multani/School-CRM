@@ -281,10 +281,18 @@ export const TeacherManagement = () => {
               <button
                 type="button"
                 onClick={() => handleToggleStatus(t)}
-                className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                title={t.status === 'ACTIVE' ? 'Deactivate Teacher' : 'Activate Teacher'}
+                className={`rounded-full p-1.5 transition cursor-pointer ${
+                  t.status === 'ACTIVE' || t.status === 'Active'
+                    ? 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/50'
+                    : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+                title={t.status === 'ACTIVE' || t.status === 'Active' ? 'Deactivate Teacher' : 'Activate Teacher'}
               >
-                <MoreVertical className="h-4 w-4" />
+                {t.status === 'ACTIVE' || t.status === 'Active' ? (
+                  <CheckCircle2 className="h-4 w-4" />
+                ) : (
+                  <XCircle className="h-4 w-4" />
+                )}
               </button>
             </div>
           );

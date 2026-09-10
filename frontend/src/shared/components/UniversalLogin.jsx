@@ -551,6 +551,7 @@ export const UniversalLogin = () => {
                 <div className="space-y-1.5">
                   <label className="block text-xs font-bold text-slate-300">Enter 6-Digit OTP</label>
                   <input
+                    placeholder="e.g. 123456"
                     type="text"
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value)}

@@ -3,6 +3,7 @@ import { useStudentAuth } from '../context/StudentAuthContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Lock, Edit2, FileText, CheckCircle, Upload } from 'lucide-react';
+import { sanitizeMobileInput, isValid10DigitMobile } from '../../../shared/utils/mobileValidation';
 
 export const StudentProfile = () => {
   const { user, updateProfile } = useStudentAuth();
@@ -18,12 +19,20 @@ export const StudentProfile = () => {
   
   const handleSave = (e) => {
     e.preventDefault();
+    if (phone && !isValid10DigitMobile(phone, false)) {
+      alert('Mobile number must be exactly 10 digits');
+      return;
+    }
+    if (guardianPhone && !isValid10DigitMobile(guardianPhone, false)) {
+      alert('Guardian mobile must be exactly 10 digits');
+      return;
+    }
     updateProfile({
       email,
-      phone,
+      phone: sanitizeMobileInput(phone),
       guardian: {
         ...user.guardian,
-        phone: guardianPhone,
+        phone: sanitizeMobileInput(guardianPhone),
         email: guardianEmail,
       },
       medical: {
@@ -157,6 +166,7 @@ export const StudentProfile = () => {
                   Email Address (Editable)
                 </label>
                 <input 
+                  placeholder="e.g. student@example.com"
                   type="email" 
                   disabled={!isEditing} 
                   value={email}
@@ -166,14 +176,24 @@ export const StudentProfile = () => {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                  Mobile Number (Editable)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase">
+                    Mobile Number (Editable)
+                  </label>
+                  {phone ? (
+                    <span className={`text-[10px] font-bold ${phone.length === 10 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                      {phone.length}/10 digits
+                    </span>
+                  ) : null}
+                </div>
                 <input 
-                  type="text" 
+                  placeholder="e.g. 9876543210"
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
                   disabled={!isEditing} 
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => setPhone(sanitizeMobileInput(e.target.value))}
                   className="w-full px-4 py-2.5 rounded-xl border border-border bg-transparent disabled:bg-slate-50 dark:disabled:bg-slate-900 text-xs" 
                 />
               </div>
@@ -222,14 +242,24 @@ export const StudentProfile = () => {
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                  Guardian Mobile (Editable)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase">
+                    Guardian Mobile (Editable)
+                  </label>
+                  {guardianPhone ? (
+                    <span className={`text-[10px] font-bold ${guardianPhone.length === 10 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                      {guardianPhone.length}/10 digits
+                    </span>
+                  ) : null}
+                </div>
                 <input 
-                  type="text" 
+                  placeholder="e.g. 9876543210"
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
                   disabled={!isEditing} 
                   value={guardianPhone}
-                  onChange={(e) => setGuardianPhone(e.target.value)}
+                  onChange={(e) => setGuardianPhone(sanitizeMobileInput(e.target.value))}
                   className="w-full px-4 py-2.5 rounded-xl border border-border bg-transparent disabled:bg-slate-50 dark:disabled:bg-slate-900 text-xs" 
                 />
               </div>
@@ -239,6 +269,7 @@ export const StudentProfile = () => {
                   Guardian Email (Editable)
                 </label>
                 <input 
+                  placeholder="e.g. parent@example.com"
                   type="email" 
                   disabled={!isEditing} 
                   value={guardianEmail}
@@ -256,6 +287,7 @@ export const StudentProfile = () => {
                   Known Allergies (Editable)
                 </label>
                 <input 
+                  placeholder="e.g. Peanuts, dust"
                   type="text" 
                   disabled={!isEditing} 
                   value={allergies}

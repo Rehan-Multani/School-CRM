@@ -7,6 +7,7 @@ import { useToast } from '../../components/ui/Toast';
 import { SkeletonForm } from '../../components/ui/SkeletonLoader';
 import { Save, User, RefreshCw, ShieldCheck } from 'lucide-react';
 import { librarianApi } from '../../../../shared/api/client';
+import { sanitizeMobileInput, isValid10DigitMobile } from '../../../../shared/utils/mobileValidation';
 
 const ToggleSwitch = ({ checked, onChange, label, description }) => (
   <label className="flex items-center justify-between gap-4 p-3.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer">
@@ -115,6 +116,10 @@ export const Settings = () => {
 
   const handleSaveProfile = async (e) => {
     e.preventDefault();
+    if (profile.phone && !isValid10DigitMobile(profile.phone, false)) {
+      toast.error('Phone number must be exactly 10 digits');
+      return;
+    }
     setSavingProfile(true);
     try {
       const res = await librarianApi.updateProfile({
@@ -209,6 +214,7 @@ export const Settings = () => {
               <div className="space-y-1.5">
                 <label className="text-3xs font-bold text-slate-500 uppercase">First Name *</label>
                 <input
+                  placeholder="e.g. Rahul"
                   type="text"
                   required
                   value={profile.firstName}
@@ -219,6 +225,7 @@ export const Settings = () => {
               <div className="space-y-1.5">
                 <label className="text-3xs font-bold text-slate-500 uppercase">Last Name</label>
                 <input
+                  placeholder="e.g. Sharma"
                   type="text"
                   value={profile.lastName}
                   onChange={(e) => setProfile({ ...profile, lastName: e.target.value })}
@@ -229,12 +236,21 @@ export const Settings = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-3xs font-bold text-slate-500 uppercase">Phone Number</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-3xs font-bold text-slate-500 uppercase">Phone Number</label>
+                  {profile.phone ? (
+                    <span className={`text-[10px] font-bold ${profile.phone.length === 10 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                      {profile.phone.length}/10 digits
+                    </span>
+                  ) : null}
+                </div>
                 <input
-                  type="text"
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
                   value={profile.phone}
-                  onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                  placeholder="e.g. 9876543210"
+                  onChange={(e) => setProfile({ ...profile, phone: sanitizeMobileInput(e.target.value) })}
+                  placeholder="9876543210"
                   className="w-full h-10 px-3.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
               </div>
@@ -333,6 +349,7 @@ export const Settings = () => {
                   Max Books Allowed (Students) *
                 </label>
                 <input
+                  placeholder="e.g. 3"
                   type="number"
                   min="1"
                   required
@@ -347,6 +364,7 @@ export const Settings = () => {
                   Max Books Allowed (Teachers/Faculty) *
                 </label>
                 <input
+                  placeholder="e.g. 5"
                   type="number"
                   min="1"
                   required
@@ -363,6 +381,7 @@ export const Settings = () => {
                   Issue Duration for Students (Days) *
                 </label>
                 <input
+                  placeholder="e.g. 14"
                   type="number"
                   min="1"
                   required
@@ -377,6 +396,7 @@ export const Settings = () => {
                   Issue Duration for Teachers (Days) *
                 </label>
                 <input
+                  placeholder="e.g. 30"
                   type="number"
                   min="1"
                   required
@@ -393,6 +413,7 @@ export const Settings = () => {
                   Max Renewals Allowed Per Loan *
                 </label>
                 <input
+                  placeholder="e.g. 2"
                   type="number"
                   min="0"
                   required
@@ -407,6 +428,7 @@ export const Settings = () => {
                   Days Added Per Renewal (Days)
                 </label>
                 <input
+                  placeholder="e.g. 7"
                   type="number"
                   min="1"
                   value={settings.renewalPeriodDays}
@@ -456,6 +478,7 @@ export const Settings = () => {
                   Overdue Tariff (₹ / Day) *
                 </label>
                 <input
+                  placeholder="e.g. 5"
                   type="number"
                   min="0"
                   required
@@ -471,6 +494,7 @@ export const Settings = () => {
                   Maximum Penalty Cap (₹) *
                 </label>
                 <input
+                  placeholder="e.g. 500"
                   type="number"
                   min="0"
                   required
@@ -487,6 +511,7 @@ export const Settings = () => {
                 Grace Period (Days Before Fine Starts)
               </label>
               <input
+                placeholder="e.g. 2"
                 type="number"
                 min="0"
                 disabled={!settings.fineEnabled}
@@ -510,6 +535,7 @@ export const Settings = () => {
                     Lost Copy Charge Multiplier
                   </label>
                   <input
+                    placeholder="e.g. 1.5"
                     type="number"
                     step="0.1"
                     min="0"
@@ -524,6 +550,7 @@ export const Settings = () => {
                     Damaged Copy Charge Multiplier
                   </label>
                   <input
+                    placeholder="e.g. 0.5"
                     type="number"
                     step="0.1"
                     min="0"

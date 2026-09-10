@@ -22,8 +22,13 @@ class SchoolSubscriptionRepository {
     return SchoolSubscription.findById(id).populate('planId').populate('pendingPlanId');
   }
 
+  // Populated: webhook handlers build Invoice rows off this and need the real
+  // school/plan names, not placeholders. Every caller already unwraps with
+  // `sub.schoolId?._id || sub.schoolId`, so populating is safe.
   findByRazorpayId(razorpaySubscriptionId) {
-    return SchoolSubscription.findOne({ razorpaySubscriptionId });
+    return SchoolSubscription.findOne({ razorpaySubscriptionId })
+      .populate('schoolId', 'name schoolId status')
+      .populate('planId');
   }
 
   findForSchool(schoolId) {
@@ -44,7 +49,16 @@ class SchoolSubscriptionRepository {
 
   async list(query = {}) {
     const filter = {};
-    if (query.status && query.status !== 'ALL') filter.status = query.status;
+    if (query.status && query.status !== 'ALL') {
+      if (query.status === 'cancelled') {
+        filter.$or = [{ status: 'cancelled' }, { cancelAtPeriodEnd: true }];
+      } else if (query.status === 'active') {
+        filter.status = 'active';
+        filter.cancelAtPeriodEnd = { $ne: true };
+      } else {
+        filter.status = query.status;
+      }
+    }
     if (query.schoolId) filter.schoolId = query.schoolId;
     if (query.planId) filter.planId = query.planId;
 
@@ -99,6 +113,12 @@ class SchoolSubscriptionRepository {
   findInvoiceByRazorpayId(razorpayInvoiceId) {
     return Invoice.findOne({ razorpayInvoiceId });
   }
+  // Dedupe key for locally-numbered invoices (Razorpay sent no invoice entity),
+  // where the captured payment id is the only stable reference we have.
+  findInvoiceByPaymentReference(paymentReference) {
+    if (!paymentReference) return null;
+    return Invoice.findOne({ paymentReference });
+  }
   createInvoice(data) {
     return Invoice.create(data);
   }
@@ -121,10 +141,10 @@ class SchoolSubscriptionRepository {
 
   // ---- dashboard aggregation ----
   async stats() {
-    const [byStatus, mrrAgg, arrAgg, failedCount] = await Promise.all([
+    const [byStatus, mrrAgg, arrAgg, failedCount, cancelAtPeriodEndCount] = await Promise.all([
       SchoolSubscription.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
       SchoolSubscription.aggregate([
-        { $match: { status: 'active' } },
+        { $match: { status: 'active', cancelAtPeriodEnd: { $ne: true } } },
         {
           $lookup: { from: 'subscriptionplans', localField: 'planId', foreignField: '_id', as: 'plan' },
         },
@@ -133,7 +153,7 @@ class SchoolSubscriptionRepository {
         { $group: { _id: null, total: { $sum: '$totalAmount' } } },
       ]),
       SchoolSubscription.aggregate([
-        { $match: { status: 'active' } },
+        { $match: { status: 'active', cancelAtPeriodEnd: { $ne: true } } },
         {
           $lookup: { from: 'subscriptionplans', localField: 'planId', foreignField: '_id', as: 'plan' },
         },
@@ -142,9 +162,16 @@ class SchoolSubscriptionRepository {
         { $group: { _id: null, total: { $sum: '$totalAmount' } } },
       ]),
       SchoolSubscription.countDocuments({ status: 'halted' }),
+      SchoolSubscription.countDocuments({ status: 'active', cancelAtPeriodEnd: true }),
     ]);
     const statusMap = {};
     byStatus.forEach((s) => (statusMap[s._id] = s.count));
+
+    const cancelledCount = (statusMap.cancelled || 0) + cancelAtPeriodEndCount;
+    const activeCount = Math.max(0, (statusMap.active || 0) - cancelAtPeriodEndCount);
+    statusMap.active = activeCount;
+    statusMap.cancelled = cancelledCount;
+
     return {
       byStatus: statusMap,
       mrr: mrrAgg[0]?.total || 0,

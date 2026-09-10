@@ -23,7 +23,9 @@ export async function createSchool(req, res, next) {
 
     res.status(201).json({
       success: true,
-      message: 'School created successfully',
+      message: data.emailSent
+        ? 'School created — login credentials emailed to the school admin'
+        : 'School created, but the credentials email could not be sent. Use "Reset login" to try again once email is configured.',
       data: data.school,
       credentials: data.credentials,
       emailSent: data.emailSent,
@@ -126,7 +128,7 @@ export async function changeSchoolAdminPassword(req, res, next) {
       success: true,
       message: credentials.emailSent
         ? 'School admin password updated and emailed'
-        : 'School admin password updated successfully',
+        : 'Password updated, but the email could not be sent. Configure SMTP and reset the login to deliver it.',
       credentials,
       emailSent: credentials.emailSent,
     });
@@ -143,7 +145,7 @@ export async function resetSchoolLogin(req, res, next) {
       success: true,
       message: credentials.emailSent
         ? 'School admin login reset and emailed'
-        : 'School admin login reset',
+        : 'Login reset, but the email could not be sent. Configure SMTP and reset again to deliver the new password.',
       credentials,
       emailSent: credentials.emailSent,
     });

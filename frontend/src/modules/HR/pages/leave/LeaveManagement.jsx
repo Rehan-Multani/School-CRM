@@ -33,10 +33,12 @@ import { SkeletonTable } from '../../components/ui/SkeletonLoader';
 
 const LEAVE_TYPE_BADGES = {
   CASUAL: { label: 'Casual Leave', variant: 'indigo' },
-  SICK: { label: 'Medical / Sick', variant: 'danger' },
-  EARNED: { label: 'Earned Leave', variant: 'success' },
-  MATERNITY: { label: 'Maternity / Parental', variant: 'purple' },
+  MEDICAL: { label: 'Medical / Sick Leave', variant: 'danger' },
+  PAID: { label: 'Paid Leave', variant: 'success' },
+  MATERNITY: { label: 'Maternity Leave', variant: 'purple' },
+  PATERNITY: { label: 'Paternity Leave', variant: 'purple' },
   UNPAID: { label: 'Unpaid Leave', variant: 'default' },
+  OTHER: { label: 'Other Leave', variant: 'warning' },
 };
 
 const STATUS_BADGES = {
@@ -317,7 +319,7 @@ export const LeaveManagement = () => {
                 placeholder="Search leaves..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-slate-50/80 dark:bg-slate-950 text-slate-900 dark:text-white pl-8.5 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none text-xs font-semibold"
+                className="w-full bg-slate-50/80 dark:bg-slate-950 text-slate-900 dark:text-white pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none text-xs font-semibold"
               />
             </div>
 
@@ -327,10 +329,13 @@ export const LeaveManagement = () => {
               className="bg-slate-50/80 dark:bg-slate-950 text-slate-900 dark:text-white px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold cursor-pointer outline-none"
             >
               <option value="ALL">All Leave Types</option>
-              <option value="CASUAL">Casual</option>
-              <option value="SICK">Medical / Sick</option>
-              <option value="EARNED">Earned</option>
-              <option value="MATERNITY">Maternity</option>
+              <option value="CASUAL">Casual Leave</option>
+              <option value="MEDICAL">Medical / Sick</option>
+              <option value="PAID">Paid Leave</option>
+              <option value="UNPAID">Unpaid Leave</option>
+              <option value="MATERNITY">Maternity Leave</option>
+              <option value="PATERNITY">Paternity Leave</option>
+              <option value="OTHER">Other Leave</option>
             </select>
           </div>
         </div>
@@ -497,10 +502,12 @@ export const LeaveManagement = () => {
                 className="w-full h-10 px-3 rounded-xl border border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-950 text-slate-900 dark:text-white outline-none focus:border-indigo-500 font-semibold"
               >
                 <option value="CASUAL">Casual Leave</option>
-                <option value="SICK">Medical / Sick</option>
-                <option value="EARNED">Earned Leave</option>
-                <option value="MATERNITY">Maternity / Parental</option>
+                <option value="MEDICAL">Medical / Sick Leave</option>
+                <option value="PAID">Paid Leave</option>
+                <option value="MATERNITY">Maternity Leave</option>
+                <option value="PATERNITY">Paternity Leave</option>
                 <option value="UNPAID">Unpaid Leave</option>
+                <option value="OTHER">Other Leave</option>
               </select>
             </div>
 

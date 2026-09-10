@@ -18,7 +18,13 @@ import { env } from '../config/env.js';
 
 /** JWT role claim -> DeviceToken role. Casing differs per issuing service. */
 const JWT_ROLE_TO_DEVICE_ROLE = new Map([
+  ['SUPERADMIN', 'super-admin'],
+  ['SUPER_ADMIN', 'super-admin'],
+  ['SUPER-ADMIN', 'super-admin'],
   ['SCHOOLADMIN', 'school-admin'],
+  ['SCHOOL_ADMIN', 'school-admin'],
+  ['SCHOOL-ADMIN', 'school-admin'],
+  ['ADMIN', 'school-admin'],
   ['PRINCIPAL', 'principal'],
   ['ACCOUNTANT', 'accountant'],
   ['TEACHER', 'teacher'],
@@ -27,10 +33,17 @@ const JWT_ROLE_TO_DEVICE_ROLE = new Map([
   ['HR', 'hr'],
   ['LIBRARIAN', 'librarian'],
   ['TRANSPORT', 'transport'],
+  ['DRIVER', 'transport'],
 ]);
 
 export function deviceRoleForUser(user) {
-  return JWT_ROLE_TO_DEVICE_ROLE.get(String(user?.role || '').toUpperCase()) || '';
+  const rawRole = String(user?.role || '').toUpperCase().trim();
+  const stripped = rawRole.replace(/[\s_-]/g, '');
+  return (
+    JWT_ROLE_TO_DEVICE_ROLE.get(stripped) ||
+    JWT_ROLE_TO_DEVICE_ROLE.get(rawRole) ||
+    ''
+  );
 }
 
 export function requirePlatformUser(req, res, next) {

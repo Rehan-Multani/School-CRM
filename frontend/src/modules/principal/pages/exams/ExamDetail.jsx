@@ -1136,6 +1136,7 @@ export const ExamDetail = () => {
                 Max Marks *
               </label>
               <input
+                placeholder="e.g. 100"
                 type="number"
                 min="1"
                 required
@@ -1149,6 +1150,7 @@ export const ExamDetail = () => {
                 Passing Marks *
               </label>
               <input
+                placeholder="e.g. 35"
                 type="number"
                 min="0"
                 required

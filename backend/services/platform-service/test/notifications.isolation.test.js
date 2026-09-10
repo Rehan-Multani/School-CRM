@@ -13,6 +13,8 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
 import { connect, disconnect, seed, getApp, badToken } from './helpers/setup.js';
+import { signAccessToken } from '../../shared/generateToken.js';
+import { env } from '../src/config/env.js';
 
 let app;
 let ctx;
@@ -61,6 +63,28 @@ describe('GET /notifications/inbox', () => {
     // Same caller, same scope — the forged query changed nothing.
     expect(crossSchool.body.data).toEqual(own.body.data);
   });
+
+  it('returns 200 and scoped inbox for school-admin token', async () => {
+    const res = await request(app)
+      .get('/notifications/inbox')
+      .set(auth(ctx.a.adminToken));
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.data)).toBe(true);
+  });
+
+  it('returns 200 and platform inbox for super-admin token without 400 error', async () => {
+    const superAdminToken = signAccessToken(
+      { sub: 'superadmin123', role: 'SuperAdmin', email: 'superadmin@schoolcrm.com' },
+      { secret: env.jwtSecret, expiresIn: '1h' }
+    );
+    const res = await request(app)
+      .get('/notifications/inbox')
+      .set(auth(superAdminToken));
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.data)).toBe(true);
+  });
 });
 
 describe('POST /device-tokens', () => {
@@ -90,5 +114,22 @@ describe('POST /device-tokens', () => {
     expect(saved.role).toBe('student');
     expect(saved.userId).not.toBe(ctx.b.parentId);
     expect(saved.schoolId).not.toBe(ctx.b.schoolId);
+  });
+
+  it('registers device token for super-admin without error', async () => {
+    const superAdminToken = signAccessToken(
+      { sub: 'superadmin123', role: 'SuperAdmin', email: 'superadmin@schoolcrm.com' },
+      { secret: env.jwtSecret, expiresIn: '1h' }
+    );
+    const res = await request(app)
+      .post('/device-tokens')
+      .set(auth(superAdminToken))
+      .send({ token: 'device-superadmin-token' });
+    expect(res.status).toBe(201);
+    expect(res.body.success).toBe(true);
+
+    const saved = await DeviceToken.findOne({ token: 'device-superadmin-token' });
+    expect(saved).toBeTruthy();
+    expect(saved.role).toBe('super-admin');
   });
 });

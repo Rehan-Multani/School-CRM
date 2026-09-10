@@ -363,7 +363,7 @@ export const ClassTeachers = () => {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/80 pl-9 pr-8 text-xs outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/80 pl-10 pr-8 text-xs outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
             />
             {search && (
               <button

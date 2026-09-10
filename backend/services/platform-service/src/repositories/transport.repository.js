@@ -1,269 +1,187 @@
 import { Vehicle } from '../models/Vehicle.js';
+import { Driver } from '../models/Driver.js';
 import { TransportRoute } from '../models/TransportRoute.js';
 import { RouteStop } from '../models/RouteStop.js';
 import { StudentTransportAssignment } from '../models/StudentTransportAssignment.js';
-import { TransportAttendance } from '../models/TransportAttendance.js';
-import { VehicleMaintenance } from '../models/VehicleMaintenance.js';
-import { TransportIncident } from '../models/TransportIncident.js';
-import { HostelRoom } from '../models/HostelRoom.js';
+import { TransportDailyStatus } from '../models/TransportDailyStatus.js';
+import { TransportFee } from '../models/TransportFee.js';
+import { AcademicYear } from '../models/AcademicYear.js';
 
+/**
+ * Data access for the Transport module. Every method takes `schoolId` first and
+ * folds it into the filter — a query that cannot name a school cannot leak
+ * across tenants.
+ */
 export const transportRepository = {
-  // --- VEHICLES ---
-  async listVehicles(schoolId, filter = {}) {
-    return Vehicle.find({ schoolId, ...filter })
-      .sort({ vehicleNumber: 1 })
-      .lean();
+  /* ------------------------------- vehicles ------------------------------ */
+  listVehicles(schoolId, filter = {}) {
+    return Vehicle.find({ schoolId, ...filter }).sort({ vehicleNumber: 1 });
   },
-
-  async getVehicleById(schoolId, id) {
-    return Vehicle.findOne({ _id: id, schoolId }).lean();
+  getVehicle(schoolId, id) {
+    return Vehicle.findOne({ _id: id, schoolId });
   },
-
-  async createVehicle(data) {
-    return Vehicle.create(data);
+  findVehicleByNumber(schoolId, vehicleNumber) {
+    return Vehicle.findOne({ schoolId, vehicleNumber });
   },
-
-  async updateVehicle(schoolId, id, updateData) {
-    return Vehicle.findOneAndUpdate({ _id: id, schoolId }, updateData, { new: true }).lean();
+  createVehicle(payload) {
+    return Vehicle.create(payload);
   },
-
-  async deleteVehicle(schoolId, id) {
+  deleteVehicle(schoolId, id) {
     return Vehicle.findOneAndDelete({ _id: id, schoolId });
   },
 
-  // --- ROUTES ---
-  async listRoutes(schoolId, filter = {}) {
+  /* -------------------------------- drivers ------------------------------ */
+  listDrivers(schoolId, filter = {}) {
+    return Driver.find({ schoolId, ...filter }).populate('vehicleId', 'vehicleNumber capacity').sort({ name: 1 });
+  },
+  getDriver(schoolId, id) {
+    return Driver.findOne({ _id: id, schoolId }).populate('vehicleId', 'vehicleNumber capacity');
+  },
+  findDriverByMobile(schoolId, mobile) {
+    return Driver.findOne({ schoolId, mobile });
+  },
+  findDriverByLicense(schoolId, licenseNumber) {
+    return Driver.findOne({ schoolId, licenseNumber });
+  },
+  findDriverOfVehicle(schoolId, vehicleId) {
+    return Driver.findOne({ schoolId, vehicleId });
+  },
+  createDriver(payload) {
+    return Driver.create(payload);
+  },
+  deleteDriver(schoolId, id) {
+    return Driver.findOneAndDelete({ _id: id, schoolId });
+  },
+
+  /* -------------------------------- routes ------------------------------- */
+  listRoutes(schoolId, filter = {}) {
     return TransportRoute.find({ schoolId, ...filter })
-      .populate('vehicleId', 'vehicleNumber vehicleType capacity status')
-      .populate('driverId', 'fullName email phone designation')
-      .populate('conductorId', 'fullName email phone designation')
-      .sort({ routeCode: 1 })
-      .lean();
+      .populate('vehicleId', 'vehicleNumber vehicleType capacity')
+      .populate('driverId', 'name mobile')
+      .sort({ routeName: 1 });
   },
-
-  async getRouteById(schoolId, id) {
+  getRoute(schoolId, id) {
     return TransportRoute.findOne({ _id: id, schoolId })
-      .populate('vehicleId', 'vehicleNumber vehicleType capacity status')
-      .populate('driverId', 'fullName email phone designation')
-      .populate('conductorId', 'fullName email phone designation')
-      .lean();
+      .populate('vehicleId', 'vehicleNumber vehicleType capacity')
+      .populate('driverId', 'name mobile');
   },
-
-  async createRoute(data) {
-    return TransportRoute.create(data);
+  findRouteByName(schoolId, routeName) {
+    return TransportRoute.findOne({ schoolId, routeName });
   },
-
-  async updateRoute(schoolId, id, updateData) {
-    return TransportRoute.findOneAndUpdate({ _id: id, schoolId }, updateData, { new: true })
-      .populate('vehicleId', 'vehicleNumber vehicleType capacity status')
-      .populate('driverId', 'fullName email phone designation')
-      .populate('conductorId', 'fullName email phone designation')
-      .lean();
+  findRouteUsingVehicle(schoolId, vehicleId) {
+    return TransportRoute.findOne({ schoolId, vehicleId });
   },
-
-  async deleteRoute(schoolId, id) {
+  findRouteOfDriver(schoolId, driverId) {
+    return TransportRoute.findOne({ schoolId, driverId });
+  },
+  createRoute(payload) {
+    return TransportRoute.create(payload);
+  },
+  deleteRoute(schoolId, id) {
     return TransportRoute.findOneAndDelete({ _id: id, schoolId });
   },
 
-  // --- ROUTE STOPS ---
-  async listStops(schoolId, routeId) {
-    return RouteStop.find({ schoolId, routeId })
-      .populate('routeId', 'routeName routeCode')
-      .sort({ sequenceOrder: 1 })
-      .lean();
+  /* --------------------------------- stops ------------------------------- */
+  listStops(schoolId, routeId) {
+    return RouteStop.find({ schoolId, routeId }).sort({ sequenceOrder: 1 });
   },
-
-  async getStopById(schoolId, id) {
-    return RouteStop.findOne({ _id: id, schoolId })
-      .populate('routeId', 'routeName routeCode')
-      .lean();
+  getStop(schoolId, id) {
+    return RouteStop.findOne({ _id: id, schoolId });
   },
-
-  async createStop(data) {
-    return RouteStop.create(data);
+  findStopByName(routeId, stopName) {
+    return RouteStop.findOne({ routeId, stopName });
   },
-
-  async createManyStops(stops) {
-    return RouteStop.insertMany(stops);
+  countStops(schoolId, routeId) {
+    return RouteStop.countDocuments({ schoolId, routeId });
   },
-
-  async updateStop(schoolId, id, updateData) {
-    return RouteStop.findOneAndUpdate({ _id: id, schoolId }, updateData, { new: true }).lean();
+  maxStopSequence(schoolId, routeId) {
+    return RouteStop.findOne({ schoolId, routeId }).sort({ sequenceOrder: -1 }).select('sequenceOrder');
   },
-
-  async deleteStop(schoolId, id) {
+  createStop(payload) {
+    return RouteStop.create(payload);
+  },
+  deleteStop(schoolId, id) {
     return RouteStop.findOneAndDelete({ _id: id, schoolId });
   },
-
-  async deleteStopsByRoute(schoolId, routeId) {
+  deleteStopsOfRoute(schoolId, routeId) {
     return RouteStop.deleteMany({ schoolId, routeId });
   },
+  bulkWriteStops(operations) {
+    return RouteStop.bulkWrite(operations);
+  },
 
-  // --- STUDENT ASSIGNMENTS ---
-  async listAssignments(schoolId, filter = {}) {
+  /* ------------------------------ assignments ---------------------------- */
+  listAssignments(schoolId, filter = {}) {
     return StudentTransportAssignment.find({ schoolId, ...filter })
-      .populate({
-        path: 'studentId',
-        select: 'firstName lastName rollNumber admissionNumber className sectionName classId sectionId photoUrl phone email guardianName guardianPhone',
-      })
-      .populate('routeId', 'routeName routeCode startPoint endPoint')
-      .populate('pickupStopId', 'stopName sequenceOrder pickupTime monthlyFee')
-      .populate('dropStopId', 'stopName sequenceOrder dropTime monthlyFee')
-      .populate('assignedBy', 'fullName email')
-      .sort({ createdAt: -1 })
-      .lean();
+      .populate('studentId', 'firstName lastName admissionNumber rollNumber className sectionName')
+      .populate('routeId', 'routeName')
+      .populate('stopId', 'stopName sequenceOrder pickupTime dropTime')
+      .populate('academicYearId', 'name code isCurrent')
+      .sort({ createdAt: -1 });
   },
-
-  async getAssignmentById(schoolId, id) {
+  getAssignment(schoolId, id) {
     return StudentTransportAssignment.findOne({ _id: id, schoolId })
-      .populate({
-        path: 'studentId',
-        select: 'firstName lastName rollNumber admissionNumber className sectionName classId sectionId photoUrl phone email guardianName guardianPhone',
-      })
-      .populate('routeId', 'routeName routeCode startPoint endPoint')
-      .populate('pickupStopId', 'stopName sequenceOrder pickupTime monthlyFee')
-      .populate('dropStopId', 'stopName sequenceOrder dropTime monthlyFee')
-      .populate('assignedBy', 'fullName email')
-      .lean();
+      .populate('studentId', 'firstName lastName admissionNumber rollNumber className sectionName')
+      .populate('routeId', 'routeName')
+      .populate('stopId', 'stopName sequenceOrder pickupTime dropTime')
+      .populate('academicYearId', 'name code isCurrent');
   },
-
-  async getActiveAssignmentByStudent(schoolId, studentId) {
+  findActiveAssignmentForStudent(schoolId, studentId) {
     return StudentTransportAssignment.findOne({ schoolId, studentId, status: 'ACTIVE' })
-      .populate('routeId', 'routeName routeCode')
-      .populate('pickupStopId', 'stopName pickupTime monthlyFee')
-      .populate('dropStopId', 'stopName dropTime monthlyFee')
-      .lean();
+      .populate('routeId', 'routeName')
+      .populate('stopId', 'stopName pickupTime dropTime');
+  },
+  countActiveAssignments(schoolId, filter = {}) {
+    return StudentTransportAssignment.countDocuments({ schoolId, status: 'ACTIVE', ...filter });
+  },
+  createAssignment(payload) {
+    return StudentTransportAssignment.create(payload);
   },
 
-  async createAssignment(data) {
-    return StudentTransportAssignment.create(data);
+  /* ------------------------------ yearly fee ----------------------------- */
+  listAcademicYears(schoolId) {
+    return AcademicYear.find({ schoolId }).sort({ startDate: -1 });
+  },
+  getAcademicYear(schoolId, id) {
+    return AcademicYear.findOne({ _id: id, schoolId });
+  },
+  getCurrentAcademicYear(schoolId) {
+    return AcademicYear.findOne({ schoolId, isCurrent: true });
+  },
+  listFees(schoolId) {
+    return TransportFee.find({ schoolId });
+  },
+  findFee(schoolId, academicYearId) {
+    return TransportFee.findOne({ schoolId, academicYearId });
+  },
+  upsertFee(schoolId, academicYearId, yearlyAmount) {
+    return TransportFee.findOneAndUpdate(
+      { schoolId, academicYearId },
+      { $set: { yearlyAmount } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+  },
+  deleteFee(schoolId, academicYearId) {
+    return TransportFee.findOneAndDelete({ schoolId, academicYearId });
   },
 
-  async updateAssignment(schoolId, id, updateData) {
-    return StudentTransportAssignment.findOneAndUpdate({ _id: id, schoolId }, updateData, { new: true }).lean();
+  /* ----------------------------- daily status ---------------------------- */
+  listDailyStatus(schoolId, routeId, date) {
+    return TransportDailyStatus.find({ schoolId, routeId, date });
   },
-
-  // --- TRANSPORT ATTENDANCE ---
-  async getAttendanceByDate(schoolId, routeId, dateStr, tripType) {
-    return TransportAttendance.findOne({ schoolId, routeId, date: dateStr, tripType })
-      .populate({
-        path: 'records.studentId',
-        select: 'firstName lastName rollNumber admissionNumber className sectionName',
-      })
-      .populate('records.stopId', 'stopName sequenceOrder')
-      .populate('recordedBy', 'fullName email')
-      .lean();
+  findDailyStatus(schoolId, studentId, date) {
+    return TransportDailyStatus.findOne({ schoolId, studentId, date });
   },
-
-  async saveAttendance(schoolId, routeId, dateStr, tripType, data) {
-    return TransportAttendance.findOneAndUpdate(
-      { schoolId, routeId, date: dateStr, tripType },
-      { ...data, schoolId, routeId, date: dateStr, tripType },
-      { upsert: true, new: true }
-    ).lean();
-  },
-
-  // --- VEHICLE MAINTENANCE ---
-  async listMaintenance(schoolId, filter = {}) {
-    return VehicleMaintenance.find({ schoolId, ...filter })
-      .populate('vehicleId', 'vehicleNumber vehicleType registrationNumber')
-      .sort({ serviceDate: -1 })
-      .lean();
-  },
-
-  async createMaintenance(data) {
-    return VehicleMaintenance.create(data);
-  },
-
-  async updateMaintenance(schoolId, id, updateData) {
-    return VehicleMaintenance.findOneAndUpdate({ _id: id, schoolId }, updateData, { new: true })
-      .populate('vehicleId', 'vehicleNumber vehicleType registrationNumber')
-      .lean();
-  },
-
-  // --- TRANSPORT INCIDENTS ---
-  async listIncidents(schoolId, filter = {}) {
-    return TransportIncident.find({ schoolId, ...filter })
-      .populate('vehicleId', 'vehicleNumber vehicleType')
-      .populate('routeId', 'routeName routeCode')
-      .populate({
-        path: 'studentId',
-        select: 'firstName lastName rollNumber className',
-      })
-      .populate('driverId', 'fullName phone')
-      .sort({ incidentDate: -1 })
-      .lean();
-  },
-
-  async createIncident(data) {
-    return TransportIncident.create(data);
-  },
-
-  async updateIncident(schoolId, id, updateData) {
-    return TransportIncident.findOneAndUpdate({ _id: id, schoolId }, updateData, { new: true })
-      .populate('vehicleId', 'vehicleNumber vehicleType')
-      .populate('routeId', 'routeName routeCode')
-      .lean();
-  },
-
-  // --- DASHBOARD METRICS ---
-  async getDashboardMetrics(schoolId) {
-    const [
-      totalVehicles,
-      activeVehicles,
-      maintenanceVehicles,
-      totalRoutes,
-      activeRoutes,
-      totalAssignments,
-      activeAssignments,
-      openIncidents,
-    ] = await Promise.all([
-      Vehicle.countDocuments({ schoolId }),
-      Vehicle.countDocuments({ schoolId, status: 'ACTIVE' }),
-      Vehicle.countDocuments({ schoolId, status: 'UNDER_MAINTENANCE' }),
-      TransportRoute.countDocuments({ schoolId }),
-      TransportRoute.countDocuments({ schoolId, status: 'ACTIVE' }),
-      StudentTransportAssignment.countDocuments({ schoolId }),
-      StudentTransportAssignment.countDocuments({ schoolId, status: 'ACTIVE' }),
-      TransportIncident.countDocuments({ schoolId, status: { $in: ['REPORTED', 'INVESTIGATING'] } }),
-    ]);
-
-    // Document expiry warnings (within next 30 days)
-    const thirtyDaysFromNow = new Date();
-    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-    const now = new Date();
-
-    const expiringDocs = await Vehicle.find({
-      schoolId,
-      status: 'ACTIVE',
-      $or: [
-        { insuranceExpiry: { $lte: thirtyDaysFromNow, $gte: now } },
-        { fitnessExpiry: { $lte: thirtyDaysFromNow, $gte: now } },
-        { pollutionExpiry: { $lte: thirtyDaysFromNow, $gte: now } },
-        { permitExpiry: { $lte: thirtyDaysFromNow, $gte: now } },
-      ],
-    })
-      .select('vehicleNumber insuranceExpiry fitnessExpiry pollutionExpiry permitExpiry')
-      .lean();
-
-    // Total maintenance cost
-    const maintenanceCostAgg = await VehicleMaintenance.aggregate([
-      { $match: { schoolId: { $exists: true } } },
-      { $group: { _id: null, totalCost: { $sum: '$cost' } } },
-    ]);
-    const totalMaintenanceCost = maintenanceCostAgg[0]?.totalCost || 0;
-
-    return {
-      totalVehicles,
-      activeVehicles,
-      maintenanceVehicles,
-      totalRoutes,
-      activeRoutes,
-      totalAssignments,
-      activeAssignments,
-      openIncidents,
-      expiringDocs,
-      totalMaintenanceCost,
-    };
+  /**
+   * The filter's own fields are what a new row is keyed on, so they must stay
+   * out of `$set` — naming a path in both halves of an upsert is a write
+   * conflict, not a merge.
+   */
+  upsertDailyStatus(schoolId, studentId, date, update) {
+    return TransportDailyStatus.findOneAndUpdate(
+      { schoolId, studentId, date },
+      { $set: update },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
   },
 };

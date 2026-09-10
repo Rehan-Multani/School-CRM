@@ -163,11 +163,11 @@ export const LibraryCategories = () => {
         <form onSubmit={handleSave} className="space-y-4">
           <div>
             <label className={labelClass}>Name *</label>
-            <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputClass} />
+            <input placeholder="e.g. Science, Fiction, Technology" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputClass} />
           </div>
           <div>
             <label className={labelClass}>Description</label>
-            <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`${inputClass} h-auto py-2.5`} />
+            <textarea placeholder="Short note about what this category covers" rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={`${inputClass} h-auto py-2.5`} />
           </div>
           <div>
             <label className={labelClass}>Status</label>

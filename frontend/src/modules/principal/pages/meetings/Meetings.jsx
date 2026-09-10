@@ -367,6 +367,7 @@ export const Meetings = () => {
             <div className="space-y-1">
               <label className="block text-[11px] font-bold text-slate-400">Duration (min)</label>
               <input
+                placeholder="e.g. 60"
                 type="number"
                 min="1"
                 value={form.durationMin}
@@ -396,7 +397,7 @@ export const Meetings = () => {
 
           <div className="space-y-1">
             <label className="block text-[11px] font-bold text-slate-400">Agenda</label>
-            <textarea rows={3} value={form.agenda} onChange={(e) => setForm({ ...form, agenda: e.target.value })} className={`${inputCls} resize-y`} />
+            <textarea placeholder="Points to discuss in this meeting" rows={3} value={form.agenda} onChange={(e) => setForm({ ...form, agenda: e.target.value })} className={`${inputCls} resize-y`} />
           </div>
 
           <div className="flex justify-end gap-2 pt-3">
@@ -429,7 +430,7 @@ export const Meetings = () => {
           <p className="text-xs font-semibold text-slate-500">
             Record minutes / outcome for <strong>{minutesTarget?.title}</strong> (optional).
           </p>
-          <textarea rows={5} value={minutesText} onChange={(e) => setMinutesText(e.target.value)} className={`${inputCls} resize-y`} />
+          <textarea placeholder="Key decisions and action items" rows={5} value={minutesText} onChange={(e) => setMinutesText(e.target.value)} className={`${inputCls} resize-y`} />
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-3 dark:border-slate-800">
             <button type="button" onClick={() => setMinutesTarget(null)} className="rounded-xl px-4 py-2 text-xs font-semibold">
               Cancel

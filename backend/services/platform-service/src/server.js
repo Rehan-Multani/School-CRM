@@ -8,11 +8,11 @@ import { seedInvoices } from './seedInvoices.js';
 import { seedSupportTickets } from './seedSupport.js';
 import { seedAcademicTeachers } from './seedAcademic.js';
 import { seedStaffUsers } from './seedStaffUsers.js';
+import { seedTeachers } from './seedTeachers.js';
 import { seedLibraryData } from './seedLibrary.js';
 import { seedRoles } from './seedRoles.js';
 import { isFirebaseConfigured } from './config/firebase.js';
 import { startSubscriptionCronJobs } from './cron/index.js';
-import { startTransportCronJobs } from './cron/transportJobs.js';
 import { razorpaySubscriptionService } from './services/razorpaySubscription.service.js';
 
 function logIntegrationStatus() {
@@ -49,6 +49,7 @@ async function runSeeds() {
     const invoices = await seedInvoices();
     await seedAcademicTeachers();
     await seedStaffUsers();
+    await seedTeachers();
     await seedLibraryData();
     await seedRoles();
 
@@ -70,7 +71,6 @@ async function start() {
   runSeeds();
 
   startSubscriptionCronJobs();
-  startTransportCronJobs();
 
   return server;
 }

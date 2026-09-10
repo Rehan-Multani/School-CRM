@@ -105,9 +105,10 @@ export const schoolReportsService = {
           'Class': a.studentId?.className || 'N/A',
           'Hostel Building': a.hostelId?.name || 'Hostel',
           'Room No': a.roomId?.roomNumber || 'N/A',
+          'Floor': a.roomId?.floorNumber || 'N/A',
           'Bed Code': a.bedId?.bedCode || 'N/A',
-          'Monthly Fee': `₹${(a.monthlyFee || 0).toLocaleString('en-IN')}`,
-          'Check-in Date': a.allocationDate ? new Date(a.allocationDate).toLocaleDateString('en-IN') : 'N/A',
+          'Yearly Fee': `₹${(a.yearlyFeeAmount || 0).toLocaleString('en-IN')}`,
+          'Check-in Date': a.createdAt ? new Date(a.createdAt).toLocaleDateString('en-IN') : 'N/A',
           'Status': a.status || 'ACTIVE',
         }));
         return { data: rows, total, page, limit };

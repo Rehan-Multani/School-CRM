@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import { RazorpayWebhookEvent } from '../models/RazorpayWebhookEvent.js';
 import { schoolSubscriptionRepository } from '../repositories/schoolSubscription.repository.js';
 import { subscriptionRepository } from '../repositories/subscription.repository.js';
+import { billingRepository } from '../repositories/billing.repository.js';
 import { razorpaySubscriptionService } from './razorpaySubscription.service.js';
 import { notificationService } from './notification.service.js';
 import { GRACE_PERIOD_DAYS, toDate } from './schoolSubscription.service.js';
@@ -91,9 +92,10 @@ async function findSubscriptionByRazorpayId(razorpaySubscriptionId) {
 
 function notifySchool(sub, title, body) {
   if (!sub?.schoolId) return;
+  const schoolId = String(sub.schoolId?._id || sub.schoolId);
   notificationService
-    .send({ title, body, audiences: ['school-admin'] }, 'Billing System', { schoolId: String(sub.schoolId) })
-    .catch((err) => console.error(`[subscription-flow] notification "${title}" failed for school ${sub.schoolId}: ${err?.message}`));
+    .send({ title, body, audiences: ['school-admin'] }, 'Billing System', { schoolId })
+    .catch((err) => console.error(`[subscription-flow] notification "${title}" failed for school ${schoolId}: ${err?.message}`));
 }
 
 // ---------------------------------------------------------------------------
@@ -165,9 +167,13 @@ async function handleSubscriptionCharged(sub, entity, paymentEntity, invoiceEnti
     }
   }
 
-  if (invoiceEntity?.id) {
-    sub.latestInvoiceId = invoiceEntity.id;
-    await upsertInvoiceFromRazorpay(sub, invoiceEntity);
+  if (invoiceEntity?.id) sub.latestInvoiceId = invoiceEntity.id;
+  else if (paymentEntity?.invoice_id) sub.latestInvoiceId = paymentEntity.invoice_id;
+  try {
+    await ensureInvoiceForCharge(sub, paymentEntity, invoiceEntity);
+  } catch (err) {
+    // A billing document must never block recording the charge itself.
+    console.error(`[subscription-flow] invoice generation failed for subscription ${sub._id}: ${err?.message}`);
   }
 
   await schoolSubscriptionRepository.save(sub);
@@ -281,8 +287,21 @@ async function handlePaymentFailed(sub, paymentEntity) {
   await schoolSubscriptionRepository.save(sub);
 }
 
+// School/plan descriptors for an Invoice row. `findByRazorpayId` populates both,
+// but fall back gracefully for any caller that passes a lean subscription.
+function invoiceOwnerFields(sub) {
+  const school = sub.schoolId?.name ? sub.schoolId : null;
+  const plan = sub.planId?.name ? sub.planId : null;
+  return {
+    school: sub.schoolId?._id || sub.schoolId,
+    schoolName: school?.name || 'School',
+    schoolCode: school?.schoolId || '',
+    planName: plan?.name || 'Recurring Subscription',
+    planType: plan?.planType || 'Monthly',
+  };
+}
+
 async function upsertInvoiceFromRazorpay(sub, invoiceEntity, statusOverride) {
-  const school = sub.schoolId?.name ? sub.schoolId : null; // may or may not be populated depending on caller
   const existing = await schoolSubscriptionRepository.findInvoiceByRazorpayId(invoiceEntity.id);
   const patch = {
     source: 'RAZORPAY_SUBSCRIPTION',
@@ -305,10 +324,69 @@ async function upsertInvoiceFromRazorpay(sub, invoiceEntity, statusOverride) {
   }
   return schoolSubscriptionRepository.createInvoice({
     invoiceNumber: `RZP-${invoiceEntity.id}`.toUpperCase(),
-    school: sub.schoolId?._id || sub.schoolId,
-    schoolName: school?.name || 'School',
-    planName: 'Recurring Subscription',
+    ...invoiceOwnerFields(sub),
     ...patch,
+  });
+}
+
+/**
+ * Guarantee a billing document for a captured recurring charge.
+ *
+ * `invoice.*` webhook events are optional in the Razorpay dashboard, and the
+ * `subscription.charged` payload only sometimes carries `payload.invoice.entity`.
+ * Without this, a school could be charged and still have an empty Invoices tab.
+ * Three tiers, best fidelity first:
+ *   1. a real invoice entity        -> full record incl. the hosted PDF link
+ *   2. only `payment.invoice_id`    -> stub keyed on that id, enriched later
+ *      by the real `invoice.*` event (same razorpayInvoiceId = same row)
+ *   3. neither                      -> locally numbered INV-YYYY-NNNN invoice,
+ *      deduped on the payment id
+ */
+async function ensureInvoiceForCharge(sub, paymentEntity, invoiceEntity) {
+  if (invoiceEntity?.id) {
+    return upsertInvoiceFromRazorpay(sub, invoiceEntity, paymentEntity?.captured ? 'Paid' : undefined);
+  }
+  if (!paymentEntity?.id) return null;
+
+  const paidAt = toDate(paymentEntity.created_at) || new Date();
+  const amount = (paymentEntity.amount || 0) / 100;
+
+  if (paymentEntity.invoice_id) {
+    return upsertInvoiceFromRazorpay(
+      sub,
+      {
+        id: paymentEntity.invoice_id,
+        amount: paymentEntity.amount,
+        currency: paymentEntity.currency,
+        status: paymentEntity.captured ? 'paid' : 'issued',
+        date: paymentEntity.created_at,
+        paid_at: paymentEntity.created_at,
+        billing_start: sub.currentPeriodStart ? Math.floor(new Date(sub.currentPeriodStart).getTime() / 1000) : undefined,
+        billing_end: sub.currentPeriodEnd ? Math.floor(new Date(sub.currentPeriodEnd).getTime() / 1000) : undefined,
+      },
+      paymentEntity.captured ? 'Paid' : 'Pending'
+    );
+  }
+
+  const existing = await schoolSubscriptionRepository.findInvoiceByPaymentReference(paymentEntity.id);
+  if (existing) return existing;
+
+  return schoolSubscriptionRepository.createInvoice({
+    invoiceNumber: await billingRepository.nextInvoiceNumber(paidAt.getFullYear()),
+    ...invoiceOwnerFields(sub),
+    source: 'RAZORPAY_SUBSCRIPTION',
+    subscriptionId: sub._id,
+    razorpaySubscriptionId: sub.razorpaySubscriptionId,
+    amount,
+    currency: paymentEntity.currency || 'INR',
+    status: paymentEntity.captured ? 'Paid' : 'Pending',
+    issuedAt: paidAt,
+    dueAt: paidAt,
+    paidAt: paymentEntity.captured ? paidAt : null,
+    paymentMethod: paymentEntity.method || '',
+    paymentReference: paymentEntity.id,
+    billingPeriodStart: sub.currentPeriodStart || null,
+    billingPeriodEnd: sub.currentPeriodEnd || null,
   });
 }
 
@@ -465,4 +543,4 @@ class RazorpayWebhookService {
 }
 
 export const razorpayWebhookService = new RazorpayWebhookService();
-export { grantSchoolPlanIfNeeded, revokeSchoolPlan };
+export { grantSchoolPlanIfNeeded, revokeSchoolPlan, ensureInvoiceForCharge };

@@ -1,19 +1,12 @@
 import mongoose from 'mongoose';
 
-export const FEE_STRUCTURE_STATUSES = ['ACTIVE', 'INACTIVE'];
+export const FEE_STRUCTURE_STATUSES = ['ACTIVE', 'INACTIVE', 'DRAFT'];
 export const FEE_FREQUENCIES = ['MONTHLY', 'QUARTERLY', 'HALF_YEARLY', 'YEARLY', 'ONE_TIME'];
 
 /**
  * Fee Structure — defines fees for a class in an academic year.
- *
- * Example:
- * - Academic Year: 2026-27
- * - Class: 5
- * - Items: [
- *     { feeHeadId, amount: 2000, frequency: 'YEARLY' },
- *     { feeHeadId, amount: 1000, frequency: 'YEARLY' }
- *   ]
- * - Total: ₹3,000 per year
+ * Line items are stored primarily in FeeStructureItem collection,
+ * with structure header defining the class, year, and name.
  */
 const feeStructureSchema = new mongoose.Schema(
   {
@@ -32,6 +25,16 @@ const feeStructureSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'SchoolClass',
       required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    description: {
+      type: String,
+      default: '',
+      trim: true,
     },
     items: [
       {
@@ -54,7 +57,7 @@ const feeStructureSchema = new mongoose.Schema(
     ],
     totalAmount: {
       type: Number,
-      required: true,
+      default: 0,
       min: 0,
     },
     status: {
@@ -69,18 +72,17 @@ const feeStructureSchema = new mongoose.Schema(
 
 // One structure per year/class combination
 feeStructureSchema.index({ schoolId: 1, academicYearId: 1, classId: 1 }, { unique: true });
+feeStructureSchema.index({ schoolId: 1, status: 1 });
 
 feeStructureSchema.methods.toPublicJSON = function toPublicJSON() {
   return {
     id: this._id.toString(),
-    academicYearId: this.academicYearId.toString(),
-    classId: this.classId.toString(),
-    items: this.items.map((item) => ({
-      feeHeadId: item.feeHeadId.toString(),
-      amount: item.amount,
-      frequency: item.frequency,
-    })),
-    totalAmount: this.totalAmount,
+    schoolId: this.schoolId?.toString(),
+    academicYearId: this.academicYearId?._id?.toString ? this.academicYearId._id.toString() : (this.academicYearId?.toString ? this.academicYearId.toString() : this.academicYearId),
+    classId: this.classId?._id?.toString ? this.classId._id.toString() : (this.classId?.toString ? this.classId.toString() : this.classId),
+    name: this.name,
+    description: this.description || '',
+    totalAmount: this.totalAmount || 0,
     status: this.status,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,

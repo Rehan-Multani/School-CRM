@@ -178,13 +178,33 @@ import {
 } from '../controllers/student.controller.js';
 import {
   listFeeHeads,
+  getFeeHead,
   createFeeHead,
+  updateFeeHead,
+  deleteFeeHead,
+  seedDefaultFeeHeads,
+  bulkCreateFeeHeads,
   listFeeStructures,
+  getFeeStructure,
   createFeeStructure,
+  updateFeeStructure,
+  deleteFeeStructure,
+  listStructureItems,
+  addStructureItem,
+  updateStructureItem,
+  deleteStructureItem,
+  listStudentAssignments,
+  autoAssignStudentFees,
+  updateStudentAssignment,
   listStudentFeeAssignments,
   createStudentFeeAssignment,
-  collectFeePayment,
+  listFeeInvoices,
+  getFeeInvoice,
+  generateFeeInvoice,
+  payFeeInvoice,
   listFeePayments,
+  getFeePayment,
+  collectFeePayment,
   listFinanceTransactions,
   getFinanceSummary,
   recordExpense,
@@ -523,6 +543,7 @@ import {
   getHRReportData,
   listAnnouncements as hrListAnnouncements,
   createAnnouncement as hrCreateAnnouncement,
+  updateAnnouncement as hrUpdateAnnouncement,
   deleteAnnouncement as hrDeleteAnnouncement,
   getHRProfile,
   updateHRProfile,
@@ -712,17 +733,43 @@ router.post('/school-portal/users/:id/send-credentials', requirePrincipal, sendU
 router.delete('/school-portal/users/:id', requirePrincipal, deleteUser);
 
 // Fee Management Routes
+// Fee Heads
 router.get('/school-portal/fees/heads', requireSchoolAdmin, listFeeHeads);
 router.post('/school-portal/fees/heads', requireSchoolAdmin, createFeeHead);
+router.post('/school-portal/fees/heads/seed', requireSchoolAdmin, seedDefaultFeeHeads);
+router.post('/school-portal/fees/heads/bulk', requireSchoolAdmin, bulkCreateFeeHeads);
+router.get('/school-portal/fees/heads/:id', requireSchoolAdmin, validateObjectId('id'), getFeeHead);
+router.patch('/school-portal/fees/heads/:id', requireSchoolAdmin, validateObjectId('id'), updateFeeHead);
+router.delete('/school-portal/fees/heads/:id', requireSchoolAdmin, validateObjectId('id'), deleteFeeHead);
 
+// Fee Structures
 router.get('/school-portal/fees/structures', requireSchoolAdmin, listFeeStructures);
 router.post('/school-portal/fees/structures', requireSchoolAdmin, createFeeStructure);
+router.get('/school-portal/fees/structures/:id', requireSchoolAdmin, validateObjectId('id'), getFeeStructure);
+router.patch('/school-portal/fees/structures/:id', requireSchoolAdmin, validateObjectId('id'), updateFeeStructure);
+router.delete('/school-portal/fees/structures/:id', requireSchoolAdmin, validateObjectId('id'), deleteFeeStructure);
 
+// Fee Structure Items
+router.get('/school-portal/fees/structures/:structureId/items', requireSchoolAdmin, validateObjectId('structureId'), listStructureItems);
+router.post('/school-portal/fees/structures/:structureId/items', requireSchoolAdmin, validateObjectId('structureId'), addStructureItem);
+router.patch('/school-portal/fees/items/:id', requireSchoolAdmin, validateObjectId('id'), updateStructureItem);
+router.delete('/school-portal/fees/items/:id', requireSchoolAdmin, validateObjectId('id'), deleteStructureItem);
+
+// Student Fee Assignments
+router.get('/school-portal/fees/students/:studentId/assignments', requireSchoolAdmin, validateObjectId('studentId'), listStudentAssignments);
+router.post('/school-portal/fees/students/:studentId/auto-assign', requireSchoolAdmin, validateObjectId('studentId'), autoAssignStudentFees);
+router.patch('/school-portal/fees/assignments/:id', requireSchoolAdmin, validateObjectId('id'), updateStudentAssignment);
 router.get('/school-portal/fees/assignments', requireSchoolAdmin, listStudentFeeAssignments);
 router.post('/school-portal/fees/assignments', requireSchoolAdmin, createStudentFeeAssignment);
 
-router.post('/school-portal/fees/collect', requireSchoolAdmin, collectFeePayment);
+// Invoices & Payments
+router.get('/school-portal/fees/invoices', requireSchoolAdmin, listFeeInvoices);
+router.post('/school-portal/fees/invoices/generate', requireSchoolAdmin, generateFeeInvoice);
+router.get('/school-portal/fees/invoices/:id', requireSchoolAdmin, validateObjectId('id'), getFeeInvoice);
+router.post('/school-portal/fees/invoices/:invoiceId/pay', requireSchoolAdmin, validateObjectId('invoiceId'), payFeeInvoice);
 router.get('/school-portal/fees/payments', requireSchoolAdmin, listFeePayments);
+router.get('/school-portal/fees/payments/:id', requireSchoolAdmin, validateObjectId('id'), getFeePayment);
+router.post('/school-portal/fees/collect', requireSchoolAdmin, collectFeePayment);
 
 // Finance Routes
 router.get('/school-portal/finance/transactions', requireSchoolAdmin, listFinanceTransactions);
@@ -934,6 +981,7 @@ router.delete('/school-portal/hr/documents/:id', requireHR, deleteHRDocument);
 // Announcements
 router.get('/school-portal/hr/announcements', requireHR, hrListAnnouncements);
 router.post('/school-portal/hr/announcements', requireHR, hrCreateAnnouncement);
+router.patch('/school-portal/hr/announcements/:id', requireHR, hrUpdateAnnouncement);
 router.delete('/school-portal/hr/announcements/:id', requireHR, hrDeleteAnnouncement);
 
 // HR Notifications

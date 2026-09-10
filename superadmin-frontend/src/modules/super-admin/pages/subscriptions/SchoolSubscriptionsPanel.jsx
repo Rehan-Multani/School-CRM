@@ -5,13 +5,12 @@ import { Select } from '../../components/ui/Input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/Dialog';
 import { useSuperAdminNotifications } from '../../context/SuperAdminNotificationContext';
 import { platformSchoolSubscriptionApi, platformSubscriptionApi, platformSchoolApi } from '../../../../shared/api/client';
+import { openInvoiceDocument } from './invoiceDocument';
 import {
   Plus,
   Loader2,
   Ban,
-  ArrowUpRight,
   Receipt,
-  History,
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
@@ -30,6 +29,8 @@ import {
   Check,
   Calendar,
   ExternalLink,
+  FileText,
+  Download,
 } from 'lucide-react';
 
 const STATUS_VARIANT = {
@@ -86,6 +87,8 @@ const STATUS_CONFIG = {
     label: 'Cancelled',
     pillClass: 'bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-500/20',
     dotClass: 'bg-slate-400',
+    pillClass: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+    dotClass: 'bg-rose-500',
     pulse: false,
   },
   completed: {
@@ -127,6 +130,7 @@ function fmt(v) {
 function inr(n) {
   return `₹${Number(n || 0).toLocaleString('en-IN')}`;
 }
+
 
 function daysUntil(v) {
   if (!v) return null;
@@ -179,14 +183,12 @@ export default function SchoolSubscriptionsPanel() {
 
   const [detail, setDetail] = useState(null);
   const [detailTab, setDetailTab] = useState('payments');
-  const [detailData, setDetailData] = useState({ payments: [], invoices: [], history: [] });
+  const [detailData, setDetailData] = useState({ payments: [], invoices: [] });
   const [detailLoading, setDetailLoading] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
 
   const [cancelTarget, setCancelTarget] = useState(null);
   const [cancelImmediate, setCancelImmediate] = useState(false);
-  const [changePlanTarget, setChangePlanTarget] = useState(null);
-  const [changePlanId, setChangePlanId] = useState('');
 
   const load = async (page = 1, isManualRefresh = false) => {
     if (isManualRefresh) setRefreshing(true);
@@ -250,16 +252,21 @@ export default function SchoolSubscriptionsPanel() {
     setDetailTab('payments');
     setDetailLoading(true);
     try {
-      const [p, i, h] = await Promise.all([
+      const [p, i] = await Promise.all([
         platformSchoolSubscriptionApi.payments(row.id, { limit: 20 }),
         platformSchoolSubscriptionApi.invoices(row.id, { limit: 20 }),
-        platformSchoolSubscriptionApi.history(row.id, { limit: 30 }),
       ]);
-      setDetailData({ payments: p?.data || [], invoices: i?.data || [], history: h?.data || [] });
+      setDetailData({ payments: p?.data || [], invoices: i?.data || [] });
     } catch (err) {
       addNotification('error', err.response?.data?.message || 'Unable to load subscription detail');
     } finally {
       setDetailLoading(false);
+    }
+  };
+
+  const printInvoice = (inv) => {
+    if (!openInvoiceDocument(inv, detail)) {
+      addNotification('error', 'Allow pop-ups for this site to open the invoice.');
     }
   };
 
@@ -279,18 +286,6 @@ export default function SchoolSubscriptionsPanel() {
       load(pagination.page);
     } catch (err) {
       addNotification('error', err.response?.data?.message || 'Unable to cancel subscription');
-    }
-  };
-
-  const doChangePlan = async () => {
-    if (!changePlanTarget || !changePlanId) return;
-    try {
-      await platformSchoolSubscriptionApi.changePlan(changePlanTarget.id, changePlanId);
-      addNotification('success', 'Plan change processed');
-      setChangePlanTarget(null);
-      load(pagination.page);
-    } catch (err) {
-      addNotification('error', err.response?.data?.message || 'Unable to change plan');
     }
   };
 
@@ -348,6 +343,7 @@ export default function SchoolSubscriptionsPanel() {
       {
         label: 'Active',
         value: stats?.byStatus?.active || 0,
+        value: stats?.byStatus?.active ?? rows.filter((r) => r.status === 'active' && !r.cancelAtPeriodEnd).length,
         sub: 'Live & billing',
         icon: CheckCircle2,
         color: 'text-emerald-600 dark:text-emerald-400',
@@ -373,9 +369,13 @@ export default function SchoolSubscriptionsPanel() {
         label: 'Cancelled',
         value: stats?.byStatus?.cancelled || 0,
         sub: 'Revoked / ended',
+        value: stats?.byStatus?.cancelled ?? rows.filter((r) => r.status === 'cancelled' || r.cancelAtPeriodEnd).length,
+        sub: 'Revoked / stopped',
         icon: Ban,
         color: 'text-slate-600 dark:text-slate-400',
         bg: 'bg-slate-500/10 border-slate-500/20',
+        color: 'text-rose-600 dark:text-rose-400',
+        bg: 'bg-rose-500/10 border-rose-500/20',
       },
       {
         label: 'Expired',
@@ -387,6 +387,7 @@ export default function SchoolSubscriptionsPanel() {
       },
     ],
     [stats]
+    [stats, rows]
   );
 
   return (
@@ -405,6 +406,7 @@ export default function SchoolSubscriptionsPanel() {
               <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
                 {stats?.byStatus?.active || rows.filter((r) => r.status === 'active').length} Active
+                {stats?.byStatus?.active ?? rows.filter((r) => r.status === 'active' && !r.cancelAtPeriodEnd).length} Active
               </span>
             </div>
             <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
@@ -634,8 +636,10 @@ export default function SchoolSubscriptionsPanel() {
                   </tr>
                 ) : (
                   filteredRows.map((r) => {
-                    const statusInfo = STATUS_CONFIG[r.status] || {
-                      label: r.status,
+                    const isCancelled = r.status === 'cancelled' || r.cancelAtPeriodEnd;
+                    const effectiveStatus = isCancelled ? 'cancelled' : r.status;
+                    const statusInfo = STATUS_CONFIG[effectiveStatus] || {
+                      label: effectiveStatus,
                       pillClass: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
                       dotClass: 'bg-slate-400',
                       pulse: false,
@@ -710,7 +714,7 @@ export default function SchoolSubscriptionsPanel() {
 
                         {/* Status */}
                         <td className="px-4 py-3.5">
-                          <div className="flex flex-wrap items-center gap-1.5">
+                          <div className="flex flex-col gap-0.5">
                             <span
                               className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-bold capitalize tracking-wide ${statusInfo.pillClass}`}
                             >
@@ -721,13 +725,9 @@ export default function SchoolSubscriptionsPanel() {
                               />
                               {statusInfo.label}
                             </span>
-                            {r.cancelAtPeriodEnd && (
-                              <span
-                                title="Cancellation scheduled at period end"
-                                className="inline-flex items-center gap-1 whitespace-nowrap rounded-md border border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400"
-                              >
-                                <AlertTriangle className="h-2.5 w-2.5" />
-                                Ending
+                            {r.cancelAtPeriodEnd && r.status !== 'cancelled' && (
+                              <span className="text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                                Auto-renew off
                               </span>
                             )}
                           </div>
@@ -779,22 +779,11 @@ export default function SchoolSubscriptionsPanel() {
                           <div className="flex items-center justify-end gap-1">
                             <button
                               type="button"
-                              title="View details & history"
+                              title="View details"
                               onClick={() => openDetail(r)}
                               className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 bg-white text-slate-500 shadow-2xs transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
                             >
                               <Eye size={13} />
-                            </button>
-                            <button
-                              type="button"
-                              title="Upgrade or change plan"
-                              onClick={() => {
-                                setChangePlanTarget(r);
-                                setChangePlanId('');
-                              }}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 bg-white text-slate-500 shadow-2xs transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400"
-                            >
-                              <ArrowUpRight size={13} />
                             </button>
                             <button
                               type="button"
@@ -807,6 +796,19 @@ export default function SchoolSubscriptionsPanel() {
                             >
                               <Ban size={13} />
                             </button>
+                            {!isCancelled && (
+                              <button
+                                type="button"
+                                title="Cancel subscription"
+                                onClick={() => {
+                                  setCancelTarget(r);
+                                  setCancelImmediate(false);
+                                }}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 bg-white text-slate-500 shadow-2xs transition-all hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-rose-500/10 dark:hover:text-rose-400"
+                              >
+                                <Ban size={13} />
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -916,52 +918,6 @@ export default function SchoolSubscriptionsPanel() {
         </DialogContent>
       </Dialog>
 
-      {/* CHANGE PLAN DIALOG */}
-      <Dialog open={Boolean(changePlanTarget)} onOpenChange={(o) => !o && setChangePlanTarget(null)}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-                <ArrowUpRight size={16} />
-              </div>
-              <span>Change Subscription Plan</span>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="mt-2 space-y-4">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-800 dark:bg-slate-900/60">
-              <span className="text-slate-400">School: </span>
-              <span className="font-bold text-slate-800 dark:text-slate-200">
-                {changePlanTarget?.school?.name || changePlanTarget?.schoolName}
-              </span>
-              <div className="mt-1">
-                <span className="text-slate-400">Current Plan: </span>
-                <span className="font-semibold text-indigo-600 dark:text-indigo-400">
-                  {changePlanTarget?.plan?.name}
-                </span>
-              </div>
-            </div>
-
-            <Select label="New Plan" value={changePlanId} onChange={(e) => setChangePlanId(e.target.value)}>
-              <option value="">Select a new plan…</option>
-              {recurringPlans
-                .filter((p) => p.id !== changePlanTarget?.plan?.id)
-                .map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} — ₹{p.price}/{p.billingInterval}
-                  </option>
-                ))}
-            </Select>
-
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              A higher-priced plan upgrade applies immediately. A lower-priced downgrade is scheduled for the next billing cycle.
-            </p>
-
-            <Button className="w-full" onClick={doChangePlan} disabled={!changePlanId}>
-              Confirm Plan Change
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* CANCEL SUBSCRIPTION DIALOG */}
       <Dialog open={Boolean(cancelTarget)} onOpenChange={(o) => !o && setCancelTarget(null)}>
@@ -1032,6 +988,22 @@ export default function SchoolSubscriptionsPanel() {
                   <p className="text-xs text-slate-400">
                     Plan: <span className="font-semibold text-indigo-600 dark:text-indigo-400">{detail?.plan?.name}</span> · ₹{detail?.totalAmount}
                   </p>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <p className="text-xs text-slate-400">
+                      Plan: <span className="font-semibold text-indigo-600 dark:text-indigo-400">{detail?.plan?.name}</span> · ₹{detail?.totalAmount}
+                    </p>
+                    {detail && (() => {
+                      const isDetailCancelled = detail.status === 'cancelled' || detail.cancelAtPeriodEnd;
+                      const detailEffectiveStatus = isDetailCancelled ? 'cancelled' : detail.status;
+                      const detailInfo = STATUS_CONFIG[detailEffectiveStatus];
+                      return detailInfo ? (
+                        <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold capitalize ${detailInfo.pillClass}`}>
+                          <span className={`h-1.5 w-1.5 rounded-full ${detailInfo.dotClass}`} />
+                          {detailInfo.label}
+                        </span>
+                      ) : null;
+                    })()}
+                  </div>
                 </div>
               </div>
 
@@ -1054,7 +1026,7 @@ export default function SchoolSubscriptionsPanel() {
             {[
               { id: 'payments', label: 'Payments', icon: Receipt, count: detailData.payments.length },
               { id: 'invoices', label: 'Invoices', icon: Receipt, count: detailData.invoices.length },
-              { id: 'history', label: 'Audit History', icon: History, count: detailData.history.length },
+              { id: 'invoices', label: 'Invoices', icon: FileText, count: detailData.invoices.length },
             ].map((t) => (
               <button
                 key={t.id}
@@ -1090,7 +1062,7 @@ export default function SchoolSubscriptionsPanel() {
               </div>
             ) : detailTab === 'payments' ? (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+                <table className="w-full text-left text-xs [&_td]:pr-5 [&_th]:pr-5 [&_td:last-child]:pr-0 [&_th:last-child]:pr-0">
                   <thead className="border-b border-slate-100 text-[10px] font-bold uppercase text-slate-400 dark:border-slate-800">
                     <tr>
                       <th className="py-2">Date</th>
@@ -1122,14 +1094,15 @@ export default function SchoolSubscriptionsPanel() {
                   </tbody>
                 </table>
               </div>
-            ) : detailTab === 'invoices' ? (
+            ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
+                <table className="w-full min-w-[36rem] text-left text-xs [&_td]:pr-5 [&_th]:pr-5 [&_td:last-child]:pr-0 [&_th:last-child]:pr-0">
                   <thead className="border-b border-slate-100 text-[10px] font-bold uppercase text-slate-400 dark:border-slate-800">
                     <tr>
                       <th className="py-2">Issued</th>
                       <th className="py-2">Invoice #</th>
-                      <th className="py-2">Amount</th>
+                      <th className="py-2">Billing period</th>
+                      <th className="py-2 text-right">Amount</th>
                       <th className="py-2">Status</th>
                       <th className="py-2 text-right">PDF</th>
                     </tr>
@@ -1137,20 +1110,56 @@ export default function SchoolSubscriptionsPanel() {
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {detailData.invoices.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="py-8 text-center text-slate-400">
-                          No invoices generated yet.
+                        <td colSpan={6} className="py-10 text-center">
+                          <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
+                            <FileText className="h-5 w-5" />
+                          </div>
+                          <p className="mt-2.5 text-xs font-bold text-slate-700 dark:text-slate-300">No invoices yet</p>
+                          <p className="mx-auto mt-1 max-w-xs text-[11px] leading-relaxed text-slate-400">
+                            An invoice is raised automatically on each successful recurring charge. Nothing has been
+                            billed on this subscription so far.
+                          </p>
                         </td>
                       </tr>
                     )}
                     {detailData.invoices.map((inv) => (
                       <tr key={inv.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-850/40">
-                        <td className="py-2.5 font-medium text-slate-700 dark:text-slate-300">{fmt(inv.issuedAt)}</td>
-                        <td className="py-2.5 font-mono text-[11px] text-slate-500">{inv.invoiceNumber}</td>
-                        <td className="py-2.5 font-bold text-slate-900 dark:text-white tabular-nums">{inr(inv.amount)}</td>
-                        <td className="py-2.5">
-                          <Badge variant={inv.status === 'Paid' ? 'success' : 'warning'}>{inv.status}</Badge>
+                        <td className="whitespace-nowrap py-2.5 font-medium text-slate-700 dark:text-slate-300">
+                          {fmt(inv.issuedAt)}
                         </td>
-                        <td className="py-2.5 text-right">
+                        <td className="py-2.5">
+                          <div className="font-mono text-[11px] text-slate-600 dark:text-slate-300">{inv.invoiceNumber}</div>
+                          {inv.planName && (
+                            <div className="mt-0.5 text-[10px] text-slate-400">{inv.planName}</div>
+                          )}
+                        </td>
+                        <td className="whitespace-nowrap py-2.5 text-[11px] text-slate-500 dark:text-slate-400">
+                          {inv.billingPeriodStart && inv.billingPeriodEnd
+                            ? `${fmt(inv.billingPeriodStart)} → ${fmt(inv.billingPeriodEnd)}`
+                            : '—'}
+                        </td>
+                        <td className="whitespace-nowrap py-2.5 text-right">
+                          <span className="font-bold tabular-nums text-slate-900 dark:text-white">{inr(inv.amount)}</span>
+                          {inv.tax > 0 && (
+                            <div className="text-[10px] text-slate-400">incl. {inr(inv.tax)} tax</div>
+                          )}
+                        </td>
+                        <td className="py-2.5">
+                          <Badge
+                            variant={
+                              inv.status === 'Paid'
+                                ? 'success'
+                                : inv.status === 'Overdue' || inv.status === 'Failed' || inv.status === 'Cancelled'
+                                  ? 'danger'
+                                  : inv.status === 'Refunded'
+                                    ? 'info'
+                                    : 'warning'
+                            }
+                          >
+                            {inv.status}
+                          </Badge>
+                        </td>
+                        <td className="whitespace-nowrap py-2.5 text-right">
                           {inv.pdfUrl ? (
                             <a
                               href={inv.pdfUrl}
@@ -1158,11 +1167,20 @@ export default function SchoolSubscriptionsPanel() {
                               rel="noreferrer"
                               className="inline-flex items-center gap-1 font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
                             >
+                              <Download size={11} />
                               <span>View</span>
                               <ExternalLink size={11} />
                             </a>
                           ) : (
-                            <span className="text-slate-400">—</span>
+                            <button
+                              type="button"
+                              onClick={() => printInvoice(inv)}
+                              title="Open the invoice and print or save it as PDF"
+                              className="inline-flex items-center gap-1 font-semibold text-indigo-600 hover:underline dark:text-indigo-400"
+                            >
+                              <Download size={11} />
+                              <span>PDF</span>
+                            </button>
                           )}
                         </td>
                       </tr>
@@ -1170,31 +1188,6 @@ export default function SchoolSubscriptionsPanel() {
                   </tbody>
                 </table>
               </div>
-            ) : (
-              <ul className="space-y-2.5 py-1">
-                {detailData.history.length === 0 && (
-                  <li className="py-8 text-center text-slate-400">No audit history recorded yet.</li>
-                )}
-                {detailData.history.map((h) => (
-                  <li
-                    key={h.id}
-                    className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-3 text-xs dark:border-slate-800 dark:bg-slate-900/40"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold uppercase tracking-wide text-slate-800 dark:text-slate-200">
-                        {h.action.replace(/_/g, ' ')}
-                      </span>
-                      <span className="text-[11px] text-slate-400">{fmt(h.createdAt)}</span>
-                    </div>
-                    <div className="mt-1 text-slate-500 dark:text-slate-400">
-                      <span className="capitalize">{h.fromStatus || 'none'}</span> →{' '}
-                      <span className="font-semibold capitalize text-slate-800 dark:text-slate-200">{h.toStatus}</span>
-                      {h.reason && ` · Reason: ${h.reason}`}
-                      {h.performedBy && <span className="ml-1">· by {h.performedBy}</span>}
-                    </div>
-                  </li>
-                ))}
-              </ul>
             )}
           </div>
         </DialogContent>

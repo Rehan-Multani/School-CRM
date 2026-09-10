@@ -65,13 +65,13 @@ export function parentId(req) {
 }
 
 /**
- * Transport-staff identity from the verified JWT. The transport token is minted
- * from a SchoolUser and carries `userId` (= SchoolUser._id) and `sub`.
+ * Driver identity from the verified JWT (never from the request body/query).
+ * The driver token carries both `driverId` and `sub` set to Driver._id.
  */
-export function transportStaffId(req) {
-  const raw = req.user?.userId || req.user?.sub;
+export function driverId(req) {
+  const raw = req.user?.driverId || req.user?.sub;
   if (!raw || !mongoose.isValidObjectId(String(raw))) {
-    throw new AppError('Transport staff context is missing or invalid on this session', 401);
+    throw new AppError('Driver context is missing or invalid on this session', 401);
   }
   return String(raw);
 }

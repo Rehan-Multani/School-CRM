@@ -7,11 +7,14 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { feePortalApi } from '../../../../shared/api/client';
 import { formatCurrency } from '../../utils/formatters';
-import { ArrowLeft, Calendar, CheckCircle2, DollarSign, HelpCircle, Loader2, Pencil, Plus, Trash2, Wallet } from 'lucide-react';
+import { ArrowLeft, Calendar, CheckCircle2, DollarSign, HelpCircle, Loader2, Pencil, Plus, Sparkles, Trash2, Wallet } from 'lucide-react';
 import { DetailPageSkeleton } from '../../components/ui/SkeletonLoader';
 
 const inputClass =
-  'h-11 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white';
+  'h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white';
+
+const selectClass =
+  'h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white cursor-pointer';
 
 const FREQUENCIES = [
   { id: 'ONE_TIME', label: 'One Time (Admission/Deposit)' },
@@ -40,9 +43,13 @@ export const FeeStructureDetail = () => {
   const [saving, setSaving] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isCreatingNewHead, setIsCreatingNewHead] = useState(false);
 
   const [form, setForm] = useState({
     feeHeadId: '',
+    newHeadName: '',
+    newHeadCode: '',
+    newHeadCategory: 'ACADEMIC',
     amount: '',
     frequency: 'MONTHLY',
     dueDay: 10,
@@ -56,8 +63,10 @@ export const FeeStructureDetail = () => {
         feePortalApi.getStructure(id),
         feePortalApi.heads({ limit: 100, status: 'ACTIVE' }),
       ]);
-      setStructure(stRes.data || null);
-      setAvailableHeads(headsRes.data || []);
+      const stData = stRes?.data || stRes;
+      const headsList = Array.isArray(headsRes?.data) ? headsRes.data : (Array.isArray(headsRes) ? headsRes : []);
+      setStructure(stData || null);
+      setAvailableHeads(headsList);
     } catch (error) {
       showToast(error.message || 'Failed to load structure details', 'error');
     } finally {
@@ -102,8 +111,10 @@ export const FeeStructureDetail = () => {
   // Filter out already added fee heads when adding new item
   const unassignedHeads = useMemo(() => {
     if (!structure?.items) return availableHeads;
-    const assignedHeadIds = new Set(structure.items.map((i) => i.feeHead?.id || i.feeHeadId));
-    return availableHeads.filter((h) => !assignedHeadIds.has(h.id));
+    const assignedHeadIds = new Set(
+      structure.items.map((i) => String(i.feeHead?.id || i.feeHeadId || i.feeHead?._id || ''))
+    );
+    return availableHeads.filter((h) => !assignedHeadIds.has(String(h.id || h._id || '')));
   }, [availableHeads, structure]);
 
   const handleCreateOrUpdateItem = async (e) => {
@@ -118,7 +129,36 @@ export const FeeStructureDetail = () => {
           isOptional: Boolean(form.isOptional),
         });
         showToast('Fee line item updated', 'success');
+      } else if (isCreatingNewHead || unassignedHeads.length === 0) {
+        if (!form.newHeadName?.trim()) {
+          showToast('Please enter a name for the new fee head', 'error');
+          setSaving(false);
+          return;
+        }
+        const autoCode = (form.newHeadCode || form.newHeadName.replace(/[^a-zA-Z0-9]/g, '').slice(0, 8)).toUpperCase();
+        const headRes = await feePortalApi.createHead({
+          name: form.newHeadName.trim(),
+          code: autoCode || 'FEE',
+          category: form.newHeadCategory || 'ACADEMIC',
+          status: 'ACTIVE',
+        });
+        const createdHead = headRes.data || headRes;
+        const newHeadId = createdHead.id || createdHead._id;
+
+        await feePortalApi.addStructureItem(id, {
+          feeHeadId: newHeadId,
+          amount: Number(form.amount),
+          frequency: form.frequency,
+          dueDay: Number(form.dueDay),
+          isOptional: Boolean(form.isOptional),
+        });
+        showToast(`Created "${createdHead.name}" and added to fee structure`, 'success');
       } else {
+        if (!form.feeHeadId) {
+          showToast('Please select a fee head', 'error');
+          setSaving(false);
+          return;
+        }
         await feePortalApi.addStructureItem(id, {
           feeHeadId: form.feeHeadId,
           amount: Number(form.amount),
@@ -140,8 +180,12 @@ export const FeeStructureDetail = () => {
 
   const handleEditItem = (item) => {
     setEditingItem(item);
+    setIsCreatingNewHead(false);
     setForm({
       feeHeadId: item.feeHead?.id || item.feeHeadId,
+      newHeadName: '',
+      newHeadCode: '',
+      newHeadCategory: 'ACADEMIC',
       amount: item.amount,
       frequency: item.frequency || 'MONTHLY',
       dueDay: item.dueDay || 10,
@@ -164,9 +208,14 @@ export const FeeStructureDetail = () => {
   };
 
   const openAddItemModal = () => {
+    const hasUnassigned = unassignedHeads.length > 0;
     setEditingItem(null);
+    setIsCreatingNewHead(!hasUnassigned);
     setForm({
-      feeHeadId: unassignedHeads[0]?.id || '',
+      feeHeadId: hasUnassigned ? (unassignedHeads[0]?.id || unassignedHeads[0]?._id || '') : '',
+      newHeadName: '',
+      newHeadCode: '',
+      newHeadCategory: 'ACADEMIC',
       amount: '',
       frequency: 'MONTHLY',
       dueDay: 10,
@@ -370,25 +419,163 @@ export const FeeStructureDetail = () => {
       >
         <form onSubmit={handleCreateOrUpdateItem} className="space-y-4">
           <div>
-            <label className="mb-1 block text-xs font-bold text-slate-500">Fee Head *</label>
             {editingItem ? (
-              <input className={inputClass} value={editingItem.feeHead?.name || ''} disabled />
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-500">Fee Component *</label>
+                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 dark:border-slate-800 dark:bg-slate-900">
+                  <span className="text-sm font-bold text-slate-800 dark:text-white">
+                    {editingItem.feeHead?.name || 'Fee Head'}
+                  </span>
+                  <Badge variant="default">{editingItem.feeHead?.category || 'ACADEMIC'}</Badge>
+                </div>
+              </div>
+            ) : unassignedHeads.length === 0 ? (
+              <div className="space-y-3">
+                <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-900 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-300">
+                  <div className="flex items-center gap-1.5 font-bold">
+                    <Sparkles className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                    <span>All {availableHeads.length} existing fee heads are already in this structure</span>
+                  </div>
+                  <p className="mt-1 text-[11px] text-amber-800/90 dark:text-amber-400/90">
+                    To add another component (e.g. Lab Fee, Smart Class, Uniform), enter the details below to create a new fee head and attach it.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-slate-500">New Fee Head Name *</label>
+                    <input
+                      type="text"
+                      className={inputClass}
+                      value={form.newHeadName}
+                      onChange={(e) => setForm({ ...form, newHeadName: e.target.value })}
+                      placeholder="e.g. Laboratory Fee, Smart Class Fee"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1 block text-xs font-bold text-slate-500">Category *</label>
+                      <select
+                        className={selectClass}
+                        value={form.newHeadCategory}
+                        onChange={(e) => setForm({ ...form, newHeadCategory: e.target.value })}
+                      >
+                        <option value="ACADEMIC">Academic</option>
+                        <option value="ACTIVITY">Activity</option>
+                        <option value="TRANSPORT">Transport</option>
+                        <option value="HOSTEL">Hostel</option>
+                        <option value="OTHER">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-bold text-slate-500">Code (Optional)</label>
+                      <input
+                        type="text"
+                        className={inputClass}
+                        value={form.newHeadCode}
+                        onChange={(e) => setForm({ ...form, newHeadCode: e.target.value.toUpperCase() })}
+                        placeholder="e.g. LAB, SMART"
+                        maxLength={15}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
             ) : (
-              <select
-                className={inputClass}
-                value={form.feeHeadId}
-                onChange={(e) => setForm({ ...form, feeHeadId: e.target.value })}
-                required
-              >
-                <option value="" disabled>
-                  Select Fee Head
-                </option>
-                {unassignedHeads.map((h) => (
-                  <option key={h.id} value={h.id}>
-                    {h.name} ({h.category})
-                  </option>
-                ))}
-              </select>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-500">Fee Head Component *</label>
+                  <div className="inline-flex rounded-lg bg-slate-100 p-0.5 dark:bg-slate-800 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setIsCreatingNewHead(false)}
+                      className={`rounded-md px-2.5 py-1 font-semibold transition-all ${
+                        !isCreatingNewHead
+                          ? 'bg-white text-primary shadow-sm dark:bg-slate-900 dark:text-white'
+                          : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                      }`}
+                    >
+                      Select Existing ({unassignedHeads.length})
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsCreatingNewHead(true)}
+                      className={`rounded-md px-2.5 py-1 font-semibold transition-all ${
+                        isCreatingNewHead
+                          ? 'bg-white text-primary shadow-sm dark:bg-slate-900 dark:text-white'
+                          : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                      }`}
+                    >
+                      + New Head
+                    </button>
+                  </div>
+                </div>
+
+                {!isCreatingNewHead ? (
+                  <div>
+                    <select
+                      className={selectClass}
+                      value={form.feeHeadId}
+                      onChange={(e) => setForm({ ...form, feeHeadId: e.target.value })}
+                      required
+                    >
+                      <option value="" disabled>
+                        Select Fee Head...
+                      </option>
+                      {unassignedHeads.map((h) => (
+                        <option key={h.id} value={h.id}>
+                          {h.name} ({h.category})
+                        </option>
+                      ))}
+                    </select>
+                    <p className="mt-1 text-[11px] text-slate-400">
+                      {unassignedHeads.length} unassigned fee head{unassignedHeads.length > 1 ? 's' : ''} available.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/50 p-3.5 dark:border-slate-800 dark:bg-slate-950/40">
+                    <div>
+                      <label className="mb-1 block text-xs font-bold text-slate-500">New Fee Head Name *</label>
+                      <input
+                        type="text"
+                        className={inputClass}
+                        value={form.newHeadName}
+                        onChange={(e) => setForm({ ...form, newHeadName: e.target.value })}
+                        placeholder="e.g. Smart Class Fee, Lab Fee"
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="mb-1 block text-xs font-bold text-slate-500">Category *</label>
+                        <select
+                          className={selectClass}
+                          value={form.newHeadCategory}
+                          onChange={(e) => setForm({ ...form, newHeadCategory: e.target.value })}
+                        >
+                          <option value="ACADEMIC">Academic</option>
+                          <option value="ACTIVITY">Activity</option>
+                          <option value="TRANSPORT">Transport</option>
+                          <option value="HOSTEL">Hostel</option>
+                          <option value="OTHER">Other</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-bold text-slate-500">Code (Optional)</label>
+                        <input
+                          type="text"
+                          className={inputClass}
+                          value={form.newHeadCode}
+                          onChange={(e) => setForm({ ...form, newHeadCode: e.target.value.toUpperCase() })}
+                          placeholder="e.g. LAB, SMART"
+                          maxLength={15}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -409,7 +596,7 @@ export const FeeStructureDetail = () => {
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Collection Frequency *</label>
               <select
-                className={inputClass}
+                className={selectClass}
                 value={form.frequency}
                 onChange={(e) => setForm({ ...form, frequency: e.target.value })}
                 required
@@ -427,6 +614,7 @@ export const FeeStructureDetail = () => {
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Due Day of Month (1-28)</label>
               <input
+                placeholder="e.g. 10"
                 type="number"
                 min="1"
                 max="28"
@@ -464,7 +652,13 @@ export const FeeStructureDetail = () => {
               disabled={saving}
               className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm disabled:opacity-60"
             >
-              {saving ? 'Saving...' : editingItem ? 'Update Fee Item' : 'Add Fee Item'}
+              {saving
+                ? 'Saving...'
+                : editingItem
+                ? 'Update Fee Item'
+                : (unassignedHeads.length === 0 || isCreatingNewHead)
+                ? 'Create Head & Add'
+                : 'Add Fee Item'}
             </button>
           </div>
         </form>

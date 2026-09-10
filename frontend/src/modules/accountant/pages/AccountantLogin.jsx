@@ -8,8 +8,8 @@ export const AccountantLogin = () => {
   const { login } = useAccountantAuth();
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('suresh.accounts@greenfield.edu');
+  const [password, setPassword] = useState('Password@123');
   const [email, setEmail] = useState('');
   const [view, setView] = useState('login'); // 'login', 'forgot', 'sent'
   const [error, setError] = useState(null);
@@ -137,7 +137,7 @@ export const AccountantLogin = () => {
                     <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <input
                       type="text"
-                      placeholder="accountant@greenfield.edu"
+                      placeholder="suresh.accounts@greenfield.edu"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       required
@@ -180,6 +180,27 @@ export const AccountantLogin = () => {
                   </div>
                 </div>
 
+                {/* Quick Demo Credentials Helper */}
+                <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 px-3.5 py-2.5 text-xs text-blue-300">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-blue-200">Pre-filled Demo Credentials:</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUsername('suresh.accounts@greenfield.edu');
+                        setPassword('Password@123');
+                      }}
+                      className="font-bold text-blue-400 underline hover:text-white transition"
+                    >
+                      Reset Credentials
+                    </button>
+                  </div>
+                  <div className="mt-1 flex items-center justify-between font-mono text-[11px] text-slate-300">
+                    <span>suresh.accounts@greenfield.edu</span>
+                    <span>Password@123</span>
+                  </div>
+                </div>
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -208,7 +229,7 @@ export const AccountantLogin = () => {
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <input
                       type="email"
-                      placeholder="accountant@greenfield.edu"
+                      placeholder="suresh.accounts@greenfield.edu"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required

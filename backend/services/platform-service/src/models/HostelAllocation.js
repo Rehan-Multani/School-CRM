@@ -1,5 +1,15 @@
 import mongoose from 'mongoose';
 
+export const ALLOCATION_STATUSES = ['ACTIVE', 'VACATED'];
+
+/**
+ * Step 5 of the hostel flow — student → hostel → room → bed, for one academic
+ * year.
+ *
+ * `yearlyFeeAmount` is a SNAPSHOT of the HostelFee for `academicYearId`, taken
+ * when the student was assigned. Editing a future year's fee therefore cannot
+ * reach back and change what an existing resident owes.
+ */
 const hostelAllocationSchema = new mongoose.Schema(
   {
     schoolId: {
@@ -35,67 +45,34 @@ const hostelAllocationSchema = new mongoose.Schema(
     academicYearId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'AcademicYear',
-      default: null,
-    },
-    allocationDate: {
-      type: Date,
       required: true,
-      default: Date.now,
+      index: true,
     },
-    expectedCheckoutDate: {
-      type: Date,
-      default: null,
-    },
-    actualCheckoutDate: {
-      type: Date,
-      default: null,
-    },
-    securityDeposit: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-    depositRefunded: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-    monthlyFee: {
+    yearlyFeeAmount: {
       type: Number,
       default: 0,
       min: 0,
     },
     status: {
       type: String,
-      enum: ['ACTIVE', 'VACATED', 'TRANSFERRED'],
+      enum: ALLOCATION_STATUSES,
       default: 'ACTIVE',
       index: true,
-    },
-    checkoutReason: {
-      type: String,
-      default: '',
-      trim: true,
-    },
-    checkoutRemarks: {
-      type: String,
-      default: '',
-      trim: true,
-    },
-    remarks: {
-      type: String,
-      default: '',
-      trim: true,
-    },
-    allocatedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'SchoolUser',
-      default: null,
     },
   },
   { timestamps: true }
 );
 
-hostelAllocationSchema.index({ schoolId: 1, studentId: 1, status: 1 });
-hostelAllocationSchema.index({ schoolId: 1, bedId: 1, status: 1 });
+// A student lives in exactly one bed at a time, and a bed holds exactly one
+// student. Vacated rows are excluded so both can be re-used later.
+hostelAllocationSchema.index(
+  { schoolId: 1, studentId: 1 },
+  { unique: true, partialFilterExpression: { status: 'ACTIVE' } }
+);
+hostelAllocationSchema.index(
+  { schoolId: 1, bedId: 1 },
+  { unique: true, partialFilterExpression: { status: 'ACTIVE' } }
+);
+hostelAllocationSchema.index({ schoolId: 1, hostelId: 1, status: 1 });
 
 export const HostelAllocation = mongoose.model('HostelAllocation', hostelAllocationSchema);

@@ -99,10 +99,10 @@ export const FEATURES = [
   {
     id: 'transport',
     name: 'Transport Management',
-    desc: 'Live GPS vehicle tracking, route optimizations, student boarding logs, speed monitoring, and parent emergency alerts.',
+    desc: 'Vehicles and drivers, routes with ordered stops and scheduled pickup/drop times, student stop assignments, and daily pickup/drop marking.',
     icon: Bus,
     gradient: 'from-cyan-500 to-blue-600',
-    tag: 'Safety & GPS',
+    tag: 'Routes & Stops',
   },
   {
     id: 'library',
@@ -138,20 +138,7 @@ export const FEATURES = [
   },
 ];
 
-// All 9 Portals requested in Role-Based Platform section
 export const ALL_ROLES = [
-  {
-    id: 'super-admin',
-    key: 'super-admin',
-    name: 'School Panel',
-    badge: 'Platform Control',
-    color: 'border-violet-500/30 text-violet-600 dark:text-violet-400 bg-violet-500/10',
-    iconBg: 'bg-violet-600 text-white',
-    icon: ShieldCheck,
-    href: '/login',
-    desc: 'Multi-campus tenant orchestration, subscription lifecycle, platform security auditing, and global licensing.',
-    highlights: ['Multi-tenant control', 'Billing & Plans', 'Audit logs'],
-  },
   {
     id: 'school-admin',
     key: 'school-admin',
@@ -162,43 +149,21 @@ export const ALL_ROLES = [
     icon: LayoutGrid,
     href: '/school-admin/login',
     desc: 'Comprehensive campus command center. Configure academic sessions, admissions, staff assignments, and permissions.',
+    blurb: 'Admissions pipeline, master setup, roles, permissions, and campus operations.',
     highlights: ['Admissions pipeline', 'Role permissions', 'System setup'],
   },
   {
-    id: 'teacher',
-    key: 'teacher',
-    name: 'Teacher',
-    badge: 'Classroom & Mobile',
-    color: 'border-sky-500/30 text-sky-600 dark:text-sky-400 bg-sky-500/10',
-    iconBg: 'bg-sky-600 text-white',
-    icon: CalendarCheck,
-    href: '/teacher/login',
-    desc: 'Fast daily attendance marking, assignment allocation, grading rubric entry, and direct parent messaging.',
-    highlights: ['1-tap attendance', 'Marks entry', 'Assignments'],
-  },
-  {
-    id: 'student',
-    key: 'student',
-    name: 'Student',
-    badge: 'Learner Portal',
-    color: 'border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10',
-    iconBg: 'bg-emerald-600 text-white',
-    icon: GraduationCap,
-    href: '/student/login',
-    desc: 'Personalized student feed: daily timetable, upcoming homework submissions, exam report cards, and notices.',
-    highlights: ['Study timetable', 'Digital submissions', 'Result cards'],
-  },
-  {
-    id: 'parent',
-    key: 'parent',
-    name: 'Parent',
-    badge: 'Guardian Connect',
-    color: 'border-rose-500/30 text-rose-600 dark:text-rose-400 bg-rose-500/10',
-    iconBg: 'bg-rose-600 text-white',
-    icon: HeartHandshake,
-    href: '/parent/login',
-    desc: 'Live bus tracking, daily attendance alerts, real-time fee payments with instant receipts, and teacher discussions.',
-    highlights: ['Live GPS tracking', '1-click fee pay', 'Attendance alert'],
+    id: 'principal',
+    key: 'principal',
+    name: 'Principal',
+    badge: 'Academic Leadership',
+    color: 'border-blue-500/30 text-blue-600 dark:text-blue-400 bg-blue-500/10',
+    iconBg: 'bg-blue-600 text-white',
+    icon: Award,
+    href: '/principal/login',
+    desc: 'Oversee school-wide academic excellence, evaluate teacher metrics, review curriculum standards, and approve leaves.',
+    blurb: 'Academic quality oversight, teacher KPIs, curriculum reviews, and leave approvals.',
+    highlights: ['Academic quality', 'Teacher evaluation', 'Strategic decisions'],
   },
   {
     id: 'accountant',
@@ -210,6 +175,7 @@ export const ALL_ROLES = [
     icon: Wallet,
     href: '/accountant/login',
     desc: 'Automated fee collection, penalty calculations, fine waivers, offline receipt printing, and revenue forecasting.',
+    blurb: 'Fee collection, invoicing, ledger reconciliation, and payment receipts.',
     highlights: ['Dues collection', 'Bank reconciliation', 'GST & Receipts'],
   },
   {
@@ -222,6 +188,7 @@ export const ALL_ROLES = [
     icon: Users,
     href: '/hr/login',
     desc: 'Faculty onboarding, digital service book records, staff leave balances, biometric shifts, and payroll generation.',
+    blurb: 'Staff directory, payroll generation, biometric shifts, and leave tracking.',
     highlights: ['Staff directory', 'Leave approvals', 'Salary slips'],
   },
   {
@@ -234,19 +201,60 @@ export const ALL_ROLES = [
     icon: BookOpen,
     href: '/librarian/login',
     desc: 'Complete book cataloguing, ISBN barcode indexing, student checkout counters, reservations, and overdue collections.',
+    blurb: 'Catalog management, barcode book issue/return, fines, and student library records.',
     highlights: ['ISBN lookup', 'Barcode checkout', 'Lost book fine'],
   },
   {
-    id: 'transport',
-    key: 'transport',
-    name: 'Transport',
-    badge: 'Fleet Ops',
-    color: 'border-cyan-500/30 text-cyan-600 dark:text-cyan-400 bg-cyan-500/10',
-    iconBg: 'bg-cyan-600 text-white',
-    icon: Bus,
-    href: '/transport/login',
-    desc: 'Driver & conductor mobile app for route stops, passenger onboarding checklists, vehicle maintenance, and emergency SOS.',
-    highlights: ['Stop checkpoints', 'Speed telemetry', 'Emergency SOS'],
+    id: 'teacher',
+    key: 'teacher',
+    name: 'Teacher',
+    badge: 'Classroom & Mobile',
+    color: 'border-sky-500/30 text-sky-600 dark:text-sky-400 bg-sky-500/10',
+    iconBg: 'bg-sky-600 text-white',
+    icon: CalendarCheck,
+    href: '/teacher/login',
+    desc: 'Fast daily attendance marking, assignment allocation, grading rubric entry, and direct parent messaging.',
+    blurb: 'Daily attendance, assignment grading, syllabus pacing, and parent communication.',
+    highlights: ['1-tap attendance', 'Marks entry', 'Assignments'],
+  },
+  {
+    id: 'student',
+    key: 'student',
+    name: 'Student',
+    badge: 'Learner Portal',
+    color: 'border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10',
+    iconBg: 'bg-emerald-600 text-white',
+    icon: GraduationCap,
+    href: '/student/login',
+    desc: 'Personalized student feed: daily timetable, upcoming homework submissions, exam report cards, and notices.',
+    blurb: 'Daily timetable, digital homework submissions, report cards, and fee receipts.',
+    highlights: ['Study timetable', 'Digital submissions', 'Result cards'],
+  },
+  {
+    id: 'parent',
+    key: 'parent',
+    name: 'Parent',
+    badge: 'Guardian Connect',
+    color: 'border-rose-500/30 text-rose-600 dark:text-rose-400 bg-rose-500/10',
+    iconBg: 'bg-rose-600 text-white',
+    icon: HeartHandshake,
+    href: '/parent/login',
+    desc: 'Live bus tracking, daily attendance alerts, real-time fee payments with instant receipts, and teacher discussions.',
+    blurb: 'Live bus GPS tracking, attendance alerts, online fee payments, and remarks.',
+    highlights: ['Live GPS tracking', '1-click fee pay', 'Attendance alert'],
+  },
+  {
+    id: 'super-admin',
+    key: 'super-admin',
+    name: 'Platform Super Admin',
+    badge: 'Platform Control',
+    color: 'border-violet-500/30 text-violet-600 dark:text-violet-400 bg-violet-500/10',
+    iconBg: 'bg-violet-600 text-white',
+    icon: ShieldCheck,
+    href: '/login',
+    desc: 'Multi-campus tenant orchestration, subscription lifecycle, platform security auditing, and global licensing.',
+    blurb: 'Multi-tenant infrastructure, school onboarding, license keys, and security audits.',
+    highlights: ['Multi-tenant control', 'Billing & Plans', 'Audit logs'],
   },
 ];
 
@@ -362,7 +370,7 @@ export const TESTIMONIALS = [
     avatar: 'MD',
     avatarBg: 'bg-blue-600',
     content:
-      'The multi-tenant architecture and security guarantees gave our governing board complete confidence. The live transport tracking has brought incredible peace of mind to our parents.',
+      'The multi-tenant architecture and security guarantees gave our governing board complete confidence. The transport module has brought incredible clarity to our daily bus runs.',
   },
   {
     id: '3',
@@ -384,7 +392,7 @@ export const TESTIMONIALS = [
     avatar: 'VM',
     avatarBg: 'bg-emerald-600',
     content:
-      'The unified Android app for transport and teachers eliminated five separate clunky vendor apps. Our operations run smoother and communication is instantaneous.',
+      'The unified Android app for teachers, students and parents eliminated five separate clunky vendor apps. Our operations run smoother and communication is instantaneous.',
   },
   {
     id: '5',
@@ -399,13 +407,13 @@ export const TESTIMONIALS = [
   },
 ];
 
-// Legacy portals export compatibility (for footer/about page)
+// Web portals (for login picker, footer and about page)
 export const WEB_PORTALS = ALL_ROLES.filter((r) =>
-  ['school-admin', 'accountant', 'hr', 'librarian'].includes(r.id) || r.id === 'school-admin'
+  ['school-admin', 'principal', 'accountant', 'hr', 'librarian'].includes(r.id)
 );
 
 export const APP_ROLES = ALL_ROLES.filter((r) =>
-  ['teacher', 'student', 'parent', 'transport'].includes(r.id)
+  ['teacher', 'student', 'parent'].includes(r.id)
 );
 
 // Product FAQ

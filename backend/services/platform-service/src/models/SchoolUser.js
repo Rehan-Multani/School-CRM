@@ -93,14 +93,6 @@ const schoolUserSchema = new mongoose.Schema(
     // Fine-grained RBAC (additive — empty means legacy role-based access only)
     roleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Role', default: null },
     roleName: { type: String, default: '', trim: true },
-    // Transport APK (only meaningful when role === 'TRANSPORT'; additive)
-    transportRole: {
-      type: String,
-      enum: ['', 'DRIVER', 'CONDUCTOR', 'TRANSPORT_STAFF', 'TRANSPORT_MANAGER', 'TRANSPORT_ADMIN'],
-      default: '',
-    },
-    assignedVehicleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle', default: null },
-    assignedRouteId: { type: mongoose.Schema.Types.ObjectId, ref: 'TransportRoute', default: null },
   },
   { timestamps: true }
 );
@@ -152,9 +144,6 @@ schoolUserSchema.methods.toPublicJSON = function toPublicJSON() {
     documents: Array.isArray(this.documents) ? this.documents : [],
     photo: this.photo || '',
     status: this.status,
-    transportRole: this.transportRole || '',
-    assignedVehicleId: this.assignedVehicleId ? this.assignedVehicleId.toString() : null,
-    assignedRouteId: this.assignedRouteId ? this.assignedRouteId.toString() : null,
     preferences: this.preferences || {},
     lastLoginAt: this.lastLoginAt,
     credentialsSentAt: this.credentialsSentAt,

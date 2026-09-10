@@ -177,7 +177,24 @@ class InventoryService {
       patch.condition = pickEnum(payload.condition, ASSET_CONDITIONS, existing.condition);
     }
     if (payload.status !== undefined) {
-      patch.status = pickEnum(payload.status, ASSET_STATUSES, existing.status);
+      // ISSUED / WRITTEN_OFF are derived from stock movements — only the repair
+      // flag is a manual decision, so that is all an edit may set.
+      const nextStatus = pickEnum(payload.status, ['IN_STORE', 'UNDER_REPAIR'], null);
+      if (!nextStatus) {
+        throw new AppError(
+          'Status can only be set to IN_STORE or UNDER_REPAIR — ISSUED and WRITTEN_OFF come from stock movements',
+          400
+        );
+      }
+      if (nextStatus !== existing.status) {
+        if (existing.status === 'WRITTEN_OFF') {
+          throw new AppError('A written-off asset cannot be brought back — add it as a new asset', 400);
+        }
+        if (existing.issuedQuantity > 0) {
+          throw new AppError('Cannot change status while units are issued out. Return them first.', 400);
+        }
+        patch.status = nextStatus;
+      }
     }
 
     const doc = await inventoryRepository.updateAsset(schoolId, id, patch);
@@ -233,6 +250,8 @@ class InventoryService {
         ? 'ISSUED'
         : quantity <= 0
         ? 'WRITTEN_OFF'
+        : status === 'UNDER_REPAIR'
+        ? 'UNDER_REPAIR'
         : 'IN_STORE';
 
     const updated = await inventoryRepository.updateAsset(schoolId, id, {

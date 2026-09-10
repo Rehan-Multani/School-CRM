@@ -474,6 +474,7 @@ export const BookDetail = () => {
             <div className="space-y-1">
               <label className="text-3xs font-bold text-slate-500 uppercase">Acquisition Price (₹)</label>
               <input
+                placeholder="e.g. 450"
                 type="number"
                 min="0"
                 value={copyForm.price}

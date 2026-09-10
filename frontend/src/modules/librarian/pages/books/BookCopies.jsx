@@ -375,6 +375,7 @@ export const BookCopies = () => {
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-550 dark:text-slate-400">Acquisition Price (₹)</label>
               <input
+                placeholder="e.g. 450"
                 type="number"
                 min="0"
                 value={formData.price}

@@ -676,6 +676,27 @@ export async function listHRDocuments(req, res, next) {
 
 export async function uploadHRDocument(req, res, next) {
   try {
+    const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+
+    // FIX #8: Validate file size at controller level
+    if (req.files?.documents) {
+      for (const file of req.files.documents) {
+        if (file.size > MAX_FILE_SIZE) {
+          return res.status(413).json({
+            success: false,
+            message: `File size exceeds 2MB limit. Uploaded: ${(file.size / 1024 / 1024).toFixed(2)}MB`,
+          });
+        }
+      }
+    }
+
+    if (req.file && req.file.size > MAX_FILE_SIZE) {
+      return res.status(413).json({
+        success: false,
+        message: `File size exceeds 2MB limit. Uploaded: ${(req.file.size / 1024 / 1024).toFixed(2)}MB`,
+      });
+    }
+
     const files = req.files ? collectSchoolUserUploadFiles(req) : {};
     let fileUrl = files.documents?.[0] || files.photo || '';
     if (!fileUrl && req.file) {
@@ -788,6 +809,19 @@ export async function createAnnouncement(req, res, next) {
       success: true,
       data,
       message: 'Announcement published successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateAnnouncement(req, res, next) {
+  try {
+    const data = await hrService.updateAnnouncement(schoolId(req), req.params.id, req.body);
+    res.json({
+      success: true,
+      data,
+      message: 'Announcement updated successfully',
     });
   } catch (error) {
     next(error);

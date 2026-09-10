@@ -34,6 +34,7 @@ import {
   Ban,
   Play,
   AlertTriangle,
+  MailCheck,
   ChevronLeft,
   ChevronRight,
   KeyRound,
@@ -656,7 +657,7 @@ export default function SchoolsIndex() {
     setDeleting(true);
     try {
       await platformSchoolApi.remove(schoolToDelete.id);
-      addNotification('error', `School deleted: ${schoolToDelete.name}`);
+      addNotification('warning', `School deleted: ${schoolToDelete.name}`);
       setSchoolToDelete(null);
       const nextPage = schools.length === 1 && page > 1 ? page - 1 : page;
       if (nextPage !== page) {
@@ -868,6 +869,7 @@ export default function SchoolsIndex() {
                   </Field>
                   <Field id="contact.principalName" label="Principal Name">
                     <input
+                      placeholder="e.g. Dr. Anita Rao"
                       id="contact.principalName"
                       className={inputClass}
                       value={form.contact.principalName}
@@ -882,6 +884,7 @@ export default function SchoolsIndex() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field id="address.line1" label="Address Line 1" required>
                     <input
+                      placeholder="e.g. 12 MG Road"
                       id="address.line1"
                       className={inputClass}
                       value={form.address.line1}
@@ -891,6 +894,7 @@ export default function SchoolsIndex() {
                   </Field>
                   <Field id="address.line2" label="Address Line 2">
                     <input
+                      placeholder="e.g. Near City Mall"
                       id="address.line2"
                       className={inputClass}
                       value={form.address.line2}
@@ -899,6 +903,7 @@ export default function SchoolsIndex() {
                   </Field>
                   <Field id="address.city" label="City" required>
                     <input
+                      placeholder="e.g. Pune"
                       id="address.city"
                       className={inputClass}
                       value={form.address.city}
@@ -908,6 +913,7 @@ export default function SchoolsIndex() {
                   </Field>
                   <Field id="address.state" label="State" required>
                     <input
+                      placeholder="e.g. Maharashtra"
                       id="address.state"
                       className={inputClass}
                       value={form.address.state}
@@ -917,6 +923,7 @@ export default function SchoolsIndex() {
                   </Field>
                   <Field id="address.country" label="Country" required>
                     <input
+                      placeholder="e.g. India"
                       id="address.country"
                       className={inputClass}
                       value={form.address.country}
@@ -926,6 +933,7 @@ export default function SchoolsIndex() {
                   </Field>
                   <Field id="address.pincode" label="Pincode" required>
                     <input
+                      placeholder="e.g. 411001"
                       id="address.pincode"
                       className={inputClass}
                       value={form.address.pincode}
@@ -1514,8 +1522,8 @@ export default function SchoolsIndex() {
             <DialogTitle>School admin login</DialogTitle>
             <DialogDescription>
               {credentials?.emailSent
-                ? 'Password has been emailed to the school admin email. Copy it here as a backup — it will not be shown again unless you reset the login.'
-                : 'Email is not configured yet, so copy these credentials and share them with the school admin. They will not be shown again unless you reset the login.'}
+                ? 'The password was emailed to the school admin. It is never shown here — use “Reset login” to send a fresh one.'
+                : 'The password could not be emailed. Configure SMTP, then use “Reset login” to generate and send a new one.'}
             </DialogDescription>
           </DialogHeader>
           {credentials && (
@@ -1523,7 +1531,6 @@ export default function SchoolsIndex() {
               {[
                 { label: 'School ID', value: credentials.schoolId },
                 { label: 'Email', value: credentials.email },
-                { label: 'Password', value: credentials.password },
               ].map((item) => (
                 <div key={item.label} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-900">
                   <div className="min-w-0">
@@ -1540,8 +1547,34 @@ export default function SchoolsIndex() {
                   </button>
                 </div>
               ))}
+              <div
+                className={`flex items-start gap-2.5 rounded-xl border px-3 py-2.5 ${
+                  credentials.emailSent
+                    ? 'border-emerald-200 bg-emerald-50 dark:border-emerald-500/20 dark:bg-emerald-500/10'
+                    : 'border-amber-200 bg-amber-50 dark:border-amber-500/20 dark:bg-amber-500/10'
+                }`}
+              >
+                {credentials.emailSent ? (
+                  <MailCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                ) : (
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                )}
+                <p className="text-xs text-slate-700 dark:text-slate-300">
+                  {credentials.emailSent ? (
+                    <>
+                      Password sent to{' '}
+                      <span className="font-semibold text-slate-900 dark:text-white">{credentials.email}</span>.
+                    </>
+                  ) : (
+                    <>
+                      Could not email the password. The admin cannot sign in until SMTP is configured and you
+                      run <span className="font-semibold">Reset login</span>.
+                    </>
+                  )}
+                </p>
+              </div>
               <p className="text-xs text-slate-500">
-                School admin signs in at <span className="font-semibold">/school-admin/login</span>, then chooses a subscription plan. After that, Super Admin updates invoice status on Billings.
+                School admin signs in at <span className="font-semibold">/school-admin/login</span>, then chooses a subscription plan.
               </p>
               <Button type="button" className="w-full" onClick={() => setCredentials(null)}>
                 Done

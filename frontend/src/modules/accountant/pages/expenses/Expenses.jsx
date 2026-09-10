@@ -267,6 +267,7 @@ export const Expenses = () => {
           <form onSubmit={submit} className="space-y-4 text-xs font-semibold">
             <Field label="Title / Description *">
               <input
+                placeholder="e.g. Monthly electricity bill"
                 value={modal.form.title}
                 onChange={(e) => setModal((m) => ({ ...m, form: { ...m.form, title: e.target.value } }))}
                 required
@@ -276,6 +277,7 @@ export const Expenses = () => {
             <div className="grid grid-cols-2 gap-3">
               <Field label="Category *">
                 <input
+                  placeholder="e.g. Utilities"
                   list="expense-categories"
                   value={modal.form.category}
                   onChange={(e) => setModal((m) => ({ ...m, form: { ...m.form, category: e.target.value } }))}
@@ -290,6 +292,7 @@ export const Expenses = () => {
               </Field>
               <Field label="Vendor / Payee">
                 <input
+                  placeholder="e.g. Sharma Electricals"
                   value={modal.form.vendorName}
                   onChange={(e) => setModal((m) => ({ ...m, form: { ...m.form, vendorName: e.target.value } }))}
                   className="inp"
@@ -299,6 +302,7 @@ export const Expenses = () => {
             <div className="grid grid-cols-2 gap-3">
               <Field label="Amount (₹) *">
                 <input
+                  placeholder="e.g. 5000"
                   type="number"
                   min="1"
                   value={modal.form.amount}
@@ -359,6 +363,7 @@ export const Expenses = () => {
             </div>
             <Field label="Reference / Invoice No">
               <input
+                placeholder="e.g. INV-2025-0142"
                 value={modal.form.reference}
                 onChange={(e) => setModal((m) => ({ ...m, form: { ...m.form, reference: e.target.value } }))}
                 className="inp font-mono"
@@ -366,6 +371,7 @@ export const Expenses = () => {
             </Field>
             <Field label="Notes">
               <textarea
+                placeholder="Any extra detail about this expense"
                 rows={2}
                 value={modal.form.notes}
                 onChange={(e) => setModal((m) => ({ ...m, form: { ...m.form, notes: e.target.value } }))}

@@ -71,12 +71,6 @@ import { LibrarianLayout } from './modules/librarian/components/layout/Librarian
 import { LibrarianLogin } from './modules/librarian/pages/LibrarianLogin';
 import { LibrarianRoutes } from './modules/librarian/routes/LibrarianRoutes';
 
-import { TransportAuthProvider } from './modules/transport/context/TransportAuthContext';
-import { TransportThemeProvider } from './modules/transport/context/TransportThemeContext';
-import { TransportNotificationProvider } from './modules/transport/context/TransportNotificationContext';
-import { ToastProvider as TransportToastProvider } from './modules/transport/components/ui/Toast';
-import { TransportLogin } from './modules/transport/pages/TransportLogin';
-import { TransportRoutes } from './modules/transport/routes/TransportRoutes';
 
 function App() {
   return (
@@ -109,10 +103,6 @@ function App() {
                                                          <LibrarianAuthProvider>
                                                            <LibrarianNotificationProvider>
                                                              <LibrarianToastProvider>
-                                                               <TransportThemeProvider>
-                                                                 <TransportAuthProvider>
-                                                                   <TransportNotificationProvider>
-                                                                     <TransportToastProvider>
                                                                        <Routes>
                                                                          {/* Public marketing site */}
                                                                          <Route element={<LandingLayout />}>
@@ -176,14 +166,7 @@ function App() {
                                                                            <Route path="*" element={<LibrarianRoutes />} />
                                                                          </Route>
 
-                                                                         {/* Transport Routes */}
-                                                                         <Route path="/transport/login" element={<TransportLogin />} />
-                                                                         <Route path="/transport/*" element={<TransportRoutes />} />
                                                                        </Routes>
-                                                                     </TransportToastProvider>
-                                                                   </TransportNotificationProvider>
-                                                                 </TransportAuthProvider>
-                                                               </TransportThemeProvider>
                                                              </LibrarianToastProvider>
                                                            </LibrarianNotificationProvider>
                                                          </LibrarianAuthProvider>

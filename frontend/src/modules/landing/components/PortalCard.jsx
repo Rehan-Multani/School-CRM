@@ -16,7 +16,7 @@ export const PortalCard = ({ portal }) => {
       </span>
       <h3 className="mt-4 text-base font-bold text-slate-900 dark:text-white">{portal.name}</h3>
       <p className="mt-1.5 flex-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-        {portal.blurb}
+        {portal.blurb || portal.desc}
       </p>
       <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-indigo-600 dark:text-indigo-400">
         Open portal

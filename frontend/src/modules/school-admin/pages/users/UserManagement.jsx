@@ -7,6 +7,7 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { schoolUserApi, hrApi } from '../../../../shared/api/client';
 import { apiMessage } from '../academics/utils';
+import { sanitizeMobileInput, isValid10DigitMobile } from '../../../../shared/utils/mobileValidation';
 import {
   Briefcase,
   Building2,
@@ -330,6 +331,11 @@ export const UserManagement = () => {
 
     if (!editingUser && (!form.password || form.password.length < 6)) {
       showToast('Initial login password must be at least 6 characters', 'error');
+      return;
+    }
+
+    if (form.phone && !isValid10DigitMobile(form.phone, false)) {
+      showToast('Phone / Mobile number must be exactly 10 digits', 'error');
       return;
     }
 
@@ -949,12 +955,21 @@ export const UserManagement = () => {
               </div>
 
               <div>
-                <label className="mb-1 block text-[11px] font-bold text-slate-500">Phone / Mobile</label>
+                <div className="mb-1 flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-slate-500">Phone / Mobile</label>
+                  {form.phone ? (
+                    <span className={`text-[10px] font-bold ${form.phone.length === 10 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                      {form.phone.length}/10 digits
+                    </span>
+                  ) : null}
+                </div>
                 <input
-                  type="text"
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
                   value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  placeholder="+91 98765 43210"
+                  onChange={(e) => setForm({ ...form, phone: sanitizeMobileInput(e.target.value) })}
+                  placeholder="9876543210"
                   className={inputClass}
                 />
               </div>

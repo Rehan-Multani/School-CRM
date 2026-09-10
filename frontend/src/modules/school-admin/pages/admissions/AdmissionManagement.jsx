@@ -8,6 +8,7 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { admissionsApi, academicPortalApi } from '../../../../shared/api/client';
 import { apiMessage } from '../academics/utils';
+import { sanitizeMobileInput, isValid10DigitMobile } from '../../../../shared/utils/mobileValidation';
 import { Eye, FileCheck, UserPlus, IdCard, Printer, RotateCcw, Trash2 } from 'lucide-react';
 
 const inputCls =
@@ -134,9 +135,13 @@ export const AdmissionManagement = () => {
     if (!offlineForm.applicantName.trim() || !offlineForm.guardianName.trim() || !offlineForm.phone.trim()) {
       return showToast('Name, guardian and phone are required', 'error');
     }
+    if (!isValid10DigitMobile(offlineForm.phone, true)) {
+      return showToast('Contact phone must be exactly 10 digits', 'error');
+    }
+    const cleanPhone = sanitizeMobileInput(offlineForm.phone);
     setOfflineSaving(true);
     try {
-      const created = await admissionsApi.create({ ...offlineForm, source: 'OFFLINE' });
+      const created = await admissionsApi.create({ ...offlineForm, phone: cleanPhone, source: 'OFFLINE' });
       const newId = created?.data?.id;
       if (newId && offlineForm.appliedClassId) {
         try {
@@ -405,23 +410,39 @@ export const AdmissionManagement = () => {
               <input className={inputCls} required value={offlineForm.guardianName} onChange={(e) => setOfflineForm({ ...offlineForm, guardianName: e.target.value })} placeholder="e.g. Ramesh Verma" />
             </div>
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-500">Contact Phone *</label>
-              <input className={inputCls} required value={offlineForm.phone} onChange={(e) => setOfflineForm({ ...offlineForm, phone: e.target.value })} placeholder="+91 98765 00000" />
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-500">Contact Phone *</label>
+                {offlineForm.phone ? (
+                  <span className={`text-[10px] font-bold ${offlineForm.phone.length === 10 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                    {offlineForm.phone.length}/10 digits
+                  </span>
+                ) : null}
+              </div>
+              <input
+                type="tel"
+                inputMode="numeric"
+                maxLength={10}
+                className={inputCls}
+                required
+                value={offlineForm.phone}
+                onChange={(e) => setOfflineForm({ ...offlineForm, phone: sanitizeMobileInput(e.target.value) })}
+                placeholder="9876500000"
+              />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500">Email</label>
-              <input className={inputCls} value={offlineForm.email} onChange={(e) => setOfflineForm({ ...offlineForm, email: e.target.value })} />
+              <input placeholder="e.g. parent@example.com" className={inputCls} value={offlineForm.email} onChange={(e) => setOfflineForm({ ...offlineForm, email: e.target.value })} />
             </div>
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500">Previous School</label>
-              <input className={inputCls} value={offlineForm.previousSchool} onChange={(e) => setOfflineForm({ ...offlineForm, previousSchool: e.target.value })} />
+              <input placeholder="e.g. St. Xavier's High School" className={inputCls} value={offlineForm.previousSchool} onChange={(e) => setOfflineForm({ ...offlineForm, previousSchool: e.target.value })} />
             </div>
           </div>
           <div className="space-y-1">
             <label className="text-xs font-bold text-slate-500">Address</label>
-            <input className={inputCls} value={offlineForm.address} onChange={(e) => setOfflineForm({ ...offlineForm, address: e.target.value })} />
+            <input placeholder="House no, street, city" className={inputCls} value={offlineForm.address} onChange={(e) => setOfflineForm({ ...offlineForm, address: e.target.value })} />
           </div>
           <p className="text-[11px] text-slate-400">
             With a class selected, the applicant is enrolled immediately and added to the Student roster.

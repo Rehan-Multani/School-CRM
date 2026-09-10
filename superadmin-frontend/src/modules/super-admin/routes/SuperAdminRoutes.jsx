@@ -4,10 +4,10 @@ import { useSuperAdminAuth } from '../context/SuperAdminAuthContext';
 import { Pulse, KpiSkeleton } from '../components/ui/SkeletonLoader';
 import Dashboard from '../pages/dashboard/Dashboard';
 import SchoolsIndex from '../pages/schools/SchoolsIndex';
+import PlansIndex from '../pages/subscriptions/PlansIndex';
 import SubscriptionsIndex from '../pages/subscriptions/SubscriptionsIndex';
 import NotificationsIndex from '../pages/notifications/NotificationsIndex';
 import RevenueIndex from '../pages/revenue/RevenueIndex';
-import BillingIndex from '../pages/billing/BillingIndex';
 import ReportsIndex from '../pages/reports/ReportsIndex';
 import PrivacyPolicyIndex from '../pages/privacy/PrivacyPolicyIndex';
 import SupportIndex from '../pages/support/SupportIndex';
@@ -62,6 +62,14 @@ export const SuperAdminRoutes = () => {
         }
       />
       <Route
+        path="plans"
+        element={
+          <ProtectedRoute>
+            <PlansIndex />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="subscriptions"
         element={
           <ProtectedRoute>
@@ -85,14 +93,8 @@ export const SuperAdminRoutes = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="billing"
-        element={
-          <ProtectedRoute>
-            <BillingIndex />
-          </ProtectedRoute>
-        }
-      />
+      {/* Billing merged into Subscriptions — keep old links working. */}
+      <Route path="billing" element={<Navigate to="/super-admin/subscriptions" replace />} />
       <Route
         path="reports"
         element={

@@ -1,7 +1,7 @@
 /**
  * End-to-end happy-path walk for all four role APKs against a real (in-memory)
  * Mongo — proves login → every tab → the key write operations connect for
- * Teacher, Student, Parent and Transport in one run.
+ * Teacher, Student, Parent and Driver in one run.
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import request from 'supertest';
@@ -169,66 +169,69 @@ describe('E2E · Parent APK', () => {
   });
 });
 
-/* ============================== TRANSPORT ============================== */
-describe('E2E · Transport APK', () => {
+/* =============================== DRIVER =============================== */
+describe('E2E · Driver API', () => {
   let token;
-  let mgr;
-  let tripId;
-  const T = '/school-portal/transport-app';
-  it('login → me → dashboard', async () => {
+  const D = '/school-portal/driver';
+
+  it('login → me → my route', async () => {
     const login = await request(app)
-      .post('/school-portal/auth/transport-login')
-      .send({ identifier: ctx.a.driverLoginEmail, password: ctx.a.driverPassword });
+      .post('/school-portal/auth/driver-login')
+      .send({ mobile: ctx.a.driverMobile, password: ctx.a.driverPassword });
     expect(login.status).toBe(200);
-    token = login.body.token;
-    mgr = ctx.a.transportManagerToken;
-    const dash = await request(app).get(`${T}/dashboard`).set(auth(token));
-    expect(dash.status).toBe(200);
-    tripId = dash.body.data.todaysTrip.id;
-    expect(tripId).toBe(ctx.a.tripId);
-  });
-  it('morning-pickup flow: inspection → start → arrive → board → depart → complete', async () => {
-    expect((await request(app).post(`${T}/trips/${tripId}/inspection`).set(auth(token)).send({ items: [] })).body.data.passed).toBe(true);
-    expect((await request(app).post(`${T}/trips/${tripId}/start`).set(auth(token))).body.data.status).toBe('STARTED');
-    expect((await request(app).post(`${T}/trips/${tripId}/stops/${ctx.a.stopId}/arrive`).set(auth(token)).send({ lat: 22.7196, lng: 75.8577 })).body.data.status).toBe('IN_PROGRESS');
+    token = login.body.data.token;
 
-    const board = await request(app)
-      .post(`${T}/trips/${tripId}/students/${ctx.a.studentId}/board`)
+    const me = await request(app).get(`${D}/me`).set(auth(token));
+    expect(me.status).toBe(200);
+    expect(me.body.data.driver.route.id).toBe(ctx.a.routeId);
+    expect(me.body.data.driver.vehicle.id).toBe(ctx.a.vehicleId);
+
+    const route = await request(app).get(`${D}/route`).set(auth(token));
+    expect(route.status).toBe(200);
+    expect(route.body.data.stops.map((s) => s.sequenceOrder)).toEqual([1, 2]);
+    expect(route.body.data.stops[0].pickupTime).toBe('07:30 AM');
+  });
+
+  it('student list inherits each rider timing from their stop', async () => {
+    const list = await request(app).get(`${D}/students?date=${today()}`).set(auth(token));
+    expect(list.status).toBe(200);
+    expect(list.body.data.students).toHaveLength(1);
+    const [rider] = list.body.data.students;
+    expect(rider.studentId).toBe(ctx.a.studentId);
+    expect(rider.stop.stopName).toBe('Teen Imli');
+    expect(rider.pickupTime).toBe('07:30 AM');
+    expect(rider.dropTime).toBe('04:00 PM');
+    expect(rider.pickupStatus).toBe('PENDING');
+    expect(rider.dropStatus).toBe('PENDING');
+  });
+
+  it('drop before pickup is refused; pickup then drop, both idempotent', async () => {
+    const early = await request(app).post(`${D}/students/${ctx.a.studentId}/drop`).set(auth(token));
+    expect(early.status).toBe(409);
+
+    const pickup = await request(app).post(`${D}/students/${ctx.a.studentId}/pickup`).set(auth(token));
+    expect(pickup.status).toBe(200);
+    expect(pickup.body.data.pickupStatus).toBe('PICKED_UP');
+    const repeat = await request(app).post(`${D}/students/${ctx.a.studentId}/pickup`).set(auth(token));
+    expect(repeat.body.message).toMatch(/Already/i);
+
+    const drop = await request(app).post(`${D}/students/${ctx.a.studentId}/drop`).set(auth(token));
+    expect(drop.body.data.dropStatus).toBe('DROPPED');
+
+    const list = await request(app).get(`${D}/students`).set(auth(token));
+    expect(list.body.data.pickedUpCount).toBe(1);
+    expect(list.body.data.droppedCount).toBe(1);
+  });
+
+  it('rejects a future date and another school\'s student', async () => {
+    const future = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+    const ahead = await request(app)
+      .post(`${D}/students/${ctx.a.studentId}/pickup`)
       .set(auth(token))
-      .set('Idempotency-Key', 'e2e-trp-board')
-      .send({ lat: 22.7196, lng: 75.8577 });
-    expect(board.body.data.status).toBe('BOARDED');
+      .send({ date: future });
+    expect(ahead.status).toBe(400);
 
-    expect((await request(app).post(`${T}/trips/${tripId}/stops/${ctx.a.stopId}/depart`).set(auth(token))).status).toBe(200);
-    expect((await request(app).post(`${T}/trips/${tripId}/complete`).set(auth(token))).body.data.status).toBe('COMPLETED');
-  });
-  it('GPS ping + read, alerts feed, SOS raise→ack→resolve', async () => {
-    // start a fresh AFTERNOON trip via the manager to have an active trip for GPS/SOS
-    const create = await request(app)
-      .post(`${T}/trips`)
-      .set(auth(mgr))
-      .set('Idempotency-Key', 'e2e-trp-create')
-      .send({ routeId: ctx.a.routeId, tripType: 'AFTERNOON_DROPOFF' });
-    expect(create.status).toBe(201);
-    const t2 = create.body.data.id;
-    await request(app).post(`${T}/trips/${t2}/inspection`).set(auth(token)).send({ items: [] });
-    await request(app).post(`${T}/trips/${t2}/start`).set(auth(token));
-
-    const ping = await request(app).post(`${T}/trips/${t2}/location`).set(auth(token)).send({ latitude: 22.72, longitude: 75.86, accuracy: 6, speed: 25 });
-    expect(ping.body.data.recorded).toBe(true);
-    expect((await request(app).get(`${T}/trips/${t2}/location`).set(auth(token))).body.data.location.lat).toBeCloseTo(22.72, 2);
-
-    const sos = await request(app).post(`${T}/sos`).set(auth(token)).set('Idempotency-Key', 'e2e-trp-sos').send({ tripId: t2, description: 'e2e emergency', location: { lat: 22.72, lng: 75.86 } });
-    expect(sos.status).toBe(201);
-    const alerts = await request(app).get(`${T}/alerts?type=EMERGENCY`).set(auth(mgr));
-    expect(alerts.body.data.some((a) => a.severity === 'CRITICAL')).toBe(true);
-    expect((await request(app).patch(`${T}/sos/${sos.body.data.id}`).set(auth(mgr)).send({ action: 'acknowledge' })).body.data.status).toBe('ACKNOWLEDGED');
-    expect((await request(app).patch(`${T}/sos/${sos.body.data.id}`).set(auth(mgr)).send({ action: 'resolve', note: 'done' })).body.data.status).toBe('RESOLVED');
-  });
-  it('profile · vehicle · documents · route · settings', async () => {
-    for (const p of ['/profile', '/vehicle', '/vehicle/documents', '/vehicle/inspection-history', '/route', '/settings', '/notifications']) {
-      expect((await request(app).get(`${T}${p}`).set(auth(token))).status, p).toBe(200);
-    }
-    expect((await request(app).patch(`${T}/settings`).set(auth(mgr)).send({ delayThresholdMin: 14 })).body.data.delayThresholdMin).toBe(14);
+    const cross = await request(app).post(`${D}/students/${ctx.b.studentId}/pickup`).set(auth(token));
+    expect(cross.status).toBe(404);
   });
 });

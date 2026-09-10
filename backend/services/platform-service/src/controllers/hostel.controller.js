@@ -1,46 +1,13 @@
 import { hostelService } from '../services/hostel.service.js';
+import { schoolId } from '../utils/tenant.js';
 
-function schoolId(req) {
-  return req.user?.sub || req.schoolAdmin?.schoolId || req.user?.schoolId;
-}
+/**
+ * School-admin Hostel controllers. Every handler resolves the tenant from the
+ * verified JWT via `schoolId(req)` — never from the body, query or params.
+ */
 
-function userContext(req) {
-  return {
-    userId: req.user?.sub || req.schoolAdmin?.schoolAdminId || req.user?.id,
-    role: req.user?.role || req.schoolAdmin?.role,
-    name: req.user?.name || req.schoolAdmin?.name,
-  };
-}
+/* ------------------------------ STEP 1 · HOSTELS ------------------------------ */
 
-// --- DASHBOARD & DEMO SEED ---
-export async function getHostelDashboard(req, res, next) {
-  try {
-    const data = await hostelService.getDashboardStats(schoolId(req));
-    res.json({ success: true, data });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function seedDemoHostelData(req, res, next) {
-  try {
-    const result = await hostelService.seedDemoData(schoolId(req), userContext(req));
-    res.json({ success: true, message: result.message });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function getEligibleHostelEntities(req, res, next) {
-  try {
-    const data = await hostelService.getEligibleEntities(schoolId(req));
-    res.json({ success: true, data });
-  } catch (error) {
-    next(error);
-  }
-}
-
-// --- HOSTELS CRUD ---
 export async function listHostels(req, res, next) {
   try {
     const data = await hostelService.listHostels(schoolId(req), req.query);
@@ -62,11 +29,7 @@ export async function getHostel(req, res, next) {
 export async function createHostel(req, res, next) {
   try {
     const data = await hostelService.createHostel(schoolId(req), req.body);
-    res.status(201).json({
-      success: true,
-      message: 'Hostel building added successfully',
-      data,
-    });
+    res.status(201).json({ success: true, message: 'Hostel added', data });
   } catch (error) {
     next(error);
   }
@@ -75,11 +38,7 @@ export async function createHostel(req, res, next) {
 export async function updateHostel(req, res, next) {
   try {
     const data = await hostelService.updateHostel(schoolId(req), req.params.id, req.body);
-    res.json({
-      success: true,
-      message: 'Hostel updated successfully',
-      data,
-    });
+    res.json({ success: true, message: 'Hostel updated', data });
   } catch (error) {
     next(error);
   }
@@ -87,14 +46,15 @@ export async function updateHostel(req, res, next) {
 
 export async function deleteHostel(req, res, next) {
   try {
-    const result = await hostelService.deleteHostel(schoolId(req), req.params.id);
-    res.json({ success: true, message: result.message });
+    const data = await hostelService.deleteHostel(schoolId(req), req.params.id);
+    res.json({ success: true, message: 'Hostel deleted', data });
   } catch (error) {
     next(error);
   }
 }
 
-// --- ROOMS & AUTO-BEDS ---
+/* -------------------------- STEPS 2 + 3 · ROOMS & BEDS ------------------------ */
+
 export async function listRooms(req, res, next) {
   try {
     const data = await hostelService.listRooms(schoolId(req), req.query);
@@ -116,11 +76,7 @@ export async function getRoom(req, res, next) {
 export async function createRoom(req, res, next) {
   try {
     const data = await hostelService.createRoom(schoolId(req), req.body);
-    res.status(201).json({
-      success: true,
-      message: 'Room and beds created successfully',
-      data,
-    });
+    res.status(201).json({ success: true, message: 'Room added with its beds', data });
   } catch (error) {
     next(error);
   }
@@ -129,11 +85,7 @@ export async function createRoom(req, res, next) {
 export async function updateRoom(req, res, next) {
   try {
     const data = await hostelService.updateRoom(schoolId(req), req.params.id, req.body);
-    res.json({
-      success: true,
-      message: 'Room updated successfully',
-      data,
-    });
+    res.json({ success: true, message: 'Room updated', data });
   } catch (error) {
     next(error);
   }
@@ -141,14 +93,13 @@ export async function updateRoom(req, res, next) {
 
 export async function deleteRoom(req, res, next) {
   try {
-    const result = await hostelService.deleteRoom(schoolId(req), req.params.id);
-    res.json({ success: true, message: result.message });
+    const data = await hostelService.deleteRoom(schoolId(req), req.params.id);
+    res.json({ success: true, message: 'Room deleted', data });
   } catch (error) {
     next(error);
   }
 }
 
-// --- BEDS & VISUALIZER ---
 export async function listBeds(req, res, next) {
   try {
     const data = await hostelService.listBeds(schoolId(req), req.query);
@@ -158,16 +109,73 @@ export async function listBeds(req, res, next) {
   }
 }
 
-export async function getBedVisualizer(req, res, next) {
+/* ------------------------------ STEP 4 · WARDENS ------------------------------ */
+
+export async function listWardens(req, res, next) {
   try {
-    const data = await hostelService.getBedVisualizer(schoolId(req), req.query.hostelId);
+    const data = await hostelService.listWardens(schoolId(req), req.query);
     res.json({ success: true, data });
   } catch (error) {
     next(error);
   }
 }
 
-// --- ALLOCATIONS & CHECKOUT ---
+export async function getWarden(req, res, next) {
+  try {
+    const data = await hostelService.getWarden(schoolId(req), req.params.id);
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function createWarden(req, res, next) {
+  try {
+    const data = await hostelService.createWarden(schoolId(req), req.body);
+    res.status(201).json({ success: true, message: 'Warden added', data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateWarden(req, res, next) {
+  try {
+    const data = await hostelService.updateWarden(schoolId(req), req.params.id, req.body);
+    res.json({ success: true, message: 'Warden updated', data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function assignWardenToHostel(req, res, next) {
+  try {
+    const data = await hostelService.assignWardenToHostel(schoolId(req), req.params.id, req.body?.hostelId);
+    res.json({ success: true, message: 'Warden assigned to hostel', data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function unassignWardenFromHostel(req, res, next) {
+  try {
+    const data = await hostelService.unassignWardenFromHostel(schoolId(req), req.params.id);
+    res.json({ success: true, message: 'Warden removed from hostel', data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteWarden(req, res, next) {
+  try {
+    const data = await hostelService.deleteWarden(schoolId(req), req.params.id);
+    res.json({ success: true, message: 'Warden deleted', data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/* ------------------------ STEP 5 · STUDENT ASSIGNMENTS ------------------------ */
+
 export async function listAllocations(req, res, next) {
   try {
     const data = await hostelService.listAllocations(schoolId(req), req.query);
@@ -179,133 +187,66 @@ export async function listAllocations(req, res, next) {
 
 export async function allocateStudent(req, res, next) {
   try {
-    const data = await hostelService.allocateStudent(schoolId(req), req.body, userContext(req));
-    res.status(201).json({
-      success: true,
-      message: 'Student allocated to bed successfully',
-      data,
-    });
+    const data = await hostelService.assignStudent(schoolId(req), req.body);
+    res.status(201).json({ success: true, message: 'Student assigned to hostel', data });
   } catch (error) {
     next(error);
   }
 }
 
-export async function transferStudent(req, res, next) {
+export async function updateAllocation(req, res, next) {
   try {
-    const data = await hostelService.transferStudent(schoolId(req), req.params.id, req.body, userContext(req));
-    res.json({
-      success: true,
-      message: 'Student bed transferred successfully',
-      data,
-    });
+    const data = await hostelService.updateAllocation(schoolId(req), req.params.id, req.body);
+    res.json({ success: true, message: 'Hostel allocation updated', data });
   } catch (error) {
     next(error);
   }
 }
 
-export async function checkoutStudent(req, res, next) {
+export async function vacateAllocation(req, res, next) {
   try {
-    const data = await hostelService.checkoutStudent(schoolId(req), req.params.id, req.body, userContext(req));
-    res.json({
-      success: true,
-      message: 'Student checkout processed and bed released',
-      data,
-    });
+    const data = await hostelService.vacateAllocation(schoolId(req), req.params.id);
+    res.json({ success: true, message: 'Student vacated from hostel', data });
   } catch (error) {
     next(error);
   }
 }
 
-// --- ATTENDANCE ROLL CALL ---
-export async function getHostelAttendance(req, res, next) {
+/* ------------------------- STEP 6 · YEARLY HOSTEL FEE ------------------------- */
+
+export async function listHostelFees(req, res, next) {
   try {
-    const data = await hostelService.getDailyAttendance(schoolId(req), req.params.hostelId, req.query.date);
+    const data = await hostelService.listFees(schoolId(req));
     res.json({ success: true, data });
   } catch (error) {
     next(error);
   }
 }
 
-export async function saveHostelAttendance(req, res, next) {
+export async function setHostelFee(req, res, next) {
   try {
-    const data = await hostelService.saveDailyAttendance(schoolId(req), req.params.hostelId, req.body, userContext(req));
-    res.json({
-      success: true,
-      message: 'Night attendance recorded successfully',
-      data,
-    });
+    const data = await hostelService.setFee(schoolId(req), req.params.academicYearId, req.body);
+    res.json({ success: true, message: 'Yearly hostel fee saved', data });
   } catch (error) {
     next(error);
   }
 }
 
-// --- OUTINGS & GATE PASSES ---
-export async function listOutings(req, res, next) {
+export async function deleteHostelFee(req, res, next) {
   try {
-    const data = await hostelService.listOutings(schoolId(req), req.query);
+    const data = await hostelService.deleteFee(schoolId(req), req.params.academicYearId);
+    res.json({ success: true, message: 'Yearly hostel fee cleared', data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/* --------------------------------- LOOKUPS ------------------------------------ */
+
+export async function getHostelLookups(req, res, next) {
+  try {
+    const data = await hostelService.getLookups(schoolId(req));
     res.json({ success: true, data });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function createOuting(req, res, next) {
-  try {
-    const data = await hostelService.createOuting(schoolId(req), req.body, userContext(req));
-    res.status(201).json({
-      success: true,
-      message: 'Outing gate pass generated successfully',
-      data,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function updateOutingStatus(req, res, next) {
-  try {
-    const data = await hostelService.updateOutingStatus(schoolId(req), req.params.id, req.body, userContext(req));
-    res.json({
-      success: true,
-      message: 'Outing status updated successfully',
-      data,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
-// --- COMPLAINTS & MAINTENANCE ---
-export async function listComplaints(req, res, next) {
-  try {
-    const data = await hostelService.listComplaints(schoolId(req), req.query);
-    res.json({ success: true, data });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function createComplaint(req, res, next) {
-  try {
-    const data = await hostelService.createComplaint(schoolId(req), req.body);
-    res.status(201).json({
-      success: true,
-      message: 'Hostel complaint registered successfully',
-      data,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
-export async function updateComplaint(req, res, next) {
-  try {
-    const data = await hostelService.updateComplaint(schoolId(req), req.params.id, req.body, userContext(req));
-    res.json({
-      success: true,
-      message: 'Hostel complaint updated successfully',
-      data,
-    });
   } catch (error) {
     next(error);
   }

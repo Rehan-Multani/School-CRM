@@ -406,7 +406,7 @@ export const PerformanceReviews = () => {
             placeholder="Search by faculty name, employee ID, or department..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9.5 w-full rounded-xl border border-slate-200 bg-slate-50/80 pl-9 pr-3 text-xs font-semibold outline-none focus:border-indigo-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+            className="h-9.5 w-full rounded-xl border border-slate-200 bg-slate-50/80 pl-10 pr-3 text-xs font-semibold outline-none focus:border-indigo-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
           />
         </div>
 

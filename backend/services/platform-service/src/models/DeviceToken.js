@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 export const DEVICE_ROLES = [
+  'super-admin',
   'principal',
   'school-admin',
   'accountant',

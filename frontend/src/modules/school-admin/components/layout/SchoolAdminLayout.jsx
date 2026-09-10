@@ -58,6 +58,7 @@ export const SchoolAdminLayout = () => {
   }
 
   const onPlansPage = location.pathname.startsWith('/school-admin/plans');
+  const onRolesPage = location.pathname.startsWith('/school-admin/roles');
   if (!hasPlan && !onPlansPage) {
     return <Navigate to="/school-admin/plans" replace />;
   }
@@ -66,35 +67,37 @@ export const SchoolAdminLayout = () => {
     <SchoolAdminThemeScope className="min-h-screen flex bg-slate-50 text-slate-800 transition-colors duration-200 dark:bg-slate-950 dark:text-slate-200">
       <SchoolAdminBrandingEffect />
       {/* Desktop Navigation Sidebar */}
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      {!onRolesPage && <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />}
 
       {/* Mobile Drawer (collapsible off-canvas) */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <div className="fixed inset-0 z-50 flex md:hidden">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.4 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setMobileMenuOpen(false)}
-              className="fixed inset-0 bg-slate-950"
-            />
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="relative w-64 bg-slate-950 h-full flex flex-col z-10"
-            >
-              {/* Sidebar content locally embedded or toggle sidebar width values */}
-              <Sidebar isCollapsed={false} setIsCollapsed={() => {}} />
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {!onRolesPage && (
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <div className="fixed inset-0 z-50 flex md:hidden">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.4 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setMobileMenuOpen(false)}
+                className="fixed inset-0 bg-slate-950"
+              />
+              <motion.div
+                initial={{ x: '-100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '-100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="relative w-64 bg-slate-950 h-full flex flex-col z-10"
+              >
+                {/* Sidebar content locally embedded or toggle sidebar width values */}
+                <Sidebar isCollapsed={false} setIsCollapsed={() => {}} />
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      )}
 
       {/* Main Content Area */}
-      <div className={`flex-1 flex flex-col min-h-screen relative max-w-full overflow-x-hidden transition-[margin] duration-200 ${isCollapsed ? 'md:ml-[68px]' : 'md:ml-64'}`}>
+      <div className={`flex-1 flex flex-col min-h-screen relative max-w-full overflow-x-hidden transition-[margin] duration-200 ${onRolesPage ? '' : isCollapsed ? 'md:ml-[68px]' : 'md:ml-64'}`}>
         {/* Header/TopBar */}
         <TopBar 
           onMenuClick={() => setMobileMenuOpen(true)} 

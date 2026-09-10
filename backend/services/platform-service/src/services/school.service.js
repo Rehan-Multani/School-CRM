@@ -12,6 +12,7 @@ import { planEndDate, resolveSubscriptionStatus } from '../utils/subscription.ut
 import { schoolSubscriptionService } from './schoolSubscription.service.js';
 import { schoolSubscriptionRepository } from '../repositories/schoolSubscription.repository.js';
 import { razorpaySubscriptionService } from './razorpaySubscription.service.js';
+import { normalizeIndianMobile } from '../utils/mobile.js';
 
 const SCHOOL_TYPES = ['Public', 'Private', 'Government', 'Government Aided', 'International', 'Other'];
 const SCHOOL_BOARDS = ['CBSE', 'ICSE', 'State Board', 'IB', 'Cambridge', 'Other'];
@@ -43,26 +44,8 @@ function requireText(value, label) {
   return text;
 }
 
-function normalizeIndianMobile(value, label, required = true) {
-  const text = typeof value === 'string' ? value.trim() : '';
-  if (!text) {
-    if (required) {
-      throw new AppError(`${label} is required`, 400);
-    }
-    return '';
-  }
-
-  let digits = text.replace(/\D/g, '');
-  if (digits.startsWith('91') && digits.length === 12) {
-    digits = digits.slice(2);
-  }
-
-  if (!/^[6-9]\d{9}$/.test(digits)) {
-    throw new AppError(`${label} must be a 10-digit Indian mobile number with +91`, 400);
-  }
-
-  return `+91${digits}`;
-}
+// The 10-digit rule now lives in utils/mobile.js so every module applies the
+// same one; schools keep storing the +91 form they always have.
 
 function optionalText(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -305,6 +288,18 @@ function toPortalUser(school) {
   };
 }
 
+// The generated password is delivered by email only. Everything the Super Admin
+// is allowed to see about the new login goes through here, so no response path
+// can leak the plaintext by accident.
+function publicCredentials(credentials, emailSent) {
+  return {
+    email: credentials.email,
+    schoolId: credentials.schoolId,
+    schoolName: credentials.schoolName,
+    emailSent: Boolean(emailSent),
+  };
+}
+
 async function emailCredentials(credentials) {
   try {
     const sent = await sendSchoolWelcomeEmail({
@@ -349,7 +344,7 @@ export class SchoolService {
       }
       const credentials = await setAdminPassword(school, requestedPassword || generatePassword());
       const emailSent = await emailCredentials(credentials);
-      return { school: school.toPublicJSON(), credentials, emailSent };
+      return { school: school.toPublicJSON(), credentials: publicCredentials(credentials, emailSent), emailSent };
     } catch (error) {
       mapMongoError(error);
       throw error;
@@ -444,7 +439,7 @@ export class SchoolService {
     }
     const credentials = await setAdminPassword(school, trimmed);
     const emailSent = await emailCredentials(credentials);
-    return { ...credentials, emailSent };
+    return publicCredentials(credentials, emailSent);
   }
 
   async resetLogin(id, customPassword = null) {
@@ -457,7 +452,7 @@ export class SchoolService {
     }
     const credentials = await setAdminPassword(school, generatePassword());
     const emailSent = await emailCredentials(credentials);
-    return { ...credentials, emailSent };
+    return publicCredentials(credentials, emailSent);
   }
 
   async loginSchoolAdmin({ email, password }) {
@@ -829,7 +824,7 @@ export class SchoolService {
       throw new AppError('Current password is incorrect', 401);
     }
 
-    school.admin.passwordHash = await bcrypt.hash(newPassword, 10);
+    school.admin.passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
     school.admin.resetPasswordTokenHash = null;
     school.admin.resetPasswordExpiresAt = null;
     await school.save();
@@ -877,6 +872,27 @@ export class SchoolService {
       throw new AppError('School not found', 404);
     }
     if (!school.subscriptionPlan) {
+      const recentSub = await schoolSubscriptionRepository.findForSchool(schoolId);
+      if (recentSub) {
+        const plan = recentSub.planId;
+        const isCancelled = recentSub.status === 'cancelled' || Boolean(recentSub.cancelAtPeriodEnd);
+        return {
+          subscription: {
+            planId: plan?._id?.toString() || (recentSub.planId ? String(recentSub.planId) : ''),
+            planName: plan?.name || 'School Plan',
+            planType: plan?.billingInterval === 'yearly' ? 'Yearly' : 'Monthly',
+            price: plan?.price || recentSub.totalAmount || 0,
+            features: plan?.features || [],
+            startedAt: recentSub.currentPeriodStart ? new Date(recentSub.currentPeriodStart).toISOString() : null,
+            endsAt: recentSub.currentPeriodEnd ? new Date(recentSub.currentPeriodEnd).toISOString() : null,
+            daysRemaining: 0,
+            status: isCancelled ? 'Cancelled' : (recentSub.status === 'expired' ? 'Expired' : 'Pending Payment'),
+            isCancelled,
+            cancelAtPeriodEnd: Boolean(recentSub.cancelAtPeriodEnd),
+            billing: null,
+          },
+        };
+      }
       return { subscription: null };
     }
 
@@ -896,7 +912,7 @@ export class SchoolService {
       school.subscription?.endsAt || planEndDate(startedAt, planType);
     const endsAt = endsAtRaw instanceof Date ? endsAtRaw : new Date(endsAtRaw);
     const billingStatus = invoice?.status || 'Pending';
-    const status = resolveSubscriptionStatus(endsAt, billingStatus);
+    const status = school.subscription?.status === 'Cancelled' ? 'Cancelled' : resolveSubscriptionStatus(endsAt, billingStatus);
 
     const msRemaining = endsAt && !isNaN(endsAt.getTime()) ? endsAt.getTime() - Date.now() : 0;
     const daysRemaining = Math.max(0, Math.ceil(msRemaining / 86400000));

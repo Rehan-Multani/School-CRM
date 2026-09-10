@@ -12,8 +12,17 @@ const SCHOOL_ID_ALIASES = {
 
 function schoolIdVariants(schoolId) {
   if (!schoolId) return [];
-  const alias = SCHOOL_ID_ALIASES[schoolId];
-  return alias ? [schoolId, alias] : [schoolId];
+  const list = Array.isArray(schoolId) ? schoolId : [schoolId];
+  const results = new Set();
+  for (const item of list) {
+    if (!item || typeof item !== 'string') continue;
+    const trimmed = item.trim();
+    if (!trimmed) continue;
+    results.add(trimmed);
+    const alias = SCHOOL_ID_ALIASES[trimmed];
+    if (alias) results.add(alias);
+  }
+  return Array.from(results);
 }
 
 const INVALID_TOKEN_CODES = new Set([
@@ -148,13 +157,13 @@ export class NotificationService {
 
   async inbox({ role, schoolId, userId }) {
     const normalizedRole = role === 'admin' ? 'school-admin' : role;
-    if (!DEVICE_ROLES.includes(normalizedRole)) {
-      throw new AppError(`Role must be one of: ${DEVICE_ROLES.join(', ')}`, 400);
+    if (!normalizedRole || !DEVICE_ROLES.includes(normalizedRole)) {
+      return [];
     }
 
     const items = await notificationRepository.inbox({
       role: normalizedRole,
-      schoolIds: schoolIdVariants(typeof schoolId === 'string' ? schoolId.trim() : ''),
+      schoolIds: schoolIdVariants(schoolId),
       userId: typeof userId === 'string' ? userId.trim() : '',
     });
     return items.map((item) => item.toPublicJSON());
@@ -163,8 +172,8 @@ export class NotificationService {
   async registerDevice(payload) {
     const token = requireText(payload?.token, 'Device token');
     const role = payload?.role === 'admin' ? 'school-admin' : payload?.role;
-    if (!DEVICE_ROLES.includes(role)) {
-      throw new AppError(`Role must be one of: ${DEVICE_ROLES.join(', ')}`, 400);
+    if (!role || !DEVICE_ROLES.includes(role)) {
+      return { registered: false, reason: 'Unsupported role' };
     }
 
     await notificationRepository.upsertDevice({

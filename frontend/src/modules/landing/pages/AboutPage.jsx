@@ -23,7 +23,7 @@ const PILLARS = [
   {
     icon: Radio,
     title: 'Cloud and realtime',
-    body: 'An API gateway fronts focused backend services. Browser and app push keep people informed, and transport runs live GPS with SOS alerts.',
+    body: 'An API gateway fronts focused backend services. Browser and app push keep people informed, and drivers mark daily pickup and drop from their own API.',
   },
 ];
 

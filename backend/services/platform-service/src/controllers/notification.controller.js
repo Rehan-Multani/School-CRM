@@ -3,11 +3,22 @@ import { isFirebaseConfigured } from '../config/firebase.js';
 import { deviceRoleForUser } from '../middleware/requirePlatformUser.js';
 
 function schoolId(req) {
-  const role = req.user?.role?.toUpperCase();
-  if (role === 'SCHOOLADMIN') {
-    return req.user?.sub;
+  const rawRole = String(req.user?.role || '').toUpperCase().replace(/[\s_-]/g, '');
+  if (rawRole === 'SUPERADMIN') {
+    return '';
   }
-  return req.user?.schoolId || req.user?.sub;
+  return req.user?.schoolId || req.user?.sub || '';
+}
+
+function schoolIdsForReq(req) {
+  const rawRole = String(req.user?.role || '').toUpperCase().replace(/[\s_-]/g, '');
+  if (rawRole === 'SUPERADMIN') {
+    return [];
+  }
+  const ids = new Set();
+  if (req.user?.schoolId) ids.add(String(req.user.schoolId).trim());
+  if (req.user?.sub) ids.add(String(req.user.sub).trim());
+  return Array.from(ids).filter(Boolean);
 }
 
 export async function listNotifications(req, res, next) {
@@ -41,7 +52,7 @@ export async function inboxNotifications(req, res, next) {
   try {
     const data = await notificationService.inbox({
       role: deviceRoleForUser(req.user),
-      schoolId: schoolId(req) || '',
+      schoolId: schoolIdsForReq(req),
       userId: req.user?.userId || req.user?.sub || '',
     });
     res.json({ success: true, data });

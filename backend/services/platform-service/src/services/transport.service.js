@@ -1,577 +1,1094 @@
+import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 import { AppError } from '../../../shared/AppError.js';
+import { TRANSPORT_ERR } from '../constants/transportErrorCodes.js';
+import { normalizeTime } from '../utils/transportTime.js';
 import { transportRepository } from '../repositories/transport.repository.js';
-import { Student } from '../models/Student.js';
-import { SchoolUser } from '../models/SchoolUser.js';
-import { Vehicle } from '../models/Vehicle.js';
-import { TransportRoute } from '../models/TransportRoute.js';
+import { VEHICLE_TYPES, FUEL_TYPES } from '../models/Vehicle.js';
 import { RouteStop } from '../models/RouteStop.js';
 import { StudentTransportAssignment } from '../models/StudentTransportAssignment.js';
+import { Student } from '../models/Student.js';
+import { StudentEnrollment } from '../models/StudentEnrollment.js';
+import { SchoolClass } from '../models/SchoolClass.js';
+import { Section } from '../models/Section.js';
+import { normalizeMobile as normalizeMobileNumber } from '../utils/mobile.js';
 
-function requireText(value, label) {
+const BCRYPT_ROUNDS = 10; // matches every other login provisioning path
+const MIN_PASSWORD_LEN = 8;
+const VEHICLE_NUMBER_RE = /^[A-Z0-9]{4,15}$/;
+/* The 10-digit rule itself lives in utils/mobile.js — shared with every other
+   module — and is re-thrown here with this module's error code. */
+const LICENSE_RE = /^[A-Z0-9-]{5,20}$/;
+
+/* ============================= small helpers ============================= */
+
+function bad(message, code = TRANSPORT_ERR.VALIDATION_ERROR) {
+  return new AppError(message, 400, code);
+}
+
+function conflict(message, code = TRANSPORT_ERR.IN_USE) {
+  return new AppError(message, 409, code);
+}
+
+function notFound(what) {
+  return new AppError(`${what} not found`, 404, TRANSPORT_ERR.NOT_FOUND);
+}
+
+function requireText(value, label, { max = 120 } = {}) {
   const text = typeof value === 'string' ? value.trim() : '';
-  if (!text) throw new AppError(`${label} is required`, 400);
+  if (!text) throw bad(`${label} is required`);
+  if (text.length > max) throw bad(`${label} must be ${max} characters or fewer`);
   return text;
 }
 
+function requireId(value, label) {
+  const raw = String(value ?? '').trim();
+  if (!raw || !mongoose.isValidObjectId(raw)) throw bad(`${label} is required`);
+  return raw;
+}
+
+function requireSchool(schoolId) {
+  if (!schoolId || !mongoose.isValidObjectId(String(schoolId))) {
+    throw new AppError('School context is missing on this session', 401, TRANSPORT_ERR.UNAUTHORIZED);
+  }
+  return String(schoolId);
+}
+
+/** "MP 09 AB 1234" / "mp09ab1234" all normalize to "MP09AB1234". */
+function normalizeVehicleNumber(value) {
+  const raw = requireText(value, 'Vehicle number', { max: 20 }).replace(/[\s-]/g, '').toUpperCase();
+  if (!VEHICLE_NUMBER_RE.test(raw)) {
+    throw bad('Vehicle number must be 4-15 letters/digits, e.g. MP09AB1234');
+  }
+  return raw;
+}
+
+function normalizeMobile(value) {
+  try {
+    return normalizeMobileNumber(value, 'Mobile number');
+  } catch (error) {
+    throw bad(error.message);
+  }
+}
+
+function normalizeLicense(value) {
+  const raw = requireText(value, 'License number', { max: 25 }).replace(/\s/g, '').toUpperCase();
+  if (!LICENSE_RE.test(raw)) throw bad('License number must be 5-20 letters/digits, e.g. MP123456789');
+  return raw;
+}
+
+function normalizeCapacity(value) {
+  const capacity = Number(value);
+  if (!Number.isInteger(capacity) || capacity < 1 || capacity > 100) {
+    throw bad('Capacity must be a whole number between 1 and 100');
+  }
+  return capacity;
+}
+
+function normalizeStatus(value, label) {
+  const raw = String(value ?? 'ACTIVE').trim().toUpperCase();
+  if (!['ACTIVE', 'INACTIVE'].includes(raw)) throw bad(`${label} status must be ACTIVE or INACTIVE`);
+  return raw;
+}
+
+function normalizeVehicleType(value) {
+  const raw = String(value ?? 'SCHOOL_BUS').trim().toUpperCase();
+  if (!VEHICLE_TYPES.includes(raw)) throw bad(`Vehicle type must be one of ${VEHICLE_TYPES.join(', ')}`);
+  return raw;
+}
+
+function normalizeFuelType(value) {
+  const raw = String(value ?? 'DIESEL').trim().toUpperCase();
+  if (!FUEL_TYPES.includes(raw)) throw bad(`Fuel type must be one of ${FUEL_TYPES.join(', ')}`);
+  return raw;
+}
+
+/** Optional free text — blank is a valid answer, so only the length is checked. */
+function optionalText(value, label, max) {
+  const text = typeof value === 'string' ? value.trim() : '';
+  if (text.length > max) throw bad(`${label} must be ${max} characters or fewer`);
+  return text;
+}
+
+async function hashPassword(value) {
+  const password = String(value ?? '');
+  if (password.length < MIN_PASSWORD_LEN) {
+    throw bad(`Password must be at least ${MIN_PASSWORD_LEN} characters`);
+  }
+  return bcrypt.hash(password, BCRYPT_ROUNDS);
+}
+
+/**
+ * Class/section and roll number live on the student's ACTIVE enrollment, not on
+ * Student itself — resolve them in one batch so a list stays a fixed number of
+ * queries no matter how many students ride the bus.
+ */
+async function studentMetaMap(schoolId, studentIds) {
+  const meta = new Map();
+  const ids = studentIds.filter(Boolean).map(String);
+  if (!ids.length) return meta;
+
+  const enrolments = await StudentEnrollment.find({
+    schoolId,
+    studentId: { $in: ids },
+    status: 'ACTIVE',
+  })
+    .select('studentId classId sectionId rollNumber')
+    .lean();
+  if (!enrolments.length) return meta;
+
+  const [classes, sections] = await Promise.all([
+    SchoolClass.find({ _id: { $in: enrolments.map((e) => e.classId) } }).select('name').lean(),
+    Section.find({ _id: { $in: enrolments.map((e) => e.sectionId) } }).select('name').lean(),
+  ]);
+  const classNames = new Map(classes.map((c) => [String(c._id), c.name]));
+  const sectionNames = new Map(sections.map((s) => [String(s._id), s.name]));
+
+  for (const e of enrolments) {
+    meta.set(String(e.studentId), {
+      rollNumber: e.rollNumber || '',
+      className: [classNames.get(String(e.classId)), sectionNames.get(String(e.sectionId))]
+        .filter(Boolean)
+        .join('-'),
+    });
+  }
+  return meta;
+}
+
+function studentView(student, meta = {}) {
+  if (!student) return null;
+  return {
+    id: String(student._id),
+    name: [student.firstName, student.lastName].filter(Boolean).join(' ').trim(),
+    admissionNumber: student.admissionNumber || '',
+    rollNumber: meta.rollNumber || '',
+    className: meta.className || '',
+  };
+}
+
+/** Assignment as the admin table renders it — timing is always read off the stop. */
+function assignmentView(assignment, meta = new Map()) {
+  const student = assignment.studentId;
+  const route = assignment.routeId;
+  const stop = assignment.stopId;
+  const year = assignment.academicYearId;
+  return {
+    id: assignment._id.toString(),
+    student: studentView(student, meta.get(String(student?._id || student)) || {}),
+    route: route?._id ? { id: String(route._id), routeName: route.routeName } : null,
+    stop: stop?._id
+      ? { id: String(stop._id), stopName: stop.stopName, sequenceOrder: stop.sequenceOrder }
+      : null,
+    pickupTime: stop?.pickupTime || '',
+    dropTime: stop?.dropTime || '',
+    // The year the rider was enrolled for, and what transport cost then — a
+    // snapshot, not a live lookup, so a later fee revision leaves it untouched.
+    academicYear: year?._id ? { id: String(year._id), name: year.name, code: year.code } : null,
+    yearlyFeeAmount: assignment.yearlyFeeAmount || 0,
+    status: assignment.status,
+    createdAt: assignment.createdAt,
+  };
+}
+
+/** A whole-rupee amount — the fee is set by hand and never has paise. */
+function normalizeAmount(value, label = 'Yearly fee') {
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || !Number.isInteger(amount) || amount < 0) {
+    throw bad(`${label} must be a whole number of rupees (0 or more)`);
+  }
+  if (amount > 10000000) throw bad(`${label} looks too large`);
+  return amount;
+}
+
+/**
+ * Re-number a route's stops to a gapless 1..n. Called after a delete so the
+ * sequence the admin sees never has holes in it.
+ */
+async function resequenceStops(schoolId, routeId) {
+  const stops = await RouteStop.find({ schoolId, routeId }).sort({ sequenceOrder: 1 }).select('_id');
+  const operations = stops.map((stop, index) => ({
+    updateOne: { filter: { _id: stop._id }, update: { $set: { sequenceOrder: index + 1 } } },
+  }));
+  if (operations.length) await RouteStop.bulkWrite(operations);
+}
+
+/* ================================ service ================================ */
+
 export const transportService = {
-  // --- DASHBOARD ---
-  async getDashboardStats(schoolId) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
+  /* -------------------------- STEP 1 · VEHICLES -------------------------- */
 
-    const metrics = await transportRepository.getDashboardMetrics(schoolId);
-    const vehicles = await transportRepository.listVehicles(schoolId);
-    const routes = await transportRepository.listRoutes(schoolId);
-
-    // Per-route student counts
-    const routeSummaries = await Promise.all(
-      routes.map(async (route) => {
-        const assignmentCount = await StudentTransportAssignment.countDocuments({
-          schoolId,
-          routeId: route._id,
-          status: 'ACTIVE',
-        });
-        const stops = await transportRepository.listStops(schoolId, route._id);
-        return {
-          id: route._id.toString(),
-          routeName: route.routeName,
-          routeCode: route.routeCode,
-          vehicle: route.vehicleId?.vehicleNumber || 'Unassigned',
-          vehicleType: route.vehicleId?.vehicleType || 'N/A',
-          vehicleCapacity: route.vehicleId?.capacity || 0,
-          driver: route.driverId?.fullName || 'Not Assigned',
-          conductor: route.conductorId?.fullName || 'Not Assigned',
-          startPoint: route.startPoint,
-          endPoint: route.endPoint,
-          totalStops: stops.length,
-          assignedStudents: assignmentCount,
-          distanceKm: route.estimatedDistanceKm,
-          durationMin: route.estimatedDurationMin,
-        };
-      })
-    );
-
-    return {
-      metrics,
-      vehicles,
-      routeSummaries,
-    };
-  },
-
-  // --- SEED DEMO DATA ---
-  async seedDemoData(schoolId, user) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-
-    const existing = await transportRepository.listVehicles(schoolId);
-    if (existing && existing.length > 0) {
-      return { message: 'Transport data already exists for this school' };
-    }
-
-    const staff = await SchoolUser.findOne({ schoolId, status: 'ACTIVE' }).lean();
-    const driverId = staff?._id || null;
-
-    // 1. Create Vehicles
-    const bus1 = await transportRepository.createVehicle({
-      schoolId,
-      vehicleNumber: 'BUS-01',
-      registrationNumber: 'MP09AB1234',
-      vehicleType: 'BUS',
-      model: 'Tata Starbus LP 910/52',
-      capacity: 52,
-      fuelType: 'DIESEL',
-      insuranceExpiry: new Date(Date.now() + 180 * 86400000),
-      fitnessExpiry: new Date(Date.now() + 200 * 86400000),
-      pollutionExpiry: new Date(Date.now() + 120 * 86400000),
-      permitExpiry: new Date(Date.now() + 365 * 86400000),
-      description: 'Main school bus for Route 01 (East Zone)',
-      status: 'ACTIVE',
-    });
-
-    const bus2 = await transportRepository.createVehicle({
-      schoolId,
-      vehicleNumber: 'BUS-02',
-      registrationNumber: 'MP09CD5678',
-      vehicleType: 'MINIBUS',
-      model: 'Force Traveller 3350 (32 Seater)',
-      capacity: 32,
-      fuelType: 'DIESEL',
-      insuranceExpiry: new Date(Date.now() + 25 * 86400000), // Expiring soon!
-      fitnessExpiry: new Date(Date.now() + 90 * 86400000),
-      pollutionExpiry: new Date(Date.now() + 60 * 86400000),
-      permitExpiry: new Date(Date.now() + 200 * 86400000),
-      description: 'Mini bus for Route 02 (West Zone)',
-      status: 'ACTIVE',
-    });
-
-    const van = await transportRepository.createVehicle({
-      schoolId,
-      vehicleNumber: 'VAN-01',
-      registrationNumber: 'MP09EF9012',
-      vehicleType: 'VAN',
-      model: 'Maruti Eeco 7-Seater',
-      capacity: 7,
-      fuelType: 'CNG',
-      insuranceExpiry: new Date(Date.now() + 300 * 86400000),
-      fitnessExpiry: new Date(Date.now() + 350 * 86400000),
-      pollutionExpiry: new Date(Date.now() + 150 * 86400000),
-      permitExpiry: new Date(Date.now() + 365 * 86400000),
-      description: 'Staff & special transport van',
-      status: 'ACTIVE',
-    });
-
-    // 2. Create Routes
-    const route1 = await transportRepository.createRoute({
-      schoolId,
-      routeName: 'Route 01 — Azad Nagar to School (East Zone)',
-      routeCode: 'RT-01',
-      vehicleId: bus1._id,
-      driverId,
-      startPoint: 'Azad Nagar Colony',
-      endPoint: 'ABC Public School',
-      estimatedDistanceKm: 12,
-      estimatedDurationMin: 45,
-      description: 'Covers major east zone residential areas via Bengali Square & Palasia.',
-      status: 'ACTIVE',
-    });
-
-    const route2 = await transportRepository.createRoute({
-      schoolId,
-      routeName: 'Route 02 — Vijay Nagar to School (West Zone)',
-      routeCode: 'RT-02',
-      vehicleId: bus2._id,
-      driverId,
-      startPoint: 'Vijay Nagar Square',
-      endPoint: 'ABC Public School',
-      estimatedDistanceKm: 8,
-      estimatedDurationMin: 30,
-      description: 'West zone feeder through Scheme 54 & MR-10.',
-      status: 'ACTIVE',
-    });
-
-    // 3. Create Stops for Route 1
-    await transportRepository.createManyStops([
-      { schoolId, routeId: route1._id, stopName: 'Azad Nagar Colony', sequenceOrder: 1, pickupTime: '07:15 AM', dropTime: '04:00 PM', monthlyFee: 1500, landmark: 'Near Post Office' },
-      { schoolId, routeId: route1._id, stopName: 'Teen Imli Square', sequenceOrder: 2, pickupTime: '07:25 AM', dropTime: '03:50 PM', monthlyFee: 1400, landmark: 'Opposite SBI Branch' },
-      { schoolId, routeId: route1._id, stopName: 'Bengali Square', sequenceOrder: 3, pickupTime: '07:35 AM', dropTime: '03:40 PM', monthlyFee: 1300, landmark: 'Near Petrol Pump' },
-      { schoolId, routeId: route1._id, stopName: 'Palasia Chowk', sequenceOrder: 4, pickupTime: '07:45 AM', dropTime: '03:30 PM', monthlyFee: 1200, landmark: 'C21 Mall Side' },
-      { schoolId, routeId: route1._id, stopName: 'ABC Public School', sequenceOrder: 5, pickupTime: '08:00 AM', dropTime: '03:15 PM', monthlyFee: 0, landmark: 'Main Gate' },
-    ]);
-
-    // 4. Create Stops for Route 2
-    await transportRepository.createManyStops([
-      { schoolId, routeId: route2._id, stopName: 'Vijay Nagar Square', sequenceOrder: 1, pickupTime: '07:20 AM', dropTime: '03:50 PM', monthlyFee: 1300, landmark: 'Main Road' },
-      { schoolId, routeId: route2._id, stopName: 'Scheme 54 Gate', sequenceOrder: 2, pickupTime: '07:30 AM', dropTime: '03:40 PM', monthlyFee: 1200, landmark: 'Near D-Mart' },
-      { schoolId, routeId: route2._id, stopName: 'MR-10 Flyover', sequenceOrder: 3, pickupTime: '07:40 AM', dropTime: '03:30 PM', monthlyFee: 1100, landmark: 'Ring Road Junction' },
-      { schoolId, routeId: route2._id, stopName: 'ABC Public School', sequenceOrder: 4, pickupTime: '07:55 AM', dropTime: '03:15 PM', monthlyFee: 0, landmark: 'Main Gate' },
-    ]);
-
-    // 5. Auto-assign first few students if available
-    const students = await Student.find({ schoolId, status: 'ACTIVE' }).limit(3).lean();
-    const route1Stops = await transportRepository.listStops(schoolId, route1._id);
-    if (students.length > 0 && route1Stops.length > 1) {
-      for (let i = 0; i < Math.min(students.length, 2); i++) {
-        const stop = route1Stops[i]; // Assign to sequential stops
-        await this.assignStudent(
-          schoolId,
-          {
-            studentId: students[i]._id.toString(),
-            routeId: route1._id.toString(),
-            pickupStopId: stop._id.toString(),
-            dropStopId: stop._id.toString(),
-            monthlyFee: stop.monthlyFee,
-            remarks: 'Demo assignment',
-          },
-          user
-        );
-      }
-    }
-
-    return { message: 'Demo transport infrastructure created successfully' };
-  },
-
-  // --- VEHICLES CRUD ---
-  async listVehicles(schoolId, query = {}) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
+  async listVehicles(schoolIdRaw, query = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
     const filter = {};
-    if (query.status) filter.status = query.status;
-    if (query.vehicleType) filter.vehicleType = query.vehicleType;
-    return transportRepository.listVehicles(schoolId, filter);
+    if (query.status) filter.status = normalizeStatus(query.status, 'Vehicle');
+    const vehicles = await transportRepository.listVehicles(schoolId, filter);
+    return vehicles.map((v) => v.toPublicJSON());
   },
 
-  async getVehicle(schoolId, id) {
-    const vehicle = await transportRepository.getVehicleById(schoolId, id);
-    if (!vehicle) throw new AppError('Vehicle not found', 404);
-    return vehicle;
+  async getVehicle(schoolIdRaw, id) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const vehicle = await transportRepository.getVehicle(schoolId, requireId(id, 'Vehicle'));
+    if (!vehicle) throw notFound('Vehicle');
+    return vehicle.toPublicJSON();
   },
 
-  async createVehicle(schoolId, data) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const vehicleNumber = requireText(data.vehicleNumber, 'Vehicle Number');
-    const registrationNumber = requireText(data.registrationNumber, 'Registration Number');
+  async createVehicle(schoolIdRaw, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const vehicleNumber = normalizeVehicleNumber(data.vehicleNumber);
 
-    const existing = await Vehicle.findOne({ schoolId, vehicleNumber });
-    if (existing) throw new AppError(`Vehicle ${vehicleNumber} already registered`, 400);
+    const duplicate = await transportRepository.findVehicleByNumber(schoolId, vehicleNumber);
+    if (duplicate) {
+      throw conflict(`Vehicle ${vehicleNumber} is already registered`, TRANSPORT_ERR.DUPLICATE);
+    }
 
     const vehicle = await transportRepository.createVehicle({
       schoolId,
       vehicleNumber,
-      registrationNumber,
-      vehicleType: data.vehicleType || 'BUS',
-      model: data.model || '',
-      capacity: Number(data.capacity) || 40,
-      fuelType: data.fuelType || 'DIESEL',
-      insuranceExpiry: data.insuranceExpiry ? new Date(data.insuranceExpiry) : null,
-      fitnessExpiry: data.fitnessExpiry ? new Date(data.fitnessExpiry) : null,
-      pollutionExpiry: data.pollutionExpiry ? new Date(data.pollutionExpiry) : null,
-      permitExpiry: data.permitExpiry ? new Date(data.permitExpiry) : null,
-      gpsDeviceImei: data.gpsDeviceImei || '',
-      description: data.description || '',
-      status: data.status || 'ACTIVE',
+      vehicleType: normalizeVehicleType(data.vehicleType),
+      capacity: normalizeCapacity(data.capacity),
+      model: optionalText(data.model, 'Model', 60),
+      fuelType: normalizeFuelType(data.fuelType),
+      status: normalizeStatus(data.status, 'Vehicle'),
     });
-    return vehicle;
+    return vehicle.toPublicJSON();
   },
 
-  async updateVehicle(schoolId, id, data) {
-    const vehicle = await transportRepository.updateVehicle(schoolId, id, data);
-    if (!vehicle) throw new AppError('Vehicle not found', 404);
-    return vehicle;
-  },
+  async updateVehicle(schoolIdRaw, id, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const vehicle = await transportRepository.getVehicle(schoolId, requireId(id, 'Vehicle'));
+    if (!vehicle) throw notFound('Vehicle');
 
-  async deleteVehicle(schoolId, id) {
-    const routeCount = await TransportRoute.countDocuments({ schoolId, vehicleId: id });
-    if (routeCount > 0) {
-      throw new AppError(`Cannot delete vehicle. It is assigned to ${routeCount} active route(s). Remove route assignments first.`, 400);
+    if (data.vehicleNumber !== undefined) {
+      const vehicleNumber = normalizeVehicleNumber(data.vehicleNumber);
+      if (vehicleNumber !== vehicle.vehicleNumber) {
+        const duplicate = await transportRepository.findVehicleByNumber(schoolId, vehicleNumber);
+        if (duplicate) {
+          throw conflict(`Vehicle ${vehicleNumber} is already registered`, TRANSPORT_ERR.DUPLICATE);
+        }
+      }
+      vehicle.vehicleNumber = vehicleNumber;
     }
-    const result = await transportRepository.deleteVehicle(schoolId, id);
-    if (!result) throw new AppError('Vehicle not found', 404);
-    return { message: 'Vehicle removed from fleet' };
+
+    if (data.vehicleType !== undefined) vehicle.vehicleType = normalizeVehicleType(data.vehicleType);
+    if (data.model !== undefined) vehicle.model = optionalText(data.model, 'Model', 60);
+    if (data.fuelType !== undefined) vehicle.fuelType = normalizeFuelType(data.fuelType);
+
+    if (data.capacity !== undefined) {
+      const capacity = normalizeCapacity(data.capacity);
+      // Shrinking below the students already riding this vehicle's route would
+      // strand the route permanently over capacity with no way back.
+      const route = await transportRepository.findRouteUsingVehicle(schoolId, vehicle._id);
+      if (route) {
+        const riding = await transportRepository.countActiveAssignments(schoolId, { routeId: route._id });
+        if (capacity < riding) {
+          throw conflict(
+            `Capacity cannot drop below ${riding} — that many students are already assigned to ${route.routeName}`,
+            TRANSPORT_ERR.CAPACITY_FULL
+          );
+        }
+      }
+      vehicle.capacity = capacity;
+    }
+
+    if (data.status !== undefined) {
+      const status = normalizeStatus(data.status, 'Vehicle');
+      if (status === 'INACTIVE') {
+        const route = await transportRepository.findRouteUsingVehicle(schoolId, vehicle._id);
+        if (route) {
+          throw conflict(
+            `Cannot deactivate ${vehicle.vehicleNumber} — it is running ${route.routeName}. Unassign it from the route first.`
+          );
+        }
+      }
+      vehicle.status = status;
+    }
+
+    await vehicle.save();
+    return vehicle.toPublicJSON();
   },
 
-  // --- ROUTES CRUD ---
-  async listRoutes(schoolId, query = {}) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
+  async deleteVehicle(schoolIdRaw, id) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const vehicleId = requireId(id, 'Vehicle');
+    const vehicle = await transportRepository.getVehicle(schoolId, vehicleId);
+    if (!vehicle) throw notFound('Vehicle');
+
+    const [route, driver] = await Promise.all([
+      transportRepository.findRouteUsingVehicle(schoolId, vehicleId),
+      transportRepository.findDriverOfVehicle(schoolId, vehicleId),
+    ]);
+    if (route) {
+      throw conflict(`Cannot delete ${vehicle.vehicleNumber} — it is assigned to ${route.routeName}`);
+    }
+    if (driver) {
+      throw conflict(`Cannot delete ${vehicle.vehicleNumber} — it is assigned to driver ${driver.name}`);
+    }
+
+    await transportRepository.deleteVehicle(schoolId, vehicleId);
+    return { id: vehicleId };
+  },
+
+  /* --------------------------- STEP 2 · DRIVERS -------------------------- */
+
+  async listDrivers(schoolIdRaw, query = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
     const filter = {};
-    if (query.status) filter.status = query.status;
-    return transportRepository.listRoutes(schoolId, filter);
+    if (query.status) filter.status = normalizeStatus(query.status, 'Driver');
+    const drivers = await transportRepository.listDrivers(schoolId, filter);
+    return drivers.map((d) => d.toPublicJSON());
   },
 
-  async getRoute(schoolId, id) {
-    const route = await transportRepository.getRouteById(schoolId, id);
-    if (!route) throw new AppError('Route not found', 404);
-    const stops = await transportRepository.listStops(schoolId, id);
-    return { ...route, stops };
+  async getDriver(schoolIdRaw, id) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const driver = await transportRepository.getDriver(schoolId, requireId(id, 'Driver'));
+    if (!driver) throw notFound('Driver');
+    return driver.toPublicJSON();
   },
 
-  async createRoute(schoolId, data) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const routeName = requireText(data.routeName, 'Route Name');
-    const routeCode = requireText(data.routeCode, 'Route Code');
-    const startPoint = requireText(data.startPoint, 'Start Point');
-    const endPoint = requireText(data.endPoint, 'End Point');
+  async createDriver(schoolIdRaw, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const name = requireText(data.name, 'Driver name');
+    const mobile = normalizeMobile(data.mobile);
+    const licenseNumber = normalizeLicense(data.licenseNumber);
 
-    const existing = await TransportRoute.findOne({ schoolId, routeCode });
-    if (existing) throw new AppError(`Route code ${routeCode} already exists`, 400);
+    const [byMobile, byLicense] = await Promise.all([
+      transportRepository.findDriverByMobile(schoolId, mobile),
+      transportRepository.findDriverByLicense(schoolId, licenseNumber),
+    ]);
+    if (byMobile) throw conflict(`A driver with mobile ${mobile} already exists`, TRANSPORT_ERR.DUPLICATE);
+    if (byLicense) {
+      throw conflict(`A driver with license ${licenseNumber} already exists`, TRANSPORT_ERR.DUPLICATE);
+    }
+
+    const payload = {
+      schoolId,
+      name,
+      mobile,
+      licenseNumber,
+      status: normalizeStatus(data.status, 'Driver'),
+      photo: data.photo ? String(data.photo).trim() : '',
+      licenseImage: data.licenseImage ? String(data.licenseImage).trim() : '',
+    };
+    // A password is optional at creation — the admin can set one later to turn
+    // the driver API on for this person.
+    if (data.password) {
+      payload.passwordHash = await hashPassword(data.password);
+      payload.loginEnabled = true;
+    }
+
+    const driver = await transportRepository.createDriver(payload);
+    if (data.vehicleId) {
+      return this.assignVehicleToDriver(schoolId, driver._id, data.vehicleId);
+    }
+    return driver.toPublicJSON();
+  },
+
+  async updateDriver(schoolIdRaw, id, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const driver = await transportRepository.getDriver(schoolId, requireId(id, 'Driver'));
+    if (!driver) throw notFound('Driver');
+
+    if (data.name !== undefined) driver.name = requireText(data.name, 'Driver name');
+
+    if (data.mobile !== undefined) {
+      const mobile = normalizeMobile(data.mobile);
+      if (mobile !== driver.mobile) {
+        const duplicate = await transportRepository.findDriverByMobile(schoolId, mobile);
+        if (duplicate) throw conflict(`A driver with mobile ${mobile} already exists`, TRANSPORT_ERR.DUPLICATE);
+      }
+      driver.mobile = mobile;
+    }
+
+    if (data.licenseNumber !== undefined) {
+      const licenseNumber = normalizeLicense(data.licenseNumber);
+      if (licenseNumber !== driver.licenseNumber) {
+        const duplicate = await transportRepository.findDriverByLicense(schoolId, licenseNumber);
+        if (duplicate) {
+          throw conflict(`A driver with license ${licenseNumber} already exists`, TRANSPORT_ERR.DUPLICATE);
+        }
+      }
+      driver.licenseNumber = licenseNumber;
+    }
+
+    if (data.photo !== undefined) driver.photo = String(data.photo).trim();
+    if (data.licenseImage !== undefined) driver.licenseImage = String(data.licenseImage).trim();
+
+    if (data.password) {
+      driver.passwordHash = await hashPassword(data.password);
+      driver.loginEnabled = true;
+    }
+
+    if (data.status !== undefined) {
+      const status = normalizeStatus(data.status, 'Driver');
+      if (status === 'INACTIVE') {
+        const route = await transportRepository.findRouteOfDriver(schoolId, driver._id);
+        if (route) {
+          throw conflict(
+            `Cannot deactivate ${driver.name} — they are driving ${route.routeName}. Unassign them from the route first.`
+          );
+        }
+      }
+      driver.status = status;
+    }
+
+    await driver.save();
+    const fresh = await transportRepository.getDriver(schoolId, driver._id);
+    return fresh.toPublicJSON();
+  },
+
+  /** Step 2's actual link: Rahul Sharma → MP09AB1234. One vehicle, one driver. */
+  async assignVehicleToDriver(schoolIdRaw, driverIdRaw, vehicleIdRaw) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const driverId = requireId(driverIdRaw, 'Driver');
+    const vehicleId = requireId(vehicleIdRaw, 'Vehicle');
+
+    const [driver, vehicle] = await Promise.all([
+      transportRepository.getDriver(schoolId, driverId),
+      transportRepository.getVehicle(schoolId, vehicleId),
+    ]);
+    if (!driver) throw notFound('Driver');
+    if (!vehicle) throw notFound('Vehicle');
+    if (driver.status !== 'ACTIVE') {
+      throw conflict(`${driver.name} is inactive`, TRANSPORT_ERR.DRIVER_INACTIVE);
+    }
+    if (vehicle.status !== 'ACTIVE') {
+      throw conflict(`${vehicle.vehicleNumber} is inactive`, TRANSPORT_ERR.VEHICLE_INACTIVE);
+    }
+
+    const holder = await transportRepository.findDriverOfVehicle(schoolId, vehicleId);
+    if (holder && String(holder._id) !== driverId) {
+      throw conflict(
+        `${vehicle.vehicleNumber} is already assigned to ${holder.name}`,
+        TRANSPORT_ERR.ALREADY_ASSIGNED
+      );
+    }
+
+    driver.vehicleId = vehicle._id;
+    await driver.save();
+    const fresh = await transportRepository.getDriver(schoolId, driverId);
+    return fresh.toPublicJSON();
+  },
+
+  async unassignVehicleFromDriver(schoolIdRaw, driverIdRaw) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const driverId = requireId(driverIdRaw, 'Driver');
+    const driver = await transportRepository.getDriver(schoolId, driverId);
+    if (!driver) throw notFound('Driver');
+
+    // Step 4 pins driver+vehicle together on a route; breaking the pair here
+    // would leave that route internally inconsistent.
+    const route = await transportRepository.findRouteOfDriver(schoolId, driverId);
+    if (route) {
+      throw conflict(`${driver.name} is driving ${route.routeName}. Unassign them from the route first.`);
+    }
+
+    driver.vehicleId = null;
+    await driver.save();
+    const fresh = await transportRepository.getDriver(schoolId, driverId);
+    return fresh.toPublicJSON();
+  },
+
+  async deleteDriver(schoolIdRaw, id) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const driverId = requireId(id, 'Driver');
+    const driver = await transportRepository.getDriver(schoolId, driverId);
+    if (!driver) throw notFound('Driver');
+
+    const route = await transportRepository.findRouteOfDriver(schoolId, driverId);
+    if (route) throw conflict(`Cannot delete ${driver.name} — they are assigned to ${route.routeName}`);
+
+    await transportRepository.deleteDriver(schoolId, driverId);
+    return { id: driverId };
+  },
+
+  /* ------------------- STEPS 3 + 4 · ROUTES AND STOPS -------------------- */
+
+  async listRoutes(schoolIdRaw, query = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const filter = {};
+    if (query.status) filter.status = normalizeStatus(query.status, 'Route');
+    const routes = await transportRepository.listRoutes(schoolId, filter);
+
+    // Stop and rider counts are what makes the route list readable; both are one
+    // aggregate each rather than a query per route.
+    const routeIds = routes.map((r) => r._id);
+    const [stopCounts, riderCounts] = await Promise.all([
+      RouteStop.aggregate([{ $match: { routeId: { $in: routeIds } } }, { $group: { _id: '$routeId', n: { $sum: 1 } } }]),
+      StudentTransportAssignment.aggregate([
+        { $match: { routeId: { $in: routeIds }, status: 'ACTIVE' } },
+        { $group: { _id: '$routeId', n: { $sum: 1 } } },
+      ]),
+    ]);
+    const stopsBy = new Map(stopCounts.map((c) => [String(c._id), c.n]));
+    const ridersBy = new Map(riderCounts.map((c) => [String(c._id), c.n]));
+
+    return routes.map((route) => ({
+      ...route.toPublicJSON(),
+      totalStops: stopsBy.get(String(route._id)) || 0,
+      assignedStudents: ridersBy.get(String(route._id)) || 0,
+    }));
+  },
+
+  async getRoute(schoolIdRaw, id) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const route = await transportRepository.getRoute(schoolId, requireId(id, 'Route'));
+    if (!route) throw notFound('Route');
+    const [stops, assignedStudents] = await Promise.all([
+      transportRepository.listStops(schoolId, route._id),
+      transportRepository.countActiveAssignments(schoolId, { routeId: route._id }),
+    ]);
+    return {
+      ...route.toPublicJSON(),
+      totalStops: stops.length,
+      assignedStudents,
+      stops: stops.map((s) => s.toPublicJSON()),
+    };
+  },
+
+  async createRoute(schoolIdRaw, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const routeName = requireText(data.routeName, 'Route name');
+
+    const duplicate = await transportRepository.findRouteByName(schoolId, routeName);
+    if (duplicate) throw conflict(`Route "${routeName}" already exists`, TRANSPORT_ERR.DUPLICATE);
 
     const route = await transportRepository.createRoute({
       schoolId,
       routeName,
-      routeCode,
-      vehicleId: data.vehicleId || null,
-      driverId: data.driverId || null,
-      conductorId: data.conductorId || null,
-      startPoint,
-      endPoint,
-      estimatedDistanceKm: Number(data.estimatedDistanceKm) || 0,
-      estimatedDurationMin: Number(data.estimatedDurationMin) || 0,
-      description: data.description || '',
-      status: data.status || 'ACTIVE',
+      status: normalizeStatus(data.status, 'Route'),
     });
-
-    return transportRepository.getRouteById(schoolId, route._id);
-  },
-
-  async updateRoute(schoolId, id, data) {
-    const route = await transportRepository.updateRoute(schoolId, id, data);
-    if (!route) throw new AppError('Route not found', 404);
-    return route;
-  },
-
-  async deleteRoute(schoolId, id) {
-    const assignmentCount = await StudentTransportAssignment.countDocuments({ schoolId, routeId: id, status: 'ACTIVE' });
-    if (assignmentCount > 0) {
-      throw new AppError(`Cannot delete route. ${assignmentCount} students are actively assigned to this route.`, 400);
+    // Vehicle + driver are step 4; accept them here only as a convenience so the
+    // admin can do steps 3 and 4 from one form.
+    if (data.vehicleId || data.driverId) {
+      return this.assignRouteResources(schoolId, route._id, data);
     }
-    await transportRepository.deleteStopsByRoute(schoolId, id);
-    const result = await transportRepository.deleteRoute(schoolId, id);
-    if (!result) throw new AppError('Route not found', 404);
-    return { message: 'Route and its stops deleted successfully' };
+    return this.getRoute(schoolId, route._id);
   },
 
-  // --- ROUTE STOPS ---
-  async listStops(schoolId, routeId) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    return transportRepository.listStops(schoolId, routeId);
+  async updateRoute(schoolIdRaw, id, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const route = await transportRepository.getRoute(schoolId, requireId(id, 'Route'));
+    if (!route) throw notFound('Route');
+
+    if (data.routeName !== undefined) {
+      const routeName = requireText(data.routeName, 'Route name');
+      if (routeName !== route.routeName) {
+        const duplicate = await transportRepository.findRouteByName(schoolId, routeName);
+        if (duplicate) throw conflict(`Route "${routeName}" already exists`, TRANSPORT_ERR.DUPLICATE);
+      }
+      route.routeName = routeName;
+    }
+
+    if (data.status !== undefined) {
+      const status = normalizeStatus(data.status, 'Route');
+      if (status === 'INACTIVE') {
+        const riding = await transportRepository.countActiveAssignments(schoolId, { routeId: route._id });
+        if (riding) {
+          throw conflict(
+            `Cannot deactivate ${route.routeName} — ${riding} student(s) are still assigned to it`
+          );
+        }
+      }
+      route.status = status;
+    }
+
+    await route.save();
+    return this.getRoute(schoolId, route._id);
   },
 
-  async createStop(schoolId, data) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const routeId = requireText(data.routeId, 'Route');
-    const stopName = requireText(data.stopName, 'Stop Name');
+  /** Step 4 — Route 01 → MP09AB1234 → Rahul Sharma, validated as one unit. */
+  async assignRouteResources(schoolIdRaw, routeIdRaw, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const routeId = requireId(routeIdRaw, 'Route');
+    const route = await transportRepository.getRoute(schoolId, routeId);
+    if (!route) throw notFound('Route');
 
+    const vehicleId = requireId(data.vehicleId, 'Vehicle');
+    const driverId = requireId(data.driverId, 'Driver');
+
+    const [vehicle, driver] = await Promise.all([
+      transportRepository.getVehicle(schoolId, vehicleId),
+      transportRepository.getDriver(schoolId, driverId),
+    ]);
+    if (!vehicle) throw notFound('Vehicle');
+    if (!driver) throw notFound('Driver');
+    if (vehicle.status !== 'ACTIVE') {
+      throw conflict(`${vehicle.vehicleNumber} is inactive`, TRANSPORT_ERR.VEHICLE_INACTIVE);
+    }
+    if (driver.status !== 'ACTIVE') {
+      throw conflict(`${driver.name} is inactive`, TRANSPORT_ERR.DRIVER_INACTIVE);
+    }
+
+    // A vehicle and a driver each run at most one route.
+    const [vehicleRoute, driverRoute] = await Promise.all([
+      transportRepository.findRouteUsingVehicle(schoolId, vehicleId),
+      transportRepository.findRouteOfDriver(schoolId, driverId),
+    ]);
+    if (vehicleRoute && String(vehicleRoute._id) !== routeId) {
+      throw conflict(
+        `${vehicle.vehicleNumber} is already running ${vehicleRoute.routeName}`,
+        TRANSPORT_ERR.ALREADY_ASSIGNED
+      );
+    }
+    if (driverRoute && String(driverRoute._id) !== routeId) {
+      throw conflict(
+        `${driver.name} is already driving ${driverRoute.routeName}`,
+        TRANSPORT_ERR.ALREADY_ASSIGNED
+      );
+    }
+
+    // Step 2 already paired this driver with a bus — the route may not contradict it.
+    const driverVehicleId = driver.vehicleId ? String(driver.vehicleId._id || driver.vehicleId) : null;
+    if (driverVehicleId && driverVehicleId !== vehicleId) {
+      throw conflict(
+        `${driver.name} is assigned to a different vehicle. Change their vehicle first, or pick that vehicle here.`,
+        TRANSPORT_ERR.ALREADY_ASSIGNED
+      );
+    }
+
+    // Swapping in a smaller bus must not orphan students already on the route.
+    const riding = await transportRepository.countActiveAssignments(schoolId, { routeId: route._id });
+    if (riding > vehicle.capacity) {
+      throw conflict(
+        `${vehicle.vehicleNumber} seats ${vehicle.capacity} but ${riding} student(s) are assigned to ${route.routeName}`,
+        TRANSPORT_ERR.CAPACITY_FULL
+      );
+    }
+
+    route.vehicleId = vehicle._id;
+    route.driverId = driver._id;
+    await route.save();
+
+    // Keep the step-2 link true when the driver had no bus of their own yet.
+    if (!driverVehicleId) {
+      driver.vehicleId = vehicle._id;
+      await driver.save();
+    }
+
+    return this.getRoute(schoolId, route._id);
+  },
+
+  async unassignRouteResources(schoolIdRaw, routeIdRaw) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const routeId = requireId(routeIdRaw, 'Route');
+    const route = await transportRepository.getRoute(schoolId, routeId);
+    if (!route) throw notFound('Route');
+
+    const riding = await transportRepository.countActiveAssignments(schoolId, { routeId: route._id });
+    if (riding) {
+      throw conflict(
+        `Cannot remove the bus and driver from ${route.routeName} — ${riding} student(s) are assigned to it`
+      );
+    }
+
+    route.vehicleId = null;
+    route.driverId = null;
+    await route.save();
+    return this.getRoute(schoolId, route._id);
+  },
+
+  async deleteRoute(schoolIdRaw, id) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const routeId = requireId(id, 'Route');
+    const route = await transportRepository.getRoute(schoolId, routeId);
+    if (!route) throw notFound('Route');
+
+    const riding = await transportRepository.countActiveAssignments(schoolId, { routeId });
+    if (riding) {
+      throw conflict(`Cannot delete ${route.routeName} — ${riding} student(s) are assigned to it`);
+    }
+
+    // Stops only exist to serve their route, so they go with it.
+    await transportRepository.deleteStopsOfRoute(schoolId, routeId);
+    await transportRepository.deleteRoute(schoolId, routeId);
+    return { id: routeId };
+  },
+
+  /* ------------------------- STEP 3 · ROUTE STOPS ------------------------ */
+
+  async listStops(schoolIdRaw, routeIdRaw) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const routeId = requireId(routeIdRaw, 'Route');
+    const route = await transportRepository.getRoute(schoolId, routeId);
+    if (!route) throw notFound('Route');
+    const stops = await transportRepository.listStops(schoolId, routeId);
+    return stops.map((s) => s.toPublicJSON());
+  },
+
+  async createStop(schoolIdRaw, routeIdRaw, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const routeId = requireId(routeIdRaw, 'Route');
+    const route = await transportRepository.getRoute(schoolId, routeId);
+    if (!route) throw notFound('Route');
+
+    const stopName = requireText(data.stopName, 'Stop name', { max: 80 });
+    const duplicate = await transportRepository.findStopByName(routeId, stopName);
+    if (duplicate) {
+      throw conflict(`${route.routeName} already has a stop called "${stopName}"`, TRANSPORT_ERR.DUPLICATE);
+    }
+
+    // New stops append to the end; position is changed with the reorder endpoint.
+    const last = await transportRepository.maxStopSequence(schoolId, routeId);
     const stop = await transportRepository.createStop({
       schoolId,
       routeId,
       stopName,
-      sequenceOrder: Number(data.sequenceOrder) || 1,
-      pickupTime: data.pickupTime || '07:30 AM',
-      dropTime: data.dropTime || '03:30 PM',
-      monthlyFee: Number(data.monthlyFee) || 1500,
-      landmark: data.landmark || '',
-      latitude: data.latitude || null,
-      longitude: data.longitude || null,
+      sequenceOrder: (last?.sequenceOrder || 0) + 1,
+      pickupTime: normalizeTime(data.pickupTime, 'Pickup time'),
+      dropTime: normalizeTime(data.dropTime, 'Drop time'),
     });
-
-    return transportRepository.getStopById(schoolId, stop._id);
+    return stop.toPublicJSON();
   },
 
-  async updateStop(schoolId, id, data) {
-    const stop = await transportRepository.updateStop(schoolId, id, data);
-    if (!stop) throw new AppError('Route stop not found', 404);
-    return stop;
+  async updateStop(schoolIdRaw, id, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const stop = await transportRepository.getStop(schoolId, requireId(id, 'Stop'));
+    if (!stop) throw notFound('Route stop');
+
+    if (data.stopName !== undefined) {
+      const stopName = requireText(data.stopName, 'Stop name', { max: 80 });
+      if (stopName !== stop.stopName) {
+        const duplicate = await transportRepository.findStopByName(stop.routeId, stopName);
+        if (duplicate) {
+          throw conflict(`This route already has a stop called "${stopName}"`, TRANSPORT_ERR.DUPLICATE);
+        }
+      }
+      stop.stopName = stopName;
+    }
+    if (data.pickupTime !== undefined) stop.pickupTime = normalizeTime(data.pickupTime, 'Pickup time');
+    if (data.dropTime !== undefined) stop.dropTime = normalizeTime(data.dropTime, 'Drop time');
+
+    await stop.save();
+    return stop.toPublicJSON();
   },
 
-  async deleteStop(schoolId, id) {
-    const result = await transportRepository.deleteStop(schoolId, id);
-    if (!result) throw new AppError('Route stop not found', 404);
-    return { message: 'Stop removed from route' };
-  },
+  async deleteStop(schoolIdRaw, id) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const stopId = requireId(id, 'Stop');
+    const stop = await transportRepository.getStop(schoolId, stopId);
+    if (!stop) throw notFound('Route stop');
 
-  // --- STUDENT ASSIGNMENT ---
-  async listAssignments(schoolId, query = {}) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const filter = {};
-    if (query.routeId) filter.routeId = query.routeId;
-    if (query.status) filter.status = query.status;
-    if (query.studentId) filter.studentId = query.studentId;
-    return transportRepository.listAssignments(schoolId, filter);
-  },
-
-  async assignStudent(schoolId, data, user) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const studentId = requireText(data.studentId, 'Student');
-    const routeId = requireText(data.routeId, 'Route');
-    const pickupStopId = requireText(data.pickupStopId, 'Pickup Stop');
-    const dropStopId = requireText(data.dropStopId, 'Drop Stop');
-
-    // Check duplicate active assignment
-    const existingAssignment = await transportRepository.getActiveAssignmentByStudent(schoolId, studentId);
-    if (existingAssignment) {
-      throw new AppError(
-        `Student already has an active transport assignment on ${existingAssignment.routeId?.routeName || 'a route'} (Pickup: ${existingAssignment.pickupStopId?.stopName || 'N/A'}). Discontinue it first.`,
-        400
+    const riding = await transportRepository.countActiveAssignments(schoolId, { stopId });
+    if (riding) {
+      throw conflict(
+        `Cannot delete "${stop.stopName}" — ${riding} student(s) are picked up there. Move them to another stop first.`
       );
     }
 
-    // Check vehicle capacity
-    const route = await transportRepository.getRouteById(schoolId, routeId);
-    if (route?.vehicleId) {
-      const currentCount = await StudentTransportAssignment.countDocuments({ schoolId, routeId, status: 'ACTIVE' });
-      if (currentCount >= route.vehicleId.capacity) {
-        // Warn but don't block
+    await transportRepository.deleteStop(schoolId, stopId);
+    await resequenceStops(schoolId, stop.routeId);
+    return { id: stopId };
+  },
+
+  /** Reorder is a whole-list operation: the payload must be every stop, once. */
+  async reorderStops(schoolIdRaw, routeIdRaw, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const routeId = requireId(routeIdRaw, 'Route');
+    const route = await transportRepository.getRoute(schoolId, routeId);
+    if (!route) throw notFound('Route');
+
+    const stopIds = Array.isArray(data.stopIds) ? data.stopIds.map(String) : [];
+    if (!stopIds.length) throw bad('stopIds must be a non-empty array of stop ids');
+    if (new Set(stopIds).size !== stopIds.length) throw bad('stopIds contains duplicate ids');
+
+    const stops = await transportRepository.listStops(schoolId, routeId);
+    const known = new Set(stops.map((s) => String(s._id)));
+    if (stopIds.length !== known.size || stopIds.some((sid) => !known.has(sid))) {
+      throw bad('stopIds must list every stop on this route exactly once');
+    }
+
+    await transportRepository.bulkWriteStops(
+      stopIds.map((stopId, index) => ({
+        updateOne: { filter: { _id: stopId, schoolId, routeId }, update: { $set: { sequenceOrder: index + 1 } } },
+      }))
+    );
+
+    const reordered = await transportRepository.listStops(schoolId, routeId);
+    return reordered.map((s) => s.toPublicJSON());
+  },
+
+  /* --------------------- STEP 5 · STUDENT ASSIGNMENTS -------------------- */
+
+  async listAssignments(schoolIdRaw, query = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const filter = {};
+    if (query.routeId) filter.routeId = requireId(query.routeId, 'Route');
+    if (query.stopId) filter.stopId = requireId(query.stopId, 'Stop');
+    filter.status = query.status ? String(query.status).toUpperCase() : 'ACTIVE';
+    if (!['ACTIVE', 'DISCONTINUED'].includes(filter.status)) {
+      throw bad('status must be ACTIVE or DISCONTINUED');
+    }
+
+    const assignments = await transportRepository.listAssignments(schoolId, filter);
+    const meta = await studentMetaMap(schoolId, assignments.map((a) => a.studentId?._id));
+    return assignments.map((a) => assignmentView(a, meta));
+  },
+
+  async assignStudent(schoolIdRaw, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const studentId = requireId(data.studentId, 'Student');
+    const routeId = requireId(data.routeId, 'Route');
+    const stopId = requireId(data.stopId, 'Pickup stop');
+
+    const [student, route, stop] = await Promise.all([
+      Student.findOne({ _id: studentId, schoolId }).select('firstName lastName admissionNumber status'),
+      transportRepository.getRoute(schoolId, routeId),
+      transportRepository.getStop(schoolId, stopId),
+    ]);
+    if (!student) throw notFound('Student');
+    if (student.status !== 'ACTIVE') throw conflict('This student is not active');
+    if (!route) throw notFound('Route');
+    if (route.status !== 'ACTIVE') throw conflict(`${route.routeName} is inactive`);
+    if (!stop) throw notFound('Route stop');
+    if (String(stop.routeId) !== routeId) {
+      throw bad(`"${stop.stopName}" is not a stop on ${route.routeName}`);
+    }
+
+    // The flow is ordered for a reason: without a bus and driver there is nobody
+    // to pick the child up, and no capacity to check against.
+    if (!route.vehicleId || !route.driverId) {
+      throw conflict(
+        `${route.routeName} has no vehicle and driver assigned yet. Complete step 4 first.`,
+        TRANSPORT_ERR.ROUTE_NOT_READY
+      );
+    }
+
+    const existing = await transportRepository.findActiveAssignmentForStudent(schoolId, studentId);
+    if (existing) {
+      throw conflict(
+        `${student.firstName} is already assigned to ${existing.routeId?.routeName || 'a route'} (${existing.stopId?.stopName || 'a stop'}). Remove that assignment first.`,
+        TRANSPORT_ERR.ALREADY_ASSIGNED
+      );
+    }
+
+    const capacity = route.vehicleId.capacity || 0;
+    const riding = await transportRepository.countActiveAssignments(schoolId, { routeId });
+    if (riding >= capacity) {
+      throw conflict(
+        `${route.routeName} is full — ${route.vehicleId.vehicleNumber} seats ${capacity}`,
+        TRANSPORT_ERR.CAPACITY_FULL
+      );
+    }
+
+    // Step 6 — the applicable yearly fee rides along with the assignment. The
+    // year is the school's current one (or one the admin names explicitly), and
+    // the amount is copied, not referenced.
+    const academicYear = data.academicYearId
+      ? await transportRepository.getAcademicYear(schoolId, requireId(data.academicYearId, 'Academic year'))
+      : await transportRepository.getCurrentAcademicYear(schoolId);
+    if (!academicYear) {
+      throw bad('No current academic year is set for this school. Set one before assigning transport.');
+    }
+    const fee = await transportRepository.findFee(schoolId, academicYear._id);
+
+    let created;
+    try {
+      created = await transportRepository.createAssignment({
+        schoolId,
+        studentId,
+        routeId,
+        stopId,
+        academicYearId: academicYear._id,
+        yearlyFeeAmount: fee?.yearlyAmount || 0,
+        status: 'ACTIVE',
+      });
+    } catch (error) {
+      // Lost a race against a concurrent assign for the same student.
+      if (error?.code === 11000) {
+        throw conflict('This student already has an active transport assignment', TRANSPORT_ERR.ALREADY_ASSIGNED);
+      }
+      throw error;
+    }
+
+    const assignment = await transportRepository.getAssignment(schoolId, created._id);
+    const meta = await studentMetaMap(schoolId, [studentId]);
+    return assignmentView(assignment, meta);
+  },
+
+  /** Moving a student to another route/stop — same validations as assigning. */
+  async updateAssignment(schoolIdRaw, id, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const assignment = await transportRepository.getAssignment(schoolId, requireId(id, 'Assignment'));
+    if (!assignment) throw notFound('Transport assignment');
+    if (assignment.status !== 'ACTIVE') throw conflict('This assignment is no longer active');
+
+    const currentRouteId = String(assignment.routeId?._id || assignment.routeId);
+    const routeId = data.routeId ? requireId(data.routeId, 'Route') : currentRouteId;
+    const stopId = requireId(data.stopId ?? assignment.stopId?._id ?? assignment.stopId, 'Pickup stop');
+
+    const [route, stop] = await Promise.all([
+      transportRepository.getRoute(schoolId, routeId),
+      transportRepository.getStop(schoolId, stopId),
+    ]);
+    if (!route) throw notFound('Route');
+    if (route.status !== 'ACTIVE') throw conflict(`${route.routeName} is inactive`);
+    if (!stop) throw notFound('Route stop');
+    if (String(stop.routeId) !== routeId) {
+      throw bad(`"${stop.stopName}" is not a stop on ${route.routeName}`);
+    }
+    if (!route.vehicleId || !route.driverId) {
+      throw conflict(
+        `${route.routeName} has no vehicle and driver assigned yet. Complete step 4 first.`,
+        TRANSPORT_ERR.ROUTE_NOT_READY
+      );
+    }
+
+    // Capacity only matters when the student is actually moving to a new route.
+    if (routeId !== currentRouteId) {
+      const capacity = route.vehicleId.capacity || 0;
+      const riding = await transportRepository.countActiveAssignments(schoolId, { routeId });
+      if (riding >= capacity) {
+        throw conflict(
+          `${route.routeName} is full — ${route.vehicleId.vehicleNumber} seats ${capacity}`,
+          TRANSPORT_ERR.CAPACITY_FULL
+        );
       }
     }
 
-    const assignment = await transportRepository.createAssignment({
-      schoolId,
-      studentId,
-      academicYearId: data.academicYearId || null,
-      routeId,
-      pickupStopId,
-      dropStopId,
-      startDate: data.startDate ? new Date(data.startDate) : new Date(),
-      monthlyFee: Number(data.monthlyFee) || 0,
-      status: 'ACTIVE',
-      remarks: data.remarks || '',
-      assignedBy: user?.userId || null,
-    });
+    assignment.routeId = route._id;
+    assignment.stopId = stop._id;
+    await assignment.save();
 
-    return transportRepository.getAssignmentById(schoolId, assignment._id);
+    const fresh = await transportRepository.getAssignment(schoolId, assignment._id);
+    const meta = await studentMetaMap(schoolId, [fresh.studentId?._id]);
+    return assignmentView(fresh, meta);
   },
 
-  async discontinueAssignment(schoolId, id, data) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
+  async removeAssignment(schoolIdRaw, id) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const assignment = await transportRepository.getAssignment(schoolId, requireId(id, 'Assignment'));
+    if (!assignment) throw notFound('Transport assignment');
+    if (assignment.status !== 'ACTIVE') throw conflict('This assignment is already discontinued');
 
-    const assignment = await transportRepository.getAssignmentById(schoolId, id);
-    if (!assignment || assignment.status !== 'ACTIVE') {
-      throw new AppError('Active transport assignment not found', 404);
-    }
+    // Soft-close rather than delete: the partial-unique index frees the student
+    // for a new assignment while the old row stays auditable.
+    assignment.status = 'DISCONTINUED';
+    await assignment.save();
 
-    const updated = await transportRepository.updateAssignment(schoolId, id, {
-      status: 'DISCONTINUED',
-      endDate: data.endDate ? new Date(data.endDate) : new Date(),
-      discontinueReason: data.discontinueReason || 'Student opted out of transport',
-    });
-
-    return transportRepository.getAssignmentById(schoolId, updated._id);
+    const fresh = await transportRepository.getAssignment(schoolId, assignment._id);
+    const meta = await studentMetaMap(schoolId, [fresh.studentId?._id]);
+    return assignmentView(fresh, meta);
   },
 
-  // --- TRANSPORT ATTENDANCE ---
-  async getAttendance(schoolId, routeId, dateStr, tripType) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const targetDate = dateStr || new Date().toISOString().split('T')[0];
-    const trip = tripType || 'MORNING_PICKUP';
+  /* ---------------------- STEP 6 · YEARLY TRANSPORT FEE ------------------ */
 
-    let attendance = await transportRepository.getAttendanceByDate(schoolId, routeId, targetDate, trip);
-
-    if (!attendance) {
-      // Build a fresh sheet from active assignments on this route
-      const assignments = await transportRepository.listAssignments(schoolId, { routeId, status: 'ACTIVE' });
-      const records = assignments.map((a) => ({
-        studentId: a.studentId,
-        stopId: trip === 'MORNING_PICKUP' ? a.pickupStopId : a.dropStopId,
-        status: 'PRESENT',
-        boardedTime: '',
-        remarks: '',
-      }));
-
-      return {
-        routeId,
-        date: targetDate,
-        tripType: trip,
-        isRecorded: false,
-        totalStudents: records.length,
-        presentCount: records.length,
-        absentCount: 0,
-        records,
-      };
-    }
-
-    return { ...attendance, isRecorded: true };
-  },
-
-  async saveAttendance(schoolId, routeId, data, user) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const dateStr = data.date || new Date().toISOString().split('T')[0];
-    const tripType = data.tripType || 'MORNING_PICKUP';
-    const records = Array.isArray(data.records) ? data.records : [];
-
-    const presentCount = records.filter((r) => r.status === 'PRESENT').length;
-    const absentCount = records.filter((r) => r.status !== 'PRESENT').length;
-
-    return transportRepository.saveAttendance(schoolId, routeId, dateStr, tripType, {
-      totalStudents: records.length,
-      presentCount,
-      absentCount,
-      recordedBy: user?.userId || null,
-      records,
-    });
-  },
-
-  // --- VEHICLE MAINTENANCE ---
-  async listMaintenance(schoolId, query = {}) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const filter = {};
-    if (query.vehicleId) filter.vehicleId = query.vehicleId;
-    return transportRepository.listMaintenance(schoolId, filter);
-  },
-
-  async createMaintenance(schoolId, data) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const vehicleId = requireText(data.vehicleId, 'Vehicle');
-
-    const record = await transportRepository.createMaintenance({
-      schoolId,
-      vehicleId,
-      serviceDate: data.serviceDate ? new Date(data.serviceDate) : new Date(),
-      serviceType: data.serviceType || 'GENERAL_SERVICE',
-      cost: Number(data.cost) || 0,
-      odometerReadingKm: Number(data.odometerReadingKm) || 0,
-      nextServiceDueKm: data.nextServiceDueKm ? Number(data.nextServiceDueKm) : null,
-      nextServiceDueDate: data.nextServiceDueDate ? new Date(data.nextServiceDueDate) : null,
-      vendorWorkshop: data.vendorWorkshop || '',
-      description: data.description || '',
-      remarks: data.remarks || '',
-    });
-
-    return record;
-  },
-
-  // --- TRANSPORT INCIDENTS ---
-  async listIncidents(schoolId, query = {}) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const filter = {};
-    if (query.status) filter.status = query.status;
-    if (query.vehicleId) filter.vehicleId = query.vehicleId;
-    return transportRepository.listIncidents(schoolId, filter);
-  },
-
-  async createIncident(schoolId, data) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const title = requireText(data.title, 'Incident Title');
-    const description = requireText(data.description, 'Description');
-
-    const incident = await transportRepository.createIncident({
-      schoolId,
-      routeId: data.routeId || null,
-      vehicleId: data.vehicleId || null,
-      studentId: data.studentId || null,
-      driverId: data.driverId || null,
-      incidentType: data.incidentType || 'OTHER',
-      incidentDate: data.incidentDate ? new Date(data.incidentDate) : new Date(),
-      title,
-      description,
-      actionTaken: data.actionTaken || '',
-      priority: data.priority || 'MEDIUM',
-      status: 'REPORTED',
-    });
-
-    return incident;
-  },
-
-  async updateIncidentStatus(schoolId, id, data) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-    const updateData = {};
-    if (data.status) updateData.status = data.status;
-    if (data.actionTaken) updateData.actionTaken = data.actionTaken;
-
-    const updated = await transportRepository.updateIncident(schoolId, id, updateData);
-    if (!updated) throw new AppError('Incident not found', 404);
-    return updated;
-  },
-
-  // --- ELIGIBLE ENTITIES ---
-  async getEligibleEntities(schoolId) {
-    if (!schoolId) throw new AppError('School ID is required', 400);
-
-    const [students, staff, vehicles, routes] = await Promise.all([
-      Student.find({ schoolId, status: 'ACTIVE' })
-        .select('firstName lastName rollNumber admissionNumber className sectionName phone email')
-        .sort({ firstName: 1 })
-        .lean(),
-      SchoolUser.find({ schoolId, status: 'ACTIVE' })
-        .select('fullName email phone designation role')
-        .sort({ fullName: 1 })
-        .lean(),
-      Vehicle.find({ schoolId, status: 'ACTIVE' })
-        .select('vehicleNumber vehicleType capacity registrationNumber')
-        .sort({ vehicleNumber: 1 })
-        .lean(),
-      TransportRoute.find({ schoolId, status: 'ACTIVE' })
-        .select('routeName routeCode startPoint endPoint')
-        .sort({ routeCode: 1 })
-        .lean(),
+  /**
+   * Every academic year the school has, each with the transport fee set for it
+   * (or null where none is set yet). One amount per year, the same for every
+   * class and every route — that is the whole rule.
+   */
+  async listFees(schoolIdRaw) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const [years, fees, riders] = await Promise.all([
+      transportRepository.listAcademicYears(schoolId),
+      transportRepository.listFees(schoolId),
+      StudentTransportAssignment.aggregate([
+        { $match: { schoolId: new mongoose.Types.ObjectId(schoolId), status: 'ACTIVE' } },
+        { $group: { _id: '$academicYearId', n: { $sum: 1 } } },
+      ]),
     ]);
 
-    // Grab stops grouped by route
-    const routesWithStops = await Promise.all(
-      routes.map(async (r) => {
-        const stops = await RouteStop.find({ schoolId, routeId: r._id })
-          .select('stopName sequenceOrder pickupTime dropTime monthlyFee')
-          .sort({ sequenceOrder: 1 })
-          .lean();
-        return { ...r, stops };
-      })
-    );
+    const feeBy = new Map(fees.map((f) => [String(f.academicYearId), f]));
+    const ridersBy = new Map(riders.map((r) => [String(r._id), r.n]));
 
-    return { students, staff, vehicles, routes: routesWithStops };
+    return years.map((year) => {
+      const fee = feeBy.get(String(year._id));
+      return {
+        academicYearId: String(year._id),
+        academicYear: { id: String(year._id), name: year.name, code: year.code, isCurrent: year.isCurrent },
+        yearlyAmount: fee ? fee.yearlyAmount : null,
+        // Riders already priced off this year — they keep their snapshot even
+        // if the amount below is changed.
+        assignedStudents: ridersBy.get(String(year._id)) || 0,
+        updatedAt: fee?.updatedAt || null,
+      };
+    });
+  },
+
+  async setFee(schoolIdRaw, academicYearIdRaw, data = {}) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const academicYearId = requireId(academicYearIdRaw, 'Academic year');
+    const year = await transportRepository.getAcademicYear(schoolId, academicYearId);
+    if (!year) throw notFound('Academic year');
+
+    const yearlyAmount = normalizeAmount(data.yearlyAmount);
+    const fee = await transportRepository.upsertFee(schoolId, academicYearId, yearlyAmount);
+    return {
+      academicYearId,
+      academicYear: { id: String(year._id), name: year.name, code: year.code, isCurrent: year.isCurrent },
+      yearlyAmount: fee.yearlyAmount,
+      updatedAt: fee.updatedAt,
+    };
+  },
+
+  async deleteFee(schoolIdRaw, academicYearIdRaw) {
+    const schoolId = requireSchool(schoolIdRaw);
+    const academicYearId = requireId(academicYearIdRaw, 'Academic year');
+    const removed = await transportRepository.deleteFee(schoolId, academicYearId);
+    if (!removed) throw notFound('Transport fee for this academic year');
+    // Riders assigned under this fee keep their snapshot on purpose.
+    return { academicYearId };
+  },
+
+  /* ---------------------------- form lookups ----------------------------- */
+
+  /**
+   * Everything the admin forms need to populate their dropdowns, in one call —
+   * real records only, so the UI never has to invent placeholder data.
+   */
+  async getLookups(schoolIdRaw) {
+    const schoolId = requireSchool(schoolIdRaw);
+
+    const [students, vehicles, drivers, routes, activeAssignments] = await Promise.all([
+      Student.find({ schoolId, status: 'ACTIVE' })
+        .select('firstName lastName admissionNumber')
+        .sort({ firstName: 1 })
+        .lean(),
+      transportRepository.listVehicles(schoolId, { status: 'ACTIVE' }),
+      transportRepository.listDrivers(schoolId, { status: 'ACTIVE' }),
+      transportRepository.listRoutes(schoolId, { status: 'ACTIVE' }),
+      StudentTransportAssignment.find({ schoolId, status: 'ACTIVE' }).select('studentId').lean(),
+    ]);
+
+    const assigned = new Set(activeAssignments.map((a) => String(a.studentId)));
+    const meta = await studentMetaMap(schoolId, students.map((s) => s._id));
+
+    const stops = await RouteStop.find({ schoolId, routeId: { $in: routes.map((r) => r._id) } })
+      .sort({ sequenceOrder: 1 })
+      .lean();
+    const stopsByRoute = new Map();
+    for (const stop of stops) {
+      const key = String(stop.routeId);
+      if (!stopsByRoute.has(key)) stopsByRoute.set(key, []);
+      stopsByRoute.get(key).push({
+        id: String(stop._id),
+        stopName: stop.stopName,
+        sequenceOrder: stop.sequenceOrder,
+        pickupTime: stop.pickupTime,
+        dropTime: stop.dropTime,
+      });
+    }
+
+    // What a new rider will be charged, so the assign form can show it before
+    // the admin commits.
+    const currentYear = await transportRepository.getCurrentAcademicYear(schoolId);
+    const currentFee = currentYear ? await transportRepository.findFee(schoolId, currentYear._id) : null;
+
+    return {
+      currentAcademicYear: currentYear
+        ? { id: String(currentYear._id), name: currentYear.name, code: currentYear.code }
+        : null,
+      currentYearlyFee: currentFee ? currentFee.yearlyAmount : null,
+      students: students.map((s) => ({
+        ...studentView(s, meta.get(String(s._id)) || {}),
+        alreadyAssigned: assigned.has(String(s._id)),
+      })),
+      vehicles: vehicles.map((v) => v.toPublicJSON()),
+      drivers: drivers.map((d) => d.toPublicJSON()),
+      routes: routes.map((r) => ({
+        ...r.toPublicJSON(),
+        stops: stopsByRoute.get(String(r._id)) || [],
+      })),
+    };
   },
 };

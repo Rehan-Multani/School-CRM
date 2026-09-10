@@ -388,6 +388,7 @@ export function TeacherPickupDemo() {
           <label className="mb-2 block text-xs font-semibold text-slate-500">
             Pickup person name (optional)
             <input
+              placeholder="e.g. Uncle Ramesh"
               value={handover.pickupPersonName}
               onChange={(e) => setHandover((h) => ({ ...h, pickupPersonName: e.target.value }))}
               className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"

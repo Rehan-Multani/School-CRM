@@ -729,7 +729,7 @@ export const SubjectAssignments = () => {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/80 pl-9 pr-3.5 text-xs outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+              className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/80 pl-10 pr-3.5 text-xs outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
             />
             {search && (
               <button
@@ -1282,6 +1282,7 @@ export const SubjectAssignments = () => {
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Max Marks</label>
               <input
+                placeholder="e.g. 100"
                 type="number"
                 min="1"
                 max="1000"
@@ -1295,6 +1296,7 @@ export const SubjectAssignments = () => {
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Passing Marks</label>
               <input
+                placeholder="e.g. 35"
                 type="number"
                 min="0"
                 max="1000"
@@ -1392,6 +1394,7 @@ export const SubjectAssignments = () => {
               <div>
                 <label className="mb-1 block text-xs font-bold text-slate-500">Max Marks</label>
                 <input
+                  placeholder="e.g. 100"
                   type="number"
                   min="1"
                   max="1000"
@@ -1403,6 +1406,7 @@ export const SubjectAssignments = () => {
               <div>
                 <label className="mb-1 block text-xs font-bold text-slate-500">Passing Marks</label>
                 <input
+                  placeholder="e.g. 35"
                   type="number"
                   min="0"
                   max="1000"

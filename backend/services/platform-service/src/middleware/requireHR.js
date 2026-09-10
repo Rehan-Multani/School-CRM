@@ -14,8 +14,8 @@ export function requireHR(req, res, next) {
 
     const payload = verifyToken(token, env.jwtSecret);
     const role = (payload.role || '').toUpperCase();
-    if (role !== 'HR' && role !== 'SCHOOLADMIN') {
-      throw new AppError('Access denied: HR or School Admin privileges required', 403);
+    if (role !== 'HR' && role !== 'SCHOOLADMIN' && role !== 'PRINCIPAL') {
+      throw new AppError('Access denied: HR, Principal, or School Admin privileges required', 403);
     }
 
     req.user = payload;

@@ -5,6 +5,7 @@ import { useToast } from '../../components/ui/Toast';
 import { usePrincipalAuth } from '../../context/PrincipalAuthContext';
 import { usePrincipalTheme } from '../../context/PrincipalThemeContext';
 import { principalAuthApi } from '../../../../shared/api/client';
+import { sanitizeMobileInput, isValid10DigitMobile } from '../../../../shared/utils/mobileValidation';
 import {
   Camera,
   Eye,
@@ -163,6 +164,10 @@ export const Settings = () => {
 
   const handleSaveProfile = async (event) => {
     event.preventDefault();
+    if (phone && !isValid10DigitMobile(phone, false)) {
+      showToast('Contact phone must be exactly 10 digits', 'error');
+      return;
+    }
     setSavingProfile(true);
     try {
       const payload = new FormData();
@@ -287,10 +292,19 @@ export const Settings = () => {
                 <TextInput id="email" value={user?.email || ''} disabled className="pl-10 opacity-70" />
               </div>
             </Field>
-            <Field id="phone" label="Contact phone">
+            <Field id="phone" label="Contact phone" hint={phone ? `${phone.length}/10 digits` : undefined}>
               <div className="relative">
                 <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <TextInput id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="pl-10" />
+                <TextInput
+                  id="phone"
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
+                  placeholder="9876543210"
+                  value={phone}
+                  onChange={(e) => setPhone(sanitizeMobileInput(e.target.value))}
+                  className="pl-10"
+                />
               </div>
             </Field>
           </div>

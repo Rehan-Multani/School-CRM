@@ -61,6 +61,7 @@ function ActivePlanCard({
   endsAt,
   daysRemaining,
   cancelAtPeriodEnd,
+  isCancelled,
   onCancel,
   cancelling,
 }) {
@@ -75,10 +76,17 @@ function ActivePlanCard({
         {/* Plan Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-6 dark:border-slate-800">
           <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Active Subscription
-            </span>
+            {isCancelled ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700 dark:border-rose-900/40 dark:bg-rose-500/10 dark:text-rose-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                Cancelled Subscription
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Active Subscription
+              </span>
+            )}
             <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">
               {planName}
             </h2>
@@ -112,28 +120,40 @@ function ActivePlanCard({
               <div className="rounded-lg bg-emerald-50 p-1.5 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
                 <Clock className="h-4 w-4" />
               </div>
-              Valid Until
+              {isCancelled && (!daysRemaining || daysRemaining === 0) ? 'Ended On' : 'Valid Until'}
             </div>
             <p className="mt-3 text-lg font-black text-slate-900 dark:text-white">
               {formatDate(endsAt)}
             </p>
-            {daysRemaining !== undefined && daysRemaining !== null && (
-              <p className="mt-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+            {daysRemaining !== undefined && daysRemaining !== null && daysRemaining > 0 ? (
+              <p className={`mt-0.5 text-xs font-semibold ${isCancelled ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                 {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining
               </p>
-            )}
+            ) : isCancelled ? (
+              <p className="mt-0.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
+                Subscription ended
+              </p>
+            ) : null}
           </div>
         </div>
 
-        {/* Cancellation Notice if already scheduled */}
-        {cancelAtPeriodEnd && (
-          <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs font-semibold text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-300">
-            Cancellation scheduled. Your subscription remains active until <strong>{formatDate(endsAt)}</strong>, after which auto-renewal will stop.
+        {/* Cancellation Notice if already scheduled or cancelled */}
+        {isCancelled && (
+          <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50/80 p-4 text-xs font-semibold text-rose-800 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300">
+            {daysRemaining !== undefined && daysRemaining !== null && daysRemaining > 0 ? (
+              <>
+                Cancellation scheduled. Your subscription auto-renewal has stopped. Portal access remains active until <strong>{formatDate(endsAt)}</strong>.
+              </>
+            ) : (
+              <>
+                This subscription has been cancelled. To restore full access, please choose a subscription plan below.
+              </>
+            )}
           </div>
         )}
 
-        {/* Cancel Option (User requested: cancel option bs) */}
-        {!cancelAtPeriodEnd && (
+        {/* Cancel Option (Only shown if subscription is active and not yet cancelled) */}
+        {!isCancelled && (
           <div className="mt-8 border-t border-slate-100 pt-6 dark:border-slate-800">
             {!confirmCancel ? (
               <button
@@ -466,6 +486,9 @@ export default function SubscriptionPlans() {
       if (subscription.status === 'Expired' || subscription.status === 'Pending Payment') {
         return false;
       }
+      if (subscription.status?.toLowerCase() === 'cancelled') {
+        return false;
+      }
       if (subscription.endsAt) {
         return new Date(subscription.endsAt).getTime() > now;
       }
@@ -474,6 +497,20 @@ export default function SubscriptionPlans() {
 
     return Boolean(hasPlan);
   }, [recurringSub, subscription, hasPlan]);
+
+  // Real-time cancellation check (both scheduled at period end and immediately cancelled)
+  const isCancelled = useMemo(() => {
+    if (recurringSub) {
+      if (recurringSub.cancelAtPeriodEnd) return true;
+      if (recurringSub.status === 'cancelled') return true;
+    }
+    if (subscription) {
+      if (subscription.status?.toLowerCase() === 'cancelled') return true;
+      if (subscription.isCancelled) return true;
+      if (subscription.cancelAtPeriodEnd) return true;
+    }
+    return Boolean(cancelAtPeriodEnd);
+  }, [recurringSub, subscription, cancelAtPeriodEnd]);
 
   // Active plan details
   const activePlanName =
@@ -513,15 +550,19 @@ export default function SubscriptionPlans() {
     return Math.max(0, Math.ceil(ms / 86400000));
   }, [recurringSub?.currentPeriodEnd, subscription?.endsAt, user?.subscription?.endsAt]);
 
+  const hasSubscriptionHistory = Boolean(recurringSub || subscription || user?.subscriptionPlan);
+
   return (
     <div className="space-y-6 pb-12">
       {/* Header */}
       <PageHeader
-        title={isPlanActive ? 'School Subscription' : 'Choose an Institution Plan'}
+        title={isCancelled ? 'School Subscription' : (isPlanActive ? 'School Subscription' : 'Choose an Institution Plan')}
         subtitle={
-          isPlanActive
-            ? `Current subscription status and details for ${user?.schoolName || 'your school'}.`
-            : `${user?.schoolName || 'Your school'} needs a plan to unlock the complete CRM portal.`
+          isCancelled
+            ? `Current subscription status: Cancelled. ${isPlanActive ? `Portal access remains active until ${formatDate(activeEndsAt)}.` : 'Choose a plan to reactivate your portal.'}`
+            : (isPlanActive
+              ? `Current subscription status and details for ${user?.schoolName || 'your school'}.`
+              : `${user?.schoolName || 'Your school'} needs a plan to unlock the complete CRM portal.`)
         }
       />
 
@@ -556,8 +597,7 @@ export default function SubscriptionPlans() {
         </div>
       ) : isPlanActive ? (
         /* ===================================================================
-           ACTIVE PLAN VIEW (Simple: Name, Started date, End date, Cancel option)
-           NO upgrade dropdown, NO extra available plan cards below
+           ACTIVE / PERIOD-END CANCELLED PLAN VIEW
            =================================================================== */
         <ActivePlanCard
           planName={activePlanName}
@@ -567,9 +607,51 @@ export default function SubscriptionPlans() {
           endsAt={activeEndsAt}
           daysRemaining={activeDaysRemaining}
           cancelAtPeriodEnd={cancelAtPeriodEnd || Boolean(recurringSub?.cancelAtPeriodEnd)}
+          isCancelled={isCancelled}
           onCancel={handleCancelSubscription}
           cancelling={cancelling}
         />
+      ) : isCancelled && hasSubscriptionHistory ? (
+        /* ===================================================================
+           EXPIRED / FULLY CANCELLED PLAN VIEW
+           Shows Cancelled Status Card + Plan Options Below to Re-subscribe
+           =================================================================== */
+        <div className="space-y-8">
+          <ActivePlanCard
+            planName={activePlanName}
+            price={activePrice}
+            planType={activePlanType}
+            startedAt={activeStartedAt}
+            endsAt={activeEndsAt}
+            daysRemaining={0}
+            cancelAtPeriodEnd={true}
+            isCancelled={true}
+            onCancel={handleCancelSubscription}
+            cancelling={cancelling}
+          />
+
+          <section className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+            <div>
+              <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+                Choose a New Plan to Reactivate
+              </h3>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Select any tier below to immediately restore uninterrupted access for your school institution.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {plans.map((plan) => (
+                <InitialPricingCard
+                  key={plan.id}
+                  plan={plan}
+                  onSelect={handleSelect}
+                  selectingId={selectingId}
+                  confirming={confirming}
+                />
+              ))}
+            </div>
+          </section>
+        </div>
       ) : (
         /* ===================================================================
            NO-PLAN ONBOARDING VIEW (Only for schools choosing plan for first time)

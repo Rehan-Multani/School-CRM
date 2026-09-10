@@ -194,6 +194,7 @@ export const TeacherExamination = () => {
                     <div className="flex items-center gap-2">
                       <label className="text-xs font-bold text-slate-400">Score / 50:</label>
                       <input
+                        placeholder="0"
                         type="number"
                         min="0"
                         max="50"

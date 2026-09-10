@@ -4,6 +4,7 @@ import { useHRAuth } from '../../context/HRAuthContext';
 import { useHRTheme } from '../../context/HRThemeContext';
 import { useToast } from '../../components/ui/Toast';
 import { hrApi } from '../../../../shared/api/client';
+import { sanitizeMobileInput, isValid10DigitMobile } from '../../../../shared/utils/mobileValidation';
 import {
   Save,
   Sliders,
@@ -136,6 +137,10 @@ export const Settings = () => {
   
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
+    if (profileForm.phone && !isValid10DigitMobile(profileForm.phone, false)) {
+      showToast('Contact phone must be exactly 10 digits', 'error');
+      return;
+    }
     setSaving(true);
     try {
       const res = await hrApi.updateProfile(profileForm);
@@ -305,6 +310,7 @@ export const Settings = () => {
                   Casual Leave (Days / Year)
                 </label>
                 <input
+                  placeholder="e.g. 12"
                   type="number"
                   value={settings.casualLeaveQuota}
                   onChange={(e) => setSettings({ ...settings, casualLeaveQuota: e.target.value })}
@@ -317,6 +323,7 @@ export const Settings = () => {
                   Medical / Sick Leave (Days / Year)
                 </label>
                 <input
+                  placeholder="e.g. 10"
                   type="number"
                   value={settings.medicalLeaveQuota}
                   onChange={(e) => setSettings({ ...settings, medicalLeaveQuota: e.target.value })}
@@ -329,6 +336,7 @@ export const Settings = () => {
                   Paid / Earned Leave (Days / Year)
                 </label>
                 <input
+                  placeholder="e.g. 15"
                   type="number"
                   value={settings.paidLeaveQuota}
                   onChange={(e) => setSettings({ ...settings, paidLeaveQuota: e.target.value })}
@@ -373,6 +381,7 @@ export const Settings = () => {
                   Unapproved Absent Deduction (₹ / Day)
                 </label>
                 <input
+                  placeholder="e.g. 500"
                   type="number"
                   value={settings.absentDeductionPerDay || 0}
                   onChange={(e) => setSettings({ ...settings, absentDeductionPerDay: e.target.value })}
@@ -385,6 +394,7 @@ export const Settings = () => {
                   Standard Probation Period (Months)
                 </label>
                 <input
+                  placeholder="e.g. 6"
                   type="number"
                   value={settings.probationPeriodMonths || 6}
                   onChange={(e) => setSettings({ ...settings, probationPeriodMonths: e.target.value })}
@@ -440,6 +450,7 @@ export const Settings = () => {
               <div>
                 <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">First Name</label>
                 <input
+                  placeholder="e.g. Rahul"
                   type="text"
                   value={profileForm.firstName}
                   onChange={(e) => setProfileForm({ ...profileForm, firstName: e.target.value })}
@@ -449,6 +460,7 @@ export const Settings = () => {
               <div>
                 <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Last Name</label>
                 <input
+                  placeholder="e.g. Sharma"
                   type="text"
                   value={profileForm.lastName}
                   onChange={(e) => setProfileForm({ ...profileForm, lastName: e.target.value })}
@@ -456,12 +468,21 @@ export const Settings = () => {
                 />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Contact Phone</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-slate-700 dark:text-slate-300 font-bold">Contact Phone</label>
+                  {profileForm.phone ? (
+                    <span className={`text-[10px] font-bold ${profileForm.phone.length === 10 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                      {profileForm.phone.length}/10 digits
+                    </span>
+                  ) : null}
+                </div>
                 <input
-                  type="text"
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
                   value={profileForm.phone}
-                  onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
-                  placeholder="+91 98765 43210"
+                  onChange={(e) => setProfileForm({ ...profileForm, phone: sanitizeMobileInput(e.target.value) })}
+                  placeholder="9876543210"
                   className="w-full h-10 px-3.5 rounded-xl border border-slate-200 bg-slate-50/80 dark:border-slate-800 dark:bg-slate-950 text-slate-900 dark:text-white outline-none focus:border-indigo-500 font-bold"
                 />
               </div>
@@ -486,6 +507,7 @@ export const Settings = () => {
                 <div>
                   <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Current Password</label>
                   <input
+                    placeholder="Enter current password"
                     type="password"
                     value={passwordForm.currentPassword}
                     onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
@@ -495,6 +517,7 @@ export const Settings = () => {
                 <div>
                   <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">New Password</label>
                   <input
+                    placeholder="At least 8 characters"
                     type="password"
                     value={passwordForm.newPassword}
                     onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
@@ -504,6 +527,7 @@ export const Settings = () => {
                 <div>
                   <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">Confirm New Password</label>
                   <input
+                    placeholder="Re-enter new password"
                     type="password"
                     value={passwordForm.confirmPassword}
                     onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}

@@ -239,8 +239,14 @@ export const Reports = () => {
                 <td className="p-3.5 font-bold text-slate-900 dark:text-white capitalize">
                   {key.replace(/([A-Z])/g, ' $1')}
                 </td>
-                <td className="p-3.5 text-right text-indigo-650 dark:text-indigo-400 font-black">
-                  {typeof val === 'object' ? JSON.stringify(val) : String(val)}
+                <td className="p-3.5 text-right">
+                  {typeof val === 'object' ? (
+                    <div className="bg-slate-900 text-slate-100 p-3 rounded-lg font-mono text-[11px] overflow-x-auto whitespace-pre-wrap break-words text-left">
+                      {JSON.stringify(val, null, 2)}
+                    </div>
+                  ) : (
+                    <span className="text-indigo-650 dark:text-indigo-400 font-black">{String(val)}</span>
+                  )}
                 </td>
               </tr>
             ))}

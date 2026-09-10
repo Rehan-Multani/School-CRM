@@ -26,9 +26,9 @@ feeStructureItemSchema.index({ feeStructureId: 1, feeHeadId: 1 }, { unique: true
 feeStructureItemSchema.methods.toPublicJSON = function toPublicJSON() {
   return {
     id: this._id.toString(),
-    schoolId: this.schoolId.toString(),
-    feeStructureId: this.feeStructureId.toString(),
-    feeHeadId: this.feeHeadId.toString(),
+    schoolId: this.schoolId?.toString(),
+    feeStructureId: this.feeStructureId?._id?.toString ? this.feeStructureId._id.toString() : this.feeStructureId?.toString(),
+    feeHeadId: this.feeHeadId?._id?.toString ? this.feeHeadId._id.toString() : this.feeHeadId?.toString(),
     amount: this.amount,
     frequency: this.frequency,
     dueDay: this.dueDay,

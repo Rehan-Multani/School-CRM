@@ -576,6 +576,7 @@ export const AcademicYearDetail = () => {
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Capacity</label>
               <input
+                placeholder="e.g. 40"
                 type="number"
                 min="1"
                 className={inputClass}
@@ -650,6 +651,7 @@ export const AcademicYearDetail = () => {
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Capacity</label>
               <input
+                placeholder="e.g. 40"
                 type="number"
                 min="1"
                 className={inputClass}

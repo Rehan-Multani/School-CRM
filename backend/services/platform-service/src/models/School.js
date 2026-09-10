@@ -56,7 +56,7 @@ const schoolSchema = new mongoose.Schema(
       endsAt: { type: Date, default: null },
       status: {
         type: String,
-        enum: ['Pending Payment', 'Active', 'Expired'],
+        enum: ['Pending Payment', 'Active', 'Expired', 'Cancelled'],
         default: 'Pending Payment',
       },
     },

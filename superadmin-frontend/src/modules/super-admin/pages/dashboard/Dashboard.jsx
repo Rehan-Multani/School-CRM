@@ -149,7 +149,7 @@ export default function Dashboard() {
           value={formatInr(stats.collectedAmount)}
           icon={IndianRupee}
           tone="emerald"
-          to="/super-admin/billing"
+          to="/super-admin/subscriptions"
           loading={loading}
         />
         <StatCard

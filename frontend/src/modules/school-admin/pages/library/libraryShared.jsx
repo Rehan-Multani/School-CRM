@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutGrid, Library, FolderTree, SlidersHorizontal, BookMarked, Settings } from 'lucide-react';
+import { LayoutGrid, Library, FolderTree, SlidersHorizontal, BookMarked } from 'lucide-react';
 import { cn } from '../../utils/cn';
 
 export const inputClass =
@@ -44,7 +44,6 @@ export const LIBRARY_TABS = [
   { id: 'categories', label: 'Categories', path: '/school-admin/library/categories', icon: FolderTree },
   { id: 'rules', label: 'Rules', path: '/school-admin/library/rules', icon: SlidersHorizontal },
   { id: 'reports', label: 'Reports', path: '/school-admin/library/reports', icon: BookMarked },
-  { id: 'settings', label: 'Settings', path: '/school-admin/library/settings', icon: Settings },
 ];
 
 export const LibraryTabsNav = () => (

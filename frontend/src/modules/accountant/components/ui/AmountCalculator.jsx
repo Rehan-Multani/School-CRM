@@ -74,6 +74,7 @@ export const AmountCalculator = ({ onChange }) => {
               </label>
               {head.active && (
                 <input
+                  placeholder="0"
                   type="number"
                   value={head.amount}
                   onChange={(e) => handleAmountChange(idx, e.target.value)}
@@ -93,6 +94,7 @@ export const AmountCalculator = ({ onChange }) => {
           <div className="space-y-1">
             <label className="text-[10px] text-slate-400">Discount Concession (%)</label>
             <input
+              placeholder="e.g. 10"
               type="number"
               value={discountPercent}
               onChange={(e) => setDiscountPercent(Math.max(Number(e.target.value), 0))}
@@ -102,6 +104,7 @@ export const AmountCalculator = ({ onChange }) => {
           <div className="space-y-1">
             <label className="text-[10px] text-slate-400">Scholarship Deduction (INR)</label>
             <input
+              placeholder="e.g. 500"
               type="number"
               value={scholarshipDeduction}
               onChange={(e) => setScholarshipDeduction(Math.max(Number(e.target.value), 0))}
@@ -111,6 +114,7 @@ export const AmountCalculator = ({ onChange }) => {
           <div className="space-y-1">
             <label className="text-[10px] text-slate-400">Late Fee Fine (INR)</label>
             <input
+              placeholder="e.g. 100"
               type="number"
               value={lateFine}
               onChange={(e) => setLateFine(Math.max(Number(e.target.value), 0))}
@@ -120,6 +124,7 @@ export const AmountCalculator = ({ onChange }) => {
           <div className="space-y-1">
             <label className="text-[10px] text-slate-400 block font-bold text-emerald-600">Amount Received Today (INR)</label>
             <input
+              placeholder="e.g. 5000"
               type="number"
               value={amountPaid}
               onChange={(e) => setAmountPaid(Math.max(Number(e.target.value), 0))}

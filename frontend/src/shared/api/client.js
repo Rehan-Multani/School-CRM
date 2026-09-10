@@ -11,11 +11,60 @@ const PANEL_TOKEN_KEYS = [
   'hr_token',
   'librarian_token',
   'transport_token',
+  'teacher_token',
+  'student_token',
+  'parent_token',
   'super_admin_token',
 ];
 
-function currentPanelToken() {
+const ROUTE_TOKEN_MAP = [
+  { prefix: '/school-admin', key: 'school_admin_token' },
+  { prefix: '/principal', key: 'principal_token' },
+  { prefix: '/accountant', key: 'accountant_token' },
+  { prefix: '/hr', key: 'hr_token' },
+  { prefix: '/librarian', key: 'librarian_token' },
+  { prefix: '/transport', key: 'transport_token' },
+  { prefix: '/teacher', key: 'teacher_token' },
+  { prefix: '/student', key: 'student_token' },
+  { prefix: '/parent', key: 'parent_token' },
+  { prefix: '/super-admin', key: 'super_admin_token' },
+];
+
+const ROLE_TOKEN_MAP = {
+  'school-admin': 'school_admin_token',
+  'schooladmin': 'school_admin_token',
+  'admin': 'school_admin_token',
+  'principal': 'principal_token',
+  'accountant': 'accountant_token',
+  'hr': 'hr_token',
+  'librarian': 'librarian_token',
+  'transport': 'transport_token',
+  'driver': 'transport_token',
+  'teacher': 'teacher_token',
+  'student': 'student_token',
+  'parent': 'parent_token',
+  'super-admin': 'super_admin_token',
+  'superadmin': 'super_admin_token',
+};
+
+function currentPanelToken(preferredRole) {
   try {
+    if (preferredRole) {
+      const normalized = String(preferredRole).toLowerCase().replace(/[\s_]/g, '-');
+      const key = ROLE_TOKEN_MAP[normalized];
+      if (key) {
+        const v = localStorage.getItem(key);
+        if (v) return v;
+      }
+    }
+    if (typeof window !== 'undefined' && window.location?.pathname) {
+      const path = window.location.pathname;
+      const matched = ROUTE_TOKEN_MAP.find((m) => path.startsWith(m.prefix));
+      if (matched) {
+        const v = localStorage.getItem(matched.key);
+        if (v) return v;
+      }
+    }
     for (const key of PANEL_TOKEN_KEYS) {
       const v = localStorage.getItem(key);
       if (v) return v;
@@ -54,9 +103,11 @@ const refreshClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('super_admin_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (!config.headers.Authorization) {
+    const token = localStorage.getItem('super_admin_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
   return config;
 });
@@ -334,6 +385,7 @@ export const feePortalApi = {
   updateHead: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/fees/heads/${id}`, payload).then((r) => r.data),
   deleteHead: (id) => schoolAdminClient.delete(`/platform/school-portal/fees/heads/${id}`).then((r) => r.data),
   seedDefaultHeads: () => schoolAdminClient.post('/platform/school-portal/fees/heads/seed').then((r) => r.data),
+  bulkCreateHeads: (payload) => schoolAdminClient.post('/platform/school-portal/fees/heads/bulk', payload).then((r) => r.data),
 
   // Fee Structures
   structures: (params) => schoolAdminClient.get('/platform/school-portal/fees/structures', { params }).then((r) => r.data),
@@ -436,22 +488,36 @@ export const platformBillingApi = {
   cancel: (id) => apiClient.patch(`/platform/billings/${id}/cancel`).then((res) => res.data),
 };
 
-// `apiClient`'s interceptor only carries the super-admin token, but the inbox and
-// device-token routes are called from every role portal and are now authenticated
+// `apiClient`'s interceptor only carries the super-admin token by default, but the inbox
+// and device-token routes are called from every role portal and are now authenticated
 // (they derive school/user scope from the caller's token instead of trusting query
-// params). So these two send whichever panel token this browser actually holds.
-function panelAuthHeader() {
-  const token = currentPanelToken();
+// params). So these send whichever panel token this browser holds or the caller's role.
+function panelAuthHeader(roleOrToken) {
+  let token = '';
+  if (roleOrToken && typeof roleOrToken === 'string') {
+    if (roleOrToken.startsWith('Bearer ')) {
+      return { headers: { Authorization: roleOrToken } };
+    }
+    const normalized = roleOrToken.toLowerCase().replace(/[\s_]/g, '-');
+    if (ROLE_TOKEN_MAP[normalized]) {
+      token = currentPanelToken(roleOrToken);
+    } else {
+      token = roleOrToken;
+    }
+  }
+  if (!token) {
+    token = currentPanelToken();
+  }
   return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 }
 
 export const platformNotificationApi = {
   list: () => apiClient.get('/platform/notifications').then((res) => res.data),
   send: (payload) => apiClient.post('/platform/notifications', payload).then((res) => res.data),
-  inbox: () =>
-    apiClient.get('/platform/notifications/inbox', panelAuthHeader()).then((res) => res.data),
-  registerDevice: (payload) =>
-    apiClient.post('/platform/device-tokens', payload, panelAuthHeader()).then((res) => res.data),
+  inbox: (roleOrToken) =>
+    apiClient.get('/platform/notifications/inbox', panelAuthHeader(roleOrToken)).then((res) => res.data),
+  registerDevice: (payload, roleOrToken) =>
+    apiClient.post('/platform/device-tokens', payload, panelAuthHeader(roleOrToken)).then((res) => res.data),
 };
 
 export const platformSupportApi = {
@@ -654,6 +720,7 @@ export const hrApi = {
   deleteDocument: (id) => hrClient.delete(`/platform/school-portal/hr/documents/${id}`).then((r) => r.data),
   announcements: () => hrClient.get('/platform/school-portal/hr/announcements').then((r) => r.data),
   createAnnouncement: (payload) => hrClient.post('/platform/school-portal/hr/announcements', payload).then((r) => r.data),
+  updateAnnouncement: (id, payload) => hrClient.patch(`/platform/school-portal/hr/announcements/${id}`, payload).then((r) => r.data),
   deleteAnnouncement: (id) => hrClient.delete(`/platform/school-portal/hr/announcements/${id}`).then((r) => r.data),
 
   // Notifications
@@ -868,94 +935,128 @@ export const examPortalApi = {
   reportCard: (examId, studentId) => schoolAdminClient.get(`/platform/school-portal/exams/${examId}/results/${studentId}`).then((r) => r.data),
 };
 
+const HOSTEL = '/platform/school-portal/hostel';
+
+/**
+ * Hostel module — the school-admin surface, in flow order:
+ * Hostel -> Room -> Beds -> Warden (+ hostel) -> Student (+ hostel + room +
+ * bed) -> Yearly hostel fee.
+ *
+ * Nothing outside that flow has an endpoint: no mess, attendance, visitors,
+ * complaints, laundry, inventory, maintenance or hostel reports.
+ */
 export const hostelPortalApi = {
-  // Dashboard & Helpers
-  dashboard: () => schoolAdminClient.get('/platform/school-portal/hostel/dashboard').then((r) => r.data),
-  seedDemo: () => schoolAdminClient.post('/platform/school-portal/hostel/seed-demo').then((r) => r.data),
-  eligibleEntities: () => schoolAdminClient.get('/platform/school-portal/hostel/eligible-entities').then((r) => r.data),
+  // Dropdown data for every form on the page — students, hostels with their
+  // rooms and beds, wardens, the current year and its fee. One call.
+  lookups: () => schoolAdminClient.get(`${HOSTEL}/lookups`).then((r) => r.data),
 
-  // Hostels
-  hostels: (params) => schoolAdminClient.get('/platform/school-portal/hostel/hostels', { params }).then((r) => r.data),
-  getHostel: (id) => schoolAdminClient.get(`/platform/school-portal/hostel/hostels/${id}`).then((r) => r.data),
-  createHostel: (payload) => schoolAdminClient.post('/platform/school-portal/hostel/hostels', payload).then((r) => r.data),
-  updateHostel: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/hostel/hostels/${id}`, payload).then((r) => r.data),
-  deleteHostel: (id) => schoolAdminClient.delete(`/platform/school-portal/hostel/hostels/${id}`).then((r) => r.data),
+  // 1 - Hostels
+  hostels: (params) => schoolAdminClient.get(`${HOSTEL}/hostels`, { params }).then((r) => r.data),
+  getHostel: (id) => schoolAdminClient.get(`${HOSTEL}/hostels/${id}`).then((r) => r.data),
+  createHostel: (payload) => schoolAdminClient.post(`${HOSTEL}/hostels`, payload).then((r) => r.data),
+  updateHostel: (id, payload) => schoolAdminClient.patch(`${HOSTEL}/hostels/${id}`, payload).then((r) => r.data),
+  deleteHostel: (id) => schoolAdminClient.delete(`${HOSTEL}/hostels/${id}`).then((r) => r.data),
 
-  // Rooms
-  rooms: (params) => schoolAdminClient.get('/platform/school-portal/hostel/rooms', { params }).then((r) => r.data),
-  getRoom: (id) => schoolAdminClient.get(`/platform/school-portal/hostel/rooms/${id}`).then((r) => r.data),
-  createRoom: (payload) => schoolAdminClient.post('/platform/school-portal/hostel/rooms', payload).then((r) => r.data),
-  updateRoom: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/hostel/rooms/${id}`, payload).then((r) => r.data),
-  deleteRoom: (id) => schoolAdminClient.delete(`/platform/school-portal/hostel/rooms/${id}`).then((r) => r.data),
+  // 2 + 3 - Rooms. Capacity defines the beds; they are created with the room.
+  rooms: (params) => schoolAdminClient.get(`${HOSTEL}/rooms`, { params }).then((r) => r.data),
+  getRoom: (id) => schoolAdminClient.get(`${HOSTEL}/rooms/${id}`).then((r) => r.data),
+  createRoom: (payload) => schoolAdminClient.post(`${HOSTEL}/rooms`, payload).then((r) => r.data),
+  updateRoom: (id, payload) => schoolAdminClient.patch(`${HOSTEL}/rooms/${id}`, payload).then((r) => r.data),
+  deleteRoom: (id) => schoolAdminClient.delete(`${HOSTEL}/rooms/${id}`).then((r) => r.data),
 
-  // Beds & Visualizer
-  beds: (params) => schoolAdminClient.get('/platform/school-portal/hostel/beds', { params }).then((r) => r.data),
-  bedVisualizer: (params) => schoolAdminClient.get('/platform/school-portal/hostel/beds/visualizer', { params }).then((r) => r.data),
+  // 3 - Beds are read-only; their status follows the allocations below.
+  beds: (params) => schoolAdminClient.get(`${HOSTEL}/beds`, { params }).then((r) => r.data),
 
-  // Allocations & Vacate
-  allocations: (params) => schoolAdminClient.get('/platform/school-portal/hostel/allocations', { params }).then((r) => r.data),
-  allocateStudent: (payload) => schoolAdminClient.post('/platform/school-portal/hostel/allocations', payload).then((r) => r.data),
-  transferStudent: (id, payload) => schoolAdminClient.post(`/platform/school-portal/hostel/allocations/${id}/transfer`, payload).then((r) => r.data),
-  checkoutStudent: (id, payload) => schoolAdminClient.post(`/platform/school-portal/hostel/allocations/${id}/checkout`, payload).then((r) => r.data),
+  // 4 - Wardens, and the warden -> hostel link
+  wardens: (params) => schoolAdminClient.get(`${HOSTEL}/wardens`, { params }).then((r) => r.data),
+  getWarden: (id) => schoolAdminClient.get(`${HOSTEL}/wardens/${id}`).then((r) => r.data),
+  createWarden: (payload) => schoolAdminClient.post(`${HOSTEL}/wardens`, payload).then((r) => r.data),
+  updateWarden: (id, payload) => schoolAdminClient.patch(`${HOSTEL}/wardens/${id}`, payload).then((r) => r.data),
+  deleteWarden: (id) => schoolAdminClient.delete(`${HOSTEL}/wardens/${id}`).then((r) => r.data),
+  assignWardenToHostel: (id, hostelId) =>
+    schoolAdminClient.post(`${HOSTEL}/wardens/${id}/hostel`, { hostelId }).then((r) => r.data),
+  unassignWardenFromHostel: (id) => schoolAdminClient.delete(`${HOSTEL}/wardens/${id}/hostel`).then((r) => r.data),
 
-  // Attendance
-  getAttendance: (hostelId, params) => schoolAdminClient.get(`/platform/school-portal/hostel/attendance/${hostelId}`, { params }).then((r) => r.data),
-  saveAttendance: (hostelId, payload) => schoolAdminClient.post(`/platform/school-portal/hostel/attendance/${hostelId}`, payload).then((r) => r.data),
+  // 5 - Student assignments
+  allocations: (params) => schoolAdminClient.get(`${HOSTEL}/allocations`, { params }).then((r) => r.data),
+  allocateStudent: (payload) => schoolAdminClient.post(`${HOSTEL}/allocations`, payload).then((r) => r.data),
+  updateAllocation: (id, payload) => schoolAdminClient.patch(`${HOSTEL}/allocations/${id}`, payload).then((r) => r.data),
+  vacateAllocation: (id) => schoolAdminClient.delete(`${HOSTEL}/allocations/${id}`).then((r) => r.data),
 
-  // Outings
-  outings: (params) => schoolAdminClient.get('/platform/school-portal/hostel/outings', { params }).then((r) => r.data),
-  createOuting: (payload) => schoolAdminClient.post('/platform/school-portal/hostel/outings', payload).then((r) => r.data),
-  updateOutingStatus: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/hostel/outings/${id}/status`, payload).then((r) => r.data),
-
-  // Complaints
-  complaints: (params) => schoolAdminClient.get('/platform/school-portal/hostel/complaints', { params }).then((r) => r.data),
-  createComplaint: (payload) => schoolAdminClient.post('/platform/school-portal/hostel/complaints', payload).then((r) => r.data),
-  updateComplaint: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/hostel/complaints/${id}`, payload).then((r) => r.data),
+  // 6 - Yearly hostel fee, one amount per academic year for the whole school
+  fees: () => schoolAdminClient.get(`${HOSTEL}/fees`).then((r) => r.data),
+  setFee: (academicYearId, yearlyAmount) =>
+    schoolAdminClient.put(`${HOSTEL}/fees/${academicYearId}`, { yearlyAmount }).then((r) => r.data),
+  clearFee: (academicYearId) => schoolAdminClient.delete(`${HOSTEL}/fees/${academicYearId}`).then((r) => r.data),
 };
 
+const TRANSPORT = '/platform/school-portal/transport';
+
+/**
+ * Transport module — the school-admin surface, in flow order:
+ * Vehicle -> Driver (+ vehicle) -> Route -> Stops (+ times) -> Route
+ * (+ vehicle + driver) -> Student (+ route + stop).
+ *
+ * Daily pickup/drop is the driver's own API and is not called from here.
+ */
 export const transportPortalApi = {
-  // Dashboard & Helpers
-  dashboard: () => schoolAdminClient.get('/platform/school-portal/transport/dashboard').then((r) => r.data),
-  seedDemo: () => schoolAdminClient.post('/platform/school-portal/transport/seed-demo').then((r) => r.data),
-  eligibleEntities: () => schoolAdminClient.get('/platform/school-portal/transport/eligible-entities').then((r) => r.data),
+  // Dropdown data for every form on the page — students, vehicles, drivers,
+  // routes with their stops. One call, all real records.
+  lookups: () => schoolAdminClient.get(`${TRANSPORT}/lookups`).then((r) => r.data),
 
-  // Vehicles
-  vehicles: (params) => schoolAdminClient.get('/platform/school-portal/transport/vehicles', { params }).then((r) => r.data),
-  getVehicle: (id) => schoolAdminClient.get(`/platform/school-portal/transport/vehicles/${id}`).then((r) => r.data),
-  createVehicle: (payload) => schoolAdminClient.post('/platform/school-portal/transport/vehicles', payload).then((r) => r.data),
-  updateVehicle: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/transport/vehicles/${id}`, payload).then((r) => r.data),
-  deleteVehicle: (id) => schoolAdminClient.delete(`/platform/school-portal/transport/vehicles/${id}`).then((r) => r.data),
+  // 1 - Vehicles
+  vehicles: (params) => schoolAdminClient.get(`${TRANSPORT}/vehicles`, { params }).then((r) => r.data),
+  getVehicle: (id) => schoolAdminClient.get(`${TRANSPORT}/vehicles/${id}`).then((r) => r.data),
+  createVehicle: (payload) => schoolAdminClient.post(`${TRANSPORT}/vehicles`, payload).then((r) => r.data),
+  updateVehicle: (id, payload) => schoolAdminClient.patch(`${TRANSPORT}/vehicles/${id}`, payload).then((r) => r.data),
+  deleteVehicle: (id) => schoolAdminClient.delete(`${TRANSPORT}/vehicles/${id}`).then((r) => r.data),
 
-  // Routes
-  routes: (params) => schoolAdminClient.get('/platform/school-portal/transport/routes', { params }).then((r) => r.data),
-  getRoute: (id) => schoolAdminClient.get(`/platform/school-portal/transport/routes/${id}`).then((r) => r.data),
-  createRoute: (payload) => schoolAdminClient.post('/platform/school-portal/transport/routes', payload).then((r) => r.data),
-  updateRoute: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/transport/routes/${id}`, payload).then((r) => r.data),
-  deleteRoute: (id) => schoolAdminClient.delete(`/platform/school-portal/transport/routes/${id}`).then((r) => r.data),
+  // 2 - Drivers, and the driver -> vehicle link
+  drivers: (params) => schoolAdminClient.get(`${TRANSPORT}/drivers`, { params }).then((r) => r.data),
+  getDriver: (id) => schoolAdminClient.get(`${TRANSPORT}/drivers/${id}`).then((r) => r.data),
+  createDriver: (payload) =>
+    schoolAdminClient.post(`${TRANSPORT}/drivers`, payload, studentRequestConfig(payload)).then((r) => r.data),
+  updateDriver: (id, payload) =>
+    schoolAdminClient.patch(`${TRANSPORT}/drivers/${id}`, payload, studentRequestConfig(payload)).then((r) => r.data),
+  deleteDriver: (id) => schoolAdminClient.delete(`${TRANSPORT}/drivers/${id}`).then((r) => r.data),
+  assignVehicleToDriver: (id, vehicleId) =>
+    schoolAdminClient.post(`${TRANSPORT}/drivers/${id}/vehicle`, { vehicleId }).then((r) => r.data),
+  unassignVehicleFromDriver: (id) =>
+    schoolAdminClient.delete(`${TRANSPORT}/drivers/${id}/vehicle`).then((r) => r.data),
 
-  // Route Stops
-  stops: (routeId) => schoolAdminClient.get(`/platform/school-portal/transport/routes/${routeId}/stops`).then((r) => r.data),
-  createStop: (routeId, payload) => schoolAdminClient.post(`/platform/school-portal/transport/routes/${routeId}/stops`, payload).then((r) => r.data),
-  updateStop: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/transport/stops/${id}`, payload).then((r) => r.data),
-  deleteStop: (id) => schoolAdminClient.delete(`/platform/school-portal/transport/stops/${id}`).then((r) => r.data),
+  // 3 + 4 - Routes, and the route -> vehicle + driver link
+  routes: (params) => schoolAdminClient.get(`${TRANSPORT}/routes`, { params }).then((r) => r.data),
+  getRoute: (id) => schoolAdminClient.get(`${TRANSPORT}/routes/${id}`).then((r) => r.data),
+  createRoute: (payload) => schoolAdminClient.post(`${TRANSPORT}/routes`, payload).then((r) => r.data),
+  updateRoute: (id, payload) => schoolAdminClient.patch(`${TRANSPORT}/routes/${id}`, payload).then((r) => r.data),
+  deleteRoute: (id) => schoolAdminClient.delete(`${TRANSPORT}/routes/${id}`).then((r) => r.data),
+  assignRouteResources: (id, payload) =>
+    schoolAdminClient.post(`${TRANSPORT}/routes/${id}/assign`, payload).then((r) => r.data),
+  unassignRouteResources: (id) =>
+    schoolAdminClient.delete(`${TRANSPORT}/routes/${id}/assign`).then((r) => r.data),
 
-  // Student Assignments
-  assignments: (params) => schoolAdminClient.get('/platform/school-portal/transport/assignments', { params }).then((r) => r.data),
-  assignStudent: (payload) => schoolAdminClient.post('/platform/school-portal/transport/assignments', payload).then((r) => r.data),
-  discontinueAssignment: (id, payload) => schoolAdminClient.post(`/platform/school-portal/transport/assignments/${id}/discontinue`, payload).then((r) => r.data),
+  // 3 - Route stops. Pickup + drop time are mandatory on every stop.
+  stops: (routeId) => schoolAdminClient.get(`${TRANSPORT}/routes/${routeId}/stops`).then((r) => r.data),
+  createStop: (routeId, payload) =>
+    schoolAdminClient.post(`${TRANSPORT}/routes/${routeId}/stops`, payload).then((r) => r.data),
+  updateStop: (id, payload) => schoolAdminClient.patch(`${TRANSPORT}/stops/${id}`, payload).then((r) => r.data),
+  deleteStop: (id) => schoolAdminClient.delete(`${TRANSPORT}/stops/${id}`).then((r) => r.data),
+  reorderStops: (routeId, stopIds) =>
+    schoolAdminClient.patch(`${TRANSPORT}/routes/${routeId}/stops/reorder`, { stopIds }).then((r) => r.data),
 
-  // Attendance
-  getAttendance: (routeId, params) => schoolAdminClient.get(`/platform/school-portal/transport/attendance/${routeId}`, { params }).then((r) => r.data),
-  saveAttendance: (routeId, payload) => schoolAdminClient.post(`/platform/school-portal/transport/attendance/${routeId}`, payload).then((r) => r.data),
+  // 5 - Student assignments. Timing is always inherited from the stop.
+  assignments: (params) => schoolAdminClient.get(`${TRANSPORT}/assignments`, { params }).then((r) => r.data),
+  assignStudent: (payload) => schoolAdminClient.post(`${TRANSPORT}/assignments`, payload).then((r) => r.data),
+  updateAssignment: (id, payload) =>
+    schoolAdminClient.patch(`${TRANSPORT}/assignments/${id}`, payload).then((r) => r.data),
+  removeAssignment: (id) => schoolAdminClient.delete(`${TRANSPORT}/assignments/${id}`).then((r) => r.data),
 
-  // Maintenance
-  maintenance: (params) => schoolAdminClient.get('/platform/school-portal/transport/maintenance', { params }).then((r) => r.data),
-  createMaintenance: (payload) => schoolAdminClient.post('/platform/school-portal/transport/maintenance', payload).then((r) => r.data),
-
-  // Incidents
-  incidents: (params) => schoolAdminClient.get('/platform/school-portal/transport/incidents', { params }).then((r) => r.data),
-  createIncident: (payload) => schoolAdminClient.post('/platform/school-portal/transport/incidents', payload).then((r) => r.data),
-  updateIncident: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/transport/incidents/${id}`, payload).then((r) => r.data),
+  // 6 - Yearly transport fee, one amount per academic year for the whole
+  // school — the same for every class, route and stop.
+  fees: () => schoolAdminClient.get(`${TRANSPORT}/fees`).then((r) => r.data),
+  setFee: (academicYearId, yearlyAmount) =>
+    schoolAdminClient.put(`${TRANSPORT}/fees/${academicYearId}`, { yearlyAmount }).then((r) => r.data),
+  clearFee: (academicYearId) => schoolAdminClient.delete(`${TRANSPORT}/fees/${academicYearId}`).then((r) => r.data),
 };
 
 // ============================================================
@@ -1099,9 +1200,11 @@ export const eventsApi = {
   create: (payload) =>
     schoolAdminClient.post('/platform/school-portal/events', payload).then((r) => r.data),
   update: (id, payload) =>
-    schoolAdminClient.patch(`/platform/school-portal/events/${id}`, payload).then((r) => r.data),
+    schoolAdminClient.put(`/platform/school-portal/events/${id}`, payload).then((r) => r.data),
   setCancelled: (id, cancelled) =>
-    schoolAdminClient.patch(`/platform/school-portal/events/${id}`, { cancelled }).then((r) => r.data),
+    schoolAdminClient
+      .patch(`/platform/school-portal/events/${id}/cancel`, { cancelled })
+      .then((r) => r.data),
   remove: (id) =>
     schoolAdminClient.delete(`/platform/school-portal/events/${id}`).then((r) => r.data),
 };

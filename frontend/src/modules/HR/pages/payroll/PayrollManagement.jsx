@@ -382,7 +382,7 @@ export const PayrollManagement = () => {
             placeholder="Search by name, ID, or department..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-50/80 dark:bg-slate-950 text-slate-900 dark:text-white pl-9.5 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none text-xs font-semibold"
+            className="w-full bg-slate-50/80 dark:bg-slate-950 text-slate-900 dark:text-white pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-none text-xs font-semibold"
           />
         </div>
       </div>
@@ -552,6 +552,7 @@ export const PayrollManagement = () => {
               <div>
                 <label className="text-[10px] text-slate-400 block mb-1">Basic Base Pay</label>
                 <input
+                  placeholder="e.g. 25000"
                   type="number"
                   value={basicSalary}
                   onChange={(e) => setBasicSalary(Number(e.target.value))}
@@ -561,6 +562,7 @@ export const PayrollManagement = () => {
               <div>
                 <label className="text-[10px] text-slate-400 block mb-1">Allowances (HRA/DA)</label>
                 <input
+                  placeholder="e.g. 5000"
                   type="number"
                   value={allowances}
                   onChange={(e) => setAllowances(Number(e.target.value))}
@@ -570,6 +572,7 @@ export const PayrollManagement = () => {
               <div>
                 <label className="text-[10px] text-slate-400 block mb-1">Incentive / Bonus</label>
                 <input
+                  placeholder="e.g. 2000"
                   type="number"
                   value={incentive}
                   onChange={(e) => setIncentive(Number(e.target.value))}
@@ -579,6 +582,7 @@ export const PayrollManagement = () => {
               <div>
                 <label className="text-[10px] text-slate-400 block mb-1">Overtime Pay</label>
                 <input
+                  placeholder="e.g. 1000"
                   type="number"
                   value={overtime}
                   onChange={(e) => setOvertime(Number(e.target.value))}
@@ -595,6 +599,7 @@ export const PayrollManagement = () => {
               <div>
                 <label className="text-[10px] text-slate-400 block mb-1">Unpaid Leave Cut</label>
                 <input
+                  placeholder="e.g. 0"
                   type="number"
                   value={leaveDeduction}
                   onChange={(e) => setLeaveDeduction(Number(e.target.value))}
@@ -604,6 +609,7 @@ export const PayrollManagement = () => {
               <div>
                 <label className="text-[10px] text-slate-400 block mb-1">Loan / Advance Recovery</label>
                 <input
+                  placeholder="e.g. 0"
                   type="number"
                   value={advanceLoanDeduction}
                   onChange={(e) => setAdvanceLoanDeduction(Number(e.target.value))}
@@ -613,6 +619,7 @@ export const PayrollManagement = () => {
               <div>
                 <label className="text-[10px] text-slate-400 block mb-1">Other Tax / Statutory</label>
                 <input
+                  placeholder="e.g. 0"
                   type="number"
                   value={otherDeduction}
                   onChange={(e) => setOtherDeduction(Number(e.target.value))}

@@ -332,7 +332,7 @@ export class SchoolReportsRepository {
       HostelAllocation.find(filter)
         .populate('studentId', 'firstName lastName rollNumber className sectionName')
         .populate('hostelId', 'name type')
-        .populate('roomId', 'roomNumber blockName')
+        .populate('roomId', 'roomNumber floorNumber')
         .populate('bedId', 'bedCode')
         .sort({ createdAt: -1 })
         .skip(skip)

@@ -235,13 +235,14 @@ class SchoolSubscriptionService {
         {
           $set: {
             subscriptionPlan: '',
-            'subscription.status': 'Expired',
+            'subscription.status': 'Cancelled',
             'subscription.endsAt': new Date(),
           },
         }
       );
     } else {
       doc.cancelAtPeriodEnd = true;
+      doc.cancelledAt = new Date();
       // Razorpay keeps status 'active' until the period actually ends; webhook/cron flips it then.
       doc.status = rzpSub.status || doc.status;
     }

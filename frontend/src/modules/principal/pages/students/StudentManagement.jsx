@@ -8,6 +8,7 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { CountCards, EmptyState } from '../academics/components/AcademicUi';
 import { apiMessage, ENTITY_STATUS_VARIANT } from '../academics/utils';
+import { sanitizeMobileInput, isValid10DigitMobile } from '../../../../shared/utils/mobileValidation';
 import { principalAcademicApi, principalStudentApi } from '../../../../shared/api/client';
 import { Camera, Edit3, Eye, ImagePlus, Loader2, Plus, Trash2, UserCheck, UserCircle2, UserX, X } from 'lucide-react';
 import { SkeletonTable } from '../../components/ui/SkeletonLoader';
@@ -406,6 +407,17 @@ export const StudentManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!isValid10DigitMobile(form.parentPhone, true)) {
+      showToast('Parent / Guardian phone must be exactly 10 digits', 'error');
+      return;
+    }
+
+    if (form.phone && !isValid10DigitMobile(form.phone, false)) {
+      showToast('Student phone must be exactly 10 digits', 'error');
+      return;
+    }
+
     setSaving(true);
     try {
       const payload = new FormData();
@@ -811,8 +823,24 @@ export const StudentManagement = () => {
               <input className={inputClass} placeholder="e.g. Rajesh Sharma" value={form.parentName} onChange={(e) => setForm((prev) => ({ ...prev, parentName: e.target.value }))} required />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold text-slate-500">Parent / Guardian Phone *</label>
-              <input className={inputClass} placeholder="e.g. +91 98765 43210" value={form.parentPhone} onChange={(e) => setForm((prev) => ({ ...prev, parentPhone: e.target.value }))} required />
+              <div className="mb-1 flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-500">Parent / Guardian Phone *</label>
+                {form.parentPhone ? (
+                  <span className={`text-[10px] font-bold ${form.parentPhone.length === 10 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                    {form.parentPhone.length}/10 digits
+                  </span>
+                ) : null}
+              </div>
+              <input
+                type="tel"
+                inputMode="numeric"
+                maxLength={10}
+                className={inputClass}
+                placeholder="9876543210"
+                value={form.parentPhone}
+                onChange={(e) => setForm((prev) => ({ ...prev, parentPhone: sanitizeMobileInput(e.target.value) }))}
+                required
+              />
             </div>
           </div>
 
@@ -822,8 +850,23 @@ export const StudentManagement = () => {
               <input type="email" className={inputClass} placeholder="e.g. aarav.sharma@school.edu" value={form.email} onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))} />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold text-slate-500">Student Phone</label>
-              <input className={inputClass} placeholder="e.g. +91 98765 12345" value={form.phone} onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))} />
+              <div className="mb-1 flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-500">Student Phone</label>
+                {form.phone ? (
+                  <span className={`text-[10px] font-bold ${form.phone.length === 10 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                    {form.phone.length}/10 digits
+                  </span>
+                ) : null}
+              </div>
+              <input
+                type="tel"
+                inputMode="numeric"
+                maxLength={10}
+                className={inputClass}
+                placeholder="9876512345"
+                value={form.phone}
+                onChange={(e) => setForm((prev) => ({ ...prev, phone: sanitizeMobileInput(e.target.value) }))}
+              />
             </div>
           </div>
 

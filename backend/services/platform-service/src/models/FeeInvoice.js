@@ -51,10 +51,24 @@ feeInvoiceSchema.index({ schoolId: 1, status: 1, dueDate: 1 });
 feeInvoiceSchema.methods.toPublicJSON = function toPublicJSON() {
   return {
     id: this._id.toString(),
-    schoolId: this.schoolId.toString(),
-    studentId: this.studentId.toString(),
-    enrollmentId: this.enrollmentId.toString(),
-    academicYearId: this.academicYearId.toString(),
+    schoolId: this.schoolId?.toString(),
+    studentId: this.studentId?._id
+      ? {
+          id: this.studentId._id.toString(),
+          _id: this.studentId._id.toString(),
+          firstName: this.studentId.firstName,
+          lastName: this.studentId.lastName,
+          admissionNumber: this.studentId.admissionNumber,
+        }
+      : (this.studentId?.toString ? this.studentId.toString() : this.studentId),
+    enrollmentId: this.enrollmentId?._id?.toString ? this.enrollmentId._id.toString() : (this.enrollmentId?.toString ? this.enrollmentId.toString() : this.enrollmentId),
+    academicYearId: this.academicYearId?._id
+      ? {
+          id: this.academicYearId._id.toString(),
+          name: this.academicYearId.name,
+          code: this.academicYearId.code,
+        }
+      : (this.academicYearId?.toString ? this.academicYearId.toString() : this.academicYearId),
     invoiceNumber: this.invoiceNumber,
     periodLabel: this.periodLabel,
     periodStart: this.periodStart,

@@ -13,11 +13,13 @@ export async function connectDB(uri, customMongoose) {
   try {
     await mongooseInstance.connect(uri, {
       maxPoolSize: 50,
-      minPoolSize: 10,
+      minPoolSize: 0,
+      maxIdleTimeMS: 30000,
       socketTimeoutMS: 45000,
       serverSelectionTimeoutMS: 15000,
       connectTimeoutMS: 15000,
       heartbeatFrequencyMS: 10000,
+      retryWrites: true,
     });
 
     mongooseInstance.connection.on('error', (err) => {

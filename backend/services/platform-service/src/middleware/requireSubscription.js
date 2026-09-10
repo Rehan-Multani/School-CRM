@@ -46,11 +46,11 @@ const EXEMPT_PATHS = [
   '/school-portal/parent/me',
   '/school-portal/parent/profile',
   '/school-portal/parent/change-password',
-  // Transport APK self-service — same rationale.
-  '/school-portal/transport-app/auth',
-  '/school-portal/transport-app/me',
-  '/school-portal/transport-app/profile',
-  '/school-portal/transport-app/change-password',
+  // Driver API self-service — same rationale as the teacher paths above: a
+  // driver at an expired school must still be able to sign in and be told why.
+  '/school-portal/auth/driver-login',
+  '/school-portal/driver/me',
+  '/school-portal/driver/change-password',
 ];
 
 function isExemptPath(path) {
