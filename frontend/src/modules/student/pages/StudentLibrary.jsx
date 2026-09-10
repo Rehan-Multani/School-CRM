@@ -37,7 +37,7 @@ export const StudentLibrary = () => {
             placeholder="Search school library catalog by title or author..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-slate-50 dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs"
+            className="w-full pl-10 pr-4 py-3 rounded-xl border border-border bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs"
           />
         </div>
 
@@ -48,7 +48,7 @@ export const StudentLibrary = () => {
               <p className="text-xs text-slate-500 italic">No matching books found in the library database.</p>
             ) : (
               filteredCatalog.map((book, i) => (
-                <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50/50 dark:bg-indigo-600/50 border border-border text-xs">
+                <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-50/50 dark:bg-slate-900/50 border border-border text-xs">
                   <div>
                     <span className="font-bold text-foreground block">{book.title}</span>
                     <span className="text-[10px] text-slate-400 block mt-0.5">by {book.author}</span>
@@ -103,7 +103,7 @@ export const StudentLibrary = () => {
                     {book.fine > 0 ? (
                       <Badge variant="danger" className="flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" />
-                        <span>Ã¢âÂ¹{book.fine} Overdue Fine</span>
+                        <span>₹{book.fine} Overdue Fine</span>
                       </Badge>
                     ) : (
                       <Badge variant="success">Active</Badge>

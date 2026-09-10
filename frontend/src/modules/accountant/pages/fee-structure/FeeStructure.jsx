@@ -68,8 +68,8 @@ export const FeeStructure = () => {
       { key: 'name', title: 'Structure', render: (r) => (
         <span className="font-bold text-slate-900 dark:text-white">{r.name}</span>
       ) },
-      { key: 'academicYear', title: 'Academic Year', render: (r) => r.academicYear?.name || 'Ã¢â¬â' },
-      { key: 'class', title: 'Class', render: (r) => r.class?.name || 'Ã¢â¬â' },
+      { key: 'academicYear', title: 'Academic Year', render: (r) => r.academicYear?.name || '–' },
+      { key: 'class', title: 'Class', render: (r) => r.class?.name || '–' },
       { key: 'itemsCount', title: 'Fee Heads', render: (r) => `${r.itemsCount ?? 0}` },
       { key: 'status', title: 'Status', render: (r) => (
         <Badge variant={r.status === 'ACTIVE' ? 'success' : 'warning'}>{r.status}</Badge>
@@ -80,7 +80,7 @@ export const FeeStructure = () => {
             e.stopPropagation();
             openDetail(r);
           }}
-          className="flex items-center gap-1 px-2 py-1 bg-slate-50 dark:bg-indigo-600 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300"
+          className="flex items-center gap-1 px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300"
         >
           <Eye className="w-3 h-3" /> View
         </button>
@@ -134,7 +134,7 @@ export const FeeStructure = () => {
         <select
           value={filters.academicYearId}
           onChange={(e) => set({ academicYearId: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
         >
           <option value="">All Academic Years</option>
           {years.map((y) => (
@@ -146,7 +146,7 @@ export const FeeStructure = () => {
         <select
           value={filters.classId}
           onChange={(e) => set({ classId: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
         >
           <option value="">All Classes</option>
           {classes.map((c) => (
@@ -158,7 +158,7 @@ export const FeeStructure = () => {
         <select
           value={filters.status}
           onChange={(e) => set({ status: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
         >
           <option value="">All Statuses</option>
           <option value="ACTIVE">Active</option>
@@ -178,7 +178,7 @@ export const FeeStructure = () => {
       />
 
       {detail && (
-        <Modal isOpen onClose={() => setDetail(null)} title={`Fee Structure Ã¢â¬â ${detail.name || ''}`} size="lg">
+        <Modal isOpen onClose={() => setDetail(null)} title={`Fee Structure – ${detail.name || ''}`} size="lg">
           {loadingDetail ? (
             <p className="py-8 text-center text-slate-400 text-sm">Loadingâ¦</p>
           ) : (
@@ -201,10 +201,10 @@ export const FeeStructure = () => {
                   {(detail.items || []).map((it) => (
                     <tr key={it.id}>
                       <td className="py-2 font-semibold text-slate-700 dark:text-slate-300">
-                        {it.feeHead?.name || it.feeHeadName || 'Ã¢â¬â'}
+                        {it.feeHead?.name || it.feeHeadName || '–'}
                       </td>
-                      <td className="py-2 text-slate-400">{it.frequency || 'Ã¢â¬â'}</td>
-                      <td className="py-2 text-right">{it.installments ?? 'Ã¢â¬â'}</td>
+                      <td className="py-2 text-slate-400">{it.frequency || '–'}</td>
+                      <td className="py-2 text-right">{it.installments ?? '–'}</td>
                       <td className="py-2 text-right font-bold">{formatCurrency(it.amount || 0)}</td>
                     </tr>
                   ))}
@@ -238,7 +238,7 @@ export const FeeStructure = () => {
 const Info = ({ label, value }) => (
   <div>
     <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</span>
-    <span className="font-bold text-slate-800 dark:text-slate-200">{value ?? 'Ã¢â¬â'}</span>
+    <span className="font-bold text-slate-800 dark:text-slate-200">{value ?? '–'}</span>
   </div>
 );
 

@@ -88,7 +88,7 @@ function buildPhotoUrl(photo) {
 
 function SectionBlock({ title, subtitle, icon: Icon, children, action }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-indigo-600">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h3 className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white">
@@ -458,13 +458,13 @@ export const EmployeeFormModal = ({
       <form onSubmit={handleSave} className="space-y-6">
         {/* Classification Switcher (if creating new) */}
         {!editingEmployee && (
-          <div className="flex p-1 bg-slate-100 dark:bg-indigo-600 rounded-2xl border border-slate-200 dark:border-slate-700">
+          <div className="flex p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700">
             <button
               type="button"
               onClick={() => updateField('employeeType', 'TEACHER')}
               className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 isTeacher
-                  ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                  ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs'
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
@@ -476,7 +476,7 @@ export const EmployeeFormModal = ({
               onClick={() => updateField('employeeType', 'STAFF')}
               className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 !isTeacher
-                  ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                  ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs'
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
@@ -502,7 +502,7 @@ export const EmployeeFormModal = ({
             <button
               type="button"
               onClick={() => photoInputRef.current?.click()}
-              className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-2 border-slate-200 bg-white shadow-sm transition hover:border-indigo-600 dark:border-slate-700 dark:bg-indigo-600 cursor-pointer"
+              className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-2 border-slate-200 bg-white shadow-sm transition hover:border-indigo-600 dark:border-slate-700 dark:bg-slate-900 cursor-pointer"
               title="Click to select profile photo"
             >
               {photoPreview ? (
@@ -893,7 +893,7 @@ export const EmployeeFormModal = ({
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div>
-              <label className="mb-1 block text-[11px] font-bold text-slate-500">Basic Salary (Ã¢âÂ¹ / Month)</label>
+              <label className="mb-1 block text-[11px] font-bold text-slate-500">Basic Salary (₹ / Month)</label>
               <input
                 type="number"
                 min="0"
@@ -1037,7 +1037,7 @@ export const EmployeeFormModal = ({
           /* Staff KYC Documents Upload (Exact Dropzone Matching UserManagement.jsx) */
           <SectionBlock
             title="4. KYC & Verification Documents (Max 3 Images)"
-            subtitle="Attach Aadhaar, PAN Card, Qualification Degrees, or Identity Proof (JPG, PNG, WebP Ã¢â¬â Max 5MB each)"
+            subtitle="Attach Aadhaar, PAN Card, Qualification Degrees, or Identity Proof (JPG, PNG, WebP – Max 5MB each)"
             icon={FileText}
             action={
               <span className="rounded-lg bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
@@ -1062,7 +1062,7 @@ export const EmployeeFormModal = ({
                 onClick={() => docInputRef.current?.click()}
                 className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/70 p-6 text-center transition hover:border-indigo-600 hover:bg-indigo-50/10 dark:border-slate-700 dark:bg-slate-950/50 dark:hover:border-indigo-600"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm transition group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white dark:bg-indigo-600">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm transition group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white dark:bg-slate-900">
                   <UploadCloud className="h-6 w-6 text-indigo-600 group-hover:text-white" />
                 </div>
                 <h5 className="mt-3 text-xs font-bold text-slate-800 dark:text-slate-200">
@@ -1090,7 +1090,7 @@ export const EmployeeFormModal = ({
                 {form.documents.kyc.map((item, idx) => (
                   <div
                     key={item.id || idx}
-                    className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-indigo-600"
+                    className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900"
                   >
                     <div className="relative h-28 w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-950">
                       <img src={item.preview} alt={`Document ${idx + 1}`} className="h-full w-full object-cover transition group-hover:scale-105" />

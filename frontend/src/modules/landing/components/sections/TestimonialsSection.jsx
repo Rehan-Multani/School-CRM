@@ -135,7 +135,7 @@ export const TestimonialsSection = () => {
               <div
                 key={item.id}
                 onClick={() => setCurrentIndex(TESTIMONIALS.findIndex((t) => t.id === item.id))}
-                className="cursor-pointer rounded-2xl border border-slate-200/60 bg-white/70 p-4 transition-all duration-200 hover:border-indigo-300 hover:bg-white hover:shadow-md dark:border-slate-800/80 dark:bg-indigo-600/40 dark:hover:border-indigo-700"
+                className="cursor-pointer rounded-2xl border border-slate-200/60 bg-white/70 p-4 transition-all duration-200 hover:border-indigo-300 hover:bg-white hover:shadow-md dark:border-slate-800/80 dark:bg-slate-900/40 dark:hover:border-indigo-700"
               >
                 <div className="flex items-center gap-1 text-amber-400 mb-2">
                   {[...Array(item.rating)].map((_, i) => (

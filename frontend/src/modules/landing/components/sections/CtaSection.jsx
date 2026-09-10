@@ -12,7 +12,7 @@ export const CtaSection = () => {
         <Reveal>
           <div className="relative overflow-hidden rounded-[2.5rem] border border-indigo-500/20 bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 p-8 sm:p-14 lg:p-16 text-center text-white shadow-2xl shadow-indigo-600/20 dark:border-slate-800 dark:from-slate-900 dark:via-indigo-950/80 dark:to-slate-950 dark:shadow-indigo-950/50">
             {/* Animated Ambient Mesh Background */}
-            <div className="pointer-events-none absolute -top-40 -left-40 h-96 w-96 rounded-full bg-indigo-400/30 blur-[100px] dark:bg-indigo-600/30 animate-float-slow" />
+            <div className="pointer-events-none absolute -top-40 -left-40 h-96 w-96 rounded-full bg-indigo-400/30 blur-[100px] dark:bg-slate-900/30 animate-float-slow" />
             <div className="pointer-events-none absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-violet-400/30 blur-[100px] dark:bg-violet-600/30 animate-float-delayed" />
             <div className="pointer-events-none absolute top-1/2 left-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-400/20 blur-[90px] dark:bg-cyan-500/20" />
 
@@ -41,7 +41,7 @@ export const CtaSection = () => {
               <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
                 <Link
                   to="/contact"
-                  className="group inline-flex items-center gap-2.5 rounded-2xl bg-white px-7 py-4 text-sm font-black text-indigo-700 shadow-xl shadow-black/10 transition-all duration-200 hover:bg-slate-50 hover:shadow-black/20 hover:-translate-y-0.5 active:translate-y-0 dark:bg-indigo-600 dark:text-white dark:hover:bg-indigo-500"
+                  className="group inline-flex items-center gap-2.5 rounded-2xl bg-white px-7 py-4 text-sm font-black text-indigo-700 shadow-xl shadow-black/10 transition-all duration-200 hover:bg-slate-50 hover:shadow-black/20 hover:-translate-y-0.5 active:translate-y-0 dark:bg-slate-900 dark:text-white dark:hover:bg-indigo-500"
                 >
                   <span>Get Started</span>
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -49,7 +49,7 @@ export const CtaSection = () => {
 
                 <Link
                   to="/contact"
-                  className="inline-flex items-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-7 py-4 text-sm font-black text-white backdrop-blur-md transition-all duration-200 hover:bg-white/20 hover:-translate-y-0.5 dark:border-slate-700 dark:bg-indigo-600/80 dark:hover:bg-indigo-600"
+                  className="inline-flex items-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-7 py-4 text-sm font-black text-white backdrop-blur-md transition-all duration-200 hover:bg-white/20 hover:-translate-y-0.5 dark:border-slate-700 dark:bg-slate-900/80 dark:hover:bg-indigo-600"
                 >
                   <Mail className="h-4 w-4 text-white" />
                   <span>Contact Sales</span>

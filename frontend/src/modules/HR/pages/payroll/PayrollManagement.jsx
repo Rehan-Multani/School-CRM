@@ -247,7 +247,7 @@ export const PayrollManagement = () => {
             <button
               onClick={fetchData}
               disabled={loading}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
               title="Refresh"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -280,11 +280,11 @@ export const PayrollManagement = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Net Disbursed</span>
             <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-              Ã¢âÂ¹{Number(stats.totalExpense || 0).toLocaleString('en-IN')}
+              ₹{Number(stats.totalExpense || 0).toLocaleString('en-IN')}
             </div>
             <p className="text-[11px] text-slate-400 mt-1">Net bank payout</p>
           </div>
@@ -293,11 +293,11 @@ export const PayrollManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Gross Remuneration</span>
             <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-              Ã¢âÂ¹{Number(stats.totalGross || 0).toLocaleString('en-IN')}
+              ₹{Number(stats.totalGross || 0).toLocaleString('en-IN')}
             </div>
             <p className="text-[11px] text-slate-400 mt-1">Before deductions</p>
           </div>
@@ -306,11 +306,11 @@ export const PayrollManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Total Deductions</span>
             <div className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
-              Ã¢âÂ¹{Number(stats.totalDeductions || 0).toLocaleString('en-IN')}
+              ₹{Number(stats.totalDeductions || 0).toLocaleString('en-IN')}
             </div>
             <p className="text-[11px] text-slate-400 mt-1">Leaves & advances</p>
           </div>
@@ -319,7 +319,7 @@ export const PayrollManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Disbursement Rate</span>
             <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
@@ -334,7 +334,7 @@ export const PayrollManagement = () => {
       </div>
 
       {/* Month Selector, Search & Filters */}
-      <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <select
             value={selectedMonth}
@@ -398,13 +398,13 @@ export const PayrollManagement = () => {
       {loading ? (
         <SkeletonTable rows={8} columns={7} />
       ) : filteredPayrolls.length === 0 ? (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-3 shadow-xs">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-3 shadow-xs">
           <BadgeCent className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-700" />
           <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">No payroll records found</h4>
           <p className="text-xs max-w-sm mx-auto">No payroll calculations exist for the selected month and filter.</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200/80 dark:border-slate-800 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -440,16 +440,16 @@ export const PayrollManagement = () => {
                       </td>
 
                       <td className="p-4 whitespace-nowrap text-slate-800 dark:text-slate-200">
-                        Ã¢âÂ¹{Number(p.grossSalary || p.basicSalary || 0).toLocaleString('en-IN')}
+                        ₹{Number(p.grossSalary || p.basicSalary || 0).toLocaleString('en-IN')}
                       </td>
 
                       <td className="p-4 whitespace-nowrap text-rose-600 dark:text-rose-400 font-bold">
-                        -Ã¢âÂ¹{Number(p.totalDeduction || 0).toLocaleString('en-IN')}
+                        -₹{Number(p.totalDeduction || 0).toLocaleString('en-IN')}
                       </td>
 
                       <td className="p-4 whitespace-nowrap">
                         <span className="font-black text-slate-900 dark:text-white text-sm">
-                          Ã¢âÂ¹{Number(p.netSalary || 0).toLocaleString('en-IN')}
+                          ₹{Number(p.netSalary || 0).toLocaleString('en-IN')}
                         </span>
                       </td>
 
@@ -524,7 +524,7 @@ export const PayrollManagement = () => {
               >
                 {eligibleEmployees.map((e) => (
                   <option key={e.id} value={e.id}>
-                    {e.name} ({e.employeeId || 'EMP'}) Ã¢â¬â Base: Ã¢âÂ¹{Number(e.basicSalary || 35000).toLocaleString('en-IN')}
+                    {e.name} ({e.employeeId || 'EMP'}) – Base: ₹{Number(e.basicSalary || 35000).toLocaleString('en-IN')}
                   </option>
                 ))}
               </select>
@@ -547,7 +547,7 @@ export const PayrollManagement = () => {
 
           {/* Earnings Grid */}
           <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-3">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Earnings Breakdown (Ã¢âÂ¹)</span>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Earnings Breakdown (₹)</span>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <div>
                 <label className="text-[10px] text-slate-400 block mb-1">Basic Base Pay</label>
@@ -556,7 +556,7 @@ export const PayrollManagement = () => {
                   type="number"
                   value={basicSalary}
                   onChange={(e) => setBasicSalary(Number(e.target.value))}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-indigo-600 font-bold text-xs"
+                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 font-bold text-xs"
                 />
               </div>
               <div>
@@ -566,7 +566,7 @@ export const PayrollManagement = () => {
                   type="number"
                   value={allowances}
                   onChange={(e) => setAllowances(Number(e.target.value))}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-indigo-600 font-bold text-xs"
+                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 font-bold text-xs"
                 />
               </div>
               <div>
@@ -576,7 +576,7 @@ export const PayrollManagement = () => {
                   type="number"
                   value={incentive}
                   onChange={(e) => setIncentive(Number(e.target.value))}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-indigo-600 font-bold text-xs"
+                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 font-bold text-xs"
                 />
               </div>
               <div>
@@ -586,7 +586,7 @@ export const PayrollManagement = () => {
                   type="number"
                   value={overtime}
                   onChange={(e) => setOvertime(Number(e.target.value))}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-indigo-600 font-bold text-xs"
+                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 font-bold text-xs"
                 />
               </div>
             </div>
@@ -594,7 +594,7 @@ export const PayrollManagement = () => {
 
           {/* Deductions Grid */}
           <div className="p-4 rounded-2xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 space-y-3">
-            <span className="text-[11px] font-bold text-rose-600 uppercase tracking-wider block">Deductions Breakdown (Ã¢âÂ¹)</span>
+            <span className="text-[11px] font-bold text-rose-600 uppercase tracking-wider block">Deductions Breakdown (₹)</span>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
               <div>
                 <label className="text-[10px] text-slate-400 block mb-1">Unpaid Leave Cut</label>
@@ -603,7 +603,7 @@ export const PayrollManagement = () => {
                   type="number"
                   value={leaveDeduction}
                   onChange={(e) => setLeaveDeduction(Number(e.target.value))}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-indigo-600 font-bold text-xs text-rose-600"
+                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 font-bold text-xs text-rose-600"
                 />
               </div>
               <div>
@@ -613,7 +613,7 @@ export const PayrollManagement = () => {
                   type="number"
                   value={advanceLoanDeduction}
                   onChange={(e) => setAdvanceLoanDeduction(Number(e.target.value))}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-indigo-600 font-bold text-xs text-rose-600"
+                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 font-bold text-xs text-rose-600"
                 />
               </div>
               <div>
@@ -623,7 +623,7 @@ export const PayrollManagement = () => {
                   type="number"
                   value={otherDeduction}
                   onChange={(e) => setOtherDeduction(Number(e.target.value))}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-indigo-600 font-bold text-xs text-rose-600"
+                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 font-bold text-xs text-rose-600"
                 />
               </div>
             </div>
@@ -633,10 +633,10 @@ export const PayrollManagement = () => {
           <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 flex items-center justify-between">
             <div>
               <span className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300 uppercase tracking-wider block">Net Take-Home Pay</span>
-              <p className="text-[10px] text-slate-400 mt-0.5">Gross (Ã¢âÂ¹{grossEarnings.toLocaleString('en-IN')}) - Deductions (Ã¢âÂ¹{totalDeductions.toLocaleString('en-IN')})</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Gross (₹{grossEarnings.toLocaleString('en-IN')}) - Deductions (₹{totalDeductions.toLocaleString('en-IN')})</p>
             </div>
             <div className="text-xl font-black text-indigo-700 dark:text-indigo-300">
-              Ã¢âÂ¹{netPayable.toLocaleString('en-IN')}
+              ₹{netPayable.toLocaleString('en-IN')}
             </div>
           </div>
 
@@ -664,7 +664,7 @@ export const PayrollManagement = () => {
         <Modal
           isOpen={!!selectedSlip}
           onClose={() => setSelectedSlip(null)}
-          title={`Official Salary Slip Ã¢â¬â ${selectedSlip.employeeName} (${selectedSlip.month})`}
+          title={`Official Salary Slip – ${selectedSlip.employeeName} (${selectedSlip.month})`}
           size="lg"
         >
           <SalarySlip payroll={selectedSlip} onClose={() => setSelectedSlip(null)} />

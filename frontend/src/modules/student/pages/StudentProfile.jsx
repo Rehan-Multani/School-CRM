@@ -118,7 +118,7 @@ export const StudentProfile = () => {
                   type="text" 
                   disabled 
                   value={user?.name} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs" 
                 />
               </div>
 
@@ -131,7 +131,7 @@ export const StudentProfile = () => {
                   type="text" 
                   disabled 
                   value={user?.id} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs" 
                 />
               </div>
 
@@ -144,7 +144,7 @@ export const StudentProfile = () => {
                   type="text" 
                   disabled 
                   value={user?.dob} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs" 
                 />
               </div>
 
@@ -157,7 +157,7 @@ export const StudentProfile = () => {
                   type="text" 
                   disabled 
                   value={user?.bloodGroup} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs" 
                 />
               </div>
 
@@ -207,7 +207,7 @@ export const StudentProfile = () => {
                   disabled 
                   rows={2}
                   value={user?.address} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs resize-none" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs resize-none" 
                 />
               </div>
             </div>
@@ -224,7 +224,7 @@ export const StudentProfile = () => {
                   type="text" 
                   disabled 
                   value={user?.guardian?.name} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs" 
                 />
               </div>
 
@@ -237,7 +237,7 @@ export const StudentProfile = () => {
                   type="text" 
                   disabled 
                   value={user?.guardian?.relation} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs" 
                 />
               </div>
 
@@ -305,7 +305,7 @@ export const StudentProfile = () => {
                   type="text" 
                   disabled 
                   value={user?.medical?.conditions} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs" 
                 />
               </div>
 
@@ -318,7 +318,7 @@ export const StudentProfile = () => {
                   type="text" 
                   disabled 
                   value={user?.emergencyContact} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs" 
                 />
               </div>
             </div>
@@ -336,7 +336,7 @@ export const StudentProfile = () => {
               ].map((doc, i) => (
                 <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-primary/20 duration-150">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-slate-100 dark:bg-indigo-600 rounded-lg text-slate-500">
+                    <div className="p-2 bg-slate-100 dark:bg-slate-900 rounded-lg text-slate-500">
                       <FileText className="w-5 h-5" />
                     </div>
                     <div>

@@ -253,7 +253,7 @@ export const BookList = () => {
           <SkeletonTable rows={8} columns={6} />
         )
       ) : books.length === 0 ? (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-4">
           <div className="inline-flex p-4 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 rounded-2xl">
             <Plus className="h-8 w-8" />
           </div>
@@ -291,7 +291,7 @@ export const BookList = () => {
           ))}
         </div>
       ) : (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
           <DataTable
             columns={columns}
             data={books}

@@ -77,7 +77,7 @@ export const Transactions = () => {
       { key: 'date', title: 'Date', render: (r) => formatDate(r.date) },
       { key: 'party', title: 'Party / Note', render: (r) => (
         <div>
-          <p className="font-bold text-slate-900 dark:text-white">{r.party || 'Ã¢â¬â'}</p>
+          <p className="font-bold text-slate-900 dark:text-white">{r.party || '–'}</p>
           <p className="text-[10px] text-slate-400 truncate max-w-xs">{r.note}</p>
         </div>
       ) },
@@ -135,13 +135,13 @@ export const Transactions = () => {
             value={filters.search}
             onChange={(e) => set({ search: e.target.value })}
             placeholder="Search ref, party, noteâ¦"
-            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold outline-none focus:border-violet-500"
+            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold outline-none focus:border-violet-500"
           />
         </div>
         <select
           value={filters.paymentMethod}
           onChange={(e) => set({ paymentMethod: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
         >
           <option value="">All Methods</option>
           {PAYMENT_METHODS.map((m) => (
@@ -156,14 +156,14 @@ export const Transactions = () => {
             type="date"
             value={filters.dateFrom}
             onChange={(e) => set({ dateFrom: e.target.value })}
-            className="h-10 px-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs"
+            className="h-10 px-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs"
           />
         </label>
         <input
           type="date"
           value={filters.dateTo}
           onChange={(e) => set({ dateTo: e.target.value })}
-          className="h-10 px-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
+          className="h-10 px-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
         />
       </div>
 
@@ -179,7 +179,7 @@ export const Transactions = () => {
       />
 
       {detail && (
-        <Modal isOpen onClose={() => setDetail(null)} title={`Transaction Ã¢â¬â ${detail.transactionId || detail.receiptNumber || detail.expenseNumber || ''}`} size="md">
+        <Modal isOpen onClose={() => setDetail(null)} title={`Transaction – ${detail.transactionId || detail.receiptNumber || detail.expenseNumber || ''}`} size="md">
           <div className="space-y-4 text-xs">
             <div className="grid grid-cols-2 gap-3">
               <Info label="Type" value={detail.type} />
@@ -187,7 +187,7 @@ export const Transactions = () => {
               <Info label="Amount" value={formatCurrency(detail.amount)} />
               <Info label="Method" value={detail.paymentMethod} />
               <Info label="Status" value={detail.status} />
-              <Info label="Reference" value={detail.paymentReference || detail.reference || 'Ã¢â¬â'} />
+              <Info label="Reference" value={detail.paymentReference || detail.reference || '–'} />
               {detail.student && <Info label="Student" value={detail.student.name} />}
               {detail.invoice && <Info label="Invoice" value={`${detail.invoice.invoiceNumber} (${detail.invoice.periodLabel})`} />}
               {detail.vendorName && <Info label="Vendor" value={detail.vendorName} />}
@@ -220,7 +220,7 @@ export const Transactions = () => {
 const Info = ({ label, value }) => (
   <div>
     <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</span>
-    <span className="font-bold text-slate-800 dark:text-slate-200">{value ?? 'Ã¢â¬â'}</span>
+    <span className="font-bold text-slate-800 dark:text-slate-200">{value ?? '–'}</span>
   </div>
 );
 

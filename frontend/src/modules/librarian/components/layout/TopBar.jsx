@@ -34,7 +34,7 @@ export const TopBar = ({ toggleSidebar, onSearchTrigger }) => {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 px-4 md:px-8 shadow-sm">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 md:px-8 shadow-sm">
       {/* Mobile Drawer Trigger & Search Indicator */}
       <div className="flex items-center gap-4">
         <button
@@ -50,7 +50,7 @@ export const TopBar = ({ toggleSidebar, onSearchTrigger }) => {
         >
           <Search className="w-3.5 h-3.5 shrink-0" />
           <span className="flex-1 text-left">Search / Quick actions...</span>
-          <span className="text-[9px] font-bold bg-white dark:bg-indigo-600 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800">
+          <span className="text-[9px] font-bold bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800">
             Ctrl K
           </span>
         </button>
@@ -90,7 +90,7 @@ export const TopBar = ({ toggleSidebar, onSearchTrigger }) => {
 
           {/* Notifications Dropdown */}
           {showNotifications && (
-            <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 overflow-hidden">
+            <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 overflow-hidden">
               <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div>
                   <h4 className="font-bold text-sm text-slate-800 dark:text-white">Notifications</h4>
@@ -177,7 +177,7 @@ export const TopBar = ({ toggleSidebar, onSearchTrigger }) => {
 
           {/* Profile Flyout */}
           {showProfileMenu && (
-            <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 overflow-hidden py-1.5">
+            <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 overflow-hidden py-1.5">
               <div className="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800">
                 <p className="text-xs font-bold text-slate-800 dark:text-white">{user?.name || 'Librarian'}</p>
                 <p className="text-[11px] text-slate-400 truncate">{user?.email || 'librarian@greenfield.edu'}</p>

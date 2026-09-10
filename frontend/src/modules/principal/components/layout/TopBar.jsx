@@ -32,7 +32,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
   };
 
   return (
-    <header className="sticky top-0 bg-white/80 dark:bg-indigo-600/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-6 z-30 select-none">
+    <header className="sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-6 z-30 select-none">
       {/* Search Input click & Menu Button */}
       <div className="flex items-center gap-4 flex-1">
         <button
@@ -49,7 +49,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
         >
           <Search className="w-3.5 h-3.5 text-slate-400" />
           <span>Quick search routes...</span>
-          <kbd className="ml-auto bg-slate-205 dark:bg-indigo-600 px-1.5 py-0.5 rounded text-[10px] font-mono leading-none border dark:border-slate-700">Ctrl+K</kbd>
+          <kbd className="ml-auto bg-slate-205 dark:bg-slate-900 px-1.5 py-0.5 rounded text-[10px] font-mono leading-none border dark:border-slate-700">Ctrl+K</kbd>
         </button>
       </div>
 
@@ -85,7 +85,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                 transition={{ duration: 0.12 }}
-                className="absolute right-0 mt-2 w-80 bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-850 rounded-2xl shadow-xl z-50 overflow-hidden"
+                className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-2xl shadow-xl z-50 overflow-hidden"
               >
                 <div className="px-4 py-3 bg-slate-50 dark:bg-slate-950 border-b border-slate-100 dark:border-slate-850 flex items-center justify-between">
                   <span className="text-[11px] font-black text-slate-500 uppercase tracking-wider">Alert Feed ({unreadCount})</span>
@@ -151,7 +151,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.12 }}
-                  className="absolute right-0 mt-2 w-52 bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-850 rounded-2xl shadow-xl z-50 p-2 space-y-1"
+                  className="absolute right-0 mt-2 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-2xl shadow-xl z-50 p-2 space-y-1"
                 >
                   <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-850">
                     <span className="text-xs font-bold text-slate-800 dark:text-white block">{user.name}</span>

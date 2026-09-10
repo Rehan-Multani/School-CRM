@@ -131,7 +131,7 @@ export const BookCopies = () => {
       key: 'accessionNumber',
       sortable: true,
       render: (val) => (
-        <span className="font-bold font-mono text-xs text-slate-900 dark:text-white bg-slate-100 dark:bg-indigo-600 px-2 py-0.5 rounded">
+        <span className="font-bold font-mono text-xs text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded">
           {val}
         </span>
       ),
@@ -142,12 +142,12 @@ export const BookCopies = () => {
       sortable: true,
       render: (val, row) => (
         <div>
-          <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val || 'Ã¢â¬â'}</span>
-          <span className="text-3xs text-slate-400">Author: {row.bookAuthor || 'Ã¢â¬â'}</span>
+          <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val || '–'}</span>
+          <span className="text-3xs text-slate-400">Author: {row.bookAuthor || '–'}</span>
         </div>
       ),
     },
-    { title: 'Barcode', key: 'barcode', render: (val) => <span className="font-mono text-3xs text-slate-500">{val || 'Ã¢â¬â'}</span> },
+    { title: 'Barcode', key: 'barcode', render: (val) => <span className="font-mono text-3xs text-slate-500">{val || '–'}</span> },
     {
       title: 'Status',
       key: 'status',
@@ -174,7 +174,7 @@ export const BookCopies = () => {
     {
       title: 'Location',
       key: 'rackNumber',
-      render: (val, row) => (val ? `Rack ${val}, Shelf ${row.shelfNumber || '1'}` : 'Ã¢â¬â'),
+      render: (val, row) => (val ? `Rack ${val}, Shelf ${row.shelfNumber || '1'}` : '–'),
     },
     {
       title: 'Acquired Date',
@@ -261,7 +261,7 @@ export const BookCopies = () => {
       {loading ? (
         <SkeletonTable rows={8} columns={7} />
       ) : copies.length === 0 ? (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
           <Copy className="h-8 w-8 mx-auto text-slate-400" />
           <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">No Physical Copies Found</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
@@ -271,7 +271,7 @@ export const BookCopies = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
           <DataTable
             columns={columns}
             data={copies}
@@ -305,7 +305,7 @@ export const BookCopies = () => {
                 <option value="">-- Choose Catalogue Title --</option>
                 {books.map((b) => (
                   <option key={b.id} value={b.id}>
-                    {b.title} (by {b.author}) Ã¢â¬â Code: {b.bookCode}
+                    {b.title} (by {b.author}) – Code: {b.bookCode}
                   </option>
                 ))}
               </select>
@@ -373,7 +373,7 @@ export const BookCopies = () => {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold text-slate-550 dark:text-slate-400">Acquisition Price (Ã¢âÂ¹)</label>
+              <label className="mb-1 block text-xs font-bold text-slate-550 dark:text-slate-400">Acquisition Price (₹)</label>
               <input
                 placeholder="e.g. 450"
                 type="number"

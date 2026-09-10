@@ -112,7 +112,7 @@ export const FineManagement = () => {
       ),
     },
     { title: 'Due Date', key: 'dueDate', render: (val) => formatDate(val) },
-    { title: 'Return Date', key: 'returnDate', render: (val) => (val ? formatDate(val) : 'Ã¢â¬â') },
+    { title: 'Return Date', key: 'returnDate', render: (val) => (val ? formatDate(val) : '–') },
     {
       title: 'Fine Amount',
       key: 'fineAmount',
@@ -191,7 +191,7 @@ export const FineManagement = () => {
         />
         <StatCard
           title="Daily Overdue Rate"
-          value={`Ã¢âÂ¹${settings?.finePerDay ?? 5} / day`}
+          value={`₹${settings?.finePerDay ?? 5} / day`}
           icon={Sliders}
         />
       </div>
@@ -203,7 +203,7 @@ export const FineManagement = () => {
         <SkeletonTable rows={8} columns={6} />
       ) : activeTab === 'pending' ? (
         pendingFines.length === 0 ? (
-          <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
             <CheckCircle2 className="h-8 w-8 mx-auto text-emerald-500" />
             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">No Pending Fines</h3>
             <p className="text-xs text-slate-400 max-w-sm mx-auto">
@@ -211,7 +211,7 @@ export const FineManagement = () => {
             </p>
           </div>
         ) : (
-          <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
             <DataTable
               columns={columns}
               data={pendingFines}
@@ -222,7 +222,7 @@ export const FineManagement = () => {
           </div>
         )
       ) : collectedFines.length === 0 ? (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
           <Receipt className="h-8 w-8 mx-auto text-slate-400" />
           <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">No Fine Collections Yet</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
@@ -230,7 +230,7 @@ export const FineManagement = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
           <DataTable
             columns={columns}
             data={collectedFines}

@@ -64,7 +64,7 @@ export const StudentExams = () => {
             </h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex gap-3">
-                <div className="p-2.5 bg-slate-100 dark:bg-indigo-600 rounded-xl text-slate-500">
+                <div className="p-2.5 bg-slate-100 dark:bg-slate-900 rounded-xl text-slate-500">
                   <UserCheck className="w-5 h-5" />
                 </div>
                 <div>
@@ -74,7 +74,7 @@ export const StudentExams = () => {
               </div>
 
               <div className="flex gap-3">
-                <div className="p-2.5 bg-slate-100 dark:bg-indigo-600 rounded-xl text-slate-500">
+                <div className="p-2.5 bg-slate-100 dark:bg-slate-900 rounded-xl text-slate-500">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
@@ -145,7 +145,7 @@ export const StudentExams = () => {
           <ul className="space-y-3">
             {exams.instructions.map((inst, i) => (
               <li key={i} className="flex gap-3 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-indigo-600 font-bold text-[10px] text-slate-500">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-900 font-bold text-[10px] text-slate-500">
                   {i + 1}
                 </span>
                 <span>{inst}</span>

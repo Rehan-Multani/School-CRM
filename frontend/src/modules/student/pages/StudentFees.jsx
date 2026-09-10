@@ -62,7 +62,7 @@ export const StudentFees = () => {
         </h3>
         <div className="space-y-4">
           {fees.installments.map((inst, i) => (
-            <div key={i} className="p-4 rounded-xl border border-border bg-slate-50/20 dark:bg-indigo-600/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div key={i} className="p-4 rounded-xl border border-border bg-slate-50/20 dark:bg-slate-900/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="min-w-0">
                 <h4 className="text-xs font-bold text-foreground">{inst.name}</h4>
                 <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-1 font-semibold">

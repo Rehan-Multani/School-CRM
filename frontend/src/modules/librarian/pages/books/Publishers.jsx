@@ -80,7 +80,7 @@ export const Publishers = () => {
       {loading ? (
         <SkeletonTable rows={8} columns={3} />
       ) : publishers.length === 0 ? (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
           <Building className="h-8 w-8 mx-auto text-slate-400" />
           <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">No Publishers Found</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
@@ -88,7 +88,7 @@ export const Publishers = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
           <DataTable
             columns={columns}
             data={publishers}

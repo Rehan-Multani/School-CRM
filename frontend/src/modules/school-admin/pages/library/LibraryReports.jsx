@@ -109,7 +109,7 @@ export const LibraryReports = () => {
           { key: 'issueDate', title: 'Issue Date', render: formatDisplayDate },
           { key: 'returnDate', title: 'Return Date', render: formatDisplayDate },
           { key: 'overdueDays', title: 'Late Days', render: (v) => v || 0 },
-          { key: 'fineAmount', title: 'Fine', render: (v) => `Ã¢âÂ¹${v || 0}` },
+          { key: 'fineAmount', title: 'Fine', render: (v) => `₹${v || 0}` },
         ];
       case 'overdue':
         return [
@@ -117,13 +117,13 @@ export const LibraryReports = () => {
           { key: 'bookTitle', title: 'Book' },
           { key: 'dueDate', title: 'Due Date', render: formatDisplayDate },
           { key: 'overdueDays', title: 'Days Overdue', render: (v) => <span className="font-bold text-rose-600">{v || 0}</span> },
-          { key: 'fineAmount', title: 'Fine', render: (v) => `Ã¢âÂ¹${v || 0}` },
+          { key: 'fineAmount', title: 'Fine', render: (v) => `₹${v || 0}` },
         ];
       case 'fine':
         return [
           { key: 'borrowerName', title: 'Borrower' },
           { key: 'bookTitle', title: 'Book' },
-          { key: 'fineAmount', title: 'Amount', render: (v) => `Ã¢âÂ¹${v || 0}` },
+          { key: 'fineAmount', title: 'Amount', render: (v) => `₹${v || 0}` },
           { key: 'fineStatus', title: 'Status', render: (v) => <Badge variant={v === 'PAID' ? 'success' : v === 'WAIVED' ? 'default' : 'warning'}>{v}</Badge> },
           { key: 'returnDate', title: 'Date', render: (v, row) => formatDisplayDate(v || row.issueDate) },
         ];
@@ -207,7 +207,7 @@ export const LibraryReports = () => {
       />
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-2.5 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+      <div className="flex flex-wrap items-center gap-2.5 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <Filter className="h-3.5 w-3.5 shrink-0 text-slate-400" />
         {showDateRange && (
           <>
@@ -262,12 +262,12 @@ export const LibraryReports = () => {
       {loading ? (
         <SkeletonTable rows={8} columns={columns.length} />
       ) : rows.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <p className="text-sm font-bold text-slate-700 dark:text-slate-200">No records found</p>
           <p className="mt-1 text-xs text-slate-400">No data matches the selected report and filters.</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="border-b border-slate-100 bg-slate-50/70 text-slate-500 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-400">
@@ -280,7 +280,7 @@ export const LibraryReports = () => {
                   <tr key={row.id || idx} className="hover:bg-slate-50/80 dark:hover:bg-indigo-600/40">
                     {columns.map((c) => (
                       <td key={c.key} className="px-4 py-3 font-semibold text-slate-700 dark:text-slate-200">
-                        {c.render ? c.render(row[c.key], row) : (row[c.key] ?? 'Ã¢â¬â')}
+                        {c.render ? c.render(row[c.key], row) : (row[c.key] ?? '–')}
                       </td>
                     ))}
                   </tr>

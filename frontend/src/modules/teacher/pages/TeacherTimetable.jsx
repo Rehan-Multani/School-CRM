@@ -185,7 +185,7 @@ export const TeacherTimetable = () => {
       {/* Monthly View */}
       {tab === 'monthly' && (
         <Card>
-          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">July 2025 Ã¢â¬â Teaching Load</h3>
+          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">July 2025 – Teaching Load</h3>
           <div className="space-y-3">
             {DAY_KEYS.map((key, i) => {
               const cls = mockTimetable[key] || [];

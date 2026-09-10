@@ -21,20 +21,20 @@ const STATUS_LABEL = {
   authenticated: { label: 'Authenticated', tone: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-500/10 dark:text-sky-400 dark:border-sky-500/20' },
   active: { label: 'Active Mandate', tone: 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20' },
   pending: { label: 'Payment Retrying', tone: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' },
-  halted: { label: 'Past Due', tone: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-indigo-600/10 dark:text-rose-400 dark:border-rose-500/20' },
+  halted: { label: 'Past Due', tone: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-slate-900/10 dark:text-rose-400 dark:border-rose-500/20' },
   paused: { label: 'Paused', tone: 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20' },
   cancelled: { label: 'Cancelled', tone: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700' },
   completed: { label: 'Completed', tone: 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700' },
-  expired: { label: 'Expired', tone: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-indigo-600/10 dark:text-rose-400 dark:border-rose-500/20' },
-  failed: { label: 'Failed', tone: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-indigo-600/10 dark:text-rose-400 dark:border-rose-500/20' },
+  expired: { label: 'Expired', tone: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-slate-900/10 dark:text-rose-400 dark:border-rose-500/20' },
+  failed: { label: 'Failed', tone: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-slate-900/10 dark:text-rose-400 dark:border-rose-500/20' },
 };
 
 function inr(n) {
-  return `Ã¢âÂ¹${Number(n || 0).toLocaleString('en-IN')}`;
+  return `₹${Number(n || 0).toLocaleString('en-IN')}`;
 }
 
 function fmtDate(v) {
-  if (!v) return 'Ã¢â¬â';
+  if (!v) return '–';
   return new Date(v).toLocaleDateString('en-IN', {
     day: '2-digit',
     month: 'short',
@@ -159,19 +159,19 @@ export default function RecurringSubscriptionSection({ schoolName }) {
 
   if (loading) {
     return (
-      <div className="h-48 animate-pulse rounded-3xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-indigo-600" />
+      <div className="h-48 animate-pulse rounded-3xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-900" />
     );
   }
 
   const isSubCancelled = Boolean(sub?.cancelAtPeriodEnd || sub?.status === 'cancelled');
   const statusMeta = sub
     ? isSubCancelled
-      ? { label: 'Cancelled', tone: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-indigo-600/10 dark:text-rose-400 dark:border-rose-500/20' }
+      ? { label: 'Cancelled', tone: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-slate-900/10 dark:text-rose-400 dark:border-rose-500/20' }
       : (STATUS_LABEL[sub.status] || STATUS_LABEL.created)
     : null;
 
   return (
-    <section className="space-y-6 rounded-3xl border border-slate-200/80 bg-white/70 p-6 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-indigo-600/60 sm:p-8">
+    <section className="space-y-6 rounded-3xl border border-slate-200/80 bg-white/70 p-6 shadow-sm backdrop-blur-sm dark:border-slate-800 dark:bg-slate-900/60 sm:p-8">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-5 dark:border-slate-800">
         <div>
@@ -225,7 +225,7 @@ export default function RecurringSubscriptionSection({ schoolName }) {
               {recurringPlans.map((p) => (
                 <div
                   key={p.id}
-                  className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-indigo-300 dark:border-slate-800 dark:bg-indigo-600"
+                  className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-indigo-300 dark:border-slate-800 dark:bg-slate-900"
                 >
                   <div>
                     <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">
@@ -268,7 +268,7 @@ export default function RecurringSubscriptionSection({ schoolName }) {
             <div className="rounded-2xl border border-slate-200/80 bg-white/70 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/40">
               <p className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Mandate Plan</p>
               <p className="mt-1 text-base font-black text-slate-900 dark:text-white">
-                {sub.plan?.name || 'Ã¢â¬â'}
+                {sub.plan?.name || '–'}
               </p>
             </div>
             <div className="rounded-2xl border border-slate-200/80 bg-white/70 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/40">
@@ -390,7 +390,7 @@ export default function RecurringSubscriptionSection({ schoolName }) {
                   payments.map((p) => (
                     <div
                       key={p.id}
-                      className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white/80 p-3.5 text-xs shadow-sm transition hover:border-slate-200 dark:border-slate-800 dark:bg-indigo-600"
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white/80 p-3.5 text-xs shadow-sm transition hover:border-slate-200 dark:border-slate-800 dark:bg-slate-900"
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
@@ -413,7 +413,7 @@ export default function RecurringSubscriptionSection({ schoolName }) {
                             p.status === 'captured'
                               ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
                               : p.status === 'failed'
-                              ? 'bg-rose-50 text-rose-700 dark:bg-indigo-600/10 dark:text-rose-400'
+                              ? 'bg-rose-50 text-rose-700 dark:bg-slate-900/10 dark:text-rose-400'
                               : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                           }`}
                         >
@@ -435,7 +435,7 @@ export default function RecurringSubscriptionSection({ schoolName }) {
                   invoices.map((inv) => (
                     <div
                       key={inv.id}
-                      className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white/80 p-3.5 text-xs shadow-sm transition hover:border-slate-200 dark:border-slate-800 dark:bg-indigo-600"
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white/80 p-3.5 text-xs shadow-sm transition hover:border-slate-200 dark:border-slate-800 dark:bg-slate-900"
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">

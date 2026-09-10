@@ -127,7 +127,7 @@ export const Dashboard = () => {
   return (
     <div className="space-y-6">
       {/* Page Welcome & Library Profile Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
         <div className="flex items-center gap-4">
           <div className="p-4 bg-indigo-500/10 rounded-2xl text-indigo-600 dark:text-indigo-400">
             <Library className="w-8 h-8" />
@@ -144,7 +144,7 @@ export const Dashboard = () => {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 px-3.5 py-2 bg-slate-100 dark:bg-indigo-600 rounded-xl">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 px-3.5 py-2 bg-slate-100 dark:bg-slate-900 rounded-xl">
             Session: <strong>{user?.academicSession || '2024-2025'}</strong>
           </span>
           <button
@@ -206,7 +206,7 @@ export const Dashboard = () => {
       </div>
 
       {/* Quick Actions Panel */}
-      <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
         <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4">Quick Circulation Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {quickActions.map((act) => {
@@ -230,7 +230,7 @@ export const Dashboard = () => {
       {/* Charts & Activities Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Issue Trends Chart */}
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 lg:col-span-2">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 lg:col-span-2">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Monthly Issue & Return Trends</h3>
           </div>
@@ -244,7 +244,7 @@ export const Dashboard = () => {
         </div>
 
         {/* Categories Distribution */}
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
           <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4">Category Distribution</h3>
           {categoryChartData.length > 0 ? (
             <PieChart data={categoryChartData} dataKey="value" nameKey="name" />
@@ -259,7 +259,7 @@ export const Dashboard = () => {
       {/* Recent Transactions & Fines Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Audit Ledger (2 cols) */}
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 lg:col-span-2">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Recent Circulation Activity</h3>
             <button
@@ -312,7 +312,7 @@ export const Dashboard = () => {
         </div>
 
         {/* Fine Collection Trend */}
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Fine Collection Trend</h3>
             <button

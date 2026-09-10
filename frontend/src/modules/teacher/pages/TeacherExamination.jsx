@@ -106,7 +106,7 @@ export const TeacherExamination = () => {
               {exam.schedule && exam.schedule.length > 0 && (
                 <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {exam.schedule.map((item, idx) => (
-                    <div key={idx} className="p-3 bg-slate-50 dark:bg-indigo-600 border border-border rounded-xl space-y-1">
+                    <div key={idx} className="p-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-xl space-y-1">
                       <div className="flex justify-between items-center text-xs font-bold">
                         <span>{item.subject}</span>
                         <span className="text-indigo-600">Max: {item.maxMarks}</span>
@@ -127,14 +127,14 @@ export const TeacherExamination = () => {
       {/* Marks Entry Tab */}
       {tab === 'marks' && (
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-slate-50 dark:bg-indigo-600 border border-border rounded-2xl">
+          <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-slate-50 dark:bg-slate-900 border border-border rounded-2xl">
             <div className="flex items-center gap-3">
               <div>
                 <label className="text-[10px] font-bold text-slate-400 uppercase block">Selected Exam</label>
                 <select
                   value={selectedExamId}
                   onChange={(e) => setSelectedExamId(e.target.value)}
-                  className="px-3 py-1 text-xs font-bold rounded-xl border border-border bg-white dark:bg-indigo-600 text-foreground"
+                  className="px-3 py-1 text-xs font-bold rounded-xl border border-border bg-white dark:bg-slate-900 text-foreground"
                 >
                   {exams.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
                 </select>
@@ -145,7 +145,7 @@ export const TeacherExamination = () => {
                 <select
                   value={selectedSubject}
                   onChange={(e) => setSelectedSubject(e.target.value)}
-                  className="px-3 py-1 text-xs font-bold rounded-xl border border-border bg-white dark:bg-indigo-600 text-foreground"
+                  className="px-3 py-1 text-xs font-bold rounded-xl border border-border bg-white dark:bg-slate-900 text-foreground"
                 >
                   {['Mathematics', 'Science', 'English', 'Social Studies', 'Computer Science'].map(sub => (
                     <option key={sub} value={sub}>{sub} (Max: 50)</option>
@@ -157,7 +157,7 @@ export const TeacherExamination = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSaveDraft}
-                className="flex items-center gap-1.5 px-3 py-1.5 border border-border bg-white dark:bg-indigo-600 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200"
+                className="flex items-center gap-1.5 px-3 py-1.5 border border-border bg-white dark:bg-slate-900 hover:bg-slate-100 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200"
               >
                 <Save className="w-3.5 h-3.5" />
                 <span>Save Draft</span>
@@ -200,7 +200,7 @@ export const TeacherExamination = () => {
                         max="50"
                         value={currentVal}
                         onChange={(e) => handleMarkChange(st.id, e.target.value)}
-                        className="w-20 px-3 py-1 text-xs font-bold rounded-xl border border-border bg-white dark:bg-indigo-600 text-center text-foreground"
+                        className="w-20 px-3 py-1 text-xs font-bold rounded-xl border border-border bg-white dark:bg-slate-900 text-center text-foreground"
                       />
                     </div>
                     <Badge variant={percent >= 80 ? 'success' : 'info'}>

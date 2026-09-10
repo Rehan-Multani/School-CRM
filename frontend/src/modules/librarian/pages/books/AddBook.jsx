@@ -40,7 +40,7 @@ export const AddBook = () => {
         }
       />
 
-      <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-xs">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-xs">
         <AddEditBook
           onSuccess={handleSave}
           onCancel={() => navigate('/librarian/books')}

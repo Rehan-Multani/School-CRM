@@ -118,16 +118,16 @@ export const EmployeeDetail = () => {
   if (loading) {
     return (
       <div className="space-y-6 pb-12">
-        <div className="h-8 w-48 bg-slate-100 dark:bg-indigo-600 rounded-xl animate-pulse" />
-        <div className="h-44 bg-slate-100 dark:bg-indigo-600 rounded-3xl animate-pulse" />
-        <div className="h-64 bg-slate-100 dark:bg-indigo-600 rounded-3xl animate-pulse" />
+        <div className="h-8 w-48 bg-slate-100 dark:bg-slate-900 rounded-xl animate-pulse" />
+        <div className="h-44 bg-slate-100 dark:bg-slate-900 rounded-3xl animate-pulse" />
+        <div className="h-64 bg-slate-100 dark:bg-slate-900 rounded-3xl animate-pulse" />
       </div>
     );
   }
 
   if (error || !employee) {
     return (
-      <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-4">
         <AlertCircle className="w-10 h-10 mx-auto text-rose-500" />
         <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
           {error || 'Employee Profile Not Found'}
@@ -196,7 +196,7 @@ export const EmployeeDetail = () => {
       )}
 
       {/* Profile Header Card */}
-      <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div className="flex items-center gap-4 min-w-0">
           {employee.photo ? (
             <img
@@ -283,7 +283,7 @@ export const EmployeeDetail = () => {
       {/* Tab 1: Overview */}
       {activeTab === 'overview' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">
               Personal & Contact Information
             </h3>
@@ -337,7 +337,7 @@ export const EmployeeDetail = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">
               Institutional Placement & Specialization
             </h3>
@@ -389,7 +389,7 @@ export const EmployeeDetail = () => {
       {/* Tab 2: Banking */}
       {activeTab === 'banking' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">
               Salary & Base Remuneration
             </h3>
@@ -397,7 +397,7 @@ export const EmployeeDetail = () => {
               <div>
                 <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block">Contracted Base Salary</span>
                 <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                  Ã¢âÂ¹{Number(employee.basicSalary || 0).toLocaleString('en-IN')}
+                  ₹{Number(employee.basicSalary || 0).toLocaleString('en-IN')}
                 </p>
                 <span className="text-[10px] text-slate-400">Per Month Fixed Gross</span>
               </div>
@@ -416,7 +416,7 @@ export const EmployeeDetail = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">
               Bank Account Details
             </h3>
@@ -448,7 +448,7 @@ export const EmployeeDetail = () => {
 
       {/* Tab 3: Leaves */}
       {activeTab === 'leaves' && (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">
             Leave History & Current Allotments
           </h3>
@@ -474,7 +474,7 @@ export const EmployeeDetail = () => {
 
       {/* Tab 4: Payroll Slips */}
       {activeTab === 'payroll' && (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">
             Issued Monthly Payslips
           </h3>
@@ -486,7 +486,7 @@ export const EmployeeDetail = () => {
                 <div key={p.id} className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-bold text-slate-900 dark:text-white block">{p.payrollMonth}</span>
-                    <span className="text-[11px] text-slate-400">Net Salary: Ã¢âÂ¹{Number(p.netSalary || 0).toLocaleString('en-IN')}</span>
+                    <span className="text-[11px] text-slate-400">Net Salary: ₹{Number(p.netSalary || 0).toLocaleString('en-IN')}</span>
                   </div>
                   <Badge variant={p.paymentStatus === 'PAID' ? 'success' : 'default'}>
                     {p.paymentStatus}
@@ -500,7 +500,7 @@ export const EmployeeDetail = () => {
 
       {/* Tab 5: Appraisals */}
       {activeTab === 'reviews' && (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">
             Performance Reviews & Appraisals
           </h3>
@@ -524,7 +524,7 @@ export const EmployeeDetail = () => {
 
       {/* Tab 6: Locker Documents */}
       {activeTab === 'documents' && (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-3">
             Verified Verification Documents
           </h3>

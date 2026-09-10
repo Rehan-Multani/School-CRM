@@ -21,7 +21,7 @@ const ToggleSwitch = ({ checked, onChange, label, description }) => (
       aria-checked={checked}
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-        checked ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-indigo-600'
+        checked ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-900'
       }`}
     >
       <span
@@ -194,7 +194,7 @@ export const Settings = () => {
         <SkeletonForm fields={6} />
       ) : activeTab === 'profile' ? (
         <form onSubmit={handleSaveProfile} className="space-y-6">
-          <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
             <div className="flex items-center gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
               <img
                 src={user?.photoUrl || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'}
@@ -333,7 +333,7 @@ export const Settings = () => {
       ) : (
         <form onSubmit={handleSaveRules} className="space-y-6">
           {/* Issue / Return / Renewal Rules */}
-          <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 Circulation Loan & Renewal Rules
@@ -455,7 +455,7 @@ export const Settings = () => {
           </div>
 
           {/* Fine Rates & Penalty Rules */}
-          <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 Fine Rates & Penalty Rules
@@ -475,7 +475,7 @@ export const Settings = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-3xs font-bold text-slate-500 uppercase">
-                  Overdue Tariff (Ã¢âÂ¹ / Day) *
+                  Overdue Tariff (₹ / Day) *
                 </label>
                 <input
                   placeholder="e.g. 5"
@@ -491,7 +491,7 @@ export const Settings = () => {
 
               <div className="space-y-1.5">
                 <label className="text-3xs font-bold text-slate-500 uppercase">
-                  Maximum Penalty Cap (Ã¢âÂ¹) *
+                  Maximum Penalty Cap (₹) *
                 </label>
                 <input
                   placeholder="e.g. 500"

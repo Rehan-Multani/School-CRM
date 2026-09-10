@@ -74,7 +74,7 @@ export const BarcodeDisplay = ({ value, label }) => {
   return (
     <div className="border border-slate-200 dark:border-slate-800 rounded-2xl p-5 bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center gap-4">
       {/* Printable Area */}
-      <div ref={printRef} className="flex flex-col items-center p-4 bg-white dark:bg-indigo-600 border border-slate-100 dark:border-slate-800 rounded-xl shadow-xs">
+      <div ref={printRef} className="flex flex-col items-center p-4 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl shadow-xs">
         {label && (
           <div className="text-2xs font-bold text-slate-500 dark:text-slate-400 mb-2 truncate max-w-[200px]">
             {label}

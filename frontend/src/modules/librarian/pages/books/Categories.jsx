@@ -159,7 +159,7 @@ export const Categories = () => {
     {
       title: 'Description',
       key: 'description',
-      render: (val) => <span className="text-xs text-slate-500 dark:text-slate-400">{val || 'Ã¢â¬â'}</span>,
+      render: (val) => <span className="text-xs text-slate-500 dark:text-slate-400">{val || '–'}</span>,
     },
     {
       title: 'Status',
@@ -278,7 +278,7 @@ export const Categories = () => {
           <SkeletonTable rows={8} columns={7} />
         )
       ) : categories.length === 0 ? (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
           <FolderTree className="h-8 w-8 mx-auto text-slate-400" />
           <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">No Categories Found</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
@@ -297,7 +297,7 @@ export const Categories = () => {
             <div
               key={category.id}
               className={cn(
-                'bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 hover:shadow-md transition-all duration-200 hover:border-indigo-300 dark:hover:border-indigo-900/50 flex flex-col justify-between',
+                'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 hover:shadow-md transition-all duration-200 hover:border-indigo-300 dark:hover:border-indigo-900/50 flex flex-col justify-between',
                 category.status !== 'ACTIVE' && 'opacity-60'
               )}
             >
@@ -359,7 +359,7 @@ export const Categories = () => {
           ))}
         </div>
       ) : (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
           <DataTable
             columns={columns}
             data={categories}

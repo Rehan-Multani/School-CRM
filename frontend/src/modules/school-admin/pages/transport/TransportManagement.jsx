@@ -42,7 +42,7 @@ import {
 } from 'lucide-react';
 
 /**
- * Transport Ã¢â¬â the whole module, in the order it must be set up:
+ * Transport – the whole module, in the order it must be set up:
  *
  *   1 Vehicle  Ã¢â â  2 Driver + Vehicle  Ã¢â â  3 Route + Stops (with times)
  *   Ã¢â â  4 Route + Vehicle + Driver  Ã¢â â  5 Student + Route + Stop
@@ -55,7 +55,7 @@ const inputClass =
   'h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-xs font-semibold outline-none focus:border-indigo-500 focus:bg-white dark:border-slate-800 dark:bg-slate-950 dark:text-white';
 const labelClass = 'text-[11px] font-bold uppercase tracking-wider text-slate-400';
 const cardClass =
-  'rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600';
+  'rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900';
 const primaryBtn =
   'inline-flex items-center gap-2 rounded-xl bg-indigo-650 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:opacity-60';
 const ghostBtn =
@@ -85,9 +85,9 @@ const TABS = [
   { id: 'fees', label: 'Yearly Fee', icon: IndianRupee },
 ];
 
-/** Ã¢âÂ¹60,000 Ã¢â¬â or an em dash when the school has not set an amount yet. */
+/** ₹60,000 – or an em dash when the school has not set an amount yet. */
 const money = (amount) =>
-  amount === null || amount === undefined ? 'Ã¢â¬â' : `Ã¢âÂ¹${Number(amount).toLocaleString('en-IN')}`;
+  amount === null || amount === undefined ? '–' : `₹${Number(amount).toLocaleString('en-IN')}`;
 
 const emptyVehicle = {
   vehicleNumber: '',
@@ -114,7 +114,7 @@ const emptyRoute = { routeName: '', status: 'ACTIVE' };
 const emptyStop = { stopName: '', pickupTime: '07:30', dropTime: '16:00' };
 const emptyAssignment = { studentId: '', routeId: '', stopId: '' };
 
-/** Surface the backend's own message Ã¢â¬â it already explains exactly what failed. */
+/** Surface the backend's own message – it already explains exactly what failed. */
 const apiError = (error, fallback) =>
   error?.response?.data?.message || error?.message || fallback;
 
@@ -308,7 +308,7 @@ export const TransportManagement = () => {
     const target = index + direction;
     if (target < 0 || target >= next.length) return;
     [next[index], next[target]] = [next[target], next[index]];
-    setStops(next); // optimistic Ã¢â¬â the server response replaces it below
+    setStops(next); // optimistic – the server response replaces it below
     run(() => transportPortalApi.reorderStops(selectedRouteId, next.map((s) => s.id)), {
       success: 'Stop order updated',
       refreshStops: true,
@@ -343,7 +343,7 @@ export const TransportManagement = () => {
         }
       />
 
-      {/* SETUP PROGRESS Ã¢â¬â the flow this module is required to follow, in order */}
+      {/* SETUP PROGRESS – the flow this module is required to follow, in order */}
       <div className={`${cardClass} p-4`}>
         <div className="flex flex-wrap items-center gap-2">
           {flow.map((step, index) => (
@@ -357,7 +357,7 @@ export const TransportManagement = () => {
               >
                 <span
                   className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-black ${
-                    step.done ? 'bg-emerald-600 text-white' : 'bg-slate-300 text-slate-600 dark:bg-indigo-600'
+                    step.done ? 'bg-emerald-600 text-white' : 'bg-slate-300 text-slate-600 dark:bg-slate-900'
                   }`}
                 >
                   {step.done ? <Check className="h-2.5 w-2.5" /> : index + 1}
@@ -435,7 +435,7 @@ export const TransportManagement = () => {
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Fleet</h3>
               <p className="text-[11px] font-semibold text-slate-400">
-                Step 1 Ã¢â¬â register each bus by its number plate
+                Step 1 – register each bus by its number plate
               </p>
             </div>
             <button className={primaryBtn} onClick={() => setVehicleModal({ editing: null, form: emptyVehicle })}>
@@ -535,7 +535,7 @@ export const TransportManagement = () => {
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Drivers</h3>
               <p className="text-[11px] font-semibold text-slate-400">
-                Step 2 Ã¢â¬â add the driver, then hand them a bus
+                Step 2 – add the driver, then hand them a bus
               </p>
             </div>
             <button
@@ -553,7 +553,7 @@ export const TransportManagement = () => {
               icon={IdCard}
               message={
                 vehicles.length === 0
-                  ? 'Add a vehicle first Ã¢â¬â a driver is given a bus at step 2.'
+                  ? 'Add a vehicle first – a driver is given a bus at step 2.'
                   : 'No drivers yet.'
               }
             />
@@ -768,7 +768,7 @@ export const TransportManagement = () => {
                         {selectedRoute.routeName}
                       </h3>
                       <p className="mt-0.5 text-[11px] font-semibold text-slate-400">
-                        Step 4 Ã¢â¬â this route needs a bus and a driver before students can be assigned
+                        Step 4 – this route needs a bus and a driver before students can be assigned
                       </p>
                     </div>
                     <div className="flex gap-1.5">
@@ -862,7 +862,7 @@ export const TransportManagement = () => {
                     <div>
                       <h3 className="text-sm font-bold text-slate-900 dark:text-white">Stops</h3>
                       <p className="text-[11px] font-semibold text-slate-400">
-                        Step 3 Ã¢â¬â order matters, and every stop needs both times
+                        Step 3 – order matters, and every stop needs both times
                       </p>
                     </div>
                     <button className={primaryBtn} onClick={() => setStopModal({ editing: null, form: emptyStop })}>
@@ -976,7 +976,7 @@ export const TransportManagement = () => {
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Student Assignments</h3>
               <p className="text-[11px] font-semibold text-slate-400">
-                Step 5 Ã¢â¬â the stop decides the student's pickup and drop time
+                Step 5 – the stop decides the student's pickup and drop time
               </p>
             </div>
             <button
@@ -1018,7 +1018,7 @@ export const TransportManagement = () => {
                         </div>
                       </td>
                       <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
-                        {row.student?.className || 'Ã¢â¬â'}
+                        {row.student?.className || '–'}
                       </td>
                       <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
                         {row.route?.routeName}
@@ -1034,7 +1034,7 @@ export const TransportManagement = () => {
                       </td>
                       <td className="px-5 py-3.5 font-bold text-amber-600 dark:text-amber-400">{row.dropTime}</td>
                       <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
-                        {row.academicYear?.name || 'Ã¢â¬â'}
+                        {row.academicYear?.name || '–'}
                       </td>
                       <td className="px-5 py-3.5 font-black text-slate-900 dark:text-white">
                         {money(row.yearlyFeeAmount)}
@@ -1091,7 +1091,7 @@ export const TransportManagement = () => {
           <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white">Yearly Transport Fee</h3>
             <p className="text-[11px] font-semibold text-slate-400">
-              Step 6 Ã¢â¬â one amount per academic year for the whole school. Every rider pays the same,
+              Step 6 – one amount per academic year for the whole school. Every rider pays the same,
               whatever their class, route or stop.
             </p>
           </div>
@@ -1125,7 +1125,7 @@ export const TransportManagement = () => {
                         </td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-black text-slate-400">Ã¢âÂ¹</span>
+                            <span className="text-xs font-black text-slate-400">₹</span>
                             <input
                               type="number"
                               min={0}
@@ -1251,7 +1251,7 @@ export const TransportManagement = () => {
                 onChange={(e) => setVehicleModal((m) => ({ ...m, form: { ...m.form, capacity: e.target.value } }))}
               />
             </Field>
-            <Field label="Model" hint="Optional Ã¢â¬â the make printed on the bus" className="sm:col-span-2">
+            <Field label="Model" hint="Optional – the make printed on the bus" className="sm:col-span-2">
               <input
                 className={inputClass}
                 placeholder="Tata Starbus"
@@ -1376,7 +1376,7 @@ export const TransportManagement = () => {
               <div className="flex flex-col gap-2">
                 <label className={labelClass}>Driver Profile Photo</label>
                 <div className="flex items-center gap-3">
-                  <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-slate-300 bg-white shadow-2xs dark:border-slate-700 dark:bg-indigo-600">
+                  <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-slate-300 bg-white shadow-2xs dark:border-slate-700 dark:bg-slate-900">
                     {driverModal.form.photoPreview ? (
                       <img
                         src={driverModal.form.photoPreview}
@@ -1455,7 +1455,7 @@ export const TransportManagement = () => {
               <div className="flex flex-col gap-2">
                 <label className={labelClass}>Driving License Document</label>
                 <div className="flex items-center gap-3">
-                  <div className="relative flex h-20 w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-slate-300 bg-white shadow-2xs dark:border-slate-700 dark:bg-indigo-600">
+                  <div className="relative flex h-20 w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-slate-300 bg-white shadow-2xs dark:border-slate-700 dark:bg-slate-900">
                     {driverModal.form.licensePreview ? (
                       <img
                         src={driverModal.form.licensePreview}
@@ -1921,7 +1921,7 @@ export const TransportManagement = () => {
               )}
             </div>
 
-            {/* Step 6 Ã¢â¬â what this student will be charged, before it is stamped
+            {/* Step 6 – what this student will be charged, before it is stamped
                 onto the assignment. Editing it later does not reach back. */}
             {!riderModal.editing && (
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950">
@@ -1931,7 +1931,7 @@ export const TransportManagement = () => {
                     {money(lookups.currentYearlyFee)}{' '}
                     <span className="text-[11px] font-semibold text-slate-400">
                       for {lookups.currentAcademicYear.name}
-                      {lookups.currentYearlyFee === null ? ' Ã¢â¬â not set yet, set it on the Yearly Fee tab' : ''}
+                      {lookups.currentYearlyFee === null ? ' – not set yet, set it on the Yearly Fee tab' : ''}
                     </span>
                   </p>
                 ) : (
@@ -2002,7 +2002,7 @@ const TableHead = ({ columns }) => (
 
 const EmptyState = ({ icon: Icon, message }) => (
   <div className="flex flex-col items-center justify-center gap-3 px-5 py-14 text-center">
-    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-indigo-600">
+    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-900">
       <Icon className="h-5 w-5" />
     </div>
     <p className="max-w-xs text-xs font-semibold text-slate-400">{message}</p>
@@ -2023,7 +2023,7 @@ const ResourceSlot = ({ icon: Icon, label, value, hint }) => (
   <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
     <div
       className={`flex h-9 w-9 items-center justify-center rounded-xl ${
-        value ? 'bg-indigo-50 text-indigo-650 dark:bg-indigo-950/40 dark:text-indigo-400' : 'bg-slate-200 text-slate-400 dark:bg-indigo-600'
+        value ? 'bg-indigo-50 text-indigo-650 dark:bg-indigo-950/40 dark:text-indigo-400' : 'bg-slate-200 text-slate-400 dark:bg-slate-900'
       }`}
     >
       <Icon className="h-4 w-4" />

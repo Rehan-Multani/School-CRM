@@ -5,7 +5,7 @@ import { PRODUCT } from '../data/content';
 
 export const NotFoundPage = () => {
   useEffect(() => {
-    document.title = `Page not found Ã¢â¬â ${PRODUCT.name}`;
+    document.title = `Page not found – ${PRODUCT.name}`;
   }, []);
 
   return (

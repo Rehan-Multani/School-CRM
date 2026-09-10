@@ -8,7 +8,7 @@ import { apiMessage } from '../academics/utils';
 import { LibraryTabsNav, inputClass, labelClass } from './libraryShared';
 
 const RuleSection = ({ icon: Icon, title, description, children }) => (
-  <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+  <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
     <div className="mb-4 flex items-start gap-3">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
         <Icon className="h-4 w-4" />
@@ -28,7 +28,7 @@ const ToggleRow = ({ label, description, checked, onChange }) => (
       <span className="block text-xs font-bold text-slate-800 dark:text-slate-200">{label}</span>
       {description && <span className="text-[11px] text-slate-400">{description}</span>}
     </div>
-    <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-slate-300 transition-colors checked:bg-primary relative before:absolute before:left-0.5 before:top-0.5 before:h-4 before:w-4 before:rounded-full before:bg-white before:transition-transform checked:before:translate-x-4 dark:bg-indigo-600" />
+    <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-slate-300 transition-colors checked:bg-primary relative before:absolute before:left-0.5 before:top-0.5 before:h-4 before:w-4 before:rounded-full before:bg-white before:transition-transform checked:before:translate-x-4 dark:bg-slate-900" />
   </label>
 );
 
@@ -68,7 +68,7 @@ export const LibraryRules = () => {
         maxFineAmount: Number(form.maxFineAmount),
       });
       setForm(res.data);
-      showToast('Library rules saved Ã¢â¬â enforced immediately for new issues', 'success');
+      showToast('Library rules saved – enforced immediately for new issues', 'success');
     } catch (err) {
       showToast(apiMessage(err, 'Failed to save library rules'), 'error');
     } finally {
@@ -91,18 +91,18 @@ export const LibraryRules = () => {
       <ToastComponent />
       <PageHeader
         title="Rules"
-        subtitle="Borrowing limits and fines Ã¢â¬â enforced server-side on every issue and return."
+        subtitle="Borrowing limits and fines – enforced server-side on every issue and return."
       />
       <LibraryTabsNav />
 
       <form onSubmit={handleSave} className="space-y-5">
         <RuleSection icon={Users} title="Borrowing Limits" description="Maximum unreturned books allowed per borrower type.">
           <div>
-            <label className={labelClass}>Max Books Ã¢â¬â Student</label>
+            <label className={labelClass}>Max Books – Student</label>
             <input placeholder="e.g. 3" type="number" min="1" value={form.maxBooksStudent} onChange={(e) => set('maxBooksStudent', e.target.value)} className={inputClass} />
           </div>
           <div>
-            <label className={labelClass}>Max Books Ã¢â¬â Teacher</label>
+            <label className={labelClass}>Max Books – Teacher</label>
             <input placeholder="e.g. 5" type="number" min="1" value={form.maxBooksTeacher} onChange={(e) => set('maxBooksTeacher', e.target.value)} className={inputClass} />
           </div>
         </RuleSection>
@@ -121,11 +121,11 @@ export const LibraryRules = () => {
         <RuleSection icon={Coins} title="Fine Policy" description="Overdue fine calculation, applied automatically on return.">
           <ToggleRow label="Fine Enabled" description="Charge a fine for books returned after the due date" checked={form.fineEnabled} onChange={(v) => set('fineEnabled', v)} />
           <div>
-            <label className={labelClass}>Fine Per Overdue Day (Ã¢âÂ¹)</label>
+            <label className={labelClass}>Fine Per Overdue Day (₹)</label>
             <input placeholder="e.g. 5" type="number" min="0" disabled={!form.fineEnabled} value={form.finePerDay} onChange={(e) => set('finePerDay', e.target.value)} className={`${inputClass} disabled:opacity-50`} />
           </div>
           <div>
-            <label className={labelClass}>Maximum Fine Amount (Ã¢âÂ¹)</label>
+            <label className={labelClass}>Maximum Fine Amount (₹)</label>
             <input placeholder="e.g. 500" type="number" min="0" disabled={!form.fineEnabled} value={form.maxFineAmount} onChange={(e) => set('maxFineAmount', e.target.value)} className={`${inputClass} disabled:opacity-50`} />
           </div>
         </RuleSection>

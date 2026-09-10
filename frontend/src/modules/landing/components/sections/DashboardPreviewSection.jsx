@@ -46,7 +46,7 @@ export const DashboardPreviewSection = () => {
           </p>
 
           {/* Interactive view toggles */}
-          <div className="mt-8 inline-flex rounded-2xl border border-slate-200/80 bg-white/90 p-1.5 shadow-sm backdrop-blur-xl dark:border-slate-800 dark:bg-indigo-600/90">
+          <div className="mt-8 inline-flex rounded-2xl border border-slate-200/80 bg-white/90 p-1.5 shadow-sm backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90">
             {[
               { id: 'attendance', label: 'Attendance Telemetry' },
               { id: 'fees', label: 'Fee Collections & Dues' },
@@ -70,7 +70,7 @@ export const DashboardPreviewSection = () => {
 
         {/* Big Dashboard Frame Mockup */}
         <Reveal delay={0.12} className="mt-12">
-          <div className="relative rounded-3xl border border-slate-200/90 bg-white/95 p-4 shadow-2xl shadow-indigo-500/5 backdrop-blur-2xl sm:p-6 lg:p-8 dark:border-slate-800/90 dark:bg-indigo-600/95 dark:shadow-black/80">
+          <div className="relative rounded-3xl border border-slate-200/90 bg-white/95 p-4 shadow-2xl shadow-indigo-500/5 backdrop-blur-2xl sm:p-6 lg:p-8 dark:border-slate-800/90 dark:bg-slate-900/95 dark:shadow-black/80">
             {/* Top Toolbar */}
             <div className="flex flex-col gap-4 border-b border-slate-100 pb-6 dark:border-slate-800/80 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -144,7 +144,7 @@ export const DashboardPreviewSection = () => {
                   </span>
                 </div>
                 <div className="mt-2 text-2xl font-black text-slate-900 dark:text-white sm:text-3xl">
-                  Ã¢âÂ¹<CountUp target={18.4} decimals={1} suffix="L" />
+                  ₹<CountUp target={18.4} decimals={1} suffix="L" />
                 </div>
                 <span className="mt-1 block text-[11px] text-slate-500 dark:text-slate-400">
                   92.4% Quarter Target Met
@@ -205,7 +205,7 @@ export const DashboardPreviewSection = () => {
                     { time: '12:00', p: '97%', l: '1%' },
                   ].map((col) => (
                     <div key={col.time} className="flex flex-1 flex-col items-center gap-2">
-                      <div className="relative flex h-40 w-full items-end justify-center rounded-lg bg-slate-200/50 p-1 dark:bg-indigo-600/60">
+                      <div className="relative flex h-40 w-full items-end justify-center rounded-lg bg-slate-200/50 p-1 dark:bg-slate-900/60">
                         {/* Primary bar */}
                         <div
                           style={{ height: col.p }}
@@ -224,7 +224,7 @@ export const DashboardPreviewSection = () => {
                   ))}
                 </div>
 
-                <div className="mt-4 flex items-center justify-between rounded-xl bg-white border border-slate-200/80 p-3 text-xs text-slate-600 dark:bg-indigo-600/40 dark:border-transparent dark:text-slate-400">
+                <div className="mt-4 flex items-center justify-between rounded-xl bg-white border border-slate-200/80 p-3 text-xs text-slate-600 dark:bg-slate-900/40 dark:border-transparent dark:text-slate-400">
                   <span className="flex items-center gap-1.5">
                     <Sparkles className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
                     Automated anomaly detection: Attendance within 99.1% of target.
@@ -251,7 +251,7 @@ export const DashboardPreviewSection = () => {
                     {[
                       {
                         title: 'Fee Payment Received',
-                        desc: 'Class 8-A: Ã¢âÂ¹28,500 via UPI (Receipt #8412)',
+                        desc: 'Class 8-A: ₹28,500 via UPI (Receipt #8412)',
                         time: '2m ago',
                         badge: 'Finance',
                         color: 'text-emerald-600 dark:text-emerald-400',

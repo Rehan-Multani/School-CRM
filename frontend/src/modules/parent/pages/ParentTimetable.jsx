@@ -49,7 +49,7 @@ export const ParentTimetable = () => {
             <div className="space-y-4">
               {todayClasses.map((cl, i) => (
                 <div key={i} className="flex items-start gap-4 animate-in fade-in duration-200">
-                  <div className="w-14 h-14 shrink-0 rounded-2xl bg-slate-100 dark:bg-indigo-600 border border-border flex items-center justify-center text-xs font-black text-slate-500">
+                  <div className="w-14 h-14 shrink-0 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-border flex items-center justify-center text-xs font-black text-slate-500">
                     P{cl.period}
                   </div>
 

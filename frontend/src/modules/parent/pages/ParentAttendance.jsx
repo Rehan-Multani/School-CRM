@@ -132,7 +132,7 @@ export const ParentAttendance = () => {
               const dayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
               const historyItem = attendance.history.find(h => h.date === dayStr);
               
-              let style = 'bg-slate-50 dark:bg-indigo-600 text-slate-600 dark:text-slate-400';
+              let style = 'bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400';
               if (historyItem?.status === 'Present') style = 'bg-emerald-500 text-white font-extrabold shadow-sm';
               if (historyItem?.status === 'Absent') style = 'bg-indigo-600 text-white font-extrabold shadow-sm';
               if (historyItem?.status === 'Late') style = 'bg-amber-500 text-white font-extrabold shadow-sm';

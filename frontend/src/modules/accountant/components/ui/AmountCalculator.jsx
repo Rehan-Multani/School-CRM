@@ -58,7 +58,7 @@ export const AmountCalculator = ({ onChange }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs font-semibold">
       {/* Fee Category check grid */}
-      <div className="space-y-4 bg-white dark:bg-indigo-600 border rounded-2xl p-4">
+      <div className="space-y-4 bg-white dark:bg-slate-900 border rounded-2xl p-4">
         <span className="text-[10px] font-black uppercase text-slate-450 tracking-wider block border-b pb-2">Select Active Fee Category Heads</span>
         <div className="space-y-3">
           {feeHeads.map((head, idx) => (
@@ -78,7 +78,7 @@ export const AmountCalculator = ({ onChange }) => {
                   type="number"
                   value={head.amount}
                   onChange={(e) => handleAmountChange(idx, e.target.value)}
-                  className="w-20 bg-white dark:bg-indigo-600 px-2 py-1 text-right text-xs rounded border border-slate-205 focus:outline-none focus:ring-1 focus:ring-violet-600 font-bold"
+                  className="w-20 bg-white dark:bg-slate-900 px-2 py-1 text-right text-xs rounded border border-slate-205 focus:outline-none focus:ring-1 focus:ring-violet-600 font-bold"
                 />
               )}
             </div>
@@ -87,7 +87,7 @@ export const AmountCalculator = ({ onChange }) => {
       </div>
 
       {/* Inputs calculations metrics */}
-      <div className="space-y-4 bg-white dark:bg-indigo-600 border rounded-2xl p-4">
+      <div className="space-y-4 bg-white dark:bg-slate-900 border rounded-2xl p-4">
         <span className="text-[10px] font-black uppercase text-slate-450 tracking-wider block border-b pb-2">Live Invoice Calculator Matrix</span>
         
         <div className="grid grid-cols-2 gap-3 pb-3 border-b">

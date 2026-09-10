@@ -77,7 +77,7 @@ export const ParentHostel = () => {
         </div>
       ) : (
         <Card className="py-16 text-center flex flex-col items-center justify-center border-dashed border-2">
-          <div className="p-4 bg-slate-100 dark:bg-indigo-600 rounded-full text-slate-400 mb-4">
+          <div className="p-4 bg-slate-100 dark:bg-slate-900 rounded-full text-slate-400 mb-4">
             <Home className="w-8 h-8" />
           </div>
           <h4 className="text-xs font-bold text-foreground">Day Scholar Profile</h4>

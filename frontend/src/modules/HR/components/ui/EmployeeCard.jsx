@@ -8,7 +8,7 @@ export const EmployeeCard = ({ employee, onViewProfile, onEdit, onToggleStatus, 
   const isRejected = employee.status === 'REJECTED';
 
   return (
-    <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-xs font-semibold">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-xs font-semibold">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           {employee.photo ? (

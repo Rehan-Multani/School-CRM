@@ -260,7 +260,7 @@ export const FeeManagement = () => {
       {/* KPI Stat Cards */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {/* Total Class Structures */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">Fee Structures</span>
             <Layers className="h-4 w-4 text-primary" />
@@ -370,7 +370,7 @@ export const FeeManagement = () => {
       {activeTab === 'invoices' && (
         <div className="space-y-4">
           {/* Invoice Toolbar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex flex-wrap items-center gap-2.5">
               <div className="relative min-w-[220px]">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
@@ -430,7 +430,7 @@ export const FeeManagement = () => {
           {loadingInvoices ? (
             <SkeletonTable rows={5} columns={6} />
           ) : filteredInvoices.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <FileText className="h-10 w-10 text-slate-300 dark:text-slate-700" />
               <h4 className="mt-3 text-sm font-bold text-slate-700 dark:text-slate-200">
                 No Student Invoices Found
@@ -447,7 +447,7 @@ export const FeeManagement = () => {
               </button>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="border-b border-slate-100 bg-slate-50/70 text-slate-500 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-400">
@@ -490,7 +490,7 @@ export const FeeManagement = () => {
                           {formatCurrency(inv.balanceAmount)}
                         </td>
                         <td className="px-3 py-3.5 text-slate-500">
-                          {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : 'Ã¢â¬â'}
+                          {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : '–'}
                         </td>
                         <td className="px-3 py-3.5 text-center">
                           <Badge
@@ -536,7 +536,7 @@ export const FeeManagement = () => {
       {activeTab === 'payments' && (
         <div className="space-y-4">
           {/* Payment Toolbar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="relative min-w-[260px]">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
               <input
@@ -562,7 +562,7 @@ export const FeeManagement = () => {
           {loadingPayments ? (
             <SkeletonTable rows={5} columns={6} />
           ) : filteredPayments.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <Receipt className="h-10 w-10 text-slate-300 dark:text-slate-700" />
               <h4 className="mt-3 text-sm font-bold text-slate-700 dark:text-slate-200">
                 No Payment Receipts Found
@@ -572,7 +572,7 @@ export const FeeManagement = () => {
               </p>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="border-b border-slate-100 bg-slate-50/70 text-slate-500 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-400">
@@ -599,10 +599,10 @@ export const FeeManagement = () => {
                         <td className="px-4 py-3.5 font-bold text-slate-900 dark:text-white">
                           {p.studentId
                             ? `${p.studentId.firstName} ${p.studentId.lastName || ''}`.trim()
-                            : 'Ã¢â¬â'}
+                            : '–'}
                         </td>
                         <td className="px-3 py-3.5 font-mono text-slate-600 dark:text-slate-400">
-                          {p.invoiceId?.invoiceNumber || 'Ã¢â¬â'}
+                          {p.invoiceId?.invoiceNumber || '–'}
                         </td>
                         <td className="px-3 py-3.5 font-black text-emerald-600">
                           {formatCurrency(p.amount)}
@@ -611,7 +611,7 @@ export const FeeManagement = () => {
                           <Badge variant="primary">{p.paymentMethod}</Badge>
                         </td>
                         <td className="px-3 py-3.5 text-slate-500">
-                          {p.paymentDate ? new Date(p.paymentDate).toLocaleDateString() : 'Ã¢â¬â'}
+                          {p.paymentDate ? new Date(p.paymentDate).toLocaleDateString() : '–'}
                         </td>
                         <td className="px-3 py-3.5 text-center">
                           <Badge variant="success">{p.status}</Badge>
@@ -656,7 +656,7 @@ export const FeeManagement = () => {
                 <div>
                   <span className="text-slate-400 block text-[10px] uppercase font-bold">Student</span>
                   <span className="font-bold text-slate-800 dark:text-white">
-                    {selectedInvoice.studentId ? `${selectedInvoice.studentId.firstName} ${selectedInvoice.studentId.lastName || ''}`.trim() : 'Ã¢â¬â'}
+                    {selectedInvoice.studentId ? `${selectedInvoice.studentId.firstName} ${selectedInvoice.studentId.lastName || ''}`.trim() : '–'}
                   </span>
                 </div>
                 <div className="mt-2">
@@ -672,7 +672,7 @@ export const FeeManagement = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Payment Amount (Ã¢âÂ¹) *</label>
+                <label className="mb-1 block text-xs font-bold text-slate-700 dark:text-slate-300">Payment Amount (₹) *</label>
                 <input
                   placeholder="e.g. 5000"
                   type="number"
@@ -767,7 +767,7 @@ export const FeeManagement = () => {
                 <option value="">-- Choose Student --</option>
                 {students.map((st) => (
                   <option key={st.id} value={st.id}>
-                    {st.firstName} {st.lastName || ''} ({st.admissionNumber || st.enrollmentId}) Ã¢â¬â {st.class?.name || 'Class'}
+                    {st.firstName} {st.lastName || ''} ({st.admissionNumber || st.enrollmentId}) – {st.class?.name || 'Class'}
                   </option>
                 ))}
               </select>
@@ -900,7 +900,7 @@ export const FeeManagement = () => {
                           <div>Receipt #: <strong>${selectedPayment.receiptNumber}</strong></div>
                         </div>
                         <div class="grid">
-                          <div><strong>Student:</strong> ${selectedPayment.studentId ? `${selectedPayment.studentId.firstName} ${selectedPayment.studentId.lastName || ''}`.trim() : 'Ã¢â¬â'}</div>
+                          <div><strong>Student:</strong> ${selectedPayment.studentId ? `${selectedPayment.studentId.firstName} ${selectedPayment.studentId.lastName || ''}`.trim() : '–'}</div>
                           <div><strong>Date:</strong> ${selectedPayment.paymentDate ? new Date(selectedPayment.paymentDate).toLocaleDateString() : 'Today'}</div>
                           <div><strong>Method:</strong> ${selectedPayment.paymentMethod}</div>
                           <div><strong>Status:</strong> COMPLETED / PAID</div>

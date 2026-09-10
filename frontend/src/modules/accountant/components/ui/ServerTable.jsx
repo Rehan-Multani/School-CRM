@@ -24,7 +24,7 @@ export const ServerTable = ({
   const total = pagination?.total ?? rows.length;
 
   return (
-    <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
@@ -75,7 +75,7 @@ export const ServerTable = ({
                         col.align === 'right' ? 'text-right' : 'text-left'
                       }`}
                     >
-                      {col.render ? col.render(row) : row[col.key] ?? 'Ã¢â¬â'}
+                      {col.render ? col.render(row) : row[col.key] ?? '–'}
                     </td>
                   ))}
                 </tr>

@@ -19,7 +19,7 @@ const TABS = [
 const InfoRow = ({ label, value }) => (
   <div className="flex flex-col sm:flex-row sm:items-center gap-1 py-3 border-b border-border last:border-b-0">
     <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider sm:w-40 shrink-0">{label}</span>
-    <span className="text-xs font-semibold text-foreground">{value || 'Ã¢â¬â'}</span>
+    <span className="text-xs font-semibold text-foreground">{value || '–'}</span>
   </div>
 );
 
@@ -169,7 +169,7 @@ export const TeacherProfile = () => {
               { degree: 'B.Sc. Mathematics', institution: 'Delhi University', year: '2008', grade: '8.2 CGPA' },
               { degree: 'B.Ed.', institution: 'IGNOU', year: '2012', grade: 'First Division' },
             ].map((q, i) => (
-              <div key={i} className="p-4 border border-border rounded-2xl bg-slate-50/50 dark:bg-indigo-600/50">
+              <div key={i} className="p-4 border border-border rounded-2xl bg-slate-50/50 dark:bg-slate-900/50">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <h4 className="text-xs font-bold text-foreground">{q.degree}</h4>
@@ -239,7 +239,7 @@ export const TeacherProfile = () => {
                     required
                     value={field.value}
                     onChange={(e) => setPwForm(p => ({ ...p, [field.id]: e.target.value }))}
-                    className="w-full px-4 py-3 pr-11 rounded-2xl border border-border bg-white dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
+                    className="w-full px-4 py-3 pr-11 rounded-2xl border border-border bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
                     placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
                     id={`teacher-pw-${field.id}`}
                   />

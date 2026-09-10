@@ -80,7 +80,7 @@ export const CommandPalette = ({ isOpen, onClose }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.15 }}
-            className="relative w-full max-w-lg bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl overflow-hidden flex flex-col z-10"
+            className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl rounded-2xl overflow-hidden flex flex-col z-10"
           >
             {/* Search Input Bar */}
             <div className="flex items-center gap-3.5 border-b border-slate-200 dark:border-slate-800 px-4 py-3.5">
@@ -145,7 +145,7 @@ export const CommandPalette = ({ isOpen, onClose }) => {
             </div>
 
             {/* Helper Footer */}
-            <div className="flex items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-indigo-600/50 px-4 py-3 text-[10px] font-semibold text-slate-450 select-none">
+            <div className="flex items-center justify-between gap-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 px-4 py-3 text-[10px] font-semibold text-slate-450 select-none">
               <div className="flex items-center gap-1.5">
                 <Sparkles className="w-3 h-3 text-indigo-500" />
                 <span>Tip: Use arrow keys to navigate routes</span>

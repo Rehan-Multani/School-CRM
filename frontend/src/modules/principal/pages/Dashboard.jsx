@@ -110,7 +110,7 @@ export const Dashboard = () => {
   return (
     <div className="space-y-8 pb-12">
       {/* Page Welcome & School Profile Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
         <div className="flex items-center gap-4">
           {user?.photo ? (
             <img
@@ -137,7 +137,7 @@ export const Dashboard = () => {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 px-3.5 py-2 bg-slate-100 dark:bg-indigo-600 rounded-xl">
+          <span className="text-xs font-bold text-slate-600 dark:text-slate-400 px-3.5 py-2 bg-slate-100 dark:bg-slate-900 rounded-xl">
             Session: <strong>{user?.academicSession || 'N/A'}</strong>
           </span>
           <button
@@ -177,9 +177,9 @@ export const Dashboard = () => {
         />
         <StatCard
           title="Fee Collected Today"
-          value={`Ã¢âÂ¹${kpi.collectedToday.toLocaleString()}`}
+          value={`₹${kpi.collectedToday.toLocaleString()}`}
           icon={IndianRupee}
-          subtitle={`Ã¢âÂ¹${(kpi.collectedMonth / 1000).toFixed(0)}k This Month`}
+          subtitle={`₹${(kpi.collectedMonth / 1000).toFixed(0)}k This Month`}
           onClick={() => navigate('/principal/fees')}
         />
       </div>
@@ -188,7 +188,7 @@ export const Dashboard = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div
           onClick={() => navigate('/principal/fees')}
-          className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600 space-y-3 cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-900 transition-all"
+          className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-3 cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-900 transition-all"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -201,13 +201,13 @@ export const Dashboard = () => {
           </div>
           <div className="flex items-baseline justify-between text-xs font-semibold">
             <span className="text-slate-400">Outstanding</span>
-            <span className="font-bold text-rose-600">Ã¢âÂ¹{kpi.pendingFees.toLocaleString()}</span>
+            <span className="font-bold text-rose-600">₹{kpi.pendingFees.toLocaleString()}</span>
           </div>
         </div>
 
         <div
           onClick={() => navigate('/principal/academics/years')}
-          className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600 space-y-3 cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-900 transition-all"
+          className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-3 cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-900 transition-all"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -226,7 +226,7 @@ export const Dashboard = () => {
 
         <div
           onClick={() => navigate('/principal/exams')}
-          className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600 space-y-3 cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-900 transition-all"
+          className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-3 cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-900 transition-all"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -245,7 +245,7 @@ export const Dashboard = () => {
 
         <div
           onClick={() => navigate('/principal/leave')}
-          className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600 space-y-3 cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-900 transition-all"
+          className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-3 cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-900 transition-all"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -275,7 +275,7 @@ export const Dashboard = () => {
               <button
                 key={idx}
                 onClick={() => navigate(act.path)}
-                className="flex flex-col items-center justify-center p-3.5 bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-900 hover:shadow-sm rounded-2xl text-center transition-all group"
+                className="flex flex-col items-center justify-center p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-900 hover:shadow-sm rounded-2xl text-center transition-all group"
               >
                 <div className={`p-2.5 rounded-xl ${act.color} mb-2 group-hover:scale-110 transition-transform`}>
                   <Icon className="w-5 h-5" />
@@ -291,7 +291,7 @@ export const Dashboard = () => {
 
       {/* Real-Time Dynamic Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Admissions Growth Trend</h4>
             <Badge variant="info">Monthly</Badge>
@@ -299,7 +299,7 @@ export const Dashboard = () => {
           <AreaChart data={charts.admissionsTrend} dataKey="admissions" xKey="month" color="#059669" />
         </div>
 
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Weekly Attendance Rate %</h4>
             <Badge variant="success">Mon - Sat</Badge>
@@ -307,15 +307,15 @@ export const Dashboard = () => {
           <BarChart data={charts.weeklyAttendance} dataKey="attendance" xKey="day" color="#10b981" />
         </div>
 
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Monthly Fee Recovery (Ã¢âÂ¹)</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Monthly Fee Recovery (₹)</h4>
             <Badge variant="warning">Cashflow</Badge>
           </div>
           <BarChart data={charts.monthlyFeeTrend} dataKey="collected" xKey="month" color="#f59e0b" />
         </div>
 
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Exam Performance Trend (Avg %)</h4>
             <Badge variant="secondary">Evaluations</Badge>
@@ -323,7 +323,7 @@ export const Dashboard = () => {
           <LineChart data={charts.examPerformance} dataKey="average" xKey="name" color="#a855f7" />
         </div>
 
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Student Gender Distribution</h4>
             <Badge variant="info">Demographics</Badge>
@@ -331,7 +331,7 @@ export const Dashboard = () => {
           <PieChart data={charts.genderDistribution} nameKey="name" dataKey="count" />
         </div>
 
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Class-wise Student Strength</h4>
             <Badge variant="primary">Cohorts</Badge>
@@ -341,7 +341,7 @@ export const Dashboard = () => {
       </div>
 
       {/* Live Activity Stream */}
-      <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-emerald-600" />
@@ -358,7 +358,7 @@ export const Dashboard = () => {
 
         {recentActivities.length === 0 ? (
           <div className="py-8 text-center text-xs font-semibold text-slate-400">
-            No Result Ã¢â¬â No recent school activities recorded.
+            No Result – No recent school activities recorded.
           </div>
         ) : (
           <div className="divide-y divide-slate-100 dark:divide-slate-800">

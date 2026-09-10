@@ -70,7 +70,7 @@ export const StudentLogin = () => {
               value={studentId}
               onChange={(e) => setStudentId(e.target.value)}
               placeholder="e.g. STU108902"
-              className="w-full px-4 py-3 rounded-xl border border-border bg-slate-50 dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-xs"
+              className="w-full px-4 py-3 rounded-xl border border-border bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-xs"
             />
           </div>
 
@@ -84,7 +84,7 @@ export const StudentLogin = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
-              className="w-full px-4 py-3 rounded-xl border border-border bg-slate-50 dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-xs"
+              className="w-full px-4 py-3 rounded-xl border border-border bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-xs"
             />
           </div>
 

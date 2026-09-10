@@ -256,7 +256,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
       )}
 
       {/* Toolbar & Filters */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         {/* Left Side: Search + Category Selector */}
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="relative min-w-[200px] sm:min-w-[240px]">
@@ -317,7 +317,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
               <Download className="h-3.5 w-3.5" /> Sample
             </button>
 
-            <div className="h-4 w-px bg-slate-200 dark:bg-indigo-600" />
+            <div className="h-4 w-px bg-slate-200 dark:bg-slate-900" />
 
             <button
               type="button"
@@ -332,7 +332,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
 
             {feeHeads.length > 0 && (
               <>
-                <div className="h-4 w-px bg-slate-200 dark:bg-indigo-600" />
+                <div className="h-4 w-px bg-slate-200 dark:bg-slate-900" />
                 <button
                   type="button"
                   onClick={() => exportFeeHeadsCSV(feeHeads)}
@@ -401,7 +401,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
       {loading ? (
         <SkeletonTable rows={5} columns={4} />
       ) : filteredHeads.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <ListChecks className="h-10 w-10 text-slate-300 dark:text-slate-700" />
           <h4 className="mt-3 text-sm font-bold text-slate-700 dark:text-slate-200">
             No Fee Heads Found
@@ -418,7 +418,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
           </button>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="border-b border-slate-100 bg-slate-50/70 text-slate-500 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-400">
@@ -465,7 +465,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
 
                     {/* Description */}
                     <td className="px-4 py-3.5 text-slate-500 dark:text-slate-400">
-                      {head.description || 'Ã¢â¬â'}
+                      {head.description || '–'}
                     </td>
 
                     {/* Status */}

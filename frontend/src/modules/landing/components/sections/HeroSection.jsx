@@ -67,7 +67,7 @@ export const HeroSection = () => {
               <p className="mt-6 text-base leading-relaxed text-slate-600 dark:text-slate-300 sm:text-lg lg:max-w-xl">
                 One seamless platform bridging administrators, teachers, parents, and students.
                 Automate admissions, daily biometric attendance, exams, real-time fee payments,
-                and live bus GPS Ã¢â¬â with 9 specialized portals.
+                and live bus GPS – with 9 specialized portals.
               </p>
             </Reveal>
 
@@ -84,7 +84,7 @@ export const HeroSection = () => {
                 <a
                   href="#features"
                   onClick={(e) => handleScrollToSection(e, 'features')}
-                  className="inline-flex items-center gap-2 rounded-xl border border-slate-300/80 bg-white/80 px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm backdrop-blur-md transition-all duration-200 hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900 hover:-translate-y-0.5 dark:border-slate-700/80 dark:bg-indigo-600/80 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-800 dark:hover:text-white"
+                  className="inline-flex items-center gap-2 rounded-xl border border-slate-300/80 bg-white/80 px-6 py-3.5 text-sm font-bold text-slate-700 shadow-sm backdrop-blur-md transition-all duration-200 hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900 hover:-translate-y-0.5 dark:border-slate-700/80 dark:bg-slate-900/80 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-800 dark:hover:text-white"
                 >
                   Explore Platform
                 </a>
@@ -124,7 +124,7 @@ export const HeroSection = () => {
                 <div className="absolute -inset-4 -z-10 rounded-3xl bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-cyan-500/20 blur-2xl dark:from-indigo-600/30 dark:via-purple-600/20 dark:to-cyan-600/30" />
 
                 {/* Central Main Dashboard Window Mockup */}
-                <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 p-4 shadow-2xl shadow-slate-900/10 backdrop-blur-xl dark:border-slate-800/90 dark:bg-indigo-600/95 dark:shadow-black/60 sm:p-5">
+                <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 p-4 shadow-2xl shadow-slate-900/10 backdrop-blur-xl dark:border-slate-800/90 dark:bg-slate-900/95 dark:shadow-black/60 sm:p-5">
                   {/* Browser Window Bar */}
                   <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800/80">
                     <div className="flex items-center gap-1.5">
@@ -208,7 +208,7 @@ export const HeroSection = () => {
                     </div>
 
                     {/* Quick Portal Switcher Bar inside mockup */}
-                    <div className="rounded-xl border border-slate-200/70 bg-white p-2.5 dark:border-slate-800 dark:bg-indigo-600/60">
+                    <div className="rounded-xl border border-slate-200/70 bg-white p-2.5 dark:border-slate-800 dark:bg-slate-900/60">
                       <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1.5 px-1">
                         <span>Connected School Roles</span>
                         <span className="text-emerald-500 flex items-center gap-1">
@@ -282,7 +282,7 @@ export const HeroSection = () => {
                   <FloatingCard
                     icon={IndianRupee}
                     title="Fee Collection"
-                    value="Ã¢âÂ¹14.2 Lakhs"
+                    value="₹14.2 Lakhs"
                     trend="Reconciled"
                     trendPositive={true}
                     badgeText="Today"

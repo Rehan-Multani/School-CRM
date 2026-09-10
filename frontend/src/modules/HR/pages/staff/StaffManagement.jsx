@@ -151,7 +151,7 @@ export const StaffManagement = () => {
         header: 'Employee ID',
         id: 'employeeId',
         sortable: true,
-        render: (val) => <span className="font-mono text-xs text-slate-600 dark:text-slate-400">{val || 'Ã¢â¬â'}</span>,
+        render: (val) => <span className="font-mono text-xs text-slate-600 dark:text-slate-400">{val || '–'}</span>,
       },
       {
         header: 'Role',
@@ -183,14 +183,14 @@ export const StaffManagement = () => {
       {
         header: 'Gender',
         id: 'gender',
-        render: (val) => <span className="text-slate-600 capitalize dark:text-slate-400">{val?.toLowerCase() || 'Ã¢â¬â'}</span>,
+        render: (val) => <span className="text-slate-600 capitalize dark:text-slate-400">{val?.toLowerCase() || '–'}</span>,
       },
       {
         header: 'Date of Birth / Joined',
         id: 'joiningDate',
         render: (val) => (
           <span className="text-slate-500 whitespace-nowrap">
-            {val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Ã¢â¬â'}
+            {val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '–'}
           </span>
         ),
       },
@@ -367,22 +367,22 @@ export const StaffManagement = () => {
 
       {/* Summary Stat Cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Staff</span>
           <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">{stats.total}</p>
           <span className="text-[10px] text-slate-400">Non-Teaching Personnel</span>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <span className="block text-[11px] font-bold uppercase tracking-wider text-emerald-600">Active Staff</span>
           <p className="mt-1 text-2xl font-black text-emerald-600">{stats.active}</p>
           <span className="text-[10px] text-slate-400">Operational & Working</span>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <span className="block text-[11px] font-bold uppercase tracking-wider text-amber-600">Pending Approval</span>
           <p className="mt-1 text-2xl font-black text-amber-600">{stats.pending}</p>
           <span className="text-[10px] text-slate-400">Awaiting Admin Verification</span>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">Inactive</span>
           <p className="mt-1 text-2xl font-black text-slate-600 dark:text-slate-400">{stats.inactive}</p>
           <span className="text-[10px] text-slate-400">Disabled accounts</span>
@@ -432,7 +432,7 @@ export const StaffManagement = () => {
         <Modal
           isOpen={!!rejectingStaff}
           onClose={() => setRejectingStaff(null)}
-          title={`Reject Registration Ã¢â¬â ${rejectingStaff.name}`}
+          title={`Reject Registration – ${rejectingStaff.name}`}
           size="sm"
         >
           <form onSubmit={handleConfirmReject} className="space-y-4 p-1">

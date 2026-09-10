@@ -168,7 +168,7 @@ export const DepartmentManagement = () => {
             <button
               onClick={loadDepartments}
               disabled={loading}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
               title="Refresh"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -185,7 +185,7 @@ export const DepartmentManagement = () => {
       />
 
       {/* Search & Filter Bar */}
-      <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1 min-w-[240px]">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
@@ -211,7 +211,7 @@ export const DepartmentManagement = () => {
       </div>
 
       {/* Data Table */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
+      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
         {loading ? (
           <SkeletonTable rows={5} columns={5} />
         ) : filteredDepartments.length === 0 ? (
@@ -250,7 +250,7 @@ export const DepartmentManagement = () => {
                       </td>
 
                       <td className="p-4 font-mono font-bold text-slate-600 dark:text-slate-300">
-                        <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-indigo-600 text-xs">
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-900 text-xs">
                           {dept.code || '-'}
                         </span>
                       </td>

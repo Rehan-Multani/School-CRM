@@ -51,7 +51,7 @@ export const Notifications = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
         {/* Filter bar */}
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs space-y-1.5 shrink-0 text-left">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs space-y-1.5 shrink-0 text-left">
           <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block px-2 pb-1.5 border-b border-slate-100 dark:border-slate-800">
             Alert Categories
           </span>
@@ -77,7 +77,7 @@ export const Notifications = () => {
         </div>
 
         {/* List Feed */}
-        <div className="lg:col-span-3 bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-3.5">
+        <div className="lg:col-span-3 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-3.5">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white">Recent Activity Stream</h3>
             <span className="text-xs text-slate-400 font-semibold">{unreadCount} unread notices</span>
@@ -100,7 +100,7 @@ export const Notifications = () => {
                       : 'hover:bg-slate-50 dark:hover:bg-indigo-600/40'
                   }`}
                 >
-                  <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${!n.read ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-indigo-600'}`} />
+                  <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${!n.read ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-900'}`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                       <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">

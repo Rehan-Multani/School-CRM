@@ -153,7 +153,7 @@ export const StudentHomework = () => {
                     <span className="text-[10px] text-slate-400 font-bold uppercase block">Attachments</span>
                     <div className="space-y-2 mt-1.5">
                       {selectedHw.attachments.map((file, i) => (
-                        <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-indigo-600 border border-border">
+                        <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-border">
                           <span className="text-[10px] font-bold truncate max-w-[150px]">{file.name}</span>
                           <span className="text-[9px] text-slate-400">{file.size}</span>
                         </div>
@@ -166,7 +166,7 @@ export const StudentHomework = () => {
                 {selectedHw.status === 'Pending' ? (
                   <div className="pt-4 border-t border-border">
                     <span className="text-[10px] text-slate-400 font-bold uppercase block mb-2">Upload Submission</span>
-                    <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-border rounded-2xl bg-slate-50/50 dark:bg-indigo-600/10 cursor-pointer hover:border-primary duration-100">
+                    <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-border rounded-2xl bg-slate-50/50 dark:bg-slate-900/10 cursor-pointer hover:border-primary duration-100">
                       <Upload className="w-6 h-6 text-slate-400 mb-2" />
                       <span className="text-[10px] font-bold text-slate-500">
                         {uploadFile ? uploadFile.name : 'Select PDF, Image, DOC, or ZIP'}
@@ -214,7 +214,7 @@ export const StudentHomework = () => {
                     )}
 
                     {selectedHw.submission?.feedback && (
-                      <div className="p-3 bg-slate-50 dark:bg-indigo-600 border border-border rounded-xl">
+                      <div className="p-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-xl">
                         <span className="text-[9px] text-slate-400 font-bold uppercase block flex items-center gap-1 mb-1">
                           <MessageSquare className="w-3.5 h-3.5 text-primary" />
                           Teacher Feedback
@@ -227,7 +227,7 @@ export const StudentHomework = () => {
 
                     <div className="pt-2">
                       <span className="text-[10px] text-slate-400 font-bold uppercase block mb-2">Replace Submission</span>
-                      <label className="flex flex-col items-center justify-center p-4 border border-dashed border-border rounded-xl bg-slate-50/20 dark:bg-indigo-600/5 cursor-pointer hover:border-primary duration-100">
+                      <label className="flex flex-col items-center justify-center p-4 border border-dashed border-border rounded-xl bg-slate-50/20 dark:bg-slate-900/5 cursor-pointer hover:border-primary duration-100">
                         <Upload className="w-4 h-4 text-slate-400 mb-1" />
                         <span className="text-[9px] font-bold text-slate-500">
                           {uploadFile ? uploadFile.name : 'Upload New File'}

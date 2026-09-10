@@ -51,7 +51,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 px-4 md:px-8 shadow-sm">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 md:px-8 shadow-sm">
       {/* Mobile Drawer Trigger & Search Indicator */}
       <div className="flex items-center gap-4">
         <button
@@ -68,7 +68,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
           >
             <Search className="w-3.5 h-3.5 shrink-0" />
             <span className="flex-1 text-left">Search / Ask anything...</span>
-            <span className="text-[9px] font-bold bg-white dark:bg-indigo-600 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800">
+            <span className="text-[9px] font-bold bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800">
               Ctrl K
             </span>
           </button>
@@ -114,7 +114,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
           {/* Notifications Panel Dropdown */}
           {showNotifications && (
             <div className="absolute right-0 mt-2.5 z-50 w-80 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-indigo-600 border-b border-slate-200 dark:border-slate-800">
+              <div className="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
                 <span className="text-xs font-bold text-slate-950 dark:text-white">Notifications</span>
                 {unreadCount > 0 && (
                   <button

@@ -88,7 +88,7 @@ export const CommandPalette = ({ isOpen, onClose }) => {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-xl bg-white dark:bg-indigo-600 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden"
+        className="w-full max-w-xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >
@@ -106,7 +106,7 @@ export const CommandPalette = ({ isOpen, onClose }) => {
             }}
             className="w-full py-4 text-sm font-semibold bg-transparent text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none"
           />
-          <span className="text-[10px] font-bold bg-slate-100 dark:bg-indigo-600 text-slate-500 px-2 py-1 rounded-md">
+          <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-900 text-slate-500 px-2 py-1 rounded-md">
             ESC to close
           </span>
         </div>
@@ -149,7 +149,7 @@ export const CommandPalette = ({ isOpen, onClose }) => {
                       className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${
                         isSelected
                           ? 'bg-indigo-700 text-indigo-100'
-                          : 'bg-slate-100 dark:bg-indigo-600 text-slate-400'
+                          : 'bg-slate-100 dark:bg-slate-900 text-slate-400'
                       }`}
                     >
                       {item.category}

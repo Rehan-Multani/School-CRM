@@ -37,7 +37,7 @@ export const Notifications = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
         {/* Category Filters */}
-        <div className="bg-white dark:bg-indigo-600 border border-slate-205 dark:border-slate-800 rounded-3xl p-4 shadow-sm space-y-1.5 text-xs font-semibold shrink-0">
+        <div className="bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-800 rounded-3xl p-4 shadow-sm space-y-1.5 text-xs font-semibold shrink-0">
           <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block px-2 pb-1 border-b">Filter Alerts</span>
           {categories.map((cat) => (
             <button
@@ -55,7 +55,7 @@ export const Notifications = () => {
         </div>
 
         {/* Notifications feed list */}
-        <div className="lg:col-span-3 bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-3.5 text-xs font-semibold">
+        <div className="lg:col-span-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-3.5 text-xs font-semibold">
           <div className="divide-y divide-slate-100 dark:divide-slate-850/50 space-y-3.5">
             {filtered.map((n) => (
               <div 

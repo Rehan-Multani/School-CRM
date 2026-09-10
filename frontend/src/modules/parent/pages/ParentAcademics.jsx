@@ -52,7 +52,7 @@ export const ParentAcademics = () => {
 
               {/* Progress Line */}
               <div>
-                <div className="h-2 bg-slate-100 dark:bg-indigo-600 rounded-full overflow-hidden">
+                <div className="h-2 bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-500"
                     style={{ width: `${sub.syllabusProgress}%` }}

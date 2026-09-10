@@ -143,10 +143,10 @@ export const SalarySlip = ({ payroll, onPrint }) => {
               Bank Name: <strong className="text-slate-900">{bank.bankName || 'Direct Transfer'}</strong>
             </p>
             <p className="text-slate-600">
-              Account No: <strong className="font-mono text-slate-900">{bank.accountNumber || 'Ã¢â¬â'}</strong>
+              Account No: <strong className="font-mono text-slate-900">{bank.accountNumber || '–'}</strong>
             </p>
             <p className="text-slate-600">
-              IFSC Code: <strong className="font-mono text-slate-900">{bank.ifscCode || 'Ã¢â¬â'}</strong>
+              IFSC Code: <strong className="font-mono text-slate-900">{bank.ifscCode || '–'}</strong>
             </p>
             <p className="text-slate-600">
               Payment Method: <strong className="text-slate-900">{payroll.paymentMethod || 'BANK_TRANSFER'}</strong>
@@ -166,33 +166,33 @@ export const SalarySlip = ({ payroll, onPrint }) => {
             <div className="p-3.5 space-y-2 text-[11px]">
               <div className="flex justify-between">
                 <span className="text-slate-600">Basic Pay</span>
-                <span className="font-bold">Ã¢âÂ¹{Number(payroll.basicSalary || 0).toLocaleString('en-IN')}</span>
+                <span className="font-bold">₹{Number(payroll.basicSalary || 0).toLocaleString('en-IN')}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600">House Rent / Allowances</span>
-                <span className="font-bold">Ã¢âÂ¹{Number(payroll.allowances || 0).toLocaleString('en-IN')}</span>
+                <span className="font-bold">₹{Number(payroll.allowances || 0).toLocaleString('en-IN')}</span>
               </div>
               {Number(payroll.incentive || 0) > 0 && (
                 <div className="flex justify-between">
                   <span className="text-slate-600">Incentive Pay</span>
-                  <span className="font-bold">Ã¢âÂ¹{Number(payroll.incentive).toLocaleString('en-IN')}</span>
+                  <span className="font-bold">₹{Number(payroll.incentive).toLocaleString('en-IN')}</span>
                 </div>
               )}
               {Number(payroll.bonus || 0) > 0 && (
                 <div className="flex justify-between">
                   <span className="text-slate-600">Performance Bonus</span>
-                  <span className="font-bold">Ã¢âÂ¹{Number(payroll.bonus).toLocaleString('en-IN')}</span>
+                  <span className="font-bold">₹{Number(payroll.bonus).toLocaleString('en-IN')}</span>
                 </div>
               )}
               {Number(payroll.overtime || 0) > 0 && (
                 <div className="flex justify-between">
                   <span className="text-slate-600">Overtime Compensation</span>
-                  <span className="font-bold">Ã¢âÂ¹{Number(payroll.overtime).toLocaleString('en-IN')}</span>
+                  <span className="font-bold">₹{Number(payroll.overtime).toLocaleString('en-IN')}</span>
                 </div>
               )}
               <div className="flex justify-between border-t-2 border-slate-200 pt-2.5 font-black text-slate-900">
                 <span>Gross Earnings</span>
-                <span>Ã¢âÂ¹{gross.toLocaleString('en-IN')}</span>
+                <span>₹{gross.toLocaleString('en-IN')}</span>
               </div>
             </div>
           </div>
@@ -207,19 +207,19 @@ export const SalarySlip = ({ payroll, onPrint }) => {
             <div className="p-3.5 space-y-2 text-[11px]">
               <div className="flex justify-between">
                 <span className="text-slate-600">Leave Deductions (LWP)</span>
-                <span className="font-bold text-rose-600">Ã¢âÂ¹{Number(payroll.leaveDeduction || 0).toLocaleString('en-IN')}</span>
+                <span className="font-bold text-rose-600">₹{Number(payroll.leaveDeduction || 0).toLocaleString('en-IN')}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600">Advance / Loan Recovery</span>
-                <span className="font-bold text-rose-600">Ã¢âÂ¹{Number(payroll.advanceLoanDeduction || 0).toLocaleString('en-IN')}</span>
+                <span className="font-bold text-rose-600">₹{Number(payroll.advanceLoanDeduction || 0).toLocaleString('en-IN')}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-600">Tax / Other Deductions</span>
-                <span className="font-bold text-rose-600">Ã¢âÂ¹{Number(payroll.otherDeduction || 0).toLocaleString('en-IN')}</span>
+                <span className="font-bold text-rose-600">₹{Number(payroll.otherDeduction || 0).toLocaleString('en-IN')}</span>
               </div>
               <div className="flex justify-between border-t-2 border-slate-200 pt-2.5 font-black text-rose-700">
                 <span>Total Deductions</span>
-                <span>Ã¢âÂ¹{deductions.toLocaleString('en-IN')}</span>
+                <span>₹{deductions.toLocaleString('en-IN')}</span>
               </div>
             </div>
           </div>
@@ -232,7 +232,7 @@ export const SalarySlip = ({ payroll, onPrint }) => {
               Net Payable Salary
             </span>
             <span className="text-2xl font-black text-emerald-800">
-              Ã¢âÂ¹{net.toLocaleString('en-IN')}
+              ₹{net.toLocaleString('en-IN')}
             </span>
           </div>
           <div className="text-right">

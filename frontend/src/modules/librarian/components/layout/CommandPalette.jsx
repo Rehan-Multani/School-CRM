@@ -97,7 +97,7 @@ export const CommandPalette = ({ isOpen, onClose }) => {
       />
 
       {/* Palette Container */}
-      <div className="w-full max-w-lg bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-10 overflow-hidden flex flex-col max-h-[50vh]">
+      <div className="w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-10 overflow-hidden flex flex-col max-h-[50vh]">
         {/* Search Input bar */}
         <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-200 dark:border-slate-800 shrink-0">
           <Search className="h-5 w-5 text-slate-400" />

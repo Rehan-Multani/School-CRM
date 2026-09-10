@@ -43,7 +43,7 @@ export const StudentLeave = () => {
               required
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-50 dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs text-foreground"
+              className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs text-foreground"
             />
           </div>
 
@@ -56,7 +56,7 @@ export const StudentLeave = () => {
               required
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-50 dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs text-foreground"
+              className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs text-foreground"
             />
           </div>
 
@@ -70,7 +70,7 @@ export const StudentLeave = () => {
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="e.g. Suffering from high fever, medical prescription will be attached..."
-              className="w-full px-4 py-3 rounded-xl border border-border bg-slate-50 dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs text-foreground resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-border bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs text-foreground resize-none"
             />
           </div>
 
@@ -118,7 +118,7 @@ export const StudentLeave = () => {
               </p>
 
               {lv.comments && (
-                <div className="mt-3.5 p-3 rounded-xl bg-slate-50 dark:bg-indigo-600 border border-border flex items-start gap-2">
+                <div className="mt-3.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-border flex items-start gap-2">
                   <MessageSquare className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                   <p className="text-[10px] text-slate-500 italic leading-relaxed">
                     Teacher remarks: "{lv.comments}"

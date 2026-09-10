@@ -40,7 +40,7 @@ export const TeacherLogin = () => {
 
   return (
     <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950">
-      {/* Left Panel Ã¢â¬â Brand / Illustration */}
+      {/* Left Panel – Brand / Illustration */}
       <div className="hidden lg:flex flex-col justify-between w-1/2 bg-gradient-to-br from-primary via-indigo-600 to-accent p-12 relative overflow-hidden">
         {/* Abstract blobs */}
         <div className="absolute right-0 top-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
@@ -67,7 +67,7 @@ export const TeacherLogin = () => {
             Your classroom,<br />at your fingertips.
           </h2>
           <p className="text-white/70 text-sm leading-relaxed max-w-sm">
-            Manage attendance, homework, marks, and student communication Ã¢â¬â all in one beautifully designed workspace.
+            Manage attendance, homework, marks, and student communication – all in one beautifully designed workspace.
           </p>
 
           {/* Feature Pills */}
@@ -86,7 +86,7 @@ export const TeacherLogin = () => {
         </div>
       </div>
 
-      {/* Right Panel Ã¢â¬â Login Form */}
+      {/* Right Panel – Login Form */}
       <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-10">
         {/* Mobile brand */}
         <div className="lg:hidden flex items-center gap-3 mb-8">
@@ -128,7 +128,7 @@ export const TeacherLogin = () => {
                 value={employeeId}
                 onChange={(e) => setEmployeeId(e.target.value)}
                 placeholder="e.g. EMP-2019-045"
-                className="w-full px-4 py-3 rounded-2xl border border-border bg-white dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
+                className="w-full px-4 py-3 rounded-2xl border border-border bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
                 id="teacher-login-id"
               />
             </div>
@@ -144,7 +144,7 @@ export const TeacherLogin = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
-                  className="w-full px-4 py-3 pr-11 rounded-2xl border border-border bg-white dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
+                  className="w-full px-4 py-3 pr-11 rounded-2xl border border-border bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
                   id="teacher-login-password"
                 />
                 <button

@@ -118,7 +118,7 @@ export const StudentMessages = () => {
                     <div className={`max-w-[75%] p-3.5 rounded-2xl text-xs font-medium leading-relaxed ${
                       isMe 
                         ? 'bg-primary text-white rounded-tr-none shadow-md' 
-                        : 'bg-slate-100 dark:bg-indigo-600 text-slate-700 dark:text-slate-300 rounded-tl-none'
+                        : 'bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 rounded-tl-none'
                     }`}>
                       <p>{chat.text}</p>
                       <span className={`text-[8px] font-semibold mt-1.5 block text-right ${
@@ -148,7 +148,7 @@ export const StudentMessages = () => {
                 placeholder="Type message here..."
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                className="flex-1 px-4 py-2.5 rounded-xl border border-border bg-slate-50 dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs"
               />
 
               <button

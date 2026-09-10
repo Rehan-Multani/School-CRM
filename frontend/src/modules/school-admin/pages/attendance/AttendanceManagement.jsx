@@ -98,7 +98,7 @@ function getAvatarColor(name = '') {
     'bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400',
     'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400',
     'bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400',
-    'bg-indigo-600/10 text-rose-600 dark:bg-indigo-600/20 dark:text-rose-400',
+    'bg-indigo-600/10 text-rose-600 dark:bg-slate-900/20 dark:text-rose-400',
   ];
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -570,7 +570,7 @@ export const AttendanceManagement = () => {
       {/* Top Metric Cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {/* Total Staff */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 flex items-center gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center gap-3">
           <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
             <Users className="h-5 w-5" />
           </div>
@@ -583,7 +583,7 @@ export const AttendanceManagement = () => {
         </div>
 
         {/* Present */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 flex items-center gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center gap-3">
           <div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 className="h-5 w-5" />
           </div>
@@ -603,7 +603,7 @@ export const AttendanceManagement = () => {
         </div>
 
         {/* Absent */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 flex items-center gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center gap-3">
           <div className="rounded-xl bg-indigo-600/10 p-2.5 text-rose-600 dark:text-rose-400">
             <XCircle className="h-5 w-5" />
           </div>
@@ -616,7 +616,7 @@ export const AttendanceManagement = () => {
         </div>
 
         {/* On Leave */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 flex items-center gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center gap-3">
           <div className="rounded-xl bg-amber-500/10 p-2.5 text-amber-600 dark:text-amber-400">
             <Clock className="h-5 w-5" />
           </div>
@@ -630,7 +630,7 @@ export const AttendanceManagement = () => {
       </div>
 
       {/* Date Filter & Search Toolbar */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 space-y-3">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-3">
         {/* Top bar: Mode switcher & Date controls */}
         <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
           <div className="flex flex-wrap items-center gap-2">
@@ -865,7 +865,7 @@ export const AttendanceManagement = () => {
       {/* VIEW 1: DAILY ROLL CALL TABLE */}
       {dateMode === 'single' && (
         <div className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
             {loading ? (
               <SkeletonTable rows={5} columns={4} />
             ) : attendanceList.length === 0 ? (
@@ -881,7 +881,7 @@ export const AttendanceManagement = () => {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-indigo-600/60 dark:text-slate-400">
+                  <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
                     <tr>
                       <th className="w-12 px-3.5 py-3 text-center">#</th>
                       <th className="px-3.5 py-3">Staff Member</th>
@@ -1072,7 +1072,7 @@ export const AttendanceManagement = () => {
       {/* VIEW 2: CUSTOM DATE RANGE AUDIT TABLE */}
       {dateMode === 'range' && (
         <div className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
             {rangeLoading ? (
               <SkeletonTable rows={5} columns={5} />
             ) : rangeRecords.length === 0 ? (
@@ -1088,7 +1088,7 @@ export const AttendanceManagement = () => {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-indigo-600/60 dark:text-slate-400">
+                  <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
                     <tr>
                       <th className="px-3.5 py-3">Date</th>
                       <th className="px-3.5 py-3">Staff Member</th>
@@ -1121,7 +1121,7 @@ export const AttendanceManagement = () => {
                             {r.employeeRole}
                           </span>
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                            {r.department || 'Ã¢â¬â'}
+                            {r.department || '–'}
                           </p>
                         </td>
 
@@ -1151,7 +1151,7 @@ export const AttendanceManagement = () => {
                             </div>
                           ) : (
                             <span className="text-slate-500 dark:text-slate-400">
-                              {r.remarks || 'Ã¢â¬â'}
+                              {r.remarks || '–'}
                             </span>
                           )}
                         </td>

@@ -152,7 +152,7 @@ export const StudentDashboard = () => {
           />
           <StatCard 
             title="Pending Fees" 
-            value={`Ã¢âÂ¹${fees?.pendingFees ?? 0}`}
+            value={`₹${fees?.pendingFees ?? 0}`}
             subtext="Fee balance"
             icon={CreditCard} 
             colorClass="bg-indigo-600"
@@ -223,11 +223,11 @@ export const StudentDashboard = () => {
             </button>
           </div>
           {todayClasses.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">No Result Ã¢â¬â No classes scheduled today</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result – No classes scheduled today</p>
           ) : (
             <div className="space-y-3 flex-1 overflow-y-auto max-h-[300px] no-scrollbar">
               {todayClasses.map((cl, i) => (
-                <div key={i} className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-slate-50/50 dark:bg-indigo-600/50">
+                <div key={i} className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-slate-50/50 dark:bg-slate-900/50">
                   <div>
                     <h4 className="text-xs font-bold text-foreground leading-tight">{cl.subject}</h4>
                     <span className="text-[10px] text-slate-400 mt-0.5 block">{cl.teacher} â¢ Room {cl.room}</span>
@@ -252,7 +252,7 @@ export const StudentDashboard = () => {
             </button>
           </div>
           {todayAnnouncements.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">No Result Ã¢â¬â No announcements posted</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result – No announcements posted</p>
           ) : (
             <div className="space-y-3 flex-1 overflow-y-auto max-h-[300px] no-scrollbar">
               {todayAnnouncements.map((ann) => (
@@ -283,11 +283,11 @@ export const StudentDashboard = () => {
             </button>
           </div>
           {recentNotifications.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">No Result Ã¢â¬â No notifications</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result – No notifications</p>
           ) : (
             <div className="space-y-3 flex-1 overflow-y-auto max-h-[300px] no-scrollbar">
               {recentNotifications.map((notif) => (
-                <div key={notif.id} className="flex items-start gap-3 p-3.5 rounded-xl border border-border bg-slate-50/20 dark:bg-indigo-600/10">
+                <div key={notif.id} className="flex items-start gap-3 p-3.5 rounded-xl border border-border bg-slate-50/20 dark:bg-slate-900/10">
                   <div className="p-2 bg-primary/10 rounded-lg text-primary shrink-0">
                     <Bell className="w-4 h-4" />
                   </div>

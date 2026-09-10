@@ -164,13 +164,13 @@ export const RolesAndPermissions = () => {
           </button>
         </div>
       ) : loading ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-slate-900">
           Loadingâ¦
         </div>
       ) : tab === 'roles' ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {roles.map((r) => (
-            <div key={r.id} className="flex flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+            <div key={r.id} className="flex flex-col rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="mb-2 flex items-start justify-between">
                 <div className="flex items-center gap-2">
                   <div className="rounded-xl bg-primary/10 p-2 text-primary">
@@ -225,7 +225,7 @@ export const RolesAndPermissions = () => {
           ))}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <table className="w-full text-left text-xs">
             <thead className="border-b border-slate-100 bg-slate-50/60 text-[11px] font-bold uppercase text-slate-500 dark:border-slate-800 dark:bg-slate-950/40">
               <tr>
@@ -258,7 +258,7 @@ export const RolesAndPermissions = () => {
                       onChange={(e) => assignRole(u.id, e.target.value)}
                       className="h-9 rounded-xl border border-slate-200 bg-slate-50/80 px-3 text-xs font-semibold outline-none disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                     >
-                      <option value="">Ã¢â¬â none (legacy access) Ã¢â¬â</option>
+                      <option value="">– none (legacy access) –</option>
                       {roles.map((r) => (
                         <option key={r.id} value={r.id}>
                           {r.name}
@@ -274,7 +274,7 @@ export const RolesAndPermissions = () => {
       )}
 
       {/* ROLE MODAL */}
-      <Modal isOpen={modal} onClose={() => setModal(false)} title={editing ? `Edit Role Ã¢â¬â ${editing.name}` : 'Create Role'} size="xl">
+      <Modal isOpen={modal} onClose={() => setModal(false)} title={editing ? `Edit Role – ${editing.name}` : 'Create Role'} size="xl">
         <form onSubmit={submit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>

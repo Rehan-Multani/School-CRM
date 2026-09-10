@@ -227,10 +227,10 @@ export const Settings = () => {
       {activeTab === 'profile' && (
         <form
           onSubmit={handleSaveProfile}
-          className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600"
+          className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
         >
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-850 dark:bg-slate-950">
-            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-indigo-600">
+            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
               {displayPhoto ? (
                 <img src={displayPhoto} alt={user?.name} className="h-full w-full object-cover" />
               ) : (
@@ -325,7 +325,7 @@ export const Settings = () => {
       {activeTab === 'security' && (
         <form
           onSubmit={handleChangePassword}
-          className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600"
+          className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
         >
           <div className="flex items-start gap-3">
             <div className="rounded-2xl bg-emerald-50 p-2.5 text-emerald-600 dark:bg-emerald-950/40">
@@ -358,7 +358,7 @@ export const Settings = () => {
             </Field>
             {newPassword && (
               <div className="flex items-center gap-3">
-                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-indigo-600">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-900">
                   <div
                     className={`h-full ${strength.color}`}
                     style={{ width: `${Math.min(100, strength.score * 20)}%` }}
@@ -391,7 +391,7 @@ export const Settings = () => {
       )}
 
       {activeTab === 'theme' && (
-        <section className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <section className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-start gap-3">
             <div className="rounded-2xl bg-emerald-50 p-2.5 text-emerald-600 dark:bg-emerald-950/40">
               {darkMode ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}

@@ -69,7 +69,7 @@ export const DuesPendingFees = () => {
   const columns = useMemo(
     () => [
       { key: 'admissionNumber', title: 'Admn No', render: (r) => (
-        <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{r.admissionNumber || 'Ã¢â¬â'}</span>
+        <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{r.admissionNumber || '–'}</span>
       ) },
       { key: 'studentName', title: 'Student', render: (r) => (
         <div>
@@ -77,7 +77,7 @@ export const DuesPendingFees = () => {
           <p className="text-[10px] text-slate-400">{r.invoiceNumber} â¢ {r.periodLabel}</p>
         </div>
       ) },
-      { key: 'className', title: 'Class', render: (r) => [r.className, r.sectionName].filter(Boolean).join(' - ') || 'Ã¢â¬â' },
+      { key: 'className', title: 'Class', render: (r) => [r.className, r.sectionName].filter(Boolean).join(' - ') || '–' },
       { key: 'totalAmount', title: 'Total Fee', align: 'right', render: (r) => formatCurrency(r.totalAmount) },
       { key: 'paidAmount', title: 'Paid', align: 'right', render: (r) => formatCurrency(r.paidAmount) },
       { key: 'discountAmount', title: 'Discount', align: 'right', render: (r) => formatCurrency(r.discountAmount) },
@@ -140,19 +140,19 @@ export const DuesPendingFees = () => {
             value={filters.search}
             onChange={(e) => set({ search: e.target.value })}
             placeholder="Search student / invoiceâ¦"
-            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold outline-none focus:border-violet-500"
+            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold outline-none focus:border-violet-500"
           />
         </div>
         <input
           value={filters.admissionNumber}
           onChange={(e) => set({ admissionNumber: e.target.value })}
           placeholder="Admission no"
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
         />
         <select
           value={filters.classId}
           onChange={(e) => set({ classId: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
         >
           <option value="">All Classes</option>
           {classes.map((c) => (
@@ -164,7 +164,7 @@ export const DuesPendingFees = () => {
         <select
           value={filters.status}
           onChange={(e) => set({ status: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
         >
           {STATUS_OPTIONS.map((s) => (
             <option key={s} value={s}>
@@ -185,7 +185,7 @@ export const DuesPendingFees = () => {
       />
 
       {history && (
-        <Modal isOpen onClose={() => setHistory(null)} title={`Fee History Ã¢â¬â ${history.student?.name}`} size="lg">
+        <Modal isOpen onClose={() => setHistory(null)} title={`Fee History – ${history.student?.name}`} size="lg">
           <div className="space-y-5 text-xs">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Invoices</p>

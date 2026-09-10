@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 
 /**
- * Hostel Ã¢â¬â the whole module, in the order it must be set up:
+ * Hostel – the whole module, in the order it must be set up:
  *
  *   1 Hostel  Ã¢â â  2 Room  Ã¢â â  3 Beds (from the room's capacity)
  *   Ã¢â â  4 Warden + Hostel  Ã¢â â  5 Student + Hostel + Room + Bed
@@ -38,7 +38,7 @@ const inputClass =
   'h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-xs font-semibold outline-none focus:border-indigo-500 focus:bg-white dark:border-slate-800 dark:bg-slate-950 dark:text-white';
 const labelClass = 'text-[11px] font-bold uppercase tracking-wider text-slate-400';
 const cardClass =
-  'rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600';
+  'rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900';
 const primaryBtn =
   'inline-flex items-center gap-2 rounded-xl bg-indigo-650 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:opacity-60';
 const ghostBtn =
@@ -84,15 +84,15 @@ const emptyRoom = { hostelId: '', roomNumber: '', floorNumber: 'Ground Floor', c
 const emptyWarden = { name: '', mobile: '', hostelId: '', status: 'ACTIVE' };
 const emptyAllocation = { studentId: '', hostelId: '', roomId: '', bedId: '' };
 
-/** Surface the backend's own message Ã¢â¬â it already explains exactly what failed. */
+/** Surface the backend's own message – it already explains exactly what failed. */
 const apiError = (error, fallback) => error?.response?.data?.message || error?.message || fallback;
 
 const hostelTypeLabel = (id) => HOSTEL_TYPES.find((t) => t.id === id)?.label || id;
 const hostelCategoryLabel = (id) => HOSTEL_CATEGORIES.find((c) => c.id === id)?.label || id;
 
-/** Ã¢âÂ¹60,000 Ã¢â¬â or an em dash when the school has not set an amount yet. */
+/** ₹60,000 – or an em dash when the school has not set an amount yet. */
 const money = (amount) =>
-  amount === null || amount === undefined ? 'Ã¢â¬â' : `Ã¢âÂ¹${Number(amount).toLocaleString('en-IN')}`;
+  amount === null || amount === undefined ? '–' : `₹${Number(amount).toLocaleString('en-IN')}`;
 
 export const HostelManagement = () => {
   const [activeTab, setActiveTab] = useState('hostels');
@@ -204,7 +204,7 @@ export const HostelManagement = () => {
   );
   /**
    * A hostel holds at most one warden, so the picker offers the ones nobody
-   * has claimed Ã¢â¬â plus, when editing, the hostel's own warden.
+   * has claimed – plus, when editing, the hostel's own warden.
    */
   const hostelWardenOptions = useMemo(() => {
     const editingId = hostelModal?.editing?.id || '';
@@ -281,7 +281,7 @@ export const HostelManagement = () => {
         }
       />
 
-      {/* SETUP PROGRESS Ã¢â¬â the flow this module is required to follow, in order */}
+      {/* SETUP PROGRESS – the flow this module is required to follow, in order */}
       <div className={`${cardClass} p-4`}>
         <div className="flex flex-wrap items-center gap-2">
           {flow.map((step, index) => (
@@ -295,7 +295,7 @@ export const HostelManagement = () => {
               >
                 <span
                   className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-black ${
-                    step.done ? 'bg-emerald-600 text-white' : 'bg-slate-300 text-slate-600 dark:bg-indigo-600'
+                    step.done ? 'bg-emerald-600 text-white' : 'bg-slate-300 text-slate-600 dark:bg-slate-900'
                   }`}
                 >
                   {step.done ? <Check className="h-2.5 w-2.5" /> : index + 1}
@@ -375,7 +375,7 @@ export const HostelManagement = () => {
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Hostels</h3>
               <p className="text-[11px] font-semibold text-slate-400">
-                Step 1 Ã¢â¬â the building and how many students it holds
+                Step 1 – the building and how many students it holds
               </p>
             </div>
             <button className={primaryBtn} onClick={() => setHostelModal({ editing: null, form: emptyHostel })}>
@@ -419,7 +419,7 @@ export const HostelManagement = () => {
                         )}
                       </td>
                       <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
-                        {row.contactNumber || 'Ã¢â¬â'}
+                        {row.contactNumber || '–'}
                         {row.address ? (
                           <div className="max-w-[180px] truncate text-[11px] font-semibold text-slate-400">
                             {row.address}
@@ -534,7 +534,7 @@ export const HostelManagement = () => {
                   {selectedHostel ? `Rooms in ${selectedHostel.name}` : 'Rooms'}
                 </h3>
                 <p className="text-[11px] font-semibold text-slate-400">
-                  Steps 2 + 3 Ã¢â¬â a room's capacity defines its beds, which are created with it
+                  Steps 2 + 3 – a room's capacity defines its beds, which are created with it
                 </p>
               </div>
               <button
@@ -605,7 +605,7 @@ export const HostelManagement = () => {
                       </div>
                     </div>
 
-                    {/* the beds themselves Ã¢â¬â step 3, maintained by the server */}
+                    {/* the beds themselves – step 3, maintained by the server */}
                     <div className="mt-3 flex flex-wrap gap-2">
                       {(room.beds || []).map((bed) => (
                         <div
@@ -638,7 +638,7 @@ export const HostelManagement = () => {
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Wardens</h3>
               <p className="text-[11px] font-semibold text-slate-400">
-                Step 4 Ã¢â¬â who is responsible for a hostel. One warden per hostel.
+                Step 4 – who is responsible for a hostel. One warden per hostel.
               </p>
             </div>
             <button className={primaryBtn} onClick={() => setWardenModal({ editing: null, form: emptyWarden })}>
@@ -736,7 +736,7 @@ export const HostelManagement = () => {
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Student Assignments</h3>
               <p className="text-[11px] font-semibold text-slate-400">
-                Step 5 Ã¢â¬â taking a bed marks it occupied; the yearly fee is stamped on at that moment
+                Step 5 – taking a bed marks it occupied; the yearly fee is stamped on at that moment
               </p>
             </div>
             <button
@@ -778,7 +778,7 @@ export const HostelManagement = () => {
                         </div>
                       </td>
                       <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
-                        {row.student?.className || 'Ã¢â¬â'}
+                        {row.student?.className || '–'}
                       </td>
                       <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
                         {row.hostel?.name}
@@ -793,7 +793,7 @@ export const HostelManagement = () => {
                         {row.bed?.bedCode}
                       </td>
                       <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
-                        {row.academicYear?.name || 'Ã¢â¬â'}
+                        {row.academicYear?.name || '–'}
                       </td>
                       <td className="px-5 py-3.5 font-black text-slate-900 dark:text-white">
                         {money(row.yearlyFeeAmount)}
@@ -851,7 +851,7 @@ export const HostelManagement = () => {
           <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white">Yearly Hostel Fee</h3>
             <p className="text-[11px] font-semibold text-slate-400">
-              Step 6 Ã¢â¬â one amount per academic year for the whole school. Every resident pays the same,
+              Step 6 – one amount per academic year for the whole school. Every resident pays the same,
               whatever their class or hostel.
             </p>
           </div>
@@ -885,7 +885,7 @@ export const HostelManagement = () => {
                         </td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-black text-slate-400">Ã¢âÂ¹</span>
+                            <span className="text-xs font-black text-slate-400">₹</span>
                             <input
                               type="number"
                               min={0}
@@ -1200,7 +1200,7 @@ export const HostelManagement = () => {
             <Field
               label="Capacity"
               required
-              hint="Beds are created from this Ã¢â¬â Bed 1 â¦ Bed n"
+              hint="Beds are created from this – Bed 1 â¦ Bed n"
               className="sm:col-span-2"
             >
               <input
@@ -1284,7 +1284,7 @@ export const HostelManagement = () => {
               />
             </Field>
             {!wardenModal.editing && (
-              <Field label="Hostel" hint="Optional Ã¢â¬â can be assigned later" className="sm:col-span-2">
+              <Field label="Hostel" hint="Optional – can be assigned later" className="sm:col-span-2">
                 <select
                   className={inputClass}
                   value={wardenModal.form.hostelId}
@@ -1477,7 +1477,7 @@ export const HostelManagement = () => {
               </select>
             </Field>
 
-            {/* Step 6 Ã¢â¬â what this student will be charged, before it is stamped
+            {/* Step 6 – what this student will be charged, before it is stamped
                 onto the allocation. Editing it later does not reach back. */}
             {!residentModal.editing && (
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950">
@@ -1487,7 +1487,7 @@ export const HostelManagement = () => {
                     {money(lookups.currentYearlyFee)}{' '}
                     <span className="text-[11px] font-semibold text-slate-400">
                       for {lookups.currentAcademicYear.name}
-                      {lookups.currentYearlyFee === null ? ' Ã¢â¬â not set yet, set it on the Yearly Fee tab' : ''}
+                      {lookups.currentYearlyFee === null ? ' – not set yet, set it on the Yearly Fee tab' : ''}
                     </span>
                   </p>
                 ) : (
@@ -1535,7 +1535,7 @@ const TableHead = ({ columns }) => (
 
 const EmptyState = ({ icon: Icon, message }) => (
   <div className="flex flex-col items-center justify-center gap-3 px-5 py-14 text-center">
-    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-indigo-600">
+    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-900">
       <Icon className="h-5 w-5" />
     </div>
     <p className="max-w-xs text-xs font-semibold text-slate-400">{message}</p>

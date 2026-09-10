@@ -70,10 +70,10 @@ export const TeacherAcademics = () => {
         <div className="space-y-4">
           <Card>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Mathematics Ã¢â¬â Class 9A</h3>
+              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Mathematics – Class 9A</h3>
               <Badge variant="primary">{completedCount}/{syllabus?.length || 0} Chapters</Badge>
             </div>
-            <div className="h-2 bg-slate-100 dark:bg-indigo-600 rounded-full overflow-hidden mb-1">
+            <div className="h-2 bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden mb-1">
               <div
                 className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-500"
                 style={{ width: `${progressPct}%` }}
@@ -109,7 +109,7 @@ export const TeacherAcademics = () => {
                       </div>
                       <div className="flex flex-wrap gap-1 mb-1.5">
                         {ch.topics.map(t => (
-                          <span key={t} className="text-[9px] font-medium px-2 py-0.5 bg-slate-100 dark:bg-indigo-600 text-slate-500 rounded-full">{t}</span>
+                          <span key={t} className="text-[9px] font-medium px-2 py-0.5 bg-slate-100 dark:bg-slate-900 text-slate-500 rounded-full">{t}</span>
                         ))}
                       </div>
                       {ch.completionDate && (
@@ -174,7 +174,7 @@ export const TeacherAcademics = () => {
         <div className="space-y-4">
           {[
             { week: 'Week 1 (July 1Ã¢â¬â5)', topic: 'Coordinate Geometry Basics', objectives: 'Understand Cartesian plane, quadrants, plotting points', resources: 'NCERT Ch.4, Worksheet #12' },
-            { week: 'Week 2 (July 7Ã¢â¬â11)', topic: 'Quadratic Equations Ã¢â¬â Introduction', objectives: 'Define quadratic equations, standard form, roots', resources: 'NCERT Ch.5, Video Lecture' },
+            { week: 'Week 2 (July 7Ã¢â¬â11)', topic: 'Quadratic Equations – Introduction', objectives: 'Define quadratic equations, standard form, roots', resources: 'NCERT Ch.5, Video Lecture' },
             { week: 'Week 3 (July 14Ã¢â¬â18)', topic: 'Factorization Method', objectives: 'Solve quadratic equations by factorization', resources: 'Practice Sheet #8, Reference PDF' },
             { week: 'Week 4 (July 21Ã¢â¬â25)', topic: 'Quadratic Formula', objectives: 'Apply Sridharacharya formula for discriminant analysis', resources: 'NCERT Exercise 5.3, Self-assessment' },
           ].map((lesson, i) => (
@@ -202,19 +202,19 @@ export const TeacherAcademics = () => {
         <form onSubmit={handleUpload} className="space-y-4">
           <div>
             <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Title</label>
-            <input type="text" required placeholder="e.g. Chapter 5 Notes" className="w-full px-4 py-2.5 rounded-xl border border-border bg-white dark:bg-indigo-600 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20" id="material-title" />
+            <input type="text" required placeholder="e.g. Chapter 5 Notes" className="w-full px-4 py-2.5 rounded-xl border border-border bg-white dark:bg-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20" id="material-title" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Subject</label>
-              <select className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-indigo-600 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20" id="material-subject">
+              <select className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20" id="material-subject">
                 <option>Mathematics</option>
                 <option>Statistics</option>
               </select>
             </div>
             <div>
               <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Type</label>
-              <select className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-indigo-600 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20" id="material-type">
+              <select className="w-full px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20" id="material-type">
                 <option>PDF</option>
                 <option>Video</option>
                 <option>Link</option>
@@ -229,7 +229,7 @@ export const TeacherAcademics = () => {
               <span className="text-[10px] text-slate-400 font-bold uppercase">or paste link</span>
               <div className="flex-grow border-t border-border" />
             </div>
-            <input type="url" placeholder="https://..." className="w-full mt-2 px-4 py-2.5 rounded-xl border border-border bg-white dark:bg-indigo-600 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20" id="material-link" />
+            <input type="url" placeholder="https://..." className="w-full mt-2 px-4 py-2.5 rounded-xl border border-border bg-white dark:bg-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20" id="material-link" />
           </div>
           <div className="flex gap-3">
             <button type="button" onClick={() => setShowUpload(false)} className="flex-1 py-2.5 rounded-xl border border-border text-xs font-semibold text-slate-600 dark:text-slate-400">Cancel</button>

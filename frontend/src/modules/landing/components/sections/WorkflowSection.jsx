@@ -6,7 +6,7 @@ import { WORKFLOW_STEPS } from '../../data/content';
 
 export const WorkflowSection = () => {
   return (
-    <section className="relative overflow-hidden py-20 lg:py-28 bg-slate-50/60 dark:bg-indigo-600/30">
+    <section className="relative overflow-hidden py-20 lg:py-28 bg-slate-50/60 dark:bg-slate-900/30">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <Reveal className="mx-auto max-w-3xl text-center">

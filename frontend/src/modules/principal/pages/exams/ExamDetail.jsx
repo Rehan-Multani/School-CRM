@@ -498,7 +498,7 @@ export const ExamDetail = () => {
               <span>â¢</span>
               <span>
                 {new Date(exam.startDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}{' '}
-                Ã¢â¬â{' '}
+                –{' '}
                 {new Date(exam.endDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
               </span>
               <span>â¢</span>
@@ -542,7 +542,7 @@ export const ExamDetail = () => {
       {/* ==================== TAB 1: SUBJECTS ==================== */}
       {activeTab === 'subjects' && (
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div>
               <h3 className="text-sm font-bold text-slate-800 dark:text-white">Exam Subjects Master</h3>
               <p className="text-xs text-slate-500">
@@ -580,7 +580,7 @@ export const ExamDetail = () => {
           {loadingSubjects ? (
             <SkeletonTable rows={4} columns={5} />
           ) : subjects.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-800 dark:bg-indigo-600">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
               <BookOpen className="h-10 w-10 text-slate-300" />
               <h4 className="mt-2 text-sm font-bold text-slate-700 dark:text-slate-200">
                 No Subjects Attached to this Exam
@@ -597,7 +597,7 @@ export const ExamDetail = () => {
               </button>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <table className="w-full text-left text-xs">
                 <thead className="border-b border-slate-100 bg-slate-50/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-950">
                   <tr>
@@ -621,7 +621,7 @@ export const ExamDetail = () => {
                         </span>
                         {sub.subjectName}
                       </td>
-                      <td className="px-4 py-3 text-slate-500 font-mono">{sub.subjectCode || 'Ã¢â¬â'}</td>
+                      <td className="px-4 py-3 text-slate-500 font-mono">{sub.subjectCode || '–'}</td>
                       <td className="px-4 py-3 text-right font-bold text-slate-900 dark:text-white">
                         {sub.maxMarks}
                       </td>
@@ -649,7 +649,7 @@ export const ExamDetail = () => {
       {/* ==================== TAB 2: SCHEDULE ==================== */}
       {activeTab === 'schedule' && (
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div>
               <h3 className="text-sm font-bold text-slate-800 dark:text-white">Exam Timetable & Schedule</h3>
               <p className="text-xs text-slate-500">
@@ -681,7 +681,7 @@ export const ExamDetail = () => {
           {loadingSchedule ? (
             <SkeletonTable rows={4} columns={5} />
           ) : schedules.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-800 dark:bg-indigo-600">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center dark:border-slate-800 dark:bg-slate-900">
               <Calendar className="h-10 w-10 text-slate-300" />
               <h4 className="mt-2 text-sm font-bold text-slate-700 dark:text-slate-200">
                 No Timetable Slots Created
@@ -695,7 +695,7 @@ export const ExamDetail = () => {
               {schedules.map((item) => (
                 <div
                   key={item.id}
-                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-indigo-600"
+                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
@@ -731,7 +731,7 @@ export const ExamDetail = () => {
                     <div className="flex items-center gap-1.5">
                       <Clock className="h-3.5 w-3.5 text-slate-400" />
                       <span>
-                        {item.startTime} Ã¢â¬â {item.endTime}
+                        {item.startTime} – {item.endTime}
                       </span>
                     </div>
                     <div className="flex items-center justify-between pt-1 text-[11px]">
@@ -754,7 +754,7 @@ export const ExamDetail = () => {
       {activeTab === 'marks' && (
         <div className="space-y-4">
           {/* Selector Toolbar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex flex-wrap items-center gap-3">
               {/* Select Class */}
               <div className="flex items-center gap-1.5">
@@ -838,7 +838,7 @@ export const ExamDetail = () => {
           {loadingMarks ? (
             <SkeletonTable rows={5} columns={6} />
           ) : marksRoster.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center dark:border-slate-800 dark:bg-indigo-600">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
               <Users className="h-10 w-10 text-slate-300" />
               <h4 className="mt-2 text-sm font-bold text-slate-700 dark:text-slate-200">
                 No Enrolled Students Found
@@ -848,7 +848,7 @@ export const ExamDetail = () => {
               </p>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <table className="w-full text-left text-xs">
                 <thead className="border-b border-slate-100 bg-slate-50/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-950">
                   <tr>
@@ -930,7 +930,7 @@ export const ExamDetail = () => {
       {/* ==================== TAB 4: RESULTS & REPORT CARDS ==================== */}
       {activeTab === 'results' && (
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-bold text-slate-500">Class:</span>
@@ -995,7 +995,7 @@ export const ExamDetail = () => {
           {loadingResults ? (
             <SkeletonTable rows={5} columns={6} />
           ) : resultsList.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center dark:border-slate-800 dark:bg-indigo-600">
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
               <Award className="h-10 w-10 text-slate-300" />
               <h4 className="mt-2 text-sm font-bold text-slate-700 dark:text-slate-200">
                 No Results Computed Yet
@@ -1005,7 +1005,7 @@ export const ExamDetail = () => {
               </p>
             </div>
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <table className="w-full text-left text-xs">
                 <thead className="border-b border-slate-100 bg-slate-50/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-950">
                   <tr>
@@ -1038,7 +1038,7 @@ export const ExamDetail = () => {
                             #{res.rank}
                           </span>
                         ) : (
-                          'Ã¢â¬â'
+                          '–'
                         )}
                       </td>
                       <td className="px-4 py-3 text-slate-900 dark:text-white font-bold">
@@ -1348,7 +1348,7 @@ export const ExamDetail = () => {
             {/* Printable Container */}
             <div
               id="report-card-print"
-              className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-indigo-600"
+              className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900"
             >
               {/* School Header */}
               <div className="border-b-2 border-slate-800 pb-4 text-center dark:border-slate-200">
@@ -1366,7 +1366,7 @@ export const ExamDetail = () => {
               </div>
 
               {/* Student Metadata Box */}
-              <div className="mt-4 grid grid-cols-2 gap-4 rounded-xl bg-slate-50 p-4 text-xs font-semibold text-slate-700 dark:bg-indigo-600/60 dark:text-slate-300">
+              <div className="mt-4 grid grid-cols-2 gap-4 rounded-xl bg-slate-50 p-4 text-xs font-semibold text-slate-700 dark:bg-slate-900/60 dark:text-slate-300">
                 <div>
                   <span className="text-[10px] uppercase font-bold text-slate-400">Student Name</span>
                   <p className="font-bold text-sm text-slate-900 dark:text-white">
@@ -1382,7 +1382,7 @@ export const ExamDetail = () => {
                 <div>
                   <span className="text-[10px] uppercase font-bold text-slate-400">Class & Section</span>
                   <p className="font-bold text-slate-800 dark:text-slate-200">
-                    {reportCardData.student.className} Ã¢â¬â {reportCardData.student.sectionName}
+                    {reportCardData.student.className} – {reportCardData.student.sectionName}
                   </p>
                 </div>
                 <div>
@@ -1452,7 +1452,7 @@ export const ExamDetail = () => {
                 <div>
                   <span className="text-[10px] uppercase font-bold text-indigo-500">Class Rank</span>
                   <p className="text-lg font-black text-indigo-900 dark:text-indigo-200">
-                    #{reportCardData.result.rank || 'Ã¢â¬â'}
+                    #{reportCardData.result.rank || '–'}
                   </p>
                 </div>
                 <div>

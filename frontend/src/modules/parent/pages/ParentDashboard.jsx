@@ -129,7 +129,7 @@ export const ParentDashboard = () => {
             />
             <StatCard
               title="Outstanding Fees"
-              value={`Ã¢âÂ¹${childFees?.pendingFees ?? 0}`}
+              value={`₹${childFees?.pendingFees ?? 0}`}
               subtext="Pending payment balance"
               icon={CreditCard}
               colorClass="bg-indigo-600"
@@ -184,11 +184,11 @@ export const ParentDashboard = () => {
             </button>
           </div>
           {todayClasses.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">No Result Ã¢â¬â No periods scheduled today</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result – No periods scheduled today</p>
           ) : (
             <div className="space-y-3 flex-1 overflow-y-auto max-h-72 no-scrollbar">
               {todayClasses.map((cl, i) => (
-                <div key={i} className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-slate-50/50 dark:bg-indigo-600/50">
+                <div key={i} className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-slate-50/50 dark:bg-slate-900/50">
                   <div>
                     <h4 className="text-xs font-bold text-foreground leading-tight">{cl.subject}</h4>
                     <span className="text-[10px] text-slate-400 mt-0.5 block">{cl.teacher} ÃÂ· Room {cl.room}</span>
@@ -213,7 +213,7 @@ export const ParentDashboard = () => {
             </button>
           </div>
           <div className="space-y-3">
-            <p className="text-xs text-slate-400 text-center py-8">No Result Ã¢â¬â No circulars or notices</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result – No circulars or notices</p>
           </div>
         </Card>
       </div>
@@ -232,7 +232,7 @@ export const ParentDashboard = () => {
                     key={c.id}
                     onClick={() => { changeSelectedChild(c.id); setShowSwitchModal(false); }}
                     className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition-all text-left ${
-                      isActive ? 'bg-primary/5 border-primary' : 'bg-slate-50/50 dark:bg-indigo-600/50 border-border hover:border-primary/20'
+                      isActive ? 'bg-primary/5 border-primary' : 'bg-slate-50/50 dark:bg-slate-900/50 border-border hover:border-primary/20'
                     }`}
                   >
                     <img src={c.photo} alt={c.name} className="w-10 h-10 rounded-xl object-cover" />
@@ -246,7 +246,7 @@ export const ParentDashboard = () => {
             </div>
             <button
               onClick={() => setShowSwitchModal(false)}
-              className="w-full mt-4 py-2.5 bg-slate-100 dark:bg-indigo-600 text-xs font-bold rounded-xl"
+              className="w-full mt-4 py-2.5 bg-slate-100 dark:bg-slate-900 text-xs font-bold rounded-xl"
             >
               Cancel
             </button>

@@ -59,7 +59,7 @@ export const FloatingCard = ({
 
   return (
     <div
-      className={`group relative rounded-2xl border border-slate-200/80 bg-white/90 p-3.5 shadow-xl shadow-slate-900/5 backdrop-blur-xl transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 dark:border-slate-800/90 dark:bg-indigo-600/90 dark:shadow-black/40 ${animationClass} ${className}`}
+      className={`group relative rounded-2xl border border-slate-200/80 bg-white/90 p-3.5 shadow-xl shadow-slate-900/5 backdrop-blur-xl transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 dark:border-slate-800/90 dark:bg-slate-900/90 dark:shadow-black/40 ${animationClass} ${className}`}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">

@@ -201,7 +201,7 @@ const BulkCreateModal = ({ open, onClose, onSaved }) => {
         </div>
 
         {/* Rows Table */}
-        <div className="max-h-[55vh] overflow-x-auto overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="max-h-[55vh] overflow-x-auto overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <table className="w-full text-left text-xs">
             <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-100/90 text-[11px] font-extrabold uppercase tracking-wider text-slate-600 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-950/90 dark:text-slate-300">
               <tr>
@@ -511,9 +511,9 @@ export const AcademicYearsIndex = () => {
       )}
 
       {loading ? (
-        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
+        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <table className="w-full text-left text-xs">
-            <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-indigo-600/60 dark:text-slate-400">
+            <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
               <tr>
                 <th className="w-12 px-3.5 py-3 text-center">#</th>
                 <th className="px-3.5 py-3">Academic Year</th>
@@ -529,15 +529,15 @@ export const AcademicYearsIndex = () => {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
               {Array.from({ length: 5 }).map((_, index) => (
                 <tr key={index} className="animate-pulse">
-                  <td className="w-12 px-3.5 py-3 text-center"><div className="mx-auto h-3.5 w-4 rounded bg-slate-100 dark:bg-indigo-600" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-28 rounded bg-slate-100 dark:bg-indigo-600" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-16 rounded bg-slate-100 dark:bg-indigo-600" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-32 rounded bg-slate-100 dark:bg-indigo-600" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-20 rounded bg-slate-100 dark:bg-indigo-600" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-16 rounded bg-slate-100 dark:bg-indigo-600" /></td>
-                  <td className="px-3.5 py-3 text-center"><div className="mx-auto h-4 w-8 rounded bg-slate-100 dark:bg-indigo-600" /></td>
-                  <td className="px-3.5 py-3 text-center"><div className="mx-auto h-4 w-8 rounded bg-slate-100 dark:bg-indigo-600" /></td>
-                  <td className="px-3.5 py-3 text-right"><div className="ml-auto h-7 w-24 rounded bg-slate-100 dark:bg-indigo-600" /></td>
+                  <td className="w-12 px-3.5 py-3 text-center"><div className="mx-auto h-3.5 w-4 rounded bg-slate-100 dark:bg-slate-900" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-28 rounded bg-slate-100 dark:bg-slate-900" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-16 rounded bg-slate-100 dark:bg-slate-900" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-32 rounded bg-slate-100 dark:bg-slate-900" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-20 rounded bg-slate-100 dark:bg-slate-900" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-16 rounded bg-slate-100 dark:bg-slate-900" /></td>
+                  <td className="px-3.5 py-3 text-center"><div className="mx-auto h-4 w-8 rounded bg-slate-100 dark:bg-slate-900" /></td>
+                  <td className="px-3.5 py-3 text-center"><div className="mx-auto h-4 w-8 rounded bg-slate-100 dark:bg-slate-900" /></td>
+                  <td className="px-3.5 py-3 text-right"><div className="ml-auto h-7 w-24 rounded bg-slate-100 dark:bg-slate-900" /></td>
                 </tr>
               ))}
             </tbody>
@@ -573,9 +573,9 @@ export const AcademicYearsIndex = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-indigo-600/60 dark:text-slate-400">
+              <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
                 <tr>
                   <th className="w-12 px-3.5 py-3 text-center">#</th>
                   <th className="px-3.5 py-3">Academic Year</th>
@@ -603,7 +603,7 @@ export const AcademicYearsIndex = () => {
                             {year.code}
                           </span>
                         ) : (
-                          <span className="text-slate-400">Ã¢â¬â</span>
+                          <span className="text-slate-400">–</span>
                         )}
                       </td>
                       <td className="px-3.5 py-3 whitespace-nowrap text-slate-600 dark:text-slate-400">

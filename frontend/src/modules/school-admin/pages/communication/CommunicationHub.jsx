@@ -17,7 +17,7 @@ const AUDIENCES = ['ALL', 'TEACHERS', 'STUDENTS', 'PARENTS', 'STAFF'];
 const STATUS_VARIANT = { DRAFT: 'default', PUBLISHED: 'success', ARCHIVED: 'warning' };
 
 function fmt(v) {
-  if (!v) return 'Ã¢â¬â';
+  if (!v) return '–';
   return new Date(v).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
@@ -155,7 +155,7 @@ export const CommunicationHub = () => {
     e.preventDefault();
     if (!bcForm.content.trim()) return showToast('Message content is required', 'error');
     if (bcForm.channel === 'SMS' && bcForm.content.length > 160) {
-      showToast('SMS is over 160 chars Ã¢â¬â it will be sent as multiple parts', 'warning');
+      showToast('SMS is over 160 chars – it will be sent as multiple parts', 'warning');
     }
     setBcSaving(true);
     try {
@@ -216,7 +216,7 @@ export const CommunicationHub = () => {
         ),
       },
       { key: 'audiences', title: 'Audience', render: (v) => <Badge variant="primary">{(v || []).join(', ')}</Badge> },
-      { key: 'publishedByName', title: 'Author', render: (v) => v || 'Ã¢â¬â' },
+      { key: 'publishedByName', title: 'Author', render: (v) => v || '–' },
       { key: 'publishAt', title: 'Published', render: (v) => fmt(v) },
       { key: 'status', title: 'Status', render: (v) => <Badge variant={STATUS_VARIANT[v] || 'default'}>{v}</Badge> },
       {
@@ -257,7 +257,7 @@ export const CommunicationHub = () => {
       { key: 'audienceLabel', title: 'Recipient' },
       { key: 'content', title: 'Content', render: (v) => <span className="line-clamp-2 max-w-md text-xs">{v}</span> },
       { key: 'status', title: 'Status', render: (v) => <Badge variant="success">{v}</Badge> },
-      { key: 'sentByName', title: 'Sent By', render: (v) => v || 'Ã¢â¬â' },
+      { key: 'sentByName', title: 'Sent By', render: (v) => v || '–' },
       { key: 'createdAt', title: 'When', render: (v) => fmt(v) },
     ],
     []
@@ -334,7 +334,7 @@ export const CommunicationHub = () => {
         />
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="flex flex-col divide-y divide-slate-100 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:divide-slate-800 dark:border-slate-800 dark:bg-indigo-600">
+          <div className="flex flex-col divide-y divide-slate-100 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
             <span className="p-4 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Conversations</span>
             {threads.length === 0 && (
               <div className="p-6 text-center text-xs font-semibold text-slate-400">No conversations yet.</div>
@@ -359,7 +359,7 @@ export const CommunicationHub = () => {
             ))}
           </div>
 
-          <div className="flex min-h-[360px] flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600 lg:col-span-2">
+          <div className="flex min-h-[360px] flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:col-span-2">
             {!activeThread ? (
               <div className="flex h-full items-center justify-center text-xs font-semibold text-slate-400">
                 Select a conversation

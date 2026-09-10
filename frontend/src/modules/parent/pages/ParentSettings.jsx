@@ -83,12 +83,12 @@ export const ParentSettings = () => {
             <p className="text-[10px] text-slate-400">Toggle dark or light theme interface preferences</p>
           </div>
         </div>
-        <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-indigo-600/50 rounded-2xl border border-border">
+        <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-border">
           <span className="text-xs font-bold text-foreground">Dark Mode</span>
           <button
             onClick={toggleTheme}
             className={`w-11 h-6 rounded-full transition-colors relative flex items-center ${
-              theme === 'dark' ? 'bg-primary' : 'bg-slate-350 dark:bg-indigo-600'
+              theme === 'dark' ? 'bg-primary' : 'bg-slate-350 dark:bg-slate-900'
             }`}
             id="parent-settings-theme"
           >
@@ -114,7 +114,7 @@ export const ParentSettings = () => {
         </div>
         <div className="space-y-2">
           {Object.entries(notifs).map(([key, enabled]) => (
-            <div key={key} className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-indigo-600/50 rounded-2xl border border-border capitalize">
+            <div key={key} className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-border capitalize">
               <div>
                 <span className="text-xs font-bold text-foreground">{key} alerts</span>
                 <p className="text-[9px] text-slate-400">Receive alerts related to child {key}</p>
@@ -122,7 +122,7 @@ export const ParentSettings = () => {
               <button
                 onClick={() => handleToggleNotif(key)}
                 className={`w-11 h-6 rounded-full transition-colors relative flex items-center ${
-                  enabled ? 'bg-primary' : 'bg-slate-350 dark:bg-indigo-600'
+                  enabled ? 'bg-primary' : 'bg-slate-350 dark:bg-slate-900'
                 }`}
                 id={`parent-settings-notif-${key}`}
               >
@@ -152,7 +152,7 @@ export const ParentSettings = () => {
           <select
             value={language}
             onChange={(e) => { setLanguage(e.target.value); toast.success('Language updated!'); }}
-            className="w-full px-4 py-3 rounded-2xl border border-border bg-white dark:bg-indigo-600 text-sm focus:outline-none"
+            className="w-full px-4 py-3 rounded-2xl border border-border bg-white dark:bg-slate-900 text-sm focus:outline-none"
             id="parent-settings-lang"
           >
             <option>English</option>
@@ -190,7 +190,7 @@ export const ParentSettings = () => {
                   required
                   value={field.value}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, [field.id]: e.target.value }))}
-                  className="w-full px-4 py-3 pr-11 rounded-2xl border border-border bg-white dark:bg-indigo-600 text-sm focus:outline-none"
+                  className="w-full px-4 py-3 pr-11 rounded-2xl border border-border bg-white dark:bg-slate-900 text-sm focus:outline-none"
                   placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
                   id={`parent-settings-pw-${field.id}`}
                 />

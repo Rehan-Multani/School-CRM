@@ -188,7 +188,7 @@ export const Settings = () => {
           <button
             onClick={fetchSettings}
             disabled={loading}
-            className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
+            className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
             title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -231,7 +231,7 @@ export const Settings = () => {
       )}
 
       {/* Settings Form Container */}
-      <form onSubmit={handleSavePolicy} className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
+      <form onSubmit={handleSavePolicy} className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
         {/* Tab 1: Policy */}
         {activeTab === 'policy' && (
           <div className="space-y-6 text-xs font-semibold">
@@ -354,7 +354,7 @@ export const Settings = () => {
                 type="button"
                 onClick={() => setSettings((prev) => ({ ...prev, autoApproveLeaves: !prev.autoApproveLeaves }))}
                 className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${
-                  settings.autoApproveLeaves ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-indigo-600'
+                  settings.autoApproveLeaves ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-900'
                 }`}
               >
                 <span
@@ -378,7 +378,7 @@ export const Settings = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1">
-                  Unapproved Absent Deduction (Ã¢âÂ¹ / Day)
+                  Unapproved Absent Deduction (₹ / Day)
                 </label>
                 <input
                   placeholder="e.g. 500"
@@ -421,7 +421,7 @@ export const Settings = () => {
               <button
                 type="button"
                 onClick={toggleDarkMode}
-                className="px-4 py-2 bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-800 dark:text-white hover:bg-slate-100 flex items-center gap-2 cursor-pointer"
+                className="px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-800 dark:text-white hover:bg-slate-100 flex items-center gap-2 cursor-pointer"
               >
                 {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
                 <span>{darkMode ? 'Dark Theme (Active)' : 'Light Theme (Active)'}</span>

@@ -70,7 +70,7 @@ export const StudentAttendance = () => {
           <div className="grid grid-cols-7 gap-2">
             {/* Days padding */}
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={`pad-${i}`} className="aspect-square bg-slate-50/20 dark:bg-indigo-600/10 rounded-xl"></div>
+              <div key={`pad-${i}`} className="aspect-square bg-slate-50/20 dark:bg-slate-900/10 rounded-xl"></div>
             ))}
             
             {/* Calendar Days */}

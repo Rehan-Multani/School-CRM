@@ -56,7 +56,7 @@ export const StudentDownloads = () => {
         {filteredFiles.map((file, i) => (
           <Card key={i} className="p-4 flex items-center justify-between gap-4 border border-border">
             <div className="flex items-center gap-3.5 min-w-0">
-              <div className="p-3 bg-slate-100 dark:bg-indigo-600 rounded-xl text-slate-500 shrink-0">
+              <div className="p-3 bg-slate-100 dark:bg-slate-900 rounded-xl text-slate-500 shrink-0">
                 {getIcon(file.type)}
               </div>
               <div className="min-w-0">
@@ -72,7 +72,7 @@ export const StudentDownloads = () => {
 
             <button
               onClick={() => handleDownload(file.name)}
-              className="p-2 bg-slate-100 hover:bg-primary hover:text-white dark:bg-indigo-600 rounded-xl text-slate-500 transition-colors shrink-0 active:scale-95 duration-100 select-none"
+              className="p-2 bg-slate-100 hover:bg-primary hover:text-white dark:bg-slate-900 rounded-xl text-slate-500 transition-colors shrink-0 active:scale-95 duration-100 select-none"
               title="Download File"
             >
               <Download className="w-4 h-4" />

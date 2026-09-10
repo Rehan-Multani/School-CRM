@@ -156,7 +156,7 @@ export const Expenses = () => {
       { key: 'title', title: 'Title & Vendor', render: (r) => (
         <div>
           <p className="font-bold text-slate-900 dark:text-white">{r.title}</p>
-          <p className="text-[10px] text-slate-400">{r.vendorName || 'Ã¢â¬â'}</p>
+          <p className="text-[10px] text-slate-400">{r.vendorName || '–'}</p>
         </div>
       ) },
       { key: 'category', title: 'Category' },
@@ -251,13 +251,13 @@ export const Expenses = () => {
             value={filters.search}
             onChange={(e) => set({ search: e.target.value })}
             placeholder="Search title, vendor, voucherâ¦"
-            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold outline-none focus:border-violet-500"
+            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold outline-none focus:border-violet-500"
           />
         </div>
         <select
           value={filters.category}
           onChange={(e) => set({ category: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
         >
           <option value="">All Categories</option>
           {categories.map((c) => (
@@ -269,7 +269,7 @@ export const Expenses = () => {
         <select
           value={filters.paymentStatus}
           onChange={(e) => set({ paymentStatus: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
         >
           <option value="">All Payment Statuses</option>
           {PAYMENT_STATUSES.map((s) => (
@@ -328,7 +328,7 @@ export const Expenses = () => {
               </Field>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Amount (Ã¢âÂ¹) *">
+              <Field label="Amount (₹) *">
                 <input
                   placeholder="e.g. 5000"
                   type="number"

@@ -111,7 +111,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isOpen, toggleSidebar }) 
 
       {/* Sibling Quick Switcher (when not collapsed) */}
       {!isCollapsed && user?.linkedChildren?.length > 0 && (
-        <div className="p-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-indigo-600/40">
+        <div className="p-3 border-b border-slate-100 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/40">
           <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
             Active Child Profile
           </label>
@@ -157,7 +157,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isOpen, toggleSidebar }) 
         <div className="shrink-0 border-t border-slate-200 bg-white px-2 py-3 dark:border-slate-800 dark:bg-slate-950">
           <div
             className={cn(
-              'flex items-center rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-slate-800 dark:bg-indigo-600/50',
+              'flex items-center rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-slate-800 dark:bg-slate-900/50',
               isCollapsed ? 'justify-center' : 'gap-2.5'
             )}
           >

@@ -106,7 +106,7 @@ export const StudentAttendancePanel = () => {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+      <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div>
           <label className="mb-1 block text-[11px] font-bold text-slate-400">Class</label>
           <select
@@ -172,7 +172,7 @@ export const StudentAttendancePanel = () => {
       {entries.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {STATUSES.map((s) => (
-            <span key={s.key} className={`rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold ${s.dim} dark:border-slate-800 dark:bg-indigo-600`}>
+            <span key={s.key} className={`rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold ${s.dim} dark:border-slate-800 dark:bg-slate-900`}>
               {s.label}: {counts[s.key] || 0}
             </span>
           ))}
@@ -180,20 +180,20 @@ export const StudentAttendancePanel = () => {
       )}
 
       {loading ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-slate-900">
           Loading rosterâ¦
         </div>
       ) : !sectionId ? (
-        <div className="flex flex-col items-center gap-2 rounded-3xl border border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-indigo-600">
+        <div className="flex flex-col items-center gap-2 rounded-3xl border border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
           <Users className="h-8 w-8 text-slate-300" />
           <p className="text-xs font-semibold text-slate-400">Pick a section and date to mark student attendance.</p>
         </div>
       ) : entries.length === 0 ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-slate-900">
           {message || 'No active students in this section.'}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           {markedInfo && (
             <div className="border-b border-slate-100 bg-slate-50/60 px-4 py-2 text-[11px] font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-950/40">
               {meta?.className} {meta?.sectionName} ÃÂ· {date} ÃÂ· previously saved{markedInfo.by ? ` by ${markedInfo.by}` : ''}
@@ -212,7 +212,7 @@ export const StudentAttendancePanel = () => {
               {entries.map((e, i) => (
                 <tr key={e.studentId} className="hover:bg-slate-50/60 dark:hover:bg-slate-950/30">
                   <td className="px-3 py-2.5 text-center font-bold text-slate-400">{i + 1}</td>
-                  <td className="px-3 py-2.5 font-mono text-[11px] text-slate-500">{e.rollNumber || 'Ã¢â¬â'}</td>
+                  <td className="px-3 py-2.5 font-mono text-[11px] text-slate-500">{e.rollNumber || '–'}</td>
                   <td className="px-3 py-2.5 font-bold text-slate-900 dark:text-white">{e.studentName}</td>
                   <td className="px-3 py-2.5">
                     <div className="flex flex-wrap gap-1">

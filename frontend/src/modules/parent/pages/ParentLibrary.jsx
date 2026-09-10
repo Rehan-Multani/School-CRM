@@ -60,7 +60,7 @@ export const ParentLibrary = () => {
                       </span>
                       {book.fine > 0 && (
                         <span className="flex items-center gap-1 text-rose-500 font-bold">
-                          <AlertTriangle className="w-3.5 h-3.5" /> Fine: Ã¢âÂ¹{book.fine}
+                          <AlertTriangle className="w-3.5 h-3.5" /> Fine: ₹{book.fine}
                         </span>
                       )}
                     </div>

@@ -23,7 +23,7 @@ const STATUS_META = {
 };
 
 function fmtDate(v) {
-  if (!v) return 'Ã¢â¬â';
+  if (!v) return '–';
   return new Date(v).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
@@ -118,7 +118,7 @@ export const AdmissionManagement = () => {
       showToast(
         alreadyEnrolled
           ? 'Applicant already enrolled'
-          : `Approved Ã¢â¬â Student ID ${student?.id || ''}, Admission No ${admission?.admissionNo || ''}. Now in Student roster.`,
+          : `Approved – Student ID ${student?.id || ''}, Admission No ${admission?.admissionNo || ''}. Now in Student roster.`,
         'success'
       );
       setReviewOpen(false);
@@ -146,7 +146,7 @@ export const AdmissionManagement = () => {
       if (newId && offlineForm.appliedClassId) {
         try {
           const appr = await admissionsApi.approve(newId);
-          showToast(`Offline candidate admitted Ã¢â¬â Student ID ${appr?.data?.student?.id || ''}`, 'success');
+          showToast(`Offline candidate admitted – Student ID ${appr?.data?.student?.id || ''}`, 'success');
         } catch (err) {
           showToast(
             `Application saved, but auto-enrol failed: ${apiMessage(err, 'approve manually from Pending Review')}`,
@@ -188,9 +188,9 @@ export const AdmissionManagement = () => {
   const columns = useMemo(
     () => [
       { key: 'applicantName', title: 'Applicant', sortable: true, render: (v) => <span className="font-bold">{v}</span> },
-      { key: 'appliedClassLabel', title: 'Target Class', render: (v) => v || 'Ã¢â¬â' },
-      { key: 'guardianName', title: 'Guardian', render: (v) => v || 'Ã¢â¬â' },
-      { key: 'phone', title: 'Phone', render: (v) => v || 'Ã¢â¬â' },
+      { key: 'appliedClassLabel', title: 'Target Class', render: (v) => v || '–' },
+      { key: 'guardianName', title: 'Guardian', render: (v) => v || '–' },
+      { key: 'phone', title: 'Phone', render: (v) => v || '–' },
       { key: 'appliedDate', title: 'Applied', sortable: true, render: (v) => fmtDate(v) },
       {
         key: 'documentsStatus',
@@ -307,19 +307,19 @@ export const AdmissionManagement = () => {
           <div className="space-y-5">
             <div className="grid grid-cols-2 gap-4 border-b border-slate-100 pb-4 dark:border-slate-800">
               <Field label="Candidate Name" value={selectedAdm.applicantName} strong />
-              <Field label="Target Class" value={selectedAdm.appliedClassLabel || 'Ã¢â¬â'} strong />
+              <Field label="Target Class" value={selectedAdm.appliedClassLabel || '–'} strong />
               <Field label="Birth Date" value={fmtDate(selectedAdm.dob)} />
               <Field label="Gender" value={selectedAdm.gender} />
-              <Field label="Previous School" value={selectedAdm.previousSchool || 'Ã¢â¬â'} />
+              <Field label="Previous School" value={selectedAdm.previousSchool || '–'} />
               <Field label="Category" value={selectedAdm.category || 'General'} />
             </div>
             <div className="space-y-2">
               <span className="block text-[10px] font-bold uppercase text-slate-400">Guardian Contacts</span>
               <div className="grid grid-cols-2 gap-4 rounded-xl border bg-slate-50 p-3.5 text-xs font-semibold dark:border-slate-800 dark:bg-slate-950">
-                <Field label="Name" value={selectedAdm.guardianName || 'Ã¢â¬â'} />
-                <Field label="Phone" value={selectedAdm.phone || 'Ã¢â¬â'} />
-                <Field label="Email" value={selectedAdm.email || 'Ã¢â¬â'} />
-                <Field label="Address" value={selectedAdm.address || 'Ã¢â¬â'} />
+                <Field label="Name" value={selectedAdm.guardianName || '–'} />
+                <Field label="Phone" value={selectedAdm.phone || '–'} />
+                <Field label="Email" value={selectedAdm.email || '–'} />
+                <Field label="Address" value={selectedAdm.address || '–'} />
               </div>
             </div>
             <div className="flex items-center justify-between rounded-xl border border-slate-200 p-3.5 dark:border-slate-800">
@@ -334,7 +334,7 @@ export const AdmissionManagement = () => {
 
             {selectedAdm.admissionNo && (
               <div className="rounded-xl bg-emerald-50 p-3 text-xs font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
-                Enrolled Ã¢â¬â Admission No {selectedAdm.admissionNo} ÃÂ· Student ID {selectedAdm.studentId}
+                Enrolled – Admission No {selectedAdm.admissionNo} ÃÂ· Student ID {selectedAdm.studentId}
               </div>
             )}
 
@@ -471,17 +471,17 @@ export const AdmissionManagement = () => {
               <div className="space-y-1 text-center">
                 <h3 className="text-lg font-bold leading-none text-white">{selectedAdm.applicantName}</h3>
                 <span className="text-[10px] font-extrabold uppercase tracking-wide text-indigo-400">
-                  {selectedAdm.appliedClassLabel || 'Ã¢â¬â'}
+                  {selectedAdm.appliedClassLabel || '–'}
                 </span>
               </div>
               <div className="w-full space-y-2 border-t border-slate-800 pt-3 text-left text-[11px] font-semibold text-slate-400">
                 <div className="flex justify-between">
                   <span>Admission No:</span>
-                  <span className="font-bold text-white">{selectedAdm.admissionNo || 'Ã¢â¬â'}</span>
+                  <span className="font-bold text-white">{selectedAdm.admissionNo || '–'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Student ID:</span>
-                  <span className="font-bold text-white">{selectedAdm.studentId || 'Ã¢â¬â'}</span>
+                  <span className="font-bold text-white">{selectedAdm.studentId || '–'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Guardian:</span>

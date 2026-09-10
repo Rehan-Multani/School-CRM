@@ -87,8 +87,8 @@ export const MemberManagement = () => {
       key: 'code',
       sortable: true,
       render: (val) => (
-        <span className="font-bold font-mono text-xs text-slate-900 dark:text-white bg-slate-100 dark:bg-indigo-600 px-2 py-0.5 rounded">
-          {val || 'Ã¢â¬â'}
+        <span className="font-bold font-mono text-xs text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded">
+          {val || '–'}
         </span>
       ),
     },
@@ -159,7 +159,7 @@ export const MemberManagement = () => {
       {loading ? (
         <SkeletonTable rows={8} columns={6} />
       ) : filteredData.length === 0 ? (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
           <Users className="h-8 w-8 mx-auto text-slate-400" />
           <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">No Members Found</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
@@ -167,7 +167,7 @@ export const MemberManagement = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
           <DataTable
             columns={columns}
             data={filteredData}

@@ -9,7 +9,7 @@ import { apiMessage } from '../academics/utils';
 import { LibraryTabsNav, inputClass, labelClass } from './libraryShared';
 
 const Section = ({ icon: Icon, title, description, children }) => (
-  <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+  <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
     <div className="mb-4 flex items-start gap-3">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
         <Icon className="h-4 w-4" />
@@ -29,7 +29,7 @@ const ToggleRow = ({ label, description, checked, onChange }) => (
       <span className="block text-xs font-bold text-slate-800 dark:text-slate-200">{label}</span>
       {description && <span className="text-[11px] text-slate-400">{description}</span>}
     </div>
-    <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-slate-300 transition-colors checked:bg-primary relative before:absolute before:left-0.5 before:top-0.5 before:h-4 before:w-4 before:rounded-full before:bg-white before:transition-transform checked:before:translate-x-4 dark:bg-indigo-600" />
+    <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-slate-300 transition-colors checked:bg-primary relative before:absolute before:left-0.5 before:top-0.5 before:h-4 before:w-4 before:rounded-full before:bg-white before:transition-transform checked:before:translate-x-4 dark:bg-slate-900" />
   </label>
 );
 

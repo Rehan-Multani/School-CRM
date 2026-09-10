@@ -32,7 +32,7 @@ import { SkeletonTable } from '../../components/ui/SkeletonLoader';
 
 function formatCurrency(amount) {
   const num = Number(amount) || 0;
-  return `Ã¢âÂ¹${num.toLocaleString('en-IN')}`;
+  return `₹${num.toLocaleString('en-IN')}`;
 }
 
 function getCurrentMonthString() {
@@ -376,7 +376,7 @@ export const HRAndPayroll = () => {
 
       {/* KPI Metric Cards */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">Monthly Net Payroll</span>
             <DollarSign className="h-4 w-4 text-primary" />
@@ -386,7 +386,7 @@ export const HRAndPayroll = () => {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">Salaries Paid</span>
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
@@ -394,7 +394,7 @@ export const HRAndPayroll = () => {
           <p className="mt-2 text-2xl font-black text-emerald-600">{stats.paidCount}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">Processed / Ready</span>
             <Clock className="h-4 w-4 text-indigo-500" />
@@ -402,7 +402,7 @@ export const HRAndPayroll = () => {
           <p className="mt-2 text-2xl font-black text-indigo-600">{stats.processedCount}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">Total Staff / Faculty</span>
             <Users className="h-4 w-4 text-amber-500" />
@@ -412,7 +412,7 @@ export const HRAndPayroll = () => {
       </div>
 
       {/* Month & Status Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="relative min-w-[260px] flex-1">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
@@ -478,7 +478,7 @@ export const HRAndPayroll = () => {
       </div>
 
       {/* Payroll Records Data Table */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         {loading ? (
           <SkeletonTable rows={6} columns={6} />
         ) : payrolls.length === 0 ? (
@@ -533,13 +533,13 @@ export const HRAndPayroll = () => {
                         <Badge variant="primary" className="mb-0.5 text-[10px]">
                           {p.employeeRole}
                         </Badge>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400">{p.department || 'Ã¢â¬â'}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">{p.department || '–'}</p>
                       </td>
 
                       <td className="px-3 py-3">
                         <span className="font-semibold text-slate-800 dark:text-slate-200">{p.payrollMonth}</span>
                         <span className="block text-[10px] text-slate-400">
-                          {p.payrollDate ? new Date(p.payrollDate).toLocaleDateString() : 'Ã¢â¬â'}
+                          {p.payrollDate ? new Date(p.payrollDate).toLocaleDateString() : '–'}
                         </span>
                       </td>
 
@@ -548,7 +548,7 @@ export const HRAndPayroll = () => {
                       </td>
 
                       <td className="px-3 py-3 font-semibold text-rose-500">
-                        {p.totalDeductions > 0 ? `-${formatCurrency(p.totalDeductions)}` : 'Ã¢âÂ¹0'}
+                        {p.totalDeductions > 0 ? `-${formatCurrency(p.totalDeductions)}` : '₹0'}
                       </td>
 
                       <td className="px-3 py-3">
@@ -752,7 +752,7 @@ export const HRAndPayroll = () => {
                     <span className="text-[10px] text-slate-400">(Auto-fetched)</span>
                   </div>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">Ã¢âÂ¹</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
                     <input
                       type="number"
                       min="0"
@@ -771,7 +771,7 @@ export const HRAndPayroll = () => {
                       Incentive
                     </label>
                     <div className="relative">
-                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">Ã¢âÂ¹</span>
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
                       <input
                         type="number"
                         min="0"
@@ -788,7 +788,7 @@ export const HRAndPayroll = () => {
                       Overtime
                     </label>
                     <div className="relative">
-                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">Ã¢âÂ¹</span>
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
                       <input
                         type="number"
                         min="0"
@@ -805,7 +805,7 @@ export const HRAndPayroll = () => {
                       Bonus
                     </label>
                     <div className="relative">
-                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">Ã¢âÂ¹</span>
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
                       <input
                         type="number"
                         min="0"
@@ -834,7 +834,7 @@ export const HRAndPayroll = () => {
                     <span className="text-[10px] text-slate-400">(Auto-calculated / Editable)</span>
                   </div>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">Ã¢âÂ¹</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
                     <input
                       type="number"
                       min="0"
@@ -877,7 +877,7 @@ export const HRAndPayroll = () => {
           </div>
 
           {/* Net Salary Highlight Summary Banner */}
-          <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 via-indigo-50/50 to-primary/5 p-4 sm:flex-row dark:border-primary/30 dark:bg-indigo-600">
+          <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 via-indigo-50/50 to-primary/5 p-4 sm:flex-row dark:border-primary/30 dark:bg-slate-900">
             <div>
               <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Net Take-Home Salary
@@ -965,7 +965,7 @@ export const HRAndPayroll = () => {
                 </div>
                 <div>
                   <span className="text-[10px] font-bold uppercase text-slate-400">Department</span>
-                  <p className="font-semibold text-slate-700 dark:text-slate-300">{selectedPay.department || 'Ã¢â¬â'}</p>
+                  <p className="font-semibold text-slate-700 dark:text-slate-300">{selectedPay.department || '–'}</p>
                 </div>
                 <div>
                   <span className="text-[10px] font-bold uppercase text-slate-400">Payment Status</span>
@@ -1033,7 +1033,7 @@ export const HRAndPayroll = () => {
                     <div className="flex justify-between">
                       <span>Leave / Absent Deduction</span>
                       <span className="font-semibold">
-                        {selectedPay.leaveDeduction > 0 ? `-${formatCurrency(selectedPay.leaveDeduction)}` : 'Ã¢âÂ¹0'}
+                        {selectedPay.leaveDeduction > 0 ? `-${formatCurrency(selectedPay.leaveDeduction)}` : '₹0'}
                       </span>
                     </div>
                     {selectedPay.otherDeduction > 0 && (
@@ -1057,7 +1057,7 @@ export const HRAndPayroll = () => {
               </div>
 
               {/* Net Pay Box */}
-              <div className="mt-5 flex items-center justify-between rounded-xl bg-slate-50 p-3.5 text-xs font-bold dark:bg-indigo-600">
+              <div className="mt-5 flex items-center justify-between rounded-xl bg-slate-50 p-3.5 text-xs font-bold dark:bg-slate-900">
                 <span className="text-slate-700 dark:text-slate-200">Net Take-Home Salary</span>
                 <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">
                   {formatCurrency(selectedPay.netSalary)}
@@ -1132,7 +1132,7 @@ export const HRAndPayroll = () => {
                           </div>
                           <div>
                             <div class="info-label">Department</div>
-                            <div class="info-val">${selectedPay?.department || 'Ã¢â¬â'}</div>
+                            <div class="info-val">${selectedPay?.department || '–'}</div>
                           </div>
                           <div>
                             <div class="info-label">Payment Status</div>
@@ -1156,7 +1156,7 @@ export const HRAndPayroll = () => {
 
                           <div class="card-box">
                             <div class="card-head" style="color: #be123c;">2. Deductions (Debit)</div>
-                            <div class="row"><span>Leave / Absent Deduction</span><span>${selectedPay?.leaveDeduction > 0 ? `-${formatCurrency(selectedPay?.leaveDeduction)}` : 'Ã¢âÂ¹0'}</span></div>
+                            <div class="row"><span>Leave / Absent Deduction</span><span>${selectedPay?.leaveDeduction > 0 ? `-${formatCurrency(selectedPay?.leaveDeduction)}` : '₹0'}</span></div>
                             <div class="row total" style="color: #be123c;"><span>Total Deductions</span><span>-${formatCurrency(selectedPay?.totalDeductions)}</span></div>
                           </div>
                         </div>

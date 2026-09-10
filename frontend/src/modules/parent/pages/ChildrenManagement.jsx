@@ -52,17 +52,17 @@ export const ChildrenManagement = () => {
               </div>
 
               <div className="grid grid-cols-3 gap-2 border-t border-border pt-4 text-center">
-                <div className="p-2 bg-slate-50 dark:bg-indigo-600 rounded-xl">
+                <div className="p-2 bg-slate-50 dark:bg-slate-900 rounded-xl">
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Attendance</p>
-                  <p className="text-xs font-black text-foreground mt-0.5">{att?.overallPercentage || 'Ã¢â¬â'}%</p>
+                  <p className="text-xs font-black text-foreground mt-0.5">{att?.overallPercentage || '–'}%</p>
                 </div>
-                <div className="p-2 bg-slate-50 dark:bg-indigo-600 rounded-xl">
+                <div className="p-2 bg-slate-50 dark:bg-slate-900 rounded-xl">
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Pending Fees</p>
-                  <p className="text-xs font-black text-rose-500 mt-0.5">Ã¢âÂ¹{fee?.pendingFees || '0'}</p>
+                  <p className="text-xs font-black text-rose-500 mt-0.5">₹{fee?.pendingFees || '0'}</p>
                 </div>
-                <div className="p-2 bg-slate-50 dark:bg-indigo-600 rounded-xl">
+                <div className="p-2 bg-slate-50 dark:bg-slate-900 rounded-xl">
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">GPA</p>
-                  <p className="text-xs font-black text-indigo-500 mt-0.5">{res?.gpa || 'Ã¢â¬â'}</p>
+                  <p className="text-xs font-black text-indigo-500 mt-0.5">{res?.gpa || '–'}</p>
                 </div>
               </div>
 

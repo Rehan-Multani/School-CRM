@@ -276,7 +276,7 @@ export const LibraryBooks = () => {
       <LibraryTabsNav />
 
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="relative min-w-[220px]">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
@@ -319,7 +319,7 @@ export const LibraryBooks = () => {
       {loading ? (
         <SkeletonTable rows={8} columns={7} />
       ) : books.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <BookOpen className="h-10 w-10 text-slate-300 dark:text-slate-700" />
           <h4 className="mt-3 text-sm font-bold text-slate-700 dark:text-slate-200">No books found</h4>
           <p className="mt-1 max-w-sm text-xs text-slate-400">
@@ -329,7 +329,7 @@ export const LibraryBooks = () => {
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="border-b border-slate-100 bg-slate-50/70 text-slate-500 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-400">
@@ -357,7 +357,7 @@ export const LibraryBooks = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-3 py-3.5 font-semibold text-slate-700 dark:text-slate-300">{b.publisher || 'Ã¢â¬â'}</td>
+                    <td className="px-3 py-3.5 font-semibold text-slate-700 dark:text-slate-300">{b.publisher || '–'}</td>
                     <td className="px-3 py-3.5 font-semibold text-slate-800 dark:text-slate-200">{b.author}</td>
                     <td className="px-3 py-3.5">
                       <Badge variant={categoryBadgeVariant(b.category)}>{b.category}</Badge>
@@ -619,13 +619,13 @@ export const LibraryBooks = () => {
             <div className="grid grid-cols-2 gap-3">
               {[
                 ['Author', viewBook.author],
-                ['Publisher', viewBook.publisher || 'Ã¢â¬â'],
+                ['Publisher', viewBook.publisher || '–'],
                 ['Category', viewBook.category],
-                ['Subject', viewBook.subject || 'Ã¢â¬â'],
-                ['Edition', viewBook.edition || 'Ã¢â¬â'],
-                ['Publication Year', viewBook.publicationYear || 'Ã¢â¬â'],
-                ['Language', viewBook.language || 'Ã¢â¬â'],
-                ['Book Cost', `Ã¢âÂ¹${viewBook.price || 0}`],
+                ['Subject', viewBook.subject || '–'],
+                ['Edition', viewBook.edition || '–'],
+                ['Publication Year', viewBook.publicationYear || '–'],
+                ['Language', viewBook.language || '–'],
+                ['Book Cost', `₹${viewBook.price || 0}`],
                 ['Total Copies', viewBook.totalCopies],
                 ['Available Copies', viewBook.availableCopies],
               ].map(([label, value]) => (
@@ -646,7 +646,7 @@ export const LibraryBooks = () => {
       </Modal>
 
       {/* Manage Copies Modal */}
-      <Modal isOpen={!!copiesBook} onClose={() => setCopiesBook(null)} title={copiesBook ? `Manage Copies Ã¢â¬â ${copiesBook.title}` : ''} size="lg">
+      <Modal isOpen={!!copiesBook} onClose={() => setCopiesBook(null)} title={copiesBook ? `Manage Copies – ${copiesBook.title}` : ''} size="lg">
         {copiesBook && (
           <div className="space-y-4">
             <form onSubmit={handleAddCopy} className="grid grid-cols-1 gap-3 rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5 dark:border-slate-800 dark:bg-slate-950/40 sm:grid-cols-4">
@@ -696,7 +696,7 @@ export const LibraryBooks = () => {
                             type="button"
                             disabled={c.status === 'ISSUED'}
                             onClick={() => setDeleteCopyTarget(c)}
-                            title={c.status === 'ISSUED' ? 'Cannot remove Ã¢â¬â currently issued' : 'Remove copy'}
+                            title={c.status === 'ISSUED' ? 'Cannot remove – currently issued' : 'Remove copy'}
                             className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:border-rose-300 hover:text-rose-600 disabled:cursor-not-allowed disabled:opacity-30 dark:border-slate-800"
                           >
                             <X className="h-3.5 w-3.5" />

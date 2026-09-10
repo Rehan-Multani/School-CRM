@@ -302,7 +302,7 @@ export const ClassesIndex = () => {
       />
 
       {/* Filters */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-wrap items-center gap-6">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-slate-500 shrink-0 select-none">Academic Year:</span>
@@ -360,9 +360,9 @@ export const ClassesIndex = () => {
       </div>
 
       {loading ? (
-        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
+        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <table className="w-full text-left text-xs">
-            <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-indigo-600/60 dark:text-slate-400">
+            <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
               <tr>
                 <th className="w-12 px-3.5 py-3 text-center">#</th>
                 <th className="px-3.5 py-3">Class</th>
@@ -375,12 +375,12 @@ export const ClassesIndex = () => {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
               {Array.from({ length: 5 }).map((_, index) => (
                 <tr key={index} className="animate-pulse">
-                  <td className="w-12 px-3.5 py-3 text-center"><div className="mx-auto h-3.5 w-4 rounded bg-slate-100 dark:bg-indigo-600" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-20 rounded bg-slate-100 dark:bg-indigo-600" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-32 rounded bg-slate-100 dark:bg-indigo-600" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-48 rounded bg-slate-100 dark:bg-indigo-600" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-16 rounded bg-slate-100 dark:bg-indigo-600" /></td>
-                  <td className="px-3.5 py-3 text-right"><div className="ml-auto h-7 w-16 rounded bg-slate-100 dark:bg-indigo-600" /></td>
+                  <td className="w-12 px-3.5 py-3 text-center"><div className="mx-auto h-3.5 w-4 rounded bg-slate-100 dark:bg-slate-900" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-20 rounded bg-slate-100 dark:bg-slate-900" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-32 rounded bg-slate-100 dark:bg-slate-900" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-48 rounded bg-slate-100 dark:bg-slate-900" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-16 rounded bg-slate-100 dark:bg-slate-900" /></td>
+                  <td className="px-3.5 py-3 text-right"><div className="ml-auto h-7 w-16 rounded bg-slate-100 dark:bg-slate-900" /></td>
                 </tr>
               ))}
             </tbody>
@@ -398,9 +398,9 @@ export const ClassesIndex = () => {
         />
       ) : (
         <div className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-indigo-600/60 dark:text-slate-400">
+              <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
                 <tr>
                   <th className="w-12 px-3.5 py-3 text-center">#</th>
                   <th className="px-3.5 py-3">Class</th>

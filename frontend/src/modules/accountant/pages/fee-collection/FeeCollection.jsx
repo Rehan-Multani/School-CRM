@@ -258,7 +258,7 @@ export const FeeCollection = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
               {/* Invoices */}
               <div className="lg:col-span-2 space-y-4">
-                <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
                   <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 mb-3">Open Invoices</h4>
                   {openInvoices.length === 0 ? (
                     <p className="text-xs text-slate-400 font-semibold py-4">No open invoices for this student.</p>
@@ -296,7 +296,7 @@ export const FeeCollection = () => {
                 </div>
 
                 {/* Assigned fee heads */}
-                <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
                   <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 mb-3">Assigned Fee Heads</h4>
                   {(profile?.assignments || []).length === 0 ? (
                     <p className="text-xs text-slate-400 font-semibold py-2">No fee assignments.</p>
@@ -316,7 +316,7 @@ export const FeeCollection = () => {
                 </div>
 
                 {paidInvoices.length > 0 && (
-                  <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
                     <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 mb-3">Paid Invoices</h4>
                     <div className="space-y-1.5">
                       {paidInvoices.map((inv) => (
@@ -335,7 +335,7 @@ export const FeeCollection = () => {
                 {activeInvoice ? (
                   <form
                     onSubmit={submitPayment}
-                    className="bg-white dark:bg-indigo-600 border border-violet-300 dark:border-violet-900/50 rounded-2xl p-5 shadow-sm space-y-3"
+                    className="bg-white dark:bg-slate-900 border border-violet-300 dark:border-violet-900/50 rounded-2xl p-5 shadow-sm space-y-3"
                   >
                     <h4 className="text-xs font-black uppercase tracking-wider text-violet-600">
                       Collect — {activeInvoice.invoiceNumber}
@@ -353,7 +353,7 @@ export const FeeCollection = () => {
                         max={activeInvoice.balanceAmount}
                         value={form.amount}
                         onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
-                        className="mt-1 w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-bold"
+                        className="mt-1 w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-bold"
                       />
                     </label>
                     <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300">
@@ -361,7 +361,7 @@ export const FeeCollection = () => {
                       <select
                         value={form.paymentMethod}
                         onChange={(e) => setForm((f) => ({ ...f, paymentMethod: e.target.value }))}
-                        className="mt-1 w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-bold"
+                        className="mt-1 w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-bold"
                       >
                         {PAYMENT_METHODS.map(([v, label]) => (
                           <option key={v} value={v}>
@@ -376,7 +376,7 @@ export const FeeCollection = () => {
                         placeholder="e.g. Cheque 004521"
                         value={form.paymentReference}
                         onChange={(e) => setForm((f) => ({ ...f, paymentReference: e.target.value }))}
-                        className="mt-1 w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs"
+                        className="mt-1 w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs"
                       />
                     </label>
                     <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300">
@@ -385,7 +385,7 @@ export const FeeCollection = () => {
                         placeholder="Optional note for this payment"
                         value={form.remarks}
                         onChange={(e) => setForm((f) => ({ ...f, remarks: e.target.value }))}
-                        className="mt-1 w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs"
+                        className="mt-1 w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs"
                       />
                     </label>
                     <div className="flex gap-2 pt-1">
@@ -406,14 +406,14 @@ export const FeeCollection = () => {
                     </div>
                   </form>
                 ) : (
-                  <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm text-xs text-slate-400 font-semibold">
+                  <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm text-xs text-slate-400 font-semibold">
                     Select an open invoice to collect a payment.
                   </div>
                 )}
 
                 <form
                   onSubmit={submitGenerate}
-                  className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3"
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-3"
                 >
                   <h4 className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
                     <Plus className="w-3.5 h-3.5" /> Generate Invoice
@@ -424,7 +424,7 @@ export const FeeCollection = () => {
                       value={genForm.periodLabel}
                       onChange={(e) => setGenForm((f) => ({ ...f, periodLabel: e.target.value }))}
                       placeholder="e.g. Term 2 2026-27"
-                      className="mt-1 w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs"
+                      className="mt-1 w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs"
                     />
                   </label>
                   <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-300">
@@ -433,7 +433,7 @@ export const FeeCollection = () => {
                       type="date"
                       value={genForm.dueDate}
                       onChange={(e) => setGenForm((f) => ({ ...f, dueDate: e.target.value }))}
-                      className="mt-1 w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs"
+                      className="mt-1 w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs"
                     />
                   </label>
                   <button
@@ -489,7 +489,7 @@ export const FeeCollection = () => {
                 <span className="font-bold">{receipt.paymentReference || '—'}</span>
               </div>
             </div>
-            <div className="p-4 bg-slate-50 dark:bg-indigo-600 rounded-xl border border-border flex justify-between items-center text-sm font-black">
+            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-border flex justify-between items-center text-sm font-black">
               <span>Paid Amount:</span>
               <span className="text-emerald-600">{formatCurrency(receipt.amount)}</span>
             </div>

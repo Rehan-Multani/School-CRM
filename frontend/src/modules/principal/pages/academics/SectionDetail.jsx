@@ -112,13 +112,13 @@ export const SectionDetail = () => {
         items={[
           { label: 'Academic Years', to: '/principal/academics/years' },
           { label: yearLabel, to: `/principal/academics/years/${yearId}` },
-          { label: `${classLabel} Ã¢â¬â ${sectionLabel}` },
+          { label: `${classLabel} – ${sectionLabel}` },
         ]}
       />
 
       <PageHeader
-        title={`${classLabel} Ã¢â¬â ${sectionLabel}`}
-        subtitle={`${yearLabel} ÃÂ· Room ${section.roomNumber || 'Ã¢â¬â'} ÃÂ· Capacity ${section.capacity}`}
+        title={`${classLabel} – ${sectionLabel}`}
+        subtitle={`${yearLabel} ÃÂ· Room ${section.roomNumber || '–'} ÃÂ· Capacity ${section.capacity}`}
         action={<Badge variant={ENTITY_STATUS_VARIANT[section.status] || 'default'}>{section.status}</Badge>}
       />
 
@@ -143,7 +143,7 @@ export const SectionDetail = () => {
               { label: 'Capacity', value: section.counts?.capacity ?? section.capacity },
               { label: 'Students', value: section.counts?.students },
               { label: 'Subjects', value: section.counts?.subjects },
-              { label: 'Class Teacher', value: section.classTeacher?.name || 'Ã¢â¬â' },
+              { label: 'Class Teacher', value: section.classTeacher?.name || '–' },
             ]}
           />
         </div>
@@ -159,7 +159,7 @@ export const SectionDetail = () => {
       {activeTab === 'subjects' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-800 dark:text-white">{sectionLabel} Ã¢â¬â Subjects</h3>
+            <h3 className="text-sm font-bold text-slate-800 dark:text-white">{sectionLabel} – Subjects</h3>
             <button
               type="button"
               onClick={() => setModalOpen(true)}
@@ -172,7 +172,7 @@ export const SectionDetail = () => {
           {sectionSubjects.length === 0 ? (
             <EmptyState title="No subjects assigned" description="Assign subjects and teachers for this section." />
           ) : (
-            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <table className="w-full text-left text-xs">
                 <thead className="border-b border-slate-100 bg-slate-50/70 text-slate-500 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-400">
                   <tr>
@@ -187,7 +187,7 @@ export const SectionDetail = () => {
                   {sectionSubjects.map((item) => (
                     <tr key={item.id} className="border-b border-slate-50 dark:border-slate-850">
                       <td className="px-4 py-3 font-bold">{item.subject?.name}</td>
-                      <td className="px-4 py-3">{item.teacher?.name || 'Ã¢â¬â'}</td>
+                      <td className="px-4 py-3">{item.teacher?.name || '–'}</td>
                       <td className="px-4 py-3">{item.subject?.subjectType || 'THEORY'}</td>
                       <td className="px-4 py-3">{item.status}</td>
                       <td className="px-4 py-3">
@@ -209,7 +209,7 @@ export const SectionDetail = () => {
       )}
 
       {activeTab === 'teacher' && (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <h3 className="text-sm font-bold text-slate-800 dark:text-white">Class Teacher</h3>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
             {section.classTeacher?.name || 'No class teacher assigned yet.'}

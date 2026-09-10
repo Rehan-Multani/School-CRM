@@ -98,7 +98,7 @@ export const Announcements = () => {
           <button
             onClick={fetchAnnouncements}
             disabled={loading}
-            className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
+            className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
             title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -117,7 +117,7 @@ export const Announcements = () => {
         {/* Post Form */}
         <form
           onSubmit={handlePostNotice}
-          className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4 text-left lg:col-span-1"
+          className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4 text-left lg:col-span-1"
         >
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
             <span className="text-[11px] font-bold uppercase text-slate-400">Broadcast Composer</span>
@@ -180,7 +180,7 @@ export const Announcements = () => {
         </form>
 
         {/* Notices Feed */}
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs lg:col-span-2 space-y-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Active Circulars Feed</h3>
@@ -194,7 +194,7 @@ export const Announcements = () => {
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((n) => (
-                <div key={n} className="h-28 bg-slate-100 dark:bg-indigo-600/60 rounded-2xl animate-pulse" />
+                <div key={n} className="h-28 bg-slate-100 dark:bg-slate-900/60 rounded-2xl animate-pulse" />
               ))}
             </div>
           ) : notices.length === 0 ? (
@@ -231,7 +231,7 @@ export const Announcements = () => {
                   </p>
 
                   <div className="flex items-center gap-2 pt-2 border-t border-slate-200/40 dark:border-slate-800 text-[10px] font-bold text-slate-400">
-                    <span className="px-2 py-0.5 rounded-md bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800">
+                    <span className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                       Audience: {Array.isArray(n.audiences) ? n.audiences.join(', ') : 'All Personnel'}
                     </span>
                     <span>â¢</span>

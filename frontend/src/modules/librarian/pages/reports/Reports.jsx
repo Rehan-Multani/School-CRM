@@ -58,7 +58,7 @@ function printAllReports(title, sections) {
             ${
               rows.length
                 ? rows
-                    .map((row) => `<tr>${columns.map((c) => `<td>${row[c] ?? 'Ã¢â¬â'}</td>`).join('')}</tr>`)
+                    .map((row) => `<tr>${columns.map((c) => `<td>${row[c] ?? '–'}</td>`).join('')}</tr>`)
                     .join('')
                 : `<tr><td>No records.</td></tr>`
             }
@@ -381,7 +381,7 @@ export const Reports = () => {
     <div className="space-y-6">
       <PageHeader
         title="Reports & Analytics Hub"
-        subtitle="Overall library report Ã¢â¬â inventory, circulation, members and fine records, all in one place."
+        subtitle="Overall library report – inventory, circulation, members and fine records, all in one place."
         actions={
           <div className="flex items-center gap-2.5">
             <button
@@ -411,7 +411,7 @@ export const Reports = () => {
       />
 
       {/* Filters */}
-      <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-5">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 items-end">
           <div className="space-y-1.5">
             <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -501,7 +501,7 @@ export const Reports = () => {
           </div>
 
           {/* Report Tabs */}
-          <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden">
             <div className="px-4 pt-2">
               <Tabs tabs={reportTabs} activeTab={activeTab} onChange={setActiveTab} />
             </div>
@@ -603,7 +603,7 @@ export const Reports = () => {
                   title="Daily / Weekly / Monthly Report"
                   onExport={() => exportToCSV(rows.trend, 'circulation_trend_report.csv')}
                   extra={
-                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-indigo-600 rounded-lg p-1">
+                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 rounded-lg p-1">
                       {['daily', 'weekly', 'monthly'].map((g) => (
                         <button
                           key={g}

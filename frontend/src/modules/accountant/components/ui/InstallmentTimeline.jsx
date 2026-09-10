@@ -44,7 +44,7 @@ export const InstallmentTimeline = ({ plan }) => {
               </div>
 
               {/* Installment Info */}
-              <div className="bg-white dark:bg-indigo-600 border rounded-2xl p-4 shadow-sm flex items-center justify-between">
+              <div className="bg-white dark:bg-slate-900 border rounded-2xl p-4 shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-slate-900 dark:text-white text-xs">Installment #{inst.seq}</span>

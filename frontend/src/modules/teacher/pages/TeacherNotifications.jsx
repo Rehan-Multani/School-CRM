@@ -92,7 +92,7 @@ export const TeacherNotifications = () => {
         ) : (
           filteredNotifications.map((notif) => {
             const Icon = TYPE_ICONS[notif.type] || Bell;
-            const colorClass = TYPE_COLORS[notif.type] || 'bg-slate-100 dark:bg-indigo-600 text-slate-500';
+            const colorClass = TYPE_COLORS[notif.type] || 'bg-slate-100 dark:bg-slate-900 text-slate-500';
 
             return (
               <Card

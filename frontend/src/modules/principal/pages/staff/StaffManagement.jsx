@@ -124,7 +124,7 @@ function exportUsersToCSV(users) {
     'Designation',
     'Specialization',
     'Joining Date',
-    'Basic Salary (Ã¢âÂ¹)',
+    'Basic Salary (₹)',
     'Status',
     'Bank Name',
     'Account Number',
@@ -142,7 +142,7 @@ function exportUsersToCSV(users) {
     `"${u.designation || ''}"`,
     `"${u.specialization || ''}"`,
     `"${u.joiningDate ? new Date(u.joiningDate).toLocaleDateString() : ''}"`,
-    `"${u.basicSalary ? `Ã¢âÂ¹${Number(u.basicSalary).toLocaleString('en-IN')}` : 'Ã¢âÂ¹0'}"`,
+    `"${u.basicSalary ? `₹${Number(u.basicSalary).toLocaleString('en-IN')}` : '₹0'}"`,
     `"${u.status || ''}"`,
     `"${u.bankDetails?.bankName || ''}"`,
     `"${u.bankDetails?.accountNumber || ''}"`,
@@ -477,7 +477,7 @@ export const StaffManagement = () => {
 
       {/* Top Metric Cards */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">Total Staff</span>
             <Users className="h-4 w-4 text-primary" />
@@ -487,7 +487,7 @@ export const StaffManagement = () => {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">Active Staff</span>
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
@@ -495,7 +495,7 @@ export const StaffManagement = () => {
           <p className="mt-2 text-2xl font-black text-emerald-600">{stats.active || 0}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">HR & Accounts</span>
             <Briefcase className="h-4 w-4 text-indigo-500" />
@@ -505,7 +505,7 @@ export const StaffManagement = () => {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">Library & Transport</span>
             <Building2 className="h-4 w-4 text-amber-500" />
@@ -537,7 +537,7 @@ export const StaffManagement = () => {
       </div>
 
       {/* Search & Status Filters */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="relative min-w-[260px] flex-1">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
@@ -580,7 +580,7 @@ export const StaffManagement = () => {
       </div>
 
       {/* Users Data Table */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         {loading ? (
           <SkeletonTable rows={6} columns={6} />
         ) : users.length === 0 ? (
@@ -660,12 +660,12 @@ export const StaffManagement = () => {
                       </td>
 
                       <td className="px-3 py-3">
-                        <p className="font-semibold text-slate-800 dark:text-slate-200">{user.department || 'Ã¢â¬â'}</p>
+                        <p className="font-semibold text-slate-800 dark:text-slate-200">{user.department || '–'}</p>
                         <p className="text-[10px] text-slate-400">{user.designation || 'Staff'}</p>
                       </td>
 
                       <td className="px-3 py-3 font-medium text-slate-600 dark:text-slate-300">
-                        {user.phone || 'Ã¢â¬â'}
+                        {user.phone || '–'}
                       </td>
 
                       <td className="px-3 py-3">
@@ -813,7 +813,7 @@ export const StaffManagement = () => {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-2 border-slate-200 bg-white shadow-sm transition hover:border-primary dark:border-slate-700 dark:bg-indigo-600"
+                className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-2 border-slate-200 bg-white shadow-sm transition hover:border-primary dark:border-slate-700 dark:bg-slate-900"
                 title="Click to select profile photo"
               >
                 {photoPreview ? (
@@ -1079,7 +1079,7 @@ export const StaffManagement = () => {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="mb-1 block text-[11px] font-bold text-slate-500">Basic Salary (Ã¢âÂ¹ / Month)</label>
+                <label className="mb-1 block text-[11px] font-bold text-slate-500">Basic Salary (₹ / Month)</label>
                 <input
                   type="number"
                   min="0"
@@ -1188,14 +1188,14 @@ export const StaffManagement = () => {
                 onClick={() => docInputRef.current?.click()}
                 className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/70 p-6 text-center transition hover:border-primary hover:bg-primary/5 dark:border-slate-700 dark:bg-slate-950/50 dark:hover:border-primary dark:hover:bg-primary/10"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm transition group-hover:scale-110 group-hover:bg-primary group-hover:text-white dark:bg-indigo-600">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm transition group-hover:scale-110 group-hover:bg-primary group-hover:text-white dark:bg-slate-900">
                   <UploadCloud className="h-6 w-6 text-primary group-hover:text-white" />
                 </div>
                 <h5 className="mt-3 text-xs font-bold text-slate-800 dark:text-slate-200">
                   Click to Browse & Upload Documents
                 </h5>
                 <p className="mt-1 max-w-sm text-[11px] text-slate-500 dark:text-slate-400">
-                  Attach Aadhaar, PAN Card, Qualification Degrees, or Identity Proof (JPG, PNG, WebP Ã¢â¬â Max 5MB each)
+                  Attach Aadhaar, PAN Card, Qualification Degrees, or Identity Proof (JPG, PNG, WebP – Max 5MB each)
                 </p>
                 <button
                   type="button"
@@ -1219,7 +1219,7 @@ export const StaffManagement = () => {
                   return (
                     <div
                       key={`exist-${idx}`}
-                      className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-indigo-600"
+                      className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900"
                     >
                       <div className="relative h-28 w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-950">
                         {url ? (

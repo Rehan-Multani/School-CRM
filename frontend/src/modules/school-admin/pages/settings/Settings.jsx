@@ -318,7 +318,7 @@ export const Settings = () => {
       <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
 
       {activeTab === 'theme' && (
-        <section className="space-y-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+        <section className="space-y-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-start gap-3">
             <div className="rounded-2xl bg-primary/10 p-2.5 text-primary">
               <Palette className="h-5 w-5" />
@@ -539,7 +539,7 @@ export const Settings = () => {
       {activeTab === 'security' && (
         <form
           onSubmit={handleChangePassword}
-          className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600"
+          className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
         >
           <div className="flex items-start gap-3">
             <div className="rounded-2xl bg-primary/10 p-2.5 text-primary">
@@ -572,7 +572,7 @@ export const Settings = () => {
             </Field>
             {newPassword && (
               <div className="flex items-center gap-3">
-                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-indigo-600">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-900">
                   <div
                     className={`h-full ${strength.color}`}
                     style={{ width: `${Math.min(100, strength.score * 20)}%` }}
@@ -607,7 +607,7 @@ export const Settings = () => {
       {activeTab === 'email' && (
         <form
           onSubmit={handleSaveEmail}
-          className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600"
+          className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
         >
           <div className="flex items-start gap-3">
             <div className="rounded-2xl bg-primary/10 p-2.5 text-primary">

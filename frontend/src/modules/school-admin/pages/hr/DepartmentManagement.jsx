@@ -143,7 +143,7 @@ export const DepartmentManagement = () => {
         }
       />
 
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         {loading ? (
           <SkeletonTable rows={5} columns={5} />
         ) : departments.length === 0 ? (
@@ -185,8 +185,8 @@ export const DepartmentManagement = () => {
                         <span className="font-bold text-slate-900 dark:text-white">{dept.name}</span>
                       </div>
                     </td>
-                    <td className="px-3 py-3 font-bold uppercase text-slate-500">{dept.code || 'Ã¢â¬â'}</td>
-                    <td className="px-3 py-3 max-w-xs truncate text-slate-500">{dept.description || 'Ã¢â¬â'}</td>
+                    <td className="px-3 py-3 font-bold uppercase text-slate-500">{dept.code || '–'}</td>
+                    <td className="px-3 py-3 max-w-xs truncate text-slate-500">{dept.description || '–'}</td>
                     <td className="px-3 py-3">
                       <span className="inline-flex items-center gap-1 font-bold text-indigo-600 dark:text-indigo-400">
                         <Users className="h-3.5 w-3.5" /> {dept.employeeCount || 0}

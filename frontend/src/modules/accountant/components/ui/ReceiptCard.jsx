@@ -11,7 +11,7 @@ export const ReceiptCard = ({ receipt, onPrint, onSendEmail, onSendSms }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-indigo-600 border rounded-3xl p-6 shadow-sm space-y-6 text-xs max-w-xl mx-auto" id="printable-receipt">
+    <div className="bg-white dark:bg-slate-900 border rounded-3xl p-6 shadow-sm space-y-6 text-xs max-w-xl mx-auto" id="printable-receipt">
       {/* Receipt Header info */}
       <div className="flex justify-between items-start pb-4 border-b border-dashed">
         <div className="space-y-1">

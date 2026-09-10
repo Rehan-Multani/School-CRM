@@ -142,7 +142,7 @@ export const DesignationManagement = () => {
             <button
               onClick={loadData}
               disabled={loading}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
               title="Refresh"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -158,7 +158,7 @@ export const DesignationManagement = () => {
         }
       />
 
-      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
+      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
         {loading ? (
           <SkeletonTable rows={5} columns={4} />
         ) : designations.length === 0 ? (

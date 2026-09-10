@@ -37,12 +37,12 @@ export const AttendanceCalendar = ({ attendanceRecords = [] }) => {
     const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const record = attendanceRecords.find(r => r.date === dateString);
 
-    if (!record) return 'bg-slate-50 text-slate-400 dark:bg-indigo-600';
+    if (!record) return 'bg-slate-50 text-slate-400 dark:bg-slate-900';
     if (record.status === 'Present') return 'bg-emerald-500 text-white font-bold';
     if (record.status === 'Late') return 'bg-amber-500 text-white font-bold';
     if (record.status === 'Absent') return 'bg-indigo-600 text-white font-bold';
     if (record.status === 'Leave') return 'bg-sky-500 text-white font-bold';
-    return 'bg-slate-300 text-slate-700 dark:bg-indigo-600';
+    return 'bg-slate-300 text-slate-700 dark:bg-slate-900';
   };
 
   return (

@@ -22,7 +22,7 @@ const ThemeButton = () => {
 
 const PortalPicker = () => {
   useEffect(() => {
-    document.title = `Sign in Ã¢â¬â ${PRODUCT.name}`;
+    document.title = `Sign in – ${PRODUCT.name}`;
   }, []);
 
   return (
@@ -57,7 +57,7 @@ const PortalPicker = () => {
             Sign in to your portal
           </h1>
           <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-slate-400">
-            Choose the workspace built for your role. Office staff sign in here on the web Ã¢â¬â each
+            Choose the workspace built for your role. Office staff sign in here on the web – each
             portal has its own login and password reset.
           </p>
         </div>
@@ -68,7 +68,7 @@ const PortalPicker = () => {
           ))}
         </div>
 
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-indigo-600/50">
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900/50">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-600 text-white">

@@ -57,9 +57,9 @@ function buildFileUrl(path) {
 }
 
 function formatDate(value) {
-  if (!value) return 'Ã¢â¬â';
+  if (!value) return '–';
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Ã¢â¬â';
+  if (Number.isNaN(date.getTime())) return '–';
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
@@ -76,7 +76,7 @@ function getInitials(name) {
 
 function DetailCard({ title, icon: Icon, children }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="mb-5 flex items-center gap-2 border-b border-slate-100 pb-3 dark:border-slate-800">
         {Icon && <Icon className="h-4 w-4 text-primary" />}
         <h3 className="text-sm font-bold text-slate-800 dark:text-white">{title}</h3>
@@ -95,7 +95,7 @@ function Field({ label, value, isMono = false }) {
           isMono ? 'font-mono text-xs' : ''
         }`}
       >
-        {value || 'Ã¢â¬â'}
+        {value || '–'}
       </p>
     </div>
   );
@@ -213,7 +213,7 @@ export const StaffDetail = () => {
         >
           <ArrowLeft className="h-4 w-4" /> Back to Users Directory
         </Link>
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center dark:border-slate-800 dark:bg-indigo-600">
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-white py-16 text-center dark:border-slate-800 dark:bg-slate-900">
           <UserX className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-700" />
           <h3 className="mt-4 text-base font-bold text-slate-700 dark:text-slate-200">User Not Found</h3>
           <p className="mt-1 text-xs text-slate-400">The requested staff user record does not exist or was deleted.</p>
@@ -236,7 +236,7 @@ export const StaffDetail = () => {
       </div>
 
       {/* Main Profile Header Card */}
-      <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-5">
             {avatarUrl ? (
@@ -351,7 +351,7 @@ export const StaffDetail = () => {
           <div className="grid grid-cols-2 gap-4">
             <Field
               label="Basic Monthly Salary"
-              value={user.basicSalary ? `Ã¢âÂ¹${Number(user.basicSalary).toLocaleString('en-IN')} / month` : 'Ã¢âÂ¹0'}
+              value={user.basicSalary ? `₹${Number(user.basicSalary).toLocaleString('en-IN')} / month` : '₹0'}
             />
             <Field label="Account Type" value={user.bankDetails?.accountType || 'SALARY'} />
             <Field label="Account Holder Name" value={user.bankDetails?.accountName} />
@@ -374,7 +374,7 @@ export const StaffDetail = () => {
       </div>
 
       {/* 5. Uploaded Documents Section (Max 3) */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="mb-4 flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-primary" />
@@ -394,7 +394,7 @@ export const StaffDetail = () => {
                   key={index}
                   className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 transition hover:shadow-md dark:border-slate-800 dark:bg-slate-950"
                 >
-                  <div className="aspect-video w-full overflow-hidden bg-slate-200 dark:bg-indigo-600">
+                  <div className="aspect-video w-full overflow-hidden bg-slate-200 dark:bg-slate-900">
                     <img
                       src={fullUrl}
                       alt={`Document ${index + 1}`}
@@ -525,7 +525,7 @@ export const StaffDetail = () => {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
           onClick={() => setPreviewImage(null)}
         >
-          <div className="relative max-h-[90vh] max-w-3xl overflow-hidden rounded-2xl bg-white p-2 dark:bg-indigo-600">
+          <div className="relative max-h-[90vh] max-w-3xl overflow-hidden rounded-2xl bg-white p-2 dark:bg-slate-900">
             <img src={previewImage} alt="Preview" className="max-h-[80vh] w-auto rounded-xl object-contain" />
             <button
               onClick={() => setPreviewImage(null)}

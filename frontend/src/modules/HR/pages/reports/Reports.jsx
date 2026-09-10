@@ -130,7 +130,7 @@ export const Reports = () => {
               {(data.departmentBreakdown || []).map((d, i) => (
                 <div key={i} className="p-3.5 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200/80 dark:border-slate-800 flex justify-between items-center">
                   <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{d.name}</span>
-                  <span className="px-2.5 py-1 bg-white dark:bg-indigo-600 font-mono font-bold text-xs rounded-lg border border-slate-200 dark:border-slate-800 text-indigo-600 dark:text-indigo-400">{d.count}</span>
+                  <span className="px-2.5 py-1 bg-white dark:bg-slate-900 font-mono font-bold text-xs rounded-lg border border-slate-200 dark:border-slate-800 text-indigo-600 dark:text-indigo-400">{d.count}</span>
                 </div>
               ))}
             </div>
@@ -178,9 +178,9 @@ export const Reports = () => {
                   <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-950/40">
                     <td className="p-3.5 font-bold text-slate-900 dark:text-white">{m._id}</td>
                     <td className="p-3.5 text-center font-mono">{m.count}</td>
-                    <td className="p-3.5 text-right">Ã¢âÂ¹{Number(m.totalGross || 0).toLocaleString('en-IN')}</td>
-                    <td className="p-3.5 text-right text-rose-600">Ã¢âÂ¹{Number(m.totalDeductions || 0).toLocaleString('en-IN')}</td>
-                    <td className="p-3.5 text-right font-black text-emerald-600 dark:text-emerald-400">Ã¢âÂ¹{Number(m.totalNet || 0).toLocaleString('en-IN')}</td>
+                    <td className="p-3.5 text-right">₹{Number(m.totalGross || 0).toLocaleString('en-IN')}</td>
+                    <td className="p-3.5 text-right text-rose-600">₹{Number(m.totalDeductions || 0).toLocaleString('en-IN')}</td>
+                    <td className="p-3.5 text-right font-black text-emerald-600 dark:text-emerald-400">₹{Number(m.totalNet || 0).toLocaleString('en-IN')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -209,7 +209,7 @@ export const Reports = () => {
                 {depts.map((d, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-950/40">
                     <td className="p-3.5 font-bold text-slate-900 dark:text-white">{d.name}</td>
-                    <td className="p-3.5 font-mono text-slate-500">{d.code || 'Ã¢â¬â'}</td>
+                    <td className="p-3.5 font-mono text-slate-500">{d.code || '–'}</td>
                     <td className="p-3.5 text-slate-600 dark:text-slate-400">{d.headEmployeeName || 'Not Appointed'}</td>
                     <td className="p-3.5 text-center">
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">{d.status}</span>
@@ -266,7 +266,7 @@ export const Reports = () => {
             <button
               onClick={fetchReport}
               disabled={loading}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
               title="Refresh Report"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -319,17 +319,17 @@ export const Reports = () => {
 
       {/* Report Content Display */}
       {loading ? (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-12 animate-pulse space-y-4">
-          <div className="h-6 w-48 bg-slate-100 dark:bg-indigo-600 rounded-xl" />
-          <div className="h-40 bg-slate-100 dark:bg-indigo-600 rounded-2xl" />
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-12 animate-pulse space-y-4">
+          <div className="h-6 w-48 bg-slate-100 dark:bg-slate-900 rounded-xl" />
+          <div className="h-40 bg-slate-100 dark:bg-slate-900 rounded-2xl" />
         </div>
       ) : !data ? (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-2">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-2">
           <BarChart3 className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-700" />
           <p className="text-xs">No analytics data returned for this category.</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
           <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white capitalize">

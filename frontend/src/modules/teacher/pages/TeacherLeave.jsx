@@ -104,7 +104,7 @@ export const TeacherLeave = () => {
               <select
                 value={form.type}
                 onChange={(e) => setForm({ ...form, type: e.target.value })}
-                className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-indigo-600 border-border text-foreground"
+                className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-slate-900 border-border text-foreground"
               >
                 {LEAVE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
@@ -118,7 +118,7 @@ export const TeacherLeave = () => {
                   required
                   value={form.from}
                   onChange={(e) => setForm({ ...form, from: e.target.value })}
-                  className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-indigo-600 border-border text-foreground"
+                  className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-slate-900 border-border text-foreground"
                 />
               </div>
               <div className="space-y-1">
@@ -128,7 +128,7 @@ export const TeacherLeave = () => {
                   required
                   value={form.to}
                   onChange={(e) => setForm({ ...form, to: e.target.value })}
-                  className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-indigo-600 border-border text-foreground"
+                  className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-slate-900 border-border text-foreground"
                 />
               </div>
             </div>
@@ -141,7 +141,7 @@ export const TeacherLeave = () => {
                 value={form.reason}
                 onChange={(e) => setForm({ ...form, reason: e.target.value })}
                 placeholder="State detailed reason..."
-                className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-indigo-600 border-border text-foreground"
+                className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-slate-900 border-border text-foreground"
               />
             </div>
 

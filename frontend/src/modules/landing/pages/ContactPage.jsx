@@ -18,14 +18,14 @@ export const ContactPage = () => {
   const [sent, setSent] = useState(false);
 
   useEffect(() => {
-    document.title = `Contact Ã¢â¬â ${PRODUCT.name}`;
+    document.title = `Contact – ${PRODUCT.name}`;
   }, []);
 
   const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const subject = encodeURIComponent(`School CRM enquiry Ã¢â¬â ${form.school || form.name || 'Website'}`);
+    const subject = encodeURIComponent(`School CRM enquiry – ${form.school || form.name || 'Website'}`);
     const body = encodeURIComponent(
       `Name: ${form.name}\nEmail: ${form.email}\nSchool: ${form.school}\n\n${form.message}`,
     );
@@ -74,7 +74,7 @@ export const ContactPage = () => {
             );
           })}
           <Reveal delay={0.16}>
-            <div className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-indigo-600">
+            <div className="flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
                 <MapPin className="h-5 w-5" />
               </span>
@@ -89,7 +89,7 @@ export const ContactPage = () => {
         </div>
 
         <Reveal delay={0.08}>
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-indigo-600 sm:p-8">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 sm:p-8">
             {sent ? (
               <div className="flex flex-col items-center py-10 text-center">
                 <CheckCircle2 className="h-12 w-12 text-emerald-500" />
@@ -162,7 +162,7 @@ export const ContactPage = () => {
                   Send message
                 </button>
                 <p className="text-center text-xs text-slate-400">
-                  This opens your email app with the details filled in Ã¢â¬â nothing is stored on this page.
+                  This opens your email app with the details filled in – nothing is stored on this page.
                 </p>
               </form>
             )}

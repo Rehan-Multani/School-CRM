@@ -27,7 +27,7 @@ function parseInDate(str) {
   return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
 }
 function inr(n) {
-  return `Ã¢âÂ¹${Number(n || 0).toLocaleString('en-IN')}`;
+  return `₹${Number(n || 0).toLocaleString('en-IN')}`;
 }
 
 export const FeeMonitoring = () => {
@@ -151,7 +151,7 @@ export const FeeMonitoring = () => {
       ) : (
         <>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+            <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="rounded-2xl bg-emerald-50 p-3.5 text-emerald-600 dark:bg-emerald-950/40">
                 <IndianRupee className="h-5 w-5 shrink-0" />
               </div>
@@ -160,7 +160,7 @@ export const FeeMonitoring = () => {
                 <span className="mt-1 block text-xl font-extrabold text-emerald-600">{loading ? 'â¦' : inr(totalCollected)}</span>
               </div>
             </div>
-            <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+            <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="rounded-2xl bg-rose-50 p-3.5 text-rose-600 dark:bg-rose-950/40">
                 <AlertTriangle className="h-5 w-5 shrink-0" />
               </div>
@@ -169,7 +169,7 @@ export const FeeMonitoring = () => {
                 <span className="mt-1 block text-xl font-extrabold text-rose-600">{loading ? 'â¦' : inr(totalOutstanding)}</span>
               </div>
             </div>
-            <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+            <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div className="rounded-2xl bg-indigo-50 p-3.5 text-indigo-600 dark:bg-indigo-950/40">
                 <Percent className="h-5 w-5 shrink-0" />
               </div>
@@ -181,7 +181,7 @@ export const FeeMonitoring = () => {
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+            <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white">
                 <TrendingUp className="h-4 w-4 text-emerald-500" />
                 <span>Monthly Tuition Revenue (Trend)</span>
@@ -196,7 +196,7 @@ export const FeeMonitoring = () => {
                 )}
               </div>
             </div>
-            <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+            <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white">
                 <AlertTriangle className="h-4 w-4 text-rose-500" />
                 <span>Outstanding Dues by Class Grade</span>

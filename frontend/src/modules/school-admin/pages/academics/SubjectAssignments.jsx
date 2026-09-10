@@ -601,7 +601,7 @@ export const SubjectAssignments = () => {
 
       {/* Summary Metric Cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 flex items-center gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center gap-3">
           <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
             <BookOpen className="h-5 w-5" />
           </div>
@@ -611,7 +611,7 @@ export const SubjectAssignments = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 flex items-center gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center gap-3">
           <div className="rounded-xl bg-indigo-500/10 p-2.5 text-indigo-600 dark:text-indigo-400">
             <GraduationCap className="h-5 w-5" />
           </div>
@@ -621,7 +621,7 @@ export const SubjectAssignments = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 flex items-center gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center gap-3">
           <div className="rounded-xl bg-sky-500/10 p-2.5 text-sky-600 dark:text-sky-400">
             <Layers className="h-5 w-5" />
           </div>
@@ -631,7 +631,7 @@ export const SubjectAssignments = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 flex items-center gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center gap-3">
           <div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-600 dark:text-emerald-400">
             <UserCheck className="h-5 w-5" />
           </div>
@@ -641,12 +641,12 @@ export const SubjectAssignments = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 flex items-center gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center gap-3">
           <div
             className={`rounded-xl p-2.5 ${
               stats.vacantCount > 0
                 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                : 'bg-slate-100 text-slate-400 dark:bg-indigo-600'
+                : 'bg-slate-100 text-slate-400 dark:bg-slate-900'
             }`}
           >
             <UserX className="h-5 w-5" />
@@ -665,7 +665,7 @@ export const SubjectAssignments = () => {
       </div>
 
       {/* Filter & Search Toolbar */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 space-y-3">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-3">
         {/* Status Filter Tabs */}
         {assignments.length > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -861,9 +861,9 @@ export const SubjectAssignments = () => {
 
       {/* Main Table / Skeleton / Empty State */}
       {loading ? (
-        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
+        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <table className="w-full text-left text-xs">
-            <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-indigo-600/60 dark:text-slate-400">
+            <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
               <tr>
                 <th className="w-12 px-3.5 py-3 text-center">#</th>
                 <th className="px-3.5 py-3">Class & Section</th>
@@ -879,28 +879,28 @@ export const SubjectAssignments = () => {
               {Array.from({ length: 5 }).map((_, index) => (
                 <tr key={index} className="animate-pulse">
                   <td className="w-12 px-3.5 py-3 text-center">
-                    <div className="mx-auto h-3.5 w-4 rounded bg-slate-100 dark:bg-indigo-600" />
+                    <div className="mx-auto h-3.5 w-4 rounded bg-slate-100 dark:bg-slate-900" />
                   </td>
                   <td className="px-3.5 py-3">
-                    <div className="h-4 w-24 rounded bg-slate-100 dark:bg-indigo-600" />
+                    <div className="h-4 w-24 rounded bg-slate-100 dark:bg-slate-900" />
                   </td>
                   <td className="px-3.5 py-3">
-                    <div className="h-4 w-28 rounded bg-slate-100 dark:bg-indigo-600" />
+                    <div className="h-4 w-28 rounded bg-slate-100 dark:bg-slate-900" />
                   </td>
                   <td className="px-3.5 py-3">
-                    <div className="h-4 w-32 rounded bg-slate-100 dark:bg-indigo-600" />
+                    <div className="h-4 w-32 rounded bg-slate-100 dark:bg-slate-900" />
                   </td>
                   <td className="px-3.5 py-3">
-                    <div className="h-4 w-20 rounded bg-slate-100 dark:bg-indigo-600" />
+                    <div className="h-4 w-20 rounded bg-slate-100 dark:bg-slate-900" />
                   </td>
                   <td className="px-3.5 py-3">
-                    <div className="h-4 w-16 rounded bg-slate-100 dark:bg-indigo-600" />
+                    <div className="h-4 w-16 rounded bg-slate-100 dark:bg-slate-900" />
                   </td>
                   <td className="px-3.5 py-3">
-                    <div className="h-4 w-16 rounded bg-slate-100 dark:bg-indigo-600" />
+                    <div className="h-4 w-16 rounded bg-slate-100 dark:bg-slate-900" />
                   </td>
                   <td className="px-3.5 py-3 text-right">
-                    <div className="ml-auto h-7 w-16 rounded bg-slate-100 dark:bg-indigo-600" />
+                    <div className="ml-auto h-7 w-16 rounded bg-slate-100 dark:bg-slate-900" />
                   </td>
                 </tr>
               ))}
@@ -922,7 +922,7 @@ export const SubjectAssignments = () => {
           }
         />
       ) : filteredAssignments.length === 0 ? (
-        <div className="flex min-h-[20vh] flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-slate-400 dark:border-slate-800 dark:bg-indigo-600">
+        <div className="flex min-h-[20vh] flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-slate-400 dark:border-slate-800 dark:bg-slate-900">
           <p className="text-sm font-medium">No subject assignments match your filters</p>
           <button
             type="button"
@@ -934,9 +934,9 @@ export const SubjectAssignments = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-indigo-600/60 dark:text-slate-400">
+              <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
                 <tr>
                   <th className="w-12 px-3.5 py-3 text-center">#</th>
                   <th className="px-3.5 py-3">Class & Section</th>
@@ -993,7 +993,7 @@ export const SubjectAssignments = () => {
                           <div className="flex flex-col gap-0.5">
                             <div className="flex items-center gap-1.5">
                               <span className="font-bold text-slate-900 dark:text-white">
-                                {sub?.name || 'Ã¢â¬â'}
+                                {sub?.name || '–'}
                               </span>
                               {sub?.code && (
                                 <span className="inline-flex rounded-md bg-indigo-50 px-2 py-0.5 font-mono text-[10px] font-bold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
@@ -1052,7 +1052,7 @@ export const SubjectAssignments = () => {
                         <td className="px-3.5 py-3 whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
                             <span className="font-semibold text-slate-700 dark:text-slate-300">
-                              {yr?.name || 'Ã¢â¬â'}
+                              {yr?.name || '–'}
                             </span>
                             {yr?.isCurrent && (
                               <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
@@ -1254,7 +1254,7 @@ export const SubjectAssignments = () => {
                   );
                   return (
                     <option key={sub.id} value={sub.id} disabled={isAssigned}>
-                      {sub.name} ({sub.code || 'N/A'}) {isAssigned ? 'Ã¢â¬â Already Assigned' : ''}
+                      {sub.name} ({sub.code || 'N/A'}) {isAssigned ? '– Already Assigned' : ''}
                     </option>
                   );
                 })}
@@ -1272,7 +1272,7 @@ export const SubjectAssignments = () => {
                 <option value="">Leave Vacant (Assign Later)</option>
                 {teachers.map((t) => (
                   <option key={t.id} value={t.id}>
-                    {t.name} ({t.department || 'Faculty'}) Ã¢â¬â {t.email || t.employeeId || 'ID'}
+                    {t.name} ({t.department || 'Faculty'}) – {t.email || t.employeeId || 'ID'}
                   </option>
                 ))}
               </select>
@@ -1358,7 +1358,7 @@ export const SubjectAssignments = () => {
                 <div>
                   <span className="text-slate-400">Class & Section:</span>
                   <p className="font-bold text-slate-800 dark:text-slate-200">
-                    {editingAssignment.class?.name || classMap.get(editingAssignment.classId)?.name} Ã¢â¬â Section{' '}
+                    {editingAssignment.class?.name || classMap.get(editingAssignment.classId)?.name} – Section{' '}
                     {editingAssignment.section?.name || sectionMap.get(editingAssignment.sectionId)?.name}
                   </p>
                 </div>
@@ -1366,7 +1366,7 @@ export const SubjectAssignments = () => {
                   <span className="text-slate-400">Subject:</span>
                   <p className="font-bold text-primary">
                     {editingAssignment.subject?.name || subjectMap.get(editingAssignment.subjectId)?.name} (
-                    {editingAssignment.subject?.code || subjectMap.get(editingAssignment.subjectId)?.code || 'Ã¢â¬â'})
+                    {editingAssignment.subject?.code || subjectMap.get(editingAssignment.subjectId)?.code || '–'})
                   </p>
                 </div>
               </div>
@@ -1383,7 +1383,7 @@ export const SubjectAssignments = () => {
                 <option value="">Leave Vacant (No Teacher)</option>
                 {teachers.map((t) => (
                   <option key={t.id} value={t.id}>
-                    {t.name} ({t.department || 'Faculty'}) Ã¢â¬â {t.email}
+                    {t.name} ({t.department || 'Faculty'}) – {t.email}
                   </option>
                 ))}
               </select>

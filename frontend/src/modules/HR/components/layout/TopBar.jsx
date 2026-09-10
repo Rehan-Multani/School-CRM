@@ -47,7 +47,7 @@ export const TopBar = ({ toggleSidebar, onSearchTrigger }) => {
 
         <button
           onClick={onSearchTrigger}
-          className="hidden md:flex items-center gap-2.5 px-3.5 py-2 bg-slate-50/80 dark:bg-indigo-600/80 text-slate-400 border border-slate-200 dark:border-slate-800 rounded-xl text-xs hover:border-indigo-400 dark:hover:border-indigo-800 transition-all w-72 cursor-pointer shadow-2xs group"
+          className="hidden md:flex items-center gap-2.5 px-3.5 py-2 bg-slate-50/80 dark:bg-slate-900/80 text-slate-400 border border-slate-200 dark:border-slate-800 rounded-xl text-xs hover:border-indigo-400 dark:hover:border-indigo-800 transition-all w-72 cursor-pointer shadow-2xs group"
         >
           <Search className="w-3.5 h-3.5 shrink-0 text-slate-400 group-hover:text-indigo-600 transition-colors" />
           <span className="flex-1 text-left font-semibold">Search staff, payroll, leave...</span>
@@ -92,7 +92,7 @@ export const TopBar = ({ toggleSidebar, onSearchTrigger }) => {
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 overflow-hidden">
+            <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 overflow-hidden">
               <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div>
                   <h3 className="text-xs font-bold text-slate-900 dark:text-white">HR Notifications Feed</h3>
@@ -160,7 +160,7 @@ export const TopBar = ({ toggleSidebar, onSearchTrigger }) => {
           </button>
 
           {showProfileMenu && (
-            <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-2 space-y-1">
+            <div className="absolute right-0 mt-3 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-2 space-y-1">
               <div className="p-3 border-b border-slate-100 dark:border-slate-800">
                 <p className="text-xs font-bold text-slate-900 dark:text-white">{user?.name}</p>
                 <p className="text-[11px] text-slate-400 truncate">{user?.email || 'hr@school.edu'}</p>

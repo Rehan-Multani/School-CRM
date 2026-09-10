@@ -36,7 +36,7 @@ export const TopBar = () => {
         ) : activeChildInfo ? (
           <button
             onClick={() => setShowSwitchModal(true)}
-            className="flex items-center gap-2 text-left bg-slate-100 dark:bg-indigo-600 px-3 py-1.5 rounded-xl border border-border"
+            className="flex items-center gap-2 text-left bg-slate-100 dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-border"
           >
             <img
               src={activeChildInfo.photo}
@@ -101,7 +101,7 @@ export const TopBar = () => {
                     key={c.id}
                     onClick={() => { changeSelectedChild(c.id); setShowSwitchModal(false); }}
                     className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition-all text-left ${
-                      isActive ? 'bg-primary/5 border-primary' : 'bg-slate-50/50 dark:bg-indigo-600/50 border-border hover:border-primary/20'
+                      isActive ? 'bg-primary/5 border-primary' : 'bg-slate-50/50 dark:bg-slate-900/50 border-border hover:border-primary/20'
                     }`}
                   >
                     <img src={c.photo} alt={c.name} className="w-10 h-10 rounded-xl object-cover" />
@@ -116,7 +116,7 @@ export const TopBar = () => {
             </div>
             <button
               onClick={() => setShowSwitchModal(false)}
-              className="w-full mt-4 py-2.5 bg-slate-100 dark:bg-indigo-600 text-xs font-bold rounded-xl"
+              className="w-full mt-4 py-2.5 bg-slate-100 dark:bg-slate-900 text-xs font-bold rounded-xl"
             >
               Cancel
             </button>

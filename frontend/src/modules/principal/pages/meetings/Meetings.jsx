@@ -33,7 +33,7 @@ function splitDateTime(iso) {
   return { date: local.slice(0, 10), time: local.slice(11, 16) };
 }
 function fmt(iso) {
-  if (!iso) return 'Ã¢â¬â';
+  if (!iso) return '–';
   return new Date(iso).toLocaleString('en-IN', {
     day: '2-digit',
     month: 'short',
@@ -207,7 +207,7 @@ export const Meetings = () => {
       { key: 'type', title: 'Type', render: (v) => <Badge variant="info">{TYPE_LABEL[v] || v}</Badge> },
       { key: 'scheduledAt', title: 'Scheduled', sortable: true, render: (v) => fmt(v) },
       { key: 'durationMin', title: 'Duration', render: (v) => `${v} min` },
-      { key: 'participantsLabel', title: 'Participants', render: (v) => v || 'Ã¢â¬â' },
+      { key: 'participantsLabel', title: 'Participants', render: (v) => v || '–' },
       { key: 'status', title: 'Status', render: (v) => <Badge variant={STATUS_VARIANT[v] || 'default'}>{v}</Badge> },
       {
         key: '_actions',
@@ -275,7 +275,7 @@ export const Meetings = () => {
           { label: 'Completed', value: stats.COMPLETED },
           { label: 'Cancelled', value: stats.CANCELLED },
         ].map((c) => (
-          <div key={c.label} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+          <div key={c.label} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">{c.label}</div>
             <div className="mt-0.5 text-xl font-extrabold text-slate-900 dark:text-white">{c.value ?? 0}</div>
           </div>
@@ -320,7 +320,7 @@ export const Meetings = () => {
       {activeTab === 'schedule' && (
         <form
           onSubmit={handleSubmit}
-          className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 text-xs font-semibold shadow-sm dark:border-slate-800 dark:bg-indigo-600"
+          className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 text-xs font-semibold shadow-sm dark:border-slate-800 dark:bg-slate-900"
         >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-1">
@@ -425,7 +425,7 @@ export const Meetings = () => {
         </form>
       )}
 
-      <Modal isOpen={Boolean(minutesTarget)} onClose={() => setMinutesTarget(null)} title="Complete Meeting Ã¢â¬â Minutes">
+      <Modal isOpen={Boolean(minutesTarget)} onClose={() => setMinutesTarget(null)} title="Complete Meeting – Minutes">
         <div className="space-y-4">
           <p className="text-xs font-semibold text-slate-500">
             Record minutes / outcome for <strong>{minutesTarget?.title}</strong> (optional).

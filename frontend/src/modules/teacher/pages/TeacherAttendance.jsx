@@ -84,7 +84,7 @@ export const TeacherAttendance = () => {
               setAttendanceDate(e.target.value);
               setSubmitted(false);
             }}
-            className="px-3 py-1.5 text-xs font-semibold rounded-xl border border-border bg-white dark:bg-indigo-600 text-foreground"
+            className="px-3 py-1.5 text-xs font-semibold rounded-xl border border-border bg-white dark:bg-slate-900 text-foreground"
           />
           <button
             onClick={handleSubmit}
@@ -128,7 +128,7 @@ export const TeacherAttendance = () => {
 
       {tab === 'mark' && (
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 dark:bg-indigo-600 border border-border rounded-2xl">
+          <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-2xl">
             <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
               Bulk Roll Call Actions ({classStudents.length} Students)
             </span>
@@ -174,7 +174,7 @@ export const TeacherAttendance = () => {
                               stVal === 'Absent' ? 'bg-indigo-600 text-white shadow-sm' :
                               stVal === 'Late' ? 'bg-amber-600 text-white shadow-sm' :
                               'bg-indigo-600 text-white shadow-sm'
-                            : 'bg-slate-100 dark:bg-indigo-600 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                            : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
                         }`}
                       >
                         {stVal}

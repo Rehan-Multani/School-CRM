@@ -12,7 +12,7 @@ const STATUS_STYLES = {
   COMPLETED: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300',
   CANCELLED: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
   EXPIRED: 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300',
-  FAILED: 'bg-rose-100 text-rose-700 dark:bg-indigo-600/10 dark:text-rose-300',
+  FAILED: 'bg-rose-100 text-rose-700 dark:bg-slate-900/10 dark:text-rose-300',
   VERIFIED: 'bg-blue-100 text-blue-700 dark:bg-indigo-500/10 dark:text-blue-300',
   OTP_SENT: 'bg-blue-50 text-blue-600 dark:bg-indigo-500/10 dark:text-blue-300',
   PENDING: 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300',
@@ -50,7 +50,7 @@ export function SafePickupHistory() {
     load();
   }, [load]);
 
-  const fmt = (d) => (d ? new Date(d).toLocaleString() : 'Ã¢â¬â');
+  const fmt = (d) => (d ? new Date(d).toLocaleString() : '–');
 
   return (
     <div className="mx-auto max-w-5xl space-y-4 p-4 sm:p-6">
@@ -62,7 +62,7 @@ export function SafePickupHistory() {
         <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100">Student Pickup History</h1>
       </div>
 
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-indigo-600/50">
+      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900/50">
         <label className="text-xs font-semibold text-slate-500">
           Status
           <select
@@ -71,7 +71,7 @@ export function SafePickupHistory() {
               setPage(1);
               setFilters((f) => ({ ...f, status: e.target.value }));
             }}
-            className="mt-1 block rounded-lg border border-slate-200 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-indigo-600"
+            className="mt-1 block rounded-lg border border-slate-200 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900"
           >
             {STATUSES.map((s) => (
               <option key={s} value={s}>
@@ -89,7 +89,7 @@ export function SafePickupHistory() {
               setPage(1);
               setFilters((f) => ({ ...f, from: e.target.value }));
             }}
-            className="mt-1 block rounded-lg border border-slate-200 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-indigo-600"
+            className="mt-1 block rounded-lg border border-slate-200 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900"
           />
         </label>
         <label className="text-xs font-semibold text-slate-500">
@@ -101,14 +101,14 @@ export function SafePickupHistory() {
               setPage(1);
               setFilters((f) => ({ ...f, to: e.target.value }));
             }}
-            className="mt-1 block rounded-lg border border-slate-200 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-indigo-600"
+            className="mt-1 block rounded-lg border border-slate-200 px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-900"
           />
         </label>
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
         <table className="min-w-full divide-y divide-slate-100 text-sm dark:divide-slate-700">
-          <thead className="bg-slate-50 text-left text-xs font-bold uppercase tracking-wide text-slate-500 dark:bg-indigo-600">
+          <thead className="bg-slate-50 text-left text-xs font-bold uppercase tracking-wide text-slate-500 dark:bg-slate-900">
             <tr>
               <th className="px-4 py-2.5">Date</th>
               <th className="px-4 py-2.5">Student</th>
@@ -138,12 +138,12 @@ export function SafePickupHistory() {
                   <td className="whitespace-nowrap px-4 py-2.5 text-slate-500">{fmt(r.initiatedAt || r.date)}</td>
                   <td className="px-4 py-2.5 font-medium text-slate-700 dark:text-slate-200">{r.studentName}</td>
                   <td className="whitespace-nowrap px-4 py-2.5 text-slate-500">
-                    {[r.className, r.sectionName].filter(Boolean).join(' ') || 'Ã¢â¬â'}
+                    {[r.className, r.sectionName].filter(Boolean).join(' ') || '–'}
                   </td>
-                  <td className="px-4 py-2.5 text-slate-500">{r.teacherName || 'Ã¢â¬â'}</td>
-                  <td className="whitespace-nowrap px-4 py-2.5 text-slate-400">{r.maskedMobile || 'Ã¢â¬â'}</td>
+                  <td className="px-4 py-2.5 text-slate-500">{r.teacherName || '–'}</td>
+                  <td className="whitespace-nowrap px-4 py-2.5 text-slate-400">{r.maskedMobile || '–'}</td>
                   <td className="px-4 py-2.5 text-slate-500">
-                    {r.pickupPersonName ? `${r.pickupPersonName}${r.pickupPersonRelationship ? ` (${r.pickupPersonRelationship})` : ''}` : 'Ã¢â¬â'}
+                    {r.pickupPersonName ? `${r.pickupPersonName}${r.pickupPersonRelationship ? ` (${r.pickupPersonRelationship})` : ''}` : '–'}
                   </td>
                   <td className="px-4 py-2.5">
                     <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${STATUS_STYLES[r.status] || STATUS_STYLES.PENDING}`}>

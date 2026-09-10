@@ -59,7 +59,7 @@ export const Authors = () => {
       render: (val) => (
         <div className="flex flex-wrap gap-1">
           {(val || []).slice(0, 3).map((c) => (
-            <span key={c} className="px-2 py-0.5 bg-slate-100 dark:bg-indigo-600 text-slate-600 dark:text-slate-300 text-4xs font-semibold rounded">
+            <span key={c} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 text-4xs font-semibold rounded">
               {c}
             </span>
           ))}
@@ -96,7 +96,7 @@ export const Authors = () => {
       {loading ? (
         <SkeletonTable rows={8} columns={4} />
       ) : authors.length === 0 ? (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
           <UserCheck className="h-8 w-8 mx-auto text-slate-400" />
           <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">No Authors Found</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
@@ -104,7 +104,7 @@ export const Authors = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
           <DataTable
             columns={columns}
             data={authors}

@@ -257,7 +257,7 @@ export const AcademicYearDetail = () => {
       {/* Page Header */}
       <PageHeader
         title={year.name}
-        subtitle={`${formatDate(year.startDate)} - ${formatDate(year.endDate)} ÃÂ· Code: ${year.code || 'Ã¢â¬â'}`}
+        subtitle={`${formatDate(year.startDate)} - ${formatDate(year.endDate)} ÃÂ· Code: ${year.code || '–'}`}
         badge={
           <Badge variant={YEAR_STATUS_VARIANT[year.status] || 'default'}>
             {year.isCurrent ? 'Current Session' : year.status}
@@ -382,7 +382,7 @@ export const AcademicYearDetail = () => {
           {yearClasses.map((item) => (
             <div
               key={item.id}
-              className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-indigo-600"
+              className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900"
             >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -779,7 +779,7 @@ function ClassSections({ yearId, classId, teachers, onChanged, onEditSection, on
     <div className="mt-4 overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
-          <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-indigo-600/60 dark:text-slate-400">
+          <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
             <tr>
               <th className="px-3.5 py-2.5">Section</th>
               <th className="px-3.5 py-2.5">Class Teacher</th>
@@ -801,7 +801,7 @@ function ClassSections({ yearId, classId, teachers, onChanged, onEditSection, on
                   {section.classTeacher?.name || <span className="text-slate-400 italic">Unassigned</span>}
                 </td>
                 <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-400">
-                  {section.roomNumber || 'Ã¢â¬â'}
+                  {section.roomNumber || '–'}
                 </td>
                 <td className="px-3.5 py-2.5 text-slate-600 dark:text-slate-400">
                   {section.capacity || 40}

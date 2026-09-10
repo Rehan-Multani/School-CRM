@@ -79,7 +79,7 @@ export const IssueSlip = ({ issue, onClose }) => {
       <div className="p-6 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl flex justify-center">
         <div 
           ref={slipRef} 
-          className="w-full max-w-[320px] p-5 bg-white dark:bg-indigo-600 border border-slate-350 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl shadow-xs"
+          className="w-full max-w-[320px] p-5 bg-white dark:bg-slate-900 border border-slate-350 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl shadow-xs"
         >
           {/* Header */}
           <div className="text-center border-b border-dashed border-slate-400 dark:border-slate-700 pb-3 mb-4">

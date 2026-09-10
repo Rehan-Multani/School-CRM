@@ -305,7 +305,7 @@ export const ReportsHub = () => {
 
       {/* Top Executive KPI Row (when no category is selected or as an overview) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Enrolled Students</p>
             <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">
@@ -318,11 +318,11 @@ export const ReportsHub = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Fee Collections</p>
             <h3 className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
-              Ã¢âÂ¹{(summaryStats?.totalCollected || 0).toLocaleString('en-IN')}
+              ₹{(summaryStats?.totalCollected || 0).toLocaleString('en-IN')}
             </h3>
             <p className="text-[11px] text-slate-400 mt-1">Recorded payment transactions</p>
           </div>
@@ -331,11 +331,11 @@ export const ReportsHub = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Outstanding Fee Dues</p>
             <h3 className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
-              Ã¢âÂ¹{(summaryStats?.totalDue || 0).toLocaleString('en-IN')}
+              ₹{(summaryStats?.totalDue || 0).toLocaleString('en-IN')}
             </h3>
             <p className="text-[11px] text-slate-400 mt-1">Pending invoice collections</p>
           </div>
@@ -344,7 +344,7 @@ export const ReportsHub = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Faculty & Staff Members</p>
             <h3 className="text-2xl font-black text-indigo-650 dark:text-indigo-400 mt-1">
@@ -371,7 +371,7 @@ export const ReportsHub = () => {
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                     activeGroupTab === tab
                       ? 'bg-indigo-650 text-white shadow-xs'
-                      : 'bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-indigo-600'
+                      : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-indigo-600'
                   }`}
                 >
                   {tab}
@@ -391,7 +391,7 @@ export const ReportsHub = () => {
                 <div
                   key={cat.id}
                   onClick={() => handleSelectCategory(cat)}
-                  className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-800 hover:shadow-md rounded-3xl p-6 cursor-pointer flex flex-col justify-between space-y-4 transition-all group"
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-800 hover:shadow-md rounded-3xl p-6 cursor-pointer flex flex-col justify-between space-y-4 transition-all group"
                 >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
@@ -423,7 +423,7 @@ export const ReportsHub = () => {
         </div>
       ) : (
         /* Report Category Preview & Actions Panel */
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6">
           {/* Header Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
             <button
@@ -460,7 +460,7 @@ export const ReportsHub = () => {
                   <div>
                     <span className="text-slate-400 block text-[10px]">TOTAL COLLECTED</span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-black text-sm">
-                      Ã¢âÂ¹{reportStats.totalCollected.toLocaleString('en-IN')}
+                      ₹{reportStats.totalCollected.toLocaleString('en-IN')}
                     </span>
                   </div>
                 )}
@@ -468,7 +468,7 @@ export const ReportsHub = () => {
                   <div>
                     <span className="text-slate-400 block text-[10px]">TOTAL OUTSTANDING</span>
                     <span className="text-rose-600 dark:text-rose-400 font-black text-sm">
-                      Ã¢âÂ¹{reportStats.totalDue.toLocaleString('en-IN')}
+                      ₹{reportStats.totalDue.toLocaleString('en-IN')}
                     </span>
                   </div>
                 )}
@@ -476,7 +476,7 @@ export const ReportsHub = () => {
                   <div>
                     <span className="text-slate-400 block text-[10px]">TOTAL SALARY DISBURSED</span>
                     <span className="text-teal-600 dark:text-teal-400 font-black text-sm">
-                      Ã¢âÂ¹{reportStats.totalNetDisbursed.toLocaleString('en-IN')}
+                      ₹{reportStats.totalNetDisbursed.toLocaleString('en-IN')}
                     </span>
                   </div>
                 )}
@@ -671,7 +671,7 @@ export const ReportsHub = () => {
         <PrintReportModal
           isOpen={printModalOpen}
           onClose={() => setPrintModalOpen(false)}
-          title={`Official Report Ã¢â¬â ${selectedCategory.label}`}
+          title={`Official Report – ${selectedCategory.label}`}
           documentType={selectedCategory.label}
           data={filteredData}
         >

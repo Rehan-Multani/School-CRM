@@ -28,7 +28,7 @@ export const StatCard = ({
     <div
       onClick={onClick}
       className={cn(
-        "bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between",
+        "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between",
         onClick && "cursor-pointer active:scale-[0.98]",
         className
       )}

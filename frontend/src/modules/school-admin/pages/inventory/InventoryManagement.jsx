@@ -15,12 +15,12 @@ const inputCls =
 
 const CONDITIONS = ['NEW', 'GOOD', 'FAIR', 'POOR', 'DAMAGED'];
 const STATUSES = ['IN_STORE', 'ISSUED', 'UNDER_REPAIR', 'WRITTEN_OFF'];
-// ISSUED / WRITTEN_OFF follow from stock movements Ã¢â¬â only these two are a manual call.
+// ISSUED / WRITTEN_OFF follow from stock movements – only these two are a manual call.
 const MANUAL_STATUSES = ['IN_STORE', 'UNDER_REPAIR'];
 const STATUS_VARIANT = { IN_STORE: 'success', ISSUED: 'info', UNDER_REPAIR: 'warning', WRITTEN_OFF: 'danger' };
 
 function inr(n) {
-  return `Ã¢âÂ¹${Number(n || 0).toLocaleString('en-IN')}`;
+  return `₹${Number(n || 0).toLocaleString('en-IN')}`;
 }
 function toDateInput(v) {
   if (!v) return '';
@@ -236,7 +236,7 @@ export const InventoryManagement = () => {
     () => [
       { key: 'assetCode', title: 'Code', render: (v) => <span className="font-mono text-[11px] font-bold text-indigo-600">{v}</span> },
       { key: 'name', title: 'Asset', sortable: true, render: (v) => <span className="font-bold">{v}</span> },
-      { key: 'categoryName', title: 'Category', render: (v) => v || 'Ã¢â¬â' },
+      { key: 'categoryName', title: 'Category', render: (v) => v || '–' },
       {
         key: 'availableQuantity',
         title: 'Available / Total',
@@ -247,7 +247,7 @@ export const InventoryManagement = () => {
           </span>
         ),
       },
-      { key: 'location', title: 'Location', render: (v) => v || 'Ã¢â¬â' },
+      { key: 'location', title: 'Location', render: (v) => v || '–' },
       { key: 'totalValue', title: 'Value', render: (v) => inr(v) },
       { key: 'condition', title: 'Condition', render: (v) => <Badge variant={v === 'DAMAGED' || v === 'POOR' ? 'danger' : 'default'}>{v}</Badge> },
       { key: 'status', title: 'Status', render: (v) => <Badge variant={STATUS_VARIANT[v] || 'default'}>{v.replace('_', ' ')}</Badge> },
@@ -291,8 +291,8 @@ export const InventoryManagement = () => {
   const catColumns = useMemo(
     () => [
       { key: 'name', title: 'Category', sortable: true, render: (v) => <span className="font-bold">{v}</span> },
-      { key: 'code', title: 'Code', render: (v) => v || 'Ã¢â¬â' },
-      { key: 'description', title: 'Description', render: (v) => v || 'Ã¢â¬â' },
+      { key: 'code', title: 'Code', render: (v) => v || '–' },
+      { key: 'description', title: 'Description', render: (v) => v || '–' },
       { key: 'assetCount', title: 'Assets', align: 'center' },
       {
         key: '_actions',
@@ -342,9 +342,9 @@ export const InventoryManagement = () => {
       },
       { key: 'qty', title: 'Qty', align: 'center' },
       { key: 'balanceAfter', title: 'Balance', align: 'center' },
-      { key: 'toWhom', title: 'To / From', render: (v) => v || 'Ã¢â¬â' },
-      { key: 'byName', title: 'By', render: (v) => v || 'Ã¢â¬â' },
-      { key: 'note', title: 'Note', render: (v) => v || 'Ã¢â¬â' },
+      { key: 'toWhom', title: 'To / From', render: (v) => v || '–' },
+      { key: 'byName', title: 'By', render: (v) => v || '–' },
+      { key: 'note', title: 'Note', render: (v) => v || '–' },
     ],
     []
   );
@@ -360,7 +360,7 @@ export const InventoryManagement = () => {
     <div className="space-y-6">
       <PageHeader
         title="Inventory & Assets"
-        subtitle="Track furniture, equipment and consumables Ã¢â¬â stock levels, issue/return and asset value."
+        subtitle="Track furniture, equipment and consumables – stock levels, issue/return and asset value."
         actions={
           tab === 'assets' ? (
             <button type="button" onClick={openAssetCreate} className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-white">
@@ -384,7 +384,7 @@ export const InventoryManagement = () => {
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {statCards.map((c) => (
-          <div key={c.label} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+          <div key={c.label} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <div className={`mb-2 inline-flex h-9 w-9 items-center justify-center rounded-xl ${c.tone}`}>
               <c.icon className="h-4 w-4" />
             </div>
@@ -413,7 +413,7 @@ export const InventoryManagement = () => {
         </div>
       ) : tab === 'assets' ? (
         <>
-          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <select
               value={filters.categoryId}
               onChange={(e) => setFilters((f) => ({ ...f, categoryId: e.target.value }))}
@@ -484,7 +484,7 @@ export const InventoryManagement = () => {
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Category</label>
               <select className={inputCls} value={assetForm.categoryId} onChange={(e) => setAssetForm({ ...assetForm, categoryId: e.target.value })}>
-                <option value="">Ã¢â¬â</option>
+                <option value="">–</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
@@ -506,7 +506,7 @@ export const InventoryManagement = () => {
               <input placeholder="e.g. pcs" className={inputCls} value={assetForm.unit} onChange={(e) => setAssetForm({ ...assetForm, unit: e.target.value })} />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold text-slate-500">Unit Cost (Ã¢âÂ¹)</label>
+              <label className="mb-1 block text-xs font-bold text-slate-500">Unit Cost (₹)</label>
               <input placeholder="e.g. 2500" type="number" min="0" className={inputCls} value={assetForm.unitCost} onChange={(e) => setAssetForm({ ...assetForm, unitCost: e.target.value })} />
             </div>
           </div>
@@ -532,12 +532,12 @@ export const InventoryManagement = () => {
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Status</label>
               {editingAsset.issuedQuantity > 0 || editingAsset.status === 'WRITTEN_OFF' ? (
-                <div className="flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-slate-100/70 px-3.5 dark:border-slate-800 dark:bg-indigo-600">
+                <div className="flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-slate-100/70 px-3.5 dark:border-slate-800 dark:bg-slate-900">
                   <Badge variant={STATUS_VARIANT[editingAsset.status] || 'default'}>{editingAsset.status.replace('_', ' ')}</Badge>
                   <span className="text-[11px] text-slate-500">
                     {editingAsset.status === 'WRITTEN_OFF'
-                      ? 'Written off Ã¢â¬â status is final.'
-                      : `${editingAsset.issuedQuantity} unit(s) issued out Ã¢â¬â return them to change status.`}
+                      ? 'Written off – status is final.'
+                      : `${editingAsset.issuedQuantity} unit(s) issued out – return them to change status.`}
                   </span>
                 </div>
               ) : (
@@ -578,7 +578,7 @@ export const InventoryManagement = () => {
       </Modal>
 
       {/* MOVEMENT MODAL */}
-      <Modal isOpen={Boolean(moveModal)} onClose={() => setMoveModal(null)} title={`Stock Movement Ã¢â¬â ${moveModal?.name || ''}`}>
+      <Modal isOpen={Boolean(moveModal)} onClose={() => setMoveModal(null)} title={`Stock Movement – ${moveModal?.name || ''}`}>
         <form onSubmit={submitMove} className="space-y-4">
           <p className="text-xs font-semibold text-slate-500">
             Available: <strong>{moveModal?.availableQuantity}</strong> ÃÂ· Issued: <strong>{moveModal?.issuedQuantity}</strong> ÃÂ· Total:{' '}

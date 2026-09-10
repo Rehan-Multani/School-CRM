@@ -6,7 +6,7 @@ export const Skeleton = ({ className, ...props }) => {
   return (
     <div
       className={cn(
-        'animate-pulse rounded-xl bg-slate-200/70 dark:bg-indigo-600/70 transition-colors',
+        'animate-pulse rounded-xl bg-slate-200/70 dark:bg-slate-900/70 transition-colors',
         className
       )}
       {...props}
@@ -74,7 +74,7 @@ export const SkeletonStatCard = ({ className }) => {
   return (
     <div
       className={cn(
-        'bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4',
+        'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4',
         className
       )}
     >
@@ -98,7 +98,7 @@ export const SkeletonCard = ({ className, children }) => {
   return (
     <div
       className={cn(
-        'bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4',
+        'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4',
         className
       )}
     >
@@ -146,7 +146,7 @@ export const SkeletonTable = ({ rows = 5, columns = 5, className }) => {
   return (
     <div
       className={cn(
-        'rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-sm dark:border-slate-800 dark:bg-indigo-600',
+        'rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-sm dark:border-slate-800 dark:bg-slate-900',
         className
       )}
     >
@@ -177,7 +177,7 @@ export const SkeletonForm = ({ fields = 4, className }) => {
   return (
     <div
       className={cn(
-        'bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6',
+        'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6',
         className
       )}
     >
@@ -210,7 +210,7 @@ export const SkeletonList = ({ count = 4, className }) => {
       {Array.from({ length: count }).map((_, idx) => (
         <div
           key={idx}
-          className="p-4 bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-between gap-4"
+          className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-between gap-4"
         >
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <SkeletonAvatar size="md" />
@@ -231,7 +231,7 @@ export const SkeletonProfile = ({ className }) => {
   return (
     <div
       className={cn(
-        'bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6',
+        'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6',
         className
       )}
     >
@@ -270,7 +270,7 @@ export const DashboardSkeleton = () => {
   return (
     <div className="space-y-8 pb-12 animate-in fade-in-50 duration-300">
       {/* Header Banner */}
-      <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Skeleton className="h-16 w-16 rounded-2xl shrink-0" />
           <div className="space-y-2">
@@ -296,7 +296,7 @@ export const DashboardSkeleton = () => {
         {Array.from({ length: 4 }).map((_, idx) => (
           <div
             key={idx}
-            className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600 space-y-3"
+            className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-3"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -321,7 +321,7 @@ export const DashboardSkeleton = () => {
           {Array.from({ length: 8 }).map((_, idx) => (
             <div
               key={idx}
-              className="p-3.5 bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center space-y-2"
+              className="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl flex flex-col items-center justify-center space-y-2"
             >
               <Skeleton className="h-10 w-10 rounded-xl" />
               <Skeleton className="h-2.5 w-16" />
@@ -335,7 +335,7 @@ export const DashboardSkeleton = () => {
         {Array.from({ length: 6 }).map((_, idx) => (
           <div
             key={idx}
-            className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4"
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4"
           >
             <div className="flex justify-between items-center">
               <Skeleton className="h-3 w-40" />
@@ -381,7 +381,7 @@ export const TablePageSkeleton = ({
       )}
 
       {hasFilters && (
-        <div className="p-4 rounded-3xl bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4">
+        <div className="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4">
           <Skeleton className="h-10 w-72 rounded-xl" />
           <div className="flex items-center gap-2.5">
             <Skeleton className="h-10 w-32 rounded-xl" />

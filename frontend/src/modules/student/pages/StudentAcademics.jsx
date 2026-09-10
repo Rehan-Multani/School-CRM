@@ -60,7 +60,7 @@ export const StudentAcademics = () => {
                   <span>Syllabus Completion</span>
                   <span>{sub.syllabusProgress}%</span>
                 </div>
-                <div className="w-full bg-slate-100 dark:bg-indigo-600 h-1.5 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-100 dark:bg-slate-900 h-1.5 rounded-full overflow-hidden">
                   <div 
                     className="bg-primary h-full rounded-full" 
                     style={{ width: `${sub.syllabusProgress}%` }}
@@ -95,7 +95,7 @@ export const StudentAcademics = () => {
               className={`px-3 py-1.5 rounded-full text-[10px] font-bold select-none whitespace-nowrap transition-colors ${
                 selectedSubject === subName 
                   ? 'bg-primary text-white' 
-                  : 'bg-slate-100 dark:bg-indigo-600 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-indigo-600'
+                  : 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-indigo-600'
               }`}
             >
               {subName}
@@ -140,7 +140,7 @@ export const StudentAcademics = () => {
 
                   <button
                     onClick={() => handleDownload(file.title)}
-                    className="p-2 bg-slate-100 hover:bg-primary hover:text-white dark:bg-indigo-600 rounded-xl text-slate-500 transition-colors shrink-0 active:scale-95 duration-100 select-none"
+                    className="p-2 bg-slate-100 hover:bg-primary hover:text-white dark:bg-slate-900 rounded-xl text-slate-500 transition-colors shrink-0 active:scale-95 duration-100 select-none"
                     title={isVideo ? "Watch Lecture" : "Download File"}
                   >
                     <Download className="w-4 h-4" />

@@ -204,7 +204,7 @@ export const BookReturn = () => {
       {loading ? (
         <SkeletonTable rows={8} columns={6} />
       ) : loans.length === 0 ? (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
           <CheckCircle2 className="h-8 w-8 mx-auto text-emerald-500" />
           <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">No Active Book Loans</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
@@ -212,7 +212,7 @@ export const BookReturn = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
           <DataTable
             columns={columns}
             data={loans}
@@ -264,7 +264,7 @@ export const BookReturn = () => {
             {/* Overdue Fine Calculation */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-3xs font-bold text-slate-500 uppercase">Fine Amount (Ã¢âÂ¹)</label>
+                <label className="text-3xs font-bold text-slate-500 uppercase">Fine Amount (₹)</label>
                 <input
                   placeholder="e.g. 50"
                   type="number"

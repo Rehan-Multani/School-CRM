@@ -115,7 +115,7 @@ export const ParentLeave = () => {
                   required
                   value={form.from}
                   onChange={(e) => setForm(p => ({ ...p, from: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-2xl border border-border bg-white dark:bg-indigo-600 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="w-full px-4 py-3 rounded-2xl border border-border bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                   id="leave-from"
                 />
               </div>
@@ -126,7 +126,7 @@ export const ParentLeave = () => {
                   required
                   value={form.to}
                   onChange={(e) => setForm(p => ({ ...p, to: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-2xl border border-border bg-white dark:bg-indigo-600 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="w-full px-4 py-3 rounded-2xl border border-border bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
                   id="leave-to"
                 />
               </div>
@@ -140,7 +140,7 @@ export const ParentLeave = () => {
                 value={form.reason}
                 onChange={(e) => setForm(p => ({ ...p, reason: e.target.value }))}
                 placeholder="Provide a valid explanation for child's absence..."
-                className="w-full px-4 py-3 rounded-2xl border border-border bg-white dark:bg-indigo-600 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                className="w-full px-4 py-3 rounded-2xl border border-border bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
                 id="leave-reason"
               />
             </div>

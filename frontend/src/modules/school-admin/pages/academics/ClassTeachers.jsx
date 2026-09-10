@@ -213,7 +213,7 @@ export const ClassTeachers = () => {
         actions={
           <div className="flex items-center gap-2">
             {/* View Mode Toggle */}
-            <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-indigo-600">
+            <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-800 dark:bg-slate-900">
               <button
                 type="button"
                 onClick={() => setViewMode('grid')}
@@ -245,7 +245,7 @@ export const ClassTeachers = () => {
 
       {/* Summary Metric Cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 flex items-center gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center gap-3">
           <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
             <Layers className="h-5 w-5" />
           </div>
@@ -255,7 +255,7 @@ export const ClassTeachers = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 flex items-center gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center gap-3">
           <div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-600 dark:text-emerald-400">
             <UserCheck className="h-5 w-5" />
           </div>
@@ -265,12 +265,12 @@ export const ClassTeachers = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 flex items-center gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center gap-3">
           <div
             className={`rounded-xl p-2.5 ${
               stats.vacant > 0
                 ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                : 'bg-slate-100 text-slate-400 dark:bg-indigo-600'
+                : 'bg-slate-100 text-slate-400 dark:bg-slate-900'
             }`}
           >
             <UserX className="h-5 w-5" />
@@ -287,7 +287,7 @@ export const ClassTeachers = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 flex items-center gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center gap-3">
           <div className="rounded-xl bg-indigo-500/10 p-2.5 text-indigo-600 dark:text-indigo-400">
             <Users className="h-5 w-5" />
           </div>
@@ -299,7 +299,7 @@ export const ClassTeachers = () => {
       </div>
 
       {/* Filter & Search Toolbar */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 space-y-3">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-3">
         {/* Status Filter Tabs */}
         {sections.length > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -432,7 +432,7 @@ export const ClassTeachers = () => {
           description="Create academic classes and sections first before assigning class teachers."
         />
       ) : filteredSections.length === 0 ? (
-        <div className="flex min-h-[20vh] flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-slate-400 dark:border-slate-800 dark:bg-indigo-600">
+        <div className="flex min-h-[20vh] flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-slate-400 dark:border-slate-800 dark:bg-slate-900">
           <p className="text-sm font-medium">No class sections match your filters</p>
           <button
             type="button"
@@ -472,7 +472,7 @@ export const ClassTeachers = () => {
                       return (
                         <div
                           key={sec.id}
-                          className={`group flex flex-col justify-between rounded-2xl border bg-white p-5 shadow-xs transition-all duration-200 dark:bg-indigo-600 ${
+                          className={`group flex flex-col justify-between rounded-2xl border bg-white p-5 shadow-xs transition-all duration-200 dark:bg-slate-900 ${
                             assignedTeacher
                               ? 'border-slate-200/80 hover:border-emerald-300/80 hover:shadow-md dark:border-slate-800 dark:hover:border-emerald-800/60'
                               : 'border-amber-200/70 bg-gradient-to-b from-amber-50/20 to-white hover:border-amber-300 hover:shadow-md dark:border-amber-900/40 dark:from-amber-950/10 dark:to-slate-900'
@@ -517,7 +517,7 @@ export const ClassTeachers = () => {
                             <div className="mt-4 flex flex-wrap gap-2">
                               <div className="inline-flex items-center gap-1.5 rounded-xl border border-slate-100 bg-slate-50/80 px-2.5 py-1 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
                                 <DoorOpen className="h-3.5 w-3.5 text-slate-400" />
-                                <span>Room: <strong className="font-bold text-slate-800 dark:text-slate-200">{sec.roomNumber || 'Ã¢â¬â'}</strong></span>
+                                <span>Room: <strong className="font-bold text-slate-800 dark:text-slate-200">{sec.roomNumber || '–'}</strong></span>
                               </div>
 
                               <div className="inline-flex items-center gap-1.5 rounded-xl border border-slate-100 bg-slate-50/80 px-2.5 py-1 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
@@ -569,7 +569,7 @@ export const ClassTeachers = () => {
                                   ? classMap.get(otherSec.classId)?.name || 'other class'
                                   : '';
                                 const assignmentInfo = otherSec
-                                  ? ` Ã¢â¬â (Assigned: ${clsName} - ${otherSec.name})`
+                                  ? ` – (Assigned: ${clsName} - ${otherSec.name})`
                                   : '';
 
                                 return (
@@ -595,9 +595,9 @@ export const ClassTeachers = () => {
       ) : (
         /* Ã¢ââ¬Ã¢ââ¬ TABLE VIEW Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬ */
         <div className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-indigo-600/60 dark:text-slate-400">
+              <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
                 <tr>
                   <th className="w-12 px-3.5 py-3 text-center">#</th>
                   <th className="px-3.5 py-3">Class & Section</th>
@@ -634,7 +634,7 @@ export const ClassTeachers = () => {
                           </span>
                         </td>
                         <td className="px-3.5 py-3 whitespace-nowrap text-slate-600 dark:text-slate-400">
-                          Room {sec.roomNumber || 'Ã¢â¬â'} â¢ {sec.capacity || 40} Students
+                          Room {sec.roomNumber || '–'} â¢ {sec.capacity || 40} Students
                         </td>
                         <td className="px-3.5 py-3 whitespace-nowrap">
                           <div className="flex items-center gap-2">
@@ -654,7 +654,7 @@ export const ClassTeachers = () => {
                                   ? classMap.get(otherSec.classId)?.name || 'other class'
                                   : '';
                                 const assignmentInfo = otherSec
-                                  ? ` Ã¢â¬â (Assigned: ${otherClsName} - ${otherSec.name})`
+                                  ? ` – (Assigned: ${otherClsName} - ${otherSec.name})`
                                   : '';
 
                                 return (
@@ -674,7 +674,7 @@ export const ClassTeachers = () => {
                         <td className="px-3.5 py-3 whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
                             <span className="font-semibold text-slate-700 dark:text-slate-300">
-                              {yr?.name || 'Ã¢â¬â'}
+                              {yr?.name || '–'}
                             </span>
                             {yr?.isCurrent && (
                               <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">

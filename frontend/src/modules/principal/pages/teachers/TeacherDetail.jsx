@@ -35,15 +35,15 @@ function buildFileUrl(path) {
 }
 
 function formatDate(value) {
-  if (!value) return 'Ã¢â¬â';
+  if (!value) return '–';
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Ã¢â¬â';
+  if (Number.isNaN(date.getTime())) return '–';
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function DetailCard({ title, children }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <h3 className="mb-4 text-sm font-extrabold text-slate-900 dark:text-white">{title}</h3>
       {children}
     </div>
@@ -54,7 +54,7 @@ function Field({ label, value }) {
   return (
     <div>
       <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
-      <p className="mt-1 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">{value || 'Ã¢â¬â'}</p>
+      <p className="mt-1 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">{value || '–'}</p>
     </div>
   );
 }
@@ -151,14 +151,14 @@ export const TeacherDetail = () => {
           teacher.address?.pincode,
         ]
           .filter(Boolean)
-          .join(', ') || 'Ã¢â¬â';
+          .join(', ') || '–';
 
   const qualificationText = Array.isArray(teacher.qualifications)
     ? teacher.qualifications
         .map((item) => (typeof item === 'string' ? item : item?.degree))
         .filter(Boolean)
         .join(', ')
-    : teacher.qualification || 'Ã¢â¬â';
+    : teacher.qualification || '–';
 
   return (
     <div className="space-y-6">
@@ -201,7 +201,7 @@ export const TeacherDetail = () => {
         }
       />
 
-      <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center dark:border-slate-800 dark:bg-indigo-600">
+      <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center dark:border-slate-800 dark:bg-slate-900">
         {photoUrl ? (
           <img src={photoUrl} alt={teacher.name} className="h-24 w-24 shrink-0 rounded-2xl object-cover" />
         ) : (
@@ -277,7 +277,7 @@ export const TeacherDetail = () => {
                           href={buildFileUrl(path)}
                           target="_blank"
                           rel="noreferrer"
-                          className="group relative block overflow-hidden rounded-2xl border border-slate-200 bg-white hover:border-primary dark:border-slate-800 dark:bg-indigo-600"
+                          className="group relative block overflow-hidden rounded-2xl border border-slate-200 bg-white hover:border-primary dark:border-slate-800 dark:bg-slate-900"
                         >
                           <img
                             src={buildFileUrl(path)}
@@ -309,7 +309,7 @@ export const TeacherDetail = () => {
         onClose={() => setConfirmDelete(false)}
         onConfirm={handleDelete}
         title="Delete Teacher"
-        message={`"${teacher.name}" will be permanently removed. Teachers with class or subject assignments cannot be deleted Ã¢â¬â deactivate them instead.`}
+        message={`"${teacher.name}" will be permanently removed. Teachers with class or subject assignments cannot be deleted – deactivate them instead.`}
         confirmText="Delete Teacher"
         variant="danger"
       />

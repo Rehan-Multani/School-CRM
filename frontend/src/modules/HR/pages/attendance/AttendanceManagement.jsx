@@ -220,7 +220,7 @@ export const AttendanceManagement = () => {
                 else fetchAttendanceReport();
               }}
               disabled={loading}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
               title="Refresh"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -287,7 +287,7 @@ export const AttendanceManagement = () => {
       {activeTab === 'daily' && (
         <div className="space-y-6">
           {/* Quick Date Navigator Bar & Summary */}
-          <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -345,7 +345,7 @@ export const AttendanceManagement = () => {
           </div>
 
           {/* Filters & Bulk Operations */}
-          <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="relative flex-1 min-w-[240px]">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
@@ -403,13 +403,13 @@ export const AttendanceManagement = () => {
           {loading ? (
             <SkeletonTable rows={8} columns={6} />
           ) : filteredRecords.length === 0 ? (
-            <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-3 shadow-xs">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-3 shadow-xs">
               <UserCheck className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-700" />
               <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">No attendance records found</h4>
               <p className="text-xs max-w-sm mx-auto">No employees match the selected date and filter criteria.</p>
             </div>
           ) : (
-            <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200/80 dark:border-slate-800 text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -443,7 +443,7 @@ export const AttendanceManagement = () => {
                           </td>
 
                           <td className="p-4 text-center">
-                            <div className="inline-flex items-center p-1 bg-slate-100 dark:bg-indigo-600/80 rounded-2xl border border-slate-200 dark:border-slate-700 gap-1">
+                            <div className="inline-flex items-center p-1 bg-slate-100 dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-700 gap-1">
                               {['PRESENT', 'ABSENT', 'LEAVE', 'HALF_DAY', 'HOLIDAY'].map((st) => (
                                 <button
                                   type="button"
@@ -487,7 +487,7 @@ export const AttendanceManagement = () => {
 
       {/* Tab 2: Monthly Matrix */}
       {activeTab === 'monthly' && (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Monthly Attendance Matrix Heatmap</h3>
@@ -572,7 +572,7 @@ export const AttendanceManagement = () => {
 
       {/* Tab 3: Reports */}
       {activeTab === 'reports' && (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Attendance Audit Register</h3>

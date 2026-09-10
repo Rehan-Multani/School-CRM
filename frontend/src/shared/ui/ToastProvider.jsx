@@ -73,7 +73,7 @@ const ToastItem = ({ toast, onRemove }) => {
 
   return (
     <div className={cn(
-      "pointer-events-auto flex items-center gap-3 bg-white dark:bg-indigo-600 border shadow-xl rounded-2xl px-4 py-3 animate-in slide-in-from-right-4 fade-in duration-300",
+      "pointer-events-auto flex items-center gap-3 bg-white dark:bg-slate-900 border shadow-xl rounded-2xl px-4 py-3 animate-in slide-in-from-right-4 fade-in duration-300",
       styles[toast.type] || styles.info
     )}>
       {icons[toast.type] || icons.info}

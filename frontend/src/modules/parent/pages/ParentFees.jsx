@@ -172,7 +172,7 @@ export const ParentFees = () => {
           <div className="space-y-4">
             {paymentStatus === 'idle' && (
               <>
-                <div className="p-3 bg-slate-50 dark:bg-indigo-600 rounded-xl border border-border text-xs">
+                <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-border text-xs">
                   <div className="flex justify-between font-bold">
                     <span>{payingInstallment.name}</span>
                     <span className="text-indigo-600">{formatCurrency(payingInstallment.amount)}</span>
@@ -218,7 +218,7 @@ export const ParentFees = () => {
                 <p className="text-xs text-slate-400">Institutional receipt generated. Ledger synchronized in real time.</p>
                 <button
                   onClick={() => setPayingInstallment(null)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-indigo-600 text-xs font-bold rounded-xl"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 text-xs font-bold rounded-xl"
                 >
                   Close & Refresh
                 </button>
@@ -233,7 +233,7 @@ export const ParentFees = () => {
         <PrintReportModal
           isOpen={!!selectedReceipt}
           onClose={() => setSelectedReceipt(null)}
-          title={`Fee Receipt Ã¢â¬â ${selectedReceipt.receiptNo}`}
+          title={`Fee Receipt – ${selectedReceipt.receiptNo}`}
           documentType="Official Fee Receipt"
         >
           <div className="space-y-6">

@@ -187,7 +187,7 @@ export const TeacherHomework = () => {
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
               placeholder="e.g. Quadratic Equations Exercise 4.2"
-              className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-indigo-600 border-border text-foreground"
+              className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-slate-900 border-border text-foreground"
             />
           </div>
 
@@ -197,7 +197,7 @@ export const TeacherHomework = () => {
               <select
                 value={form.subject}
                 onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-indigo-600 border-border text-foreground"
+                className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-slate-900 border-border text-foreground"
               >
                 {['Mathematics', 'Science', 'English', 'Social Studies', 'Computer Science'].map(s => (
                   <option key={s} value={s}>{s}</option>
@@ -211,7 +211,7 @@ export const TeacherHomework = () => {
                 required
                 value={form.dueDate}
                 onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
-                className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-indigo-600 border-border text-foreground"
+                className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-slate-900 border-border text-foreground"
               />
             </div>
           </div>
@@ -224,7 +224,7 @@ export const TeacherHomework = () => {
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Provide problem numbers and guidelines..."
-              className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-indigo-600 border-border text-foreground"
+              className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-slate-900 border-border text-foreground"
             />
           </div>
 
@@ -251,7 +251,7 @@ export const TeacherHomework = () => {
                 value={evalMarks}
                 onChange={(e) => setEvalMarks(e.target.value)}
                 placeholder="e.g. 19"
-                className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-indigo-600 border-border text-foreground"
+                className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-slate-900 border-border text-foreground"
               />
             </div>
 
@@ -262,7 +262,7 @@ export const TeacherHomework = () => {
                 value={evalFeedback}
                 onChange={(e) => setEvalFeedback(e.target.value)}
                 placeholder="Good method, step-by-step derivation is clear..."
-                className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-indigo-600 border-border text-foreground"
+                className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-slate-900 border-border text-foreground"
               />
             </div>
 

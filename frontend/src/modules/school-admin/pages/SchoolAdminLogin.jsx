@@ -109,7 +109,7 @@ export const SchoolAdminLogin = () => {
             School Administration
           </h1>
           <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-400">
-            Sign in to run your school Ã¢â¬â students, staff, academics, and billing.
+            Sign in to run your school – students, staff, academics, and billing.
           </p>
           <ul className="mt-6 w-full space-y-2.5 text-left">
             {HIGHLIGHTS.map(({ icon: Icon, text }) => (

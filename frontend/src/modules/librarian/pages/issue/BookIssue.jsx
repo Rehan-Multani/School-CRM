@@ -171,13 +171,13 @@ export const BookIssue = () => {
       />
 
       {/* Progress Wizard Tracker */}
-      <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
         <div className="flex justify-between items-center max-w-2xl mx-auto">
           <div className="flex items-center gap-3">
             <div
               className={cn(
                 'h-9 w-9 rounded-full flex items-center justify-center font-black text-xs transition-colors',
-                step >= 1 ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-indigo-600 text-slate-400'
+                step >= 1 ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'
               )}
             >
               1
@@ -196,7 +196,7 @@ export const BookIssue = () => {
             <div
               className={cn(
                 'h-9 w-9 rounded-full flex items-center justify-center font-black text-xs transition-colors',
-                step >= 2 ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-indigo-600 text-slate-400'
+                step >= 2 ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'
               )}
             >
               2
@@ -215,7 +215,7 @@ export const BookIssue = () => {
             <div
               className={cn(
                 'h-9 w-9 rounded-full flex items-center justify-center font-black text-xs transition-colors',
-                step === 3 ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-indigo-600 text-slate-400'
+                step === 3 ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-900 text-slate-400'
               )}
             >
               3
@@ -230,7 +230,7 @@ export const BookIssue = () => {
 
       {/* Step 1: Member Selection */}
       {step === 1 && (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
@@ -291,7 +291,7 @@ export const BookIssue = () => {
 
       {/* Step 2: Book & Physical Copy Selection */}
       {step === 2 && (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -363,7 +363,7 @@ export const BookIssue = () => {
 
       {/* Step 3: Confirm Issue & Select Physical Copy */}
       {step === 3 && (
-        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6 max-w-3xl mx-auto">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6 max-w-3xl mx-auto">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">

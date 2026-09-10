@@ -15,7 +15,7 @@ import CtaSection from '../components/sections/CtaSection';
 import { FAQS, PRODUCT } from '../data/content';
 
 const FaqItem = ({ item, open, onToggle }) => (
-  <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-colors dark:border-slate-800/90 dark:bg-indigo-600">
+  <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-colors dark:border-slate-800/90 dark:bg-slate-900">
     <button
       type="button"
       onClick={onToggle}
@@ -52,7 +52,7 @@ export const LandingPage = () => {
   const [openFaq, setOpenFaq] = useState(0);
 
   useEffect(() => {
-    document.title = `${PRODUCT.name} Ã¢â¬â ${PRODUCT.headline}`;
+    document.title = `${PRODUCT.name} – ${PRODUCT.headline}`;
   }, []);
 
   return (
@@ -72,7 +72,7 @@ export const LandingPage = () => {
       {/* 5. Role-Based Platform (All 9 Portals) */}
       <RolesSection />
 
-      {/* 5b. Mobile app download (Play Store / APK Ã¢â¬â links managed in Super Admin) */}
+      {/* 5b. Mobile app download (Play Store / APK – links managed in Super Admin) */}
       <AppDownloadSection />
 
       {/* 6. Connected Workflow (School -> Teachers -> Students -> Parents -> Admin) */}
@@ -84,7 +84,7 @@ export const LandingPage = () => {
       <TestimonialsSection />
 
       {/* 8. FAQ Section */}
-      <section id="faq" className="scroll-mt-20 py-20 lg:py-28 bg-slate-50/50 dark:bg-indigo-600/20">
+      <section id="faq" className="scroll-mt-20 py-20 lg:py-28 bg-slate-50/50 dark:bg-slate-900/20">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <Reveal className="text-center">
             <GradientBadge icon={HelpCircle} className="mb-4">

@@ -38,9 +38,9 @@ export const StudentHostel = () => {
           </h3>
           <div className="space-y-4">
             {hostel.roommates.map((rm, i) => (
-              <div key={i} className="p-4 rounded-xl border border-border bg-slate-50/20 dark:bg-indigo-600/10 flex items-center justify-between">
+              <div key={i} className="p-4 rounded-xl border border-border bg-slate-50/20 dark:bg-slate-900/10 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 bg-slate-100 dark:bg-indigo-600 rounded-xl flex items-center justify-center text-slate-500 shrink-0">
+                  <div className="h-10 w-10 bg-slate-100 dark:bg-slate-900 rounded-xl flex items-center justify-center text-slate-500 shrink-0">
                     <User className="w-5 h-5" />
                   </div>
                   <div>
@@ -62,11 +62,11 @@ export const StudentHostel = () => {
           </h3>
           
           <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-indigo-600/50 border border-border text-center">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-border text-center">
               <span className="text-[9px] text-slate-400 font-bold uppercase block">Days Present</span>
               <span className="text-xl font-black text-emerald-500 mt-1 block">{hostel.attendance.present}</span>
             </div>
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-indigo-600/50 border border-border text-center">
+            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-border text-center">
               <span className="text-[9px] text-slate-400 font-bold uppercase block">Days Absent</span>
               <span className="text-xl font-black text-rose-500 mt-1 block">{hostel.attendance.absent}</span>
             </div>
