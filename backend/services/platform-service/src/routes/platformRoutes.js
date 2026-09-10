@@ -858,6 +858,21 @@ router.put('/school-portal/hostel/fees/:academicYearId', requireSchoolAdmin, set
 router.delete('/school-portal/hostel/fees/:academicYearId', requireSchoolAdmin, deleteHostelFee);
 
 // ==========================================
+// Fee Management Endpoints (School Admin)
+// ==========================================
+router.get('/school-portal/fees/heads', requireSchoolAdmin, listFeeHeads);
+router.post('/school-portal/fees/heads', requireSchoolAdmin, createFeeHead);
+router.get('/school-portal/fees/structures', requireSchoolAdmin, listFeeStructures);
+router.post('/school-portal/fees/structures', requireSchoolAdmin, createFeeStructure);
+router.get('/school-portal/fees/assignments', requireSchoolAdmin, listStudentFeeAssignments);
+router.post('/school-portal/fees/assignments', requireSchoolAdmin, createStudentFeeAssignment);
+router.post('/school-portal/fees/collect', requireSchoolAdmin, collectFeePayment);
+router.get('/school-portal/fees/payments', requireSchoolAdmin, listFeePayments);
+router.get('/school-portal/finance/transactions', requireSchoolAdmin, listFinanceTransactions);
+router.get('/school-portal/finance/summary', requireSchoolAdmin, getFinanceSummary);
+router.post('/school-portal/finance/expenses', requireSchoolAdmin, recordExpense);
+
+// ==========================================
 // Transport Management Endpoints (School Admin)
 // ==========================================
 router.get('/school-portal/transport/lookups', requireSchoolAdmin, getTransportLookups);
