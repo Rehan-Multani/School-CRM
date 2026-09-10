@@ -17,7 +17,7 @@ export const PrintReportModal = ({ isOpen, onClose, title, documentType, data, c
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="max-w-4xl">
       <div className="space-y-4">
-        <div className="flex justify-between items-center bg-slate-50 dark:bg-indigo-600/60 p-3 rounded-xl border border-border">
+        <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-border">
           <div>
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{documentType || 'Official Document'}</span>
             <p className="text-xs text-muted-foreground">Preview formatted for A4 printing and digital verification</p>
@@ -26,7 +26,7 @@ export const PrintReportModal = ({ isOpen, onClose, title, documentType, data, c
             {Array.isArray(data) && data.length > 0 && (
               <button
                 onClick={handleExportCSV}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-indigo-600 border border-border rounded-lg shadow-sm hover:bg-slate-100 transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-border rounded-lg shadow-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Export CSV</span>
@@ -43,7 +43,7 @@ export const PrintReportModal = ({ isOpen, onClose, title, documentType, data, c
         </div>
 
         {/* Printable Paper Canvas */}
-        <div className="p-6 bg-white dark:bg-indigo-600 border border-border rounded-2xl shadow-inner font-sans text-slate-900 dark:text-slate-100 print:shadow-none print:border-none print:p-0">
+        <div className="p-6 bg-white dark:bg-slate-900 border border-border rounded-2xl shadow-inner font-sans text-slate-900 dark:text-slate-100 print:shadow-none print:border-none print:p-0">
           {children}
         </div>
       </div>

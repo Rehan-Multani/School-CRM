@@ -39,7 +39,7 @@ export const Modal = ({ isOpen, onClose, title, children, footer, size = 'md', c
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-indigo-600/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm"
           />
 
           {/* Modal Container */}
@@ -49,7 +49,7 @@ export const Modal = ({ isOpen, onClose, title, children, footer, size = 'md', c
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
             transition={{ type: 'spring', duration: 0.4 }}
             className={cn(
-              "relative w-full bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl z-10 overflow-hidden flex flex-col max-h-[90vh]",
+              "relative w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-3xl sm:rounded-2xl shadow-2xl z-10 overflow-hidden flex flex-col max-h-[90vh]",
               sizes[size] || sizes.md,
               className
             )}
@@ -68,7 +68,7 @@ export const Modal = ({ isOpen, onClose, title, children, footer, size = 'md', c
                 )}
                 <button
                   onClick={onClose}
-                  className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-indigo-600 hover:text-slate-600 dark:hover:text-slate-200 transition-colors shrink-0"
+                  className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-600 dark:hover:text-slate-200 transition-colors shrink-0"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -82,7 +82,7 @@ export const Modal = ({ isOpen, onClose, title, children, footer, size = 'md', c
 
             {/* Footer */}
             {footer && (
-              <div className="flex items-center justify-end gap-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-indigo-600/50 px-6 py-4 shrink-0">
+              <div className="flex items-center justify-end gap-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 px-6 py-4 shrink-0">
                 {footer}
               </div>
             )}
