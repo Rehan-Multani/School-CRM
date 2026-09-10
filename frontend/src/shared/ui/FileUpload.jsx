@@ -1,8 +1,8 @@
-import React, { useRef, useState } from 'react';
+﻿import React, { useRef, useState } from 'react';
 import { Upload, X, FileText, Image, Video } from 'lucide-react';
 import { cn } from '../lib/cn';
 
-// Canonical FileUpload — identical between teacher and parent aside from
+// Canonical FileUpload â€” identical between teacher and parent aside from
 // an unused per-module `id` attribute (verified via repo-wide grep), now
 // an optional prop.
 export const FileUpload = ({ onFilesChange, accept = '*', maxFiles = 5, label = 'Upload Files', className, id }) => {
@@ -40,7 +40,7 @@ export const FileUpload = ({ onFilesChange, accept = '*', maxFiles = 5, label = 
           "border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all duration-150",
           isDragging
             ? "border-primary bg-primary/5"
-            : "border-border hover:border-primary/40 hover:bg-slate-50 dark:hover:bg-slate-900"
+            : "border-border hover:border-primary/40 hover:bg-slate-50 dark:hover:bg-indigo-600"
         )}
       >
         <div className="p-3 bg-primary/10 rounded-2xl text-primary">
@@ -87,3 +87,4 @@ export const FileUpload = ({ onFilesChange, accept = '*', maxFiles = 5, label = 
 };
 
 export default FileUpload;
+

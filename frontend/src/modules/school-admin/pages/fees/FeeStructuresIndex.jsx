@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
@@ -268,7 +268,7 @@ export const FeeStructuresIndex = ({ hideHeader = false }) => {
       )}
 
       {/* Toolbar & Filters */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
         {/* Left Side: Search + Academic Year */}
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="relative min-w-[200px]">
@@ -338,7 +338,7 @@ export const FeeStructuresIndex = ({ hideHeader = false }) => {
       {loading ? (
         <SkeletonTable rows={5} columns={5} />
       ) : filteredStructures.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <Layers className="h-10 w-10 text-slate-300 dark:text-slate-700" />
           <h4 className="mt-3 text-sm font-bold text-slate-700 dark:text-slate-200">
             No Fee Structures Found
@@ -355,7 +355,7 @@ export const FeeStructuresIndex = ({ hideHeader = false }) => {
           </button>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="border-b border-slate-100 bg-slate-50/70 text-slate-500 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-400">
@@ -372,7 +372,7 @@ export const FeeStructuresIndex = ({ hideHeader = false }) => {
                 {filteredStructures.map((st) => (
                   <tr
                     key={st.id}
-                    className="group transition hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
+                    className="group transition hover:bg-slate-50/80 dark:hover:bg-indigo-600/40"
                   >
                     {/* Structure Name */}
                     <td className="px-4 py-3.5">
@@ -412,7 +412,7 @@ export const FeeStructuresIndex = ({ hideHeader = false }) => {
                       <div className="flex items-center gap-1.5">
                         <Calendar className="h-3.5 w-3.5 text-slate-400" />
                         <span className="font-semibold text-slate-600 dark:text-slate-300">
-                          {st.academicYear?.name || '—'}
+                          {st.academicYear?.name || 'â€”'}
                         </span>
                       </div>
                     </td>
@@ -591,7 +591,7 @@ export const FeeStructuresIndex = ({ hideHeader = false }) => {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-indigo-600"
             >
               Cancel
             </button>
@@ -624,3 +624,4 @@ export const FeeStructuresIndex = ({ hideHeader = false }) => {
 };
 
 export default FeeStructuresIndex;
+

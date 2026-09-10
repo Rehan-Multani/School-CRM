@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
 import { exportToCSV, exportToJSON } from '../../../../shared/lib/exportHelpers';
@@ -305,7 +305,7 @@ export const ReportsHub = () => {
 
       {/* Top Executive KPI Row (when no category is selected or as an overview) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Enrolled Students</p>
             <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-1">
@@ -318,11 +318,11 @@ export const ReportsHub = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Fee Collections</p>
             <h3 className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
-              ₹{(summaryStats?.totalCollected || 0).toLocaleString('en-IN')}
+              â‚¹{(summaryStats?.totalCollected || 0).toLocaleString('en-IN')}
             </h3>
             <p className="text-[11px] text-slate-400 mt-1">Recorded payment transactions</p>
           </div>
@@ -331,11 +331,11 @@ export const ReportsHub = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Outstanding Fee Dues</p>
             <h3 className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">
-              ₹{(summaryStats?.totalDue || 0).toLocaleString('en-IN')}
+              â‚¹{(summaryStats?.totalDue || 0).toLocaleString('en-IN')}
             </h3>
             <p className="text-[11px] text-slate-400 mt-1">Pending invoice collections</p>
           </div>
@@ -344,7 +344,7 @@ export const ReportsHub = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Faculty & Staff Members</p>
             <h3 className="text-2xl font-black text-indigo-650 dark:text-indigo-400 mt-1">
@@ -371,7 +371,7 @@ export const ReportsHub = () => {
                   className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
                     activeGroupTab === tab
                       ? 'bg-indigo-650 text-white shadow-xs'
-                      : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                      : 'bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-indigo-600'
                   }`}
                 >
                   {tab}
@@ -391,7 +391,7 @@ export const ReportsHub = () => {
                 <div
                   key={cat.id}
                   onClick={() => handleSelectCategory(cat)}
-                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-800 hover:shadow-md rounded-3xl p-6 cursor-pointer flex flex-col justify-between space-y-4 transition-all group"
+                  className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-800 hover:shadow-md rounded-3xl p-6 cursor-pointer flex flex-col justify-between space-y-4 transition-all group"
                 >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
@@ -423,7 +423,7 @@ export const ReportsHub = () => {
         </div>
       ) : (
         /* Report Category Preview & Actions Panel */
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6">
           {/* Header Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
             <button
@@ -460,7 +460,7 @@ export const ReportsHub = () => {
                   <div>
                     <span className="text-slate-400 block text-[10px]">TOTAL COLLECTED</span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-black text-sm">
-                      ₹{reportStats.totalCollected.toLocaleString('en-IN')}
+                      â‚¹{reportStats.totalCollected.toLocaleString('en-IN')}
                     </span>
                   </div>
                 )}
@@ -468,7 +468,7 @@ export const ReportsHub = () => {
                   <div>
                     <span className="text-slate-400 block text-[10px]">TOTAL OUTSTANDING</span>
                     <span className="text-rose-600 dark:text-rose-400 font-black text-sm">
-                      ₹{reportStats.totalDue.toLocaleString('en-IN')}
+                      â‚¹{reportStats.totalDue.toLocaleString('en-IN')}
                     </span>
                   </div>
                 )}
@@ -476,7 +476,7 @@ export const ReportsHub = () => {
                   <div>
                     <span className="text-slate-400 block text-[10px]">TOTAL SALARY DISBURSED</span>
                     <span className="text-teal-600 dark:text-teal-400 font-black text-sm">
-                      ₹{reportStats.totalNetDisbursed.toLocaleString('en-IN')}
+                      â‚¹{reportStats.totalNetDisbursed.toLocaleString('en-IN')}
                     </span>
                   </div>
                 )}
@@ -565,7 +565,7 @@ export const ReportsHub = () => {
               <button
                 onClick={() => fetchReportData(selectedCategory)}
                 disabled={loading}
-                className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+                className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 hover:bg-slate-50 dark:hover:bg-indigo-600 cursor-pointer"
                 title="Refresh Dataset"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -574,7 +574,7 @@ export const ReportsHub = () => {
               <button
                 onClick={() => setPrintModalOpen(true)}
                 disabled={loading || filteredData.length === 0}
-                className="flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 transition-all cursor-pointer disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-indigo-600 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 transition-all cursor-pointer disabled:opacity-50"
               >
                 <Printer className="w-3.5 h-3.5 text-indigo-600" />
                 <span>Print PDF</span>
@@ -583,7 +583,7 @@ export const ReportsHub = () => {
               <button
                 onClick={handleDownloadJSON}
                 disabled={loading || filteredData.length === 0}
-                className="flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 transition-all cursor-pointer disabled:opacity-50"
+                className="flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-indigo-600 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 transition-all cursor-pointer disabled:opacity-50"
               >
                 <Download className="w-3.5 h-3.5 text-cyan-600" />
                 <span>Export JSON</span>
@@ -671,17 +671,17 @@ export const ReportsHub = () => {
         <PrintReportModal
           isOpen={printModalOpen}
           onClose={() => setPrintModalOpen(false)}
-          title={`Official Report — ${selectedCategory.label}`}
+          title={`Official Report â€” ${selectedCategory.label}`}
           documentType={selectedCategory.label}
           data={filteredData}
         >
           <div className="space-y-6 text-slate-900">
             <div className="text-center pb-4 border-b-2 border-slate-900 space-y-1">
               <h2 className="text-2xl font-black uppercase tracking-wider">{schoolName}</h2>
-              <p className="text-xs text-slate-600">Affiliated to CBSE / State Board • Session 2026-2027</p>
+              <p className="text-xs text-slate-600">Affiliated to CBSE / State Board â€¢ Session 2026-2027</p>
               <h3 className="text-sm font-bold text-indigo-900 mt-2">{selectedCategory.label}</h3>
               <p className="text-[10px] text-slate-400">
-                Generated on: {new Date().toLocaleString()} • Authorized Institutional Document
+                Generated on: {new Date().toLocaleString()} â€¢ Authorized Institutional Document
               </p>
             </div>
 
@@ -733,3 +733,4 @@ export const ReportsHub = () => {
 };
 
 export default ReportsHub;
+

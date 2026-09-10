@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useStudentAuth } from '../context/StudentAuthContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -118,7 +118,7 @@ export const StudentProfile = () => {
                   type="text" 
                   disabled 
                   value={user?.name} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs" 
                 />
               </div>
 
@@ -131,7 +131,7 @@ export const StudentProfile = () => {
                   type="text" 
                   disabled 
                   value={user?.id} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs" 
                 />
               </div>
 
@@ -144,7 +144,7 @@ export const StudentProfile = () => {
                   type="text" 
                   disabled 
                   value={user?.dob} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs" 
                 />
               </div>
 
@@ -157,7 +157,7 @@ export const StudentProfile = () => {
                   type="text" 
                   disabled 
                   value={user?.bloodGroup} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs" 
                 />
               </div>
 
@@ -171,7 +171,7 @@ export const StudentProfile = () => {
                   disabled={!isEditing} 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-transparent disabled:bg-slate-50 dark:disabled:bg-slate-900 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-transparent disabled:bg-slate-50 dark:disabled:bg-indigo-600 text-xs" 
                 />
               </div>
 
@@ -194,7 +194,7 @@ export const StudentProfile = () => {
                   disabled={!isEditing} 
                   value={phone}
                   onChange={(e) => setPhone(sanitizeMobileInput(e.target.value))}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-transparent disabled:bg-slate-50 dark:disabled:bg-slate-900 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-transparent disabled:bg-slate-50 dark:disabled:bg-indigo-600 text-xs" 
                 />
               </div>
 
@@ -207,7 +207,7 @@ export const StudentProfile = () => {
                   disabled 
                   rows={2}
                   value={user?.address} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs resize-none" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs resize-none" 
                 />
               </div>
             </div>
@@ -224,7 +224,7 @@ export const StudentProfile = () => {
                   type="text" 
                   disabled 
                   value={user?.guardian?.name} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs" 
                 />
               </div>
 
@@ -237,7 +237,7 @@ export const StudentProfile = () => {
                   type="text" 
                   disabled 
                   value={user?.guardian?.relation} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs" 
                 />
               </div>
 
@@ -260,7 +260,7 @@ export const StudentProfile = () => {
                   disabled={!isEditing} 
                   value={guardianPhone}
                   onChange={(e) => setGuardianPhone(sanitizeMobileInput(e.target.value))}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-transparent disabled:bg-slate-50 dark:disabled:bg-slate-900 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-transparent disabled:bg-slate-50 dark:disabled:bg-indigo-600 text-xs" 
                 />
               </div>
 
@@ -274,7 +274,7 @@ export const StudentProfile = () => {
                   disabled={!isEditing} 
                   value={guardianEmail}
                   onChange={(e) => setGuardianEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-transparent disabled:bg-slate-50 dark:disabled:bg-slate-900 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-transparent disabled:bg-slate-50 dark:disabled:bg-indigo-600 text-xs" 
                 />
               </div>
             </div>
@@ -292,7 +292,7 @@ export const StudentProfile = () => {
                   disabled={!isEditing} 
                   value={allergies}
                   onChange={(e) => setAllergies(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-transparent disabled:bg-slate-50 dark:disabled:bg-slate-900 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-transparent disabled:bg-slate-50 dark:disabled:bg-indigo-600 text-xs" 
                 />
               </div>
 
@@ -305,7 +305,7 @@ export const StudentProfile = () => {
                   type="text" 
                   disabled 
                   value={user?.medical?.conditions} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs" 
                 />
               </div>
 
@@ -318,7 +318,7 @@ export const StudentProfile = () => {
                   type="text" 
                   disabled 
                   value={user?.emergencyContact} 
-                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-slate-900 text-slate-500 text-xs" 
+                  className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-100 dark:bg-indigo-600 text-slate-500 text-xs" 
                 />
               </div>
             </div>
@@ -336,7 +336,7 @@ export const StudentProfile = () => {
               ].map((doc, i) => (
                 <div key={i} className="flex items-center justify-between p-4 rounded-xl border border-border hover:border-primary/20 duration-150">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500">
+                    <div className="p-2 bg-slate-100 dark:bg-indigo-600 rounded-lg text-slate-500">
                       <FileText className="w-5 h-5" />
                     </div>
                     <div>
@@ -349,7 +349,7 @@ export const StudentProfile = () => {
                   {doc.uploaded ? (
                     <CheckCircle className="w-5 h-5 text-emerald-500" />
                   ) : (
-                    <label className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-primary cursor-pointer active:scale-95 duration-100">
+                    <label className="p-1.5 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-lg text-primary cursor-pointer active:scale-95 duration-100">
                       <Upload className="w-4 h-4" />
                       <input type="file" className="hidden" onChange={() => alert(`${doc.name} uploaded successfully! (Mock)`)} />
                     </label>
@@ -365,7 +365,7 @@ export const StudentProfile = () => {
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="px-4 py-2 border border-border hover:bg-slate-50 dark:hover:bg-slate-900 rounded-xl text-xs font-bold"
+                className="px-4 py-2 border border-border hover:bg-slate-50 dark:hover:bg-indigo-600 rounded-xl text-xs font-bold"
               >
                 Cancel
               </button>
@@ -382,3 +382,4 @@ export const StudentProfile = () => {
     </div>
   );
 };
+

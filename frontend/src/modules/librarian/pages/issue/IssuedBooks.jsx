@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
@@ -44,7 +44,7 @@ export const IssuedBooks = () => {
       render: (val, row) => (
         <div>
           <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val}</span>
-          <span className="text-3xs text-slate-400">Copy: {row.accessionNumber || 'N/A'} • Code: {row.bookCode || 'N/A'}</span>
+          <span className="text-3xs text-slate-400">Copy: {row.accessionNumber || 'N/A'} â€¢ Code: {row.bookCode || 'N/A'}</span>
         </div>
       ),
     },
@@ -55,7 +55,7 @@ export const IssuedBooks = () => {
       render: (val, row) => (
         <div>
           <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val}</span>
-          <span className="text-3xs text-slate-400">{row.borrowerType} • {row.borrowerCode || 'STU'}</span>
+          <span className="text-3xs text-slate-400">{row.borrowerType} â€¢ {row.borrowerCode || 'STU'}</span>
         </div>
       ),
     },
@@ -110,7 +110,7 @@ export const IssuedBooks = () => {
           <button
             onClick={fetchIssuedBooks}
             disabled={loading}
-            className="p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-300 transition-colors"
+            className="p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-indigo-600 text-slate-600 dark:text-slate-300 transition-colors"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -120,7 +120,7 @@ export const IssuedBooks = () => {
       {loading ? (
         <SkeletonTable rows={8} columns={6} />
       ) : issuedList.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
           <Clock className="h-8 w-8 mx-auto text-slate-400" />
           <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">No Books Currently Issued</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
@@ -128,7 +128,7 @@ export const IssuedBooks = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
           <DataTable
             columns={columns}
             data={issuedList}
@@ -142,3 +142,4 @@ export const IssuedBooks = () => {
   );
 };
 export default IssuedBooks;
+

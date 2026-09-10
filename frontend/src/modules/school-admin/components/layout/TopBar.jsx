@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useSchoolAdminAuth } from '../../context/SchoolAdminAuthContext';
 import { useSchoolAdminTheme } from '../../context/SchoolAdminThemeContext';
 import { useSchoolAdminNotifications } from '../../context/SchoolAdminNotificationContext';
@@ -51,12 +51,12 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 md:px-8 shadow-sm">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 px-4 md:px-8 shadow-sm">
       {/* Mobile Drawer Trigger & Search Indicator */}
       <div className="flex items-center gap-4">
         <button
           onClick={onMenuClick}
-          className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-500 dark:text-slate-400 md:hidden"
+          className="p-2 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-xl text-slate-500 dark:text-slate-400 md:hidden"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -68,7 +68,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
           >
             <Search className="w-3.5 h-3.5 shrink-0" />
             <span className="flex-1 text-left">Search / Ask anything...</span>
-            <span className="text-[9px] font-bold bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800">
+            <span className="text-[9px] font-bold bg-white dark:bg-indigo-600 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-800">
               Ctrl K
             </span>
           </button>
@@ -88,7 +88,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
         {/* Theme Toggle */}
         <button
           onClick={handleToggleTheme}
-          className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-500 dark:text-slate-400 transition-colors"
+          className="p-2.5 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-xl text-slate-500 dark:text-slate-400 transition-colors"
           aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
         >
           {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -101,11 +101,11 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
               setShowNotifications(!showNotifications);
               setShowProfileMenu(false);
             }}
-            className="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-500 dark:text-slate-400 transition-colors relative"
+            className="p-2.5 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-xl text-slate-500 dark:text-slate-400 transition-colors relative"
           >
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white">
+              <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-600 text-[9px] font-bold text-white">
                 {unreadCount}
               </span>
             )}
@@ -114,7 +114,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
           {/* Notifications Panel Dropdown */}
           {showNotifications && (
             <div className="absolute right-0 mt-2.5 z-50 w-80 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+              <div className="flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-indigo-600 border-b border-slate-200 dark:border-slate-800">
                 <span className="text-xs font-bold text-slate-950 dark:text-white">Notifications</span>
                 {unreadCount > 0 && (
                   <button
@@ -140,7 +140,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
                         setShowNotifications(false);
                       }}
                       className={cn(
-                        "p-3.5 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors cursor-pointer text-left",
+                        "p-3.5 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer text-left",
                         !notif.read && "bg-indigo-50/20 dark:bg-indigo-950/10"
                       )}
                     >
@@ -167,7 +167,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
                 setShowProfileMenu(!showProfileMenu);
                 setShowNotifications(false);
               }}
-              className="flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 p-1.5 rounded-xl transition-colors"
+              className="flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-indigo-600 p-1.5 rounded-xl transition-colors"
             >
               <UserAvatar src={user.photo} name={user.name} className="h-8 w-8 rounded-lg text-xs" />
               <span className="hidden lg:block text-xs font-bold text-slate-900 dark:text-white">{user.name}</span>
@@ -186,7 +186,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
                       navigate('/school-admin/settings');
                       setShowProfileMenu(false);
                     }}
-                    className="flex items-center gap-2.5 w-full text-left px-2.5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-900"
+                    className="flex items-center gap-2.5 w-full text-left px-2.5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-350 hover:bg-slate-50 dark:hover:bg-indigo-600"
                   >
                     <Settings className="w-4 h-4 text-slate-400" />
                     <span>Settings</span>
@@ -195,7 +195,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
 
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-2.5 w-full text-left px-2.5 py-2 rounded-xl text-xs font-semibold text-rose-500 hover:bg-rose-500/10"
+                  className="flex items-center gap-2.5 w-full text-left px-2.5 py-2 rounded-xl text-xs font-semibold text-rose-500 hover:bg-indigo-600/10"
                 >
                   <LogOut className="w-4 h-4 shrink-0" />
                   <span>Logout</span>
@@ -208,3 +208,4 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
     </header>
   );
 };
+

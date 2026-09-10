@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTeacherAuth } from '../context/TeacherAuthContext';
 import { useTeacherNotifications } from '../context/TeacherNotificationContext';
@@ -36,14 +36,14 @@ export const TeacherDashboard = () => {
     { label: 'Upload Marks', path: '/teacher/examination', icon: Upload, color: 'text-purple-500 bg-purple-500/10' },
     { label: 'View Timetable', path: '/teacher/timetable', icon: Calendar, color: 'text-indigo-500 bg-indigo-500/10' },
     { label: 'Message Parents', path: '/teacher/messages', icon: MessageSquare, color: 'text-sky-500 bg-sky-500/10' },
-    { label: 'Apply Leave', path: '/teacher/leave', icon: FilePlus, color: 'text-rose-500 bg-rose-500/10' },
+    { label: 'Apply Leave', path: '/teacher/leave', icon: FilePlus, color: 'text-rose-500 bg-indigo-600/10' },
   ];
 
   const examTypeColor = { 'Unit Test': 'primary', 'Mid Term': 'warning', 'Final': 'danger' };
 
   return (
     <div className="space-y-6">
-      {/* ── Hero Teacher Card ── */}
+      {/* â”€â”€ Hero Teacher Card â”€â”€ */}
       <Card className="bg-gradient-to-br from-primary via-indigo-600 to-accent text-white border-none p-6 shadow-premium relative overflow-hidden">
         <div className="absolute right-0 top-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16" />
         <div className="absolute left-1/3 bottom-0 w-36 h-36 bg-secondary/20 rounded-full blur-2xl -mb-10" />
@@ -88,7 +88,7 @@ export const TeacherDashboard = () => {
         </div>
       </Card>
 
-      {/* ── Quick Stats ── */}
+      {/* â”€â”€ Quick Stats â”€â”€ */}
       <div>
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Today's Overview</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -96,12 +96,12 @@ export const TeacherDashboard = () => {
           <StatCard title="Pending Eval." value={pendingHomework === 0 ? '00' : `${pendingHomework}`} subtext="Submissions awaiting" icon={BookOpen} colorClass="bg-amber-500" onClick={() => navigate('/teacher/homework')} />
           <StatCard title="Marks Pending" value={pendingMarks === 0 ? '00' : `${pendingMarks}`} subtext="Exams to evaluate" icon={Upload} colorClass="bg-purple-500" onClick={() => navigate('/teacher/examination')} />
           <StatCard title="Unread Messages" value={unreadMsgCount === 0 ? '00' : `${unreadMsgCount}`} subtext="From parents & staff" icon={MessageSquare} colorClass="bg-sky-500" onClick={() => navigate('/teacher/messages')} />
-          <StatCard title="Notifications" value={unreadNotifCount === 0 ? '00' : `${unreadNotifCount}`} subtext="Unread alerts" icon={Bell} colorClass="bg-rose-500" onClick={() => navigate('/teacher/notifications')} />
+          <StatCard title="Notifications" value={unreadNotifCount === 0 ? '00' : `${unreadNotifCount}`} subtext="Unread alerts" icon={Bell} colorClass="bg-indigo-600" onClick={() => navigate('/teacher/notifications')} />
           <StatCard title="Upcoming Exams" value={upcomingExams.length === 0 ? '00' : `${upcomingExams.length}`} subtext="Next 30 days" icon={FileText} colorClass="bg-emerald-500" onClick={() => navigate('/teacher/examination')} />
         </div>
       </div>
 
-      {/* ── Quick Actions ── */}
+      {/* â”€â”€ Quick Actions â”€â”€ */}
       <div>
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Quick Actions</h3>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
@@ -126,7 +126,7 @@ export const TeacherDashboard = () => {
         </div>
       </div>
 
-      {/* ── Split Layout ── */}
+      {/* â”€â”€ Split Layout â”€â”€ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Today's Timetable */}
         <Card className="lg:col-span-1 flex flex-col">
@@ -138,14 +138,14 @@ export const TeacherDashboard = () => {
             </button>
           </div>
           {todayClasses.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">No Result — No classes scheduled today</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result â€” No classes scheduled today</p>
           ) : (
             <div className="space-y-3 flex-1 overflow-y-auto max-h-72 no-scrollbar">
               {todayClasses.map((cl, i) => (
-                <div key={i} className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-slate-50/50 dark:bg-slate-900/50">
+                <div key={i} className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-slate-50/50 dark:bg-indigo-600/50">
                   <div>
                     <h4 className="text-xs font-bold text-foreground leading-tight">{cl.subject}</h4>
-                    <span className="text-[10px] text-slate-400 mt-0.5 block">{cl.class} • Room {cl.room}</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">{cl.class} â€¢ Room {cl.room}</span>
                   </div>
                   <div className="text-right">
                     <Badge variant="info" className="text-[9px]">{cl.time}</Badge>
@@ -167,7 +167,7 @@ export const TeacherDashboard = () => {
             </button>
           </div>
           {upcomingExams.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">No Result — No exams scheduled</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result â€” No exams scheduled</p>
           ) : (
             <div className="space-y-3 flex-1 overflow-y-auto max-h-72 no-scrollbar">
               {upcomingExams.map(exam => (
@@ -177,7 +177,7 @@ export const TeacherDashboard = () => {
                     <span className="text-[9px] text-slate-400 font-medium">{exam.date}</span>
                   </div>
                   <h4 className="text-xs font-bold text-foreground">{exam.subject}</h4>
-                  <span className="text-[10px] text-slate-400">{exam.class} • {exam.time} • {exam.venue}</span>
+                  <span className="text-[10px] text-slate-400">{exam.class} â€¢ {exam.time} â€¢ {exam.venue}</span>
                 </div>
               ))}
             </div>
@@ -194,17 +194,17 @@ export const TeacherDashboard = () => {
             </button>
           </div>
           {recentAnnouncements.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">No Result — No announcements posted</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result â€” No announcements posted</p>
           ) : (
             <div className="space-y-3 flex-1 overflow-y-auto max-h-72 no-scrollbar">
               {recentAnnouncements.map(ann => (
-                <div key={ann.id} className={`p-3.5 rounded-xl border duration-150 ${ann.isUrgent ? 'border-rose-200 dark:border-rose-900 bg-rose-500/5' : 'border-border hover:border-primary/20'}`}>
+                <div key={ann.id} className={`p-3.5 rounded-xl border duration-150 ${ann.isUrgent ? 'border-rose-200 dark:border-rose-900 bg-indigo-600/5' : 'border-border hover:border-primary/20'}`}>
                   <div className="flex items-center justify-between mb-1.5">
                     <Badge
                       variant={ann.isUrgent ? 'danger' : ann.type === 'Exam' ? 'warning' : ann.type === 'Holiday' ? 'success' : 'info'}
                       className="text-[8px] tracking-wide uppercase"
                     >
-                      {ann.isUrgent ? '🚨 Urgent' : ann.type}
+                      {ann.isUrgent ? 'ðŸš¨ Urgent' : ann.type}
                     </Badge>
                     <span className="text-[9px] text-slate-400 font-medium">{ann.date}</span>
                   </div>
@@ -217,7 +217,7 @@ export const TeacherDashboard = () => {
         </Card>
       </div>
 
-      {/* ── Upcoming Events ── */}
+      {/* â”€â”€ Upcoming Events â”€â”€ */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Upcoming Events & Duties</h3>
@@ -227,7 +227,7 @@ export const TeacherDashboard = () => {
           </button>
         </div>
         {upcomingEvents.length === 0 ? (
-          <p className="text-xs text-slate-400 text-center py-6">No Result — No upcoming events scheduled</p>
+          <p className="text-xs text-slate-400 text-center py-6">No Result â€” No upcoming events scheduled</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {upcomingEvents.map(ev => (
@@ -240,7 +240,7 @@ export const TeacherDashboard = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="text-xs font-bold text-foreground leading-tight mb-0.5">{ev.title}</h4>
-                  <p className="text-[10px] text-slate-400 mb-1.5">{ev.venue} • {ev.time}</p>
+                  <p className="text-[10px] text-slate-400 mb-1.5">{ev.venue} â€¢ {ev.time}</p>
                   {ev.duty && (
                     <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-lg">
                       <ClipboardList className="w-3 h-3" /> {ev.duty}
@@ -256,3 +256,4 @@ export const TeacherDashboard = () => {
   );
 };
 export default TeacherDashboard;
+

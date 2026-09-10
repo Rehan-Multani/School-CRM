@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
@@ -92,7 +92,7 @@ function revokeDocumentPreviews(docs) {
 
 function SummaryCard({ title, value, hint, icon: Icon, tone = 'text-slate-900' }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">{title}</p>
@@ -109,7 +109,7 @@ function SummaryCard({ title, value, hint, icon: Icon, tone = 'text-slate-900' }
 
 function SectionBlock({ title, subtitle, children, action }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">{title}</h3>
@@ -435,7 +435,7 @@ export const TeacherManagement = () => {
           {row.profilePhoto ? (
             <img src={buildTeacherPhotoUrl(row.profilePhoto)} alt={val} className="h-10 w-10 rounded-xl object-cover" />
           ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-[10px] font-bold text-slate-500 dark:bg-slate-800">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-[10px] font-bold text-slate-500 dark:bg-indigo-600">
               {(val || 'T').slice(0, 2).toUpperCase()}
             </div>
           )}
@@ -468,12 +468,12 @@ export const TeacherManagement = () => {
       render: (_, row) => {
         const qual = Array.isArray(row.qualifications)
           ? row.qualifications.map((item) => (typeof item === 'string' ? item : item?.degree)).filter(Boolean).join(', ')
-          : row.qualification || '—';
+          : row.qualification || 'â€”';
         return (
           <div>
-            <p className="font-semibold text-slate-700 dark:text-slate-200">{qual || '—'}</p>
+            <p className="font-semibold text-slate-700 dark:text-slate-200">{qual || 'â€”'}</p>
             <p className="mt-0.5 text-[11px] font-medium text-slate-400">
-              Joined {row.joiningDate ? String(row.joiningDate).slice(0, 10) : '—'}
+              Joined {row.joiningDate ? String(row.joiningDate).slice(0, 10) : 'â€”'}
             </p>
           </div>
         );
@@ -508,7 +508,7 @@ export const TeacherManagement = () => {
               <button
                 type="button"
                 onClick={() => handleApproveTeacher(row)}
-                className="inline-flex h-8 items-center gap-1 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs cursor-pointer"
+                className="inline-flex h-8 items-center gap-1 px-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-2xs cursor-pointer"
                 title={`Approve ${row.name}`}
               >
                 <UserCheck className="h-3.5 w-3.5" />
@@ -535,7 +535,7 @@ export const TeacherManagement = () => {
               <button
                 type="button"
                 onClick={() => handleToggleStatus(row)}
-                className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 dark:hover:bg-indigo-600 cursor-pointer"
                 title={row.status === 'ACTIVE' ? `Deactivate ${row.name}` : `Activate ${row.name}`}
               >
                 {row.status === 'ACTIVE' ? <Ban className="h-4 w-4 text-rose-500" /> : <Power className="h-4 w-4 text-emerald-500" />}
@@ -645,7 +645,7 @@ export const TeacherManagement = () => {
                   <button
                     type="button"
                     onClick={() => photoInputRef.current?.click()}
-                    className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900"
+                    className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-indigo-600"
                   >
                     {photoPreview ? (
                       <img src={photoPreview} alt="Teacher preview" className="h-full w-full object-cover" />
@@ -856,7 +856,7 @@ export const TeacherManagement = () => {
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
         title="Delete Teacher"
-        message={`"${deleteTarget?.name}" will be permanently removed. Teachers with class or subject assignments cannot be deleted — deactivate them instead.`}
+        message={`"${deleteTarget?.name}" will be permanently removed. Teachers with class or subject assignments cannot be deleted â€” deactivate them instead.`}
         confirmText="Delete Teacher"
         variant="danger"
       />
@@ -867,3 +867,5 @@ export const TeacherManagement = () => {
 };
 
 export default TeacherManagement;
+
+

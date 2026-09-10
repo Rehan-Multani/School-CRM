@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
@@ -40,7 +40,7 @@ function toLocalInput(value) {
   return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
 }
 function fmt(value) {
-  if (!value) return '—';
+  if (!value) return 'â€”';
   return new Date(value).toLocaleString('en-IN', {
     day: '2-digit',
     month: 'short',
@@ -215,7 +215,7 @@ export const EventsManagement = () => {
         title: 'Audience',
         render: (val) => (val?.length ? val.join(', ') : 'ALL'),
       },
-      { key: 'leadName', title: 'Lead', render: (val) => val || '—' },
+      { key: 'leadName', title: 'Lead', render: (val) => val || 'â€”' },
       {
         key: 'status',
         title: 'Status',
@@ -230,7 +230,7 @@ export const EventsManagement = () => {
             <button
               type="button"
               onClick={() => openEdit(row)}
-              className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
+              className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-indigo-600"
               title="Edit"
             >
               <Pencil size={15} />
@@ -261,7 +261,7 @@ export const EventsManagement = () => {
   const statCards = [
     { label: 'Total Events', value: stats.total, icon: CalendarDays, tone: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40' },
     { label: 'Upcoming', value: stats.upcoming, icon: CalendarClock, tone: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40' },
-    { label: 'Completed', value: stats.completed, icon: CheckCircle2, tone: 'text-slate-600 bg-slate-100 dark:bg-slate-800' },
+    { label: 'Completed', value: stats.completed, icon: CheckCircle2, tone: 'text-slate-600 bg-slate-100 dark:bg-indigo-600' },
     { label: 'Cancelled', value: stats.cancelled, icon: XCircle, tone: 'text-rose-600 bg-rose-50 dark:bg-rose-950/40' },
   ];
 
@@ -287,7 +287,7 @@ export const EventsManagement = () => {
           : statCards.map((c) => (
           <div
             key={c.label}
-            className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+            className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600"
           >
             <div className={`mb-2 inline-flex h-9 w-9 items-center justify-center rounded-xl ${c.tone}`}>
               <c.icon className="h-4 w-4" />
@@ -442,7 +442,7 @@ export const EventsManagement = () => {
               disabled={saving}
               className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60"
             >
-              {saving ? 'Saving…' : editing ? 'Update Event' : 'Schedule Event'}
+              {saving ? 'Savingâ€¦' : editing ? 'Update Event' : 'Schedule Event'}
             </button>
           </div>
         </form>
@@ -477,3 +477,4 @@ export const EventsManagement = () => {
 };
 
 export default EventsManagement;
+

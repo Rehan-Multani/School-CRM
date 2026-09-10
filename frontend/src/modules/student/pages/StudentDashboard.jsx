@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudentAuth } from '../context/StudentAuthContext';
 import { useStudentNotifications } from '../context/NotificationContext';
@@ -152,10 +152,10 @@ export const StudentDashboard = () => {
           />
           <StatCard 
             title="Pending Fees" 
-            value={`₹${fees?.pendingFees ?? 0}`}
+            value={`â‚¹${fees?.pendingFees ?? 0}`}
             subtext="Fee balance"
             icon={CreditCard} 
-            colorClass="bg-rose-500"
+            colorClass="bg-indigo-600"
             onClick={() => navigate('/student/fees')}
           />
           <StatCard 
@@ -185,9 +185,9 @@ export const StudentDashboard = () => {
             { label: 'View Attendance', path: '/student/attendance', icon: CalendarCheck, color: 'text-emerald-500 bg-emerald-500/10' },
             { label: 'Submit Homework', path: '/student/homework', icon: BookOpen, color: 'text-amber-500 bg-amber-500/10' },
             { label: 'View Timetable', path: '/student/timetable', icon: Calendar, color: 'text-indigo-500 bg-indigo-500/10' },
-            { label: 'Pay Fees', path: '/student/fees', icon: CreditCard, color: 'text-rose-500 bg-rose-500/10' },
+            { label: 'Pay Fees', path: '/student/fees', icon: CreditCard, color: 'text-rose-500 bg-indigo-600/10' },
             { label: 'View Results', path: '/student/results', icon: GraduationCap, color: 'text-cyan-500 bg-cyan-500/10' },
-            { label: 'Download ID', path: '/student/downloads', icon: Download, color: 'text-blue-500 bg-blue-500/10' },
+            { label: 'Download ID', path: '/student/downloads', icon: Download, color: 'text-blue-500 bg-indigo-500/10' },
             { label: 'Contact Teacher', path: '/student/messages', icon: MessageSquare, color: 'text-violet-500 bg-violet-500/10' },
             { label: 'Apply Leave', path: '/student/leave', icon: FilePlus, color: 'text-teal-500 bg-teal-500/10' },
           ].map((act, i) => {
@@ -223,14 +223,14 @@ export const StudentDashboard = () => {
             </button>
           </div>
           {todayClasses.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">No Result — No classes scheduled today</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result â€” No classes scheduled today</p>
           ) : (
             <div className="space-y-3 flex-1 overflow-y-auto max-h-[300px] no-scrollbar">
               {todayClasses.map((cl, i) => (
-                <div key={i} className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-slate-50/50 dark:bg-slate-900/50">
+                <div key={i} className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-slate-50/50 dark:bg-indigo-600/50">
                   <div>
                     <h4 className="text-xs font-bold text-foreground leading-tight">{cl.subject}</h4>
-                    <span className="text-[10px] text-slate-400 mt-0.5 block">{cl.teacher} • Room {cl.room}</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">{cl.teacher} â€¢ Room {cl.room}</span>
                   </div>
                   <div className="text-right">
                     <Badge variant="info" className="text-[9px]">{cl.time}</Badge>
@@ -252,7 +252,7 @@ export const StudentDashboard = () => {
             </button>
           </div>
           {todayAnnouncements.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">No Result — No announcements posted</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result â€” No announcements posted</p>
           ) : (
             <div className="space-y-3 flex-1 overflow-y-auto max-h-[300px] no-scrollbar">
               {todayAnnouncements.map((ann) => (
@@ -283,18 +283,18 @@ export const StudentDashboard = () => {
             </button>
           </div>
           {recentNotifications.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">No Result — No notifications</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result â€” No notifications</p>
           ) : (
             <div className="space-y-3 flex-1 overflow-y-auto max-h-[300px] no-scrollbar">
               {recentNotifications.map((notif) => (
-                <div key={notif.id} className="flex items-start gap-3 p-3.5 rounded-xl border border-border bg-slate-50/20 dark:bg-slate-900/10">
+                <div key={notif.id} className="flex items-start gap-3 p-3.5 rounded-xl border border-border bg-slate-50/20 dark:bg-indigo-600/10">
                   <div className="p-2 bg-primary/10 rounded-lg text-primary shrink-0">
                     <Bell className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center justify-between gap-2">
                       <h4 className="text-xs font-bold text-foreground truncate leading-none">{notif.title}</h4>
-                      {!notif.read && <span className="w-1.5 h-1.5 bg-rose-500 rounded-full shrink-0"></span>}
+                      {!notif.read && <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full shrink-0"></span>}
                     </div>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-1 leading-relaxed">
                       {notif.message}
@@ -311,3 +311,4 @@ export const StudentDashboard = () => {
   );
 };
 export default StudentDashboard;
+

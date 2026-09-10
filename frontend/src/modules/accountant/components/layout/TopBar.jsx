@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useAccountantAuth } from '../../context/AccountantAuthContext';
 import { useAccountantTheme } from '../../context/AccountantThemeContext';
 import { useAccountantNotifications } from '../../context/AccountantNotificationContext';
@@ -21,11 +21,11 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
   };
 
   return (
-    <header className="sticky top-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-6 z-30 select-none">
+    <header className="sticky top-0 bg-white/80 dark:bg-indigo-600/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 h-16 flex items-center justify-between px-6 z-30 select-none">
       <div className="flex items-center gap-4 flex-1">
         <button
           onClick={onMenuClick}
-          className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 md:hidden transition-colors cursor-pointer"
+          className="p-1.5 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-lg text-slate-500 md:hidden transition-colors cursor-pointer"
           aria-label="Open navigation menu"
         >
           <Menu className="w-5 h-5" />
@@ -33,18 +33,18 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
 
         <button
           onClick={onSearchClick}
-          className="hidden md:flex items-center gap-2.5 px-3.5 py-2 bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl text-xs font-semibold w-72 transition-all cursor-pointer"
+          className="hidden md:flex items-center gap-2.5 px-3.5 py-2 bg-slate-50 dark:bg-slate-950 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-xl text-xs font-semibold w-72 transition-all cursor-pointer"
         >
           <Search className="w-3.5 h-3.5 text-slate-400" />
           <span>Quick search routes...</span>
-          <kbd className="ml-auto bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[10px] font-mono leading-none border border-slate-300 dark:border-slate-700">Ctrl+K</kbd>
+          <kbd className="ml-auto bg-slate-200 dark:bg-indigo-600 px-1.5 py-0.5 rounded text-[10px] font-mono leading-none border border-slate-300 dark:border-slate-700">Ctrl+K</kbd>
         </button>
       </div>
 
       <div className="flex items-center gap-3">
         <button
           onClick={toggleTheme}
-          className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl transition-colors shrink-0 cursor-pointer"
+          className="p-2 hover:bg-slate-100 dark:hover:bg-indigo-600 text-slate-500 dark:text-slate-400 rounded-xl transition-colors shrink-0 cursor-pointer"
           aria-label="Toggle dark mode"
         >
           {darkMode ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4" />}
@@ -57,7 +57,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
               setShowNotifications(!showNotifications);
               setShowUserDropdown(false);
             }}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl transition-colors relative shrink-0 cursor-pointer"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-indigo-600 text-slate-500 dark:text-slate-400 rounded-xl transition-colors relative shrink-0 cursor-pointer"
             aria-label="View notifications"
           >
             <Bell className="w-4 h-4" />
@@ -73,7 +73,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                 transition={{ duration: 0.12 }}
-                className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 overflow-hidden text-left"
+                className="absolute right-0 mt-2 w-80 bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 overflow-hidden text-left"
               >
                 <div className="px-4 py-3 bg-slate-50 dark:bg-slate-950 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                   <span className="text-[11px] font-black text-slate-500 uppercase tracking-wider">Alert Feed ({unreadCount})</span>
@@ -120,7 +120,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
                 setShowUserDropdown(!showUserDropdown);
                 setShowNotifications(false);
               }}
-              className="flex items-center gap-2 p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer border border-slate-200 dark:border-slate-800"
+              className="flex items-center gap-2 p-1 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-xl transition-all cursor-pointer border border-slate-200 dark:border-slate-800"
             >
               <img src={user.photo} alt={user.name} className="w-8 h-8 rounded-lg object-cover" />
               <span className="text-xs font-bold text-slate-700 dark:text-slate-300 hidden sm:inline-block max-w-28 truncate">{user.name}</span>
@@ -133,7 +133,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
                   transition={{ duration: 0.12 }}
-                  className="absolute right-0 mt-2 w-52 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-2 space-y-1"
+                  className="absolute right-0 mt-2 w-52 bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-2 space-y-1"
                 >
                   <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800 text-left">
                     <span className="text-xs font-bold text-slate-800 dark:text-white block">{user.name}</span>
@@ -143,7 +143,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
                   <Link
                     to="/accountant/settings"
                     onClick={() => setShowUserDropdown(false)}
-                    className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
+                    className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-xl"
                   >
                     <User className="w-3.5 h-3.5 text-slate-400" />
                     <span>My Profile</span>
@@ -152,7 +152,7 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
                   <Link
                     to="/accountant/settings"
                     onClick={() => setShowUserDropdown(false)}
-                    className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl"
+                    className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-xl"
                   >
                     <SettingsIcon className="w-3.5 h-3.5 text-slate-400" />
                     <span>Account Settings</span>
@@ -175,3 +175,4 @@ export const TopBar = ({ onMenuClick, onSearchClick }) => {
   );
 };
 export default TopBar;
+

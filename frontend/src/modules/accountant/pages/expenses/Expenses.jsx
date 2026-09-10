@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ServerTable } from '../../components/ui/ServerTable';
 import { Modal } from '../../components/ui/Modal';
@@ -156,7 +156,7 @@ export const Expenses = () => {
       { key: 'title', title: 'Title & Vendor', render: (r) => (
         <div>
           <p className="font-bold text-slate-900 dark:text-white">{r.title}</p>
-          <p className="text-[10px] text-slate-400">{r.vendorName || '—'}</p>
+          <p className="text-[10px] text-slate-400">{r.vendorName || 'â€”'}</p>
         </div>
       ) },
       { key: 'category', title: 'Category' },
@@ -224,13 +224,13 @@ export const Expenses = () => {
                 exportToCSV(rows, `expenses_${new Date().toISOString().split('T')[0]}.csv`);
                 showToast('Current page exported to CSV', 'success');
               }}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs"
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs"
             >
               <Download className="w-3.5 h-3.5" /> Export
             </button>
             <button
               onClick={() => setModal({ mode: 'create', form: emptyForm() })}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs"
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs"
             >
               <Plus className="w-4 h-4" /> Add Expense
             </button>
@@ -250,14 +250,14 @@ export const Expenses = () => {
           <input
             value={filters.search}
             onChange={(e) => set({ search: e.target.value })}
-            placeholder="Search title, vendor, voucher…"
-            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold outline-none focus:border-violet-500"
+            placeholder="Search title, vendor, voucherâ€¦"
+            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold outline-none focus:border-violet-500"
           />
         </div>
         <select
           value={filters.category}
           onChange={(e) => set({ category: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
         >
           <option value="">All Categories</option>
           {categories.map((c) => (
@@ -269,7 +269,7 @@ export const Expenses = () => {
         <select
           value={filters.paymentStatus}
           onChange={(e) => set({ paymentStatus: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
         >
           <option value="">All Payment Statuses</option>
           {PAYMENT_STATUSES.map((s) => (
@@ -328,7 +328,7 @@ export const Expenses = () => {
               </Field>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Amount (₹) *">
+              <Field label="Amount (â‚¹) *">
                 <input
                   placeholder="e.g. 5000"
                   type="number"
@@ -407,11 +407,11 @@ export const Expenses = () => {
               />
             </Field>
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <button type="button" onClick={() => setModal(null)} className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+              <button type="button" onClick={() => setModal(null)} className="px-4 py-2 rounded-xl text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-indigo-600">
                 Cancel
               </button>
-              <button type="submit" disabled={saving} className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50">
-                {saving ? 'Saving…' : modal.mode === 'edit' ? 'Save Changes' : 'Record Expense'}
+              <button type="submit" disabled={saving} className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50">
+                {saving ? 'Savingâ€¦' : modal.mode === 'edit' ? 'Save Changes' : 'Record Expense'}
               </button>
             </div>
           </form>
@@ -444,3 +444,5 @@ const Field = ({ label, children }) => (
 );
 
 export default Expenses;
+
+

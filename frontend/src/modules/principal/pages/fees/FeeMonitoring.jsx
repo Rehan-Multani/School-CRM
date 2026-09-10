@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
@@ -27,7 +27,7 @@ function parseInDate(str) {
   return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
 }
 function inr(n) {
-  return `₹${Number(n || 0).toLocaleString('en-IN')}`;
+  return `â‚¹${Number(n || 0).toLocaleString('en-IN')}`;
 }
 
 export const FeeMonitoring = () => {
@@ -151,37 +151,37 @@ export const FeeMonitoring = () => {
       ) : (
         <>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
               <div className="rounded-2xl bg-emerald-50 p-3.5 text-emerald-600 dark:bg-emerald-950/40">
                 <IndianRupee className="h-5 w-5 shrink-0" />
               </div>
               <div>
                 <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">Total Fee Collected</span>
-                <span className="mt-1 block text-xl font-extrabold text-emerald-600">{loading ? '…' : inr(totalCollected)}</span>
+                <span className="mt-1 block text-xl font-extrabold text-emerald-600">{loading ? 'â€¦' : inr(totalCollected)}</span>
               </div>
             </div>
-            <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
               <div className="rounded-2xl bg-rose-50 p-3.5 text-rose-600 dark:bg-rose-950/40">
                 <AlertTriangle className="h-5 w-5 shrink-0" />
               </div>
               <div>
                 <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">Outstanding Deficit</span>
-                <span className="mt-1 block text-xl font-extrabold text-rose-600">{loading ? '…' : inr(totalOutstanding)}</span>
+                <span className="mt-1 block text-xl font-extrabold text-rose-600">{loading ? 'â€¦' : inr(totalOutstanding)}</span>
               </div>
             </div>
-            <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
               <div className="rounded-2xl bg-indigo-50 p-3.5 text-indigo-600 dark:bg-indigo-950/40">
                 <Percent className="h-5 w-5 shrink-0" />
               </div>
               <div>
                 <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">Collection Rate</span>
-                <span className="mt-1 block text-xl font-extrabold text-indigo-600">{loading ? '…' : `${collectionRate}%`}</span>
+                <span className="mt-1 block text-xl font-extrabold text-indigo-600">{loading ? 'â€¦' : `${collectionRate}%`}</span>
               </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
               <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white">
                 <TrendingUp className="h-4 w-4 text-emerald-500" />
                 <span>Monthly Tuition Revenue (Trend)</span>
@@ -191,12 +191,12 @@ export const FeeMonitoring = () => {
                   <AreaChart data={monthlyCollections} dataKey="amount" xKey="name" height={220} color="#10b981" />
                 ) : (
                   <div className="flex h-full items-center justify-center text-xs font-semibold text-slate-400">
-                    {loading ? 'Loading…' : 'No payments recorded yet.'}
+                    {loading ? 'Loadingâ€¦' : 'No payments recorded yet.'}
                   </div>
                 )}
               </div>
             </div>
-            <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
               <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white">
                 <AlertTriangle className="h-4 w-4 text-rose-500" />
                 <span>Outstanding Dues by Class Grade</span>
@@ -206,7 +206,7 @@ export const FeeMonitoring = () => {
                   <BarChart data={duesByClass} dataKey="dues" xKey="name" height={220} color="#f43f5e" />
                 ) : (
                   <div className="flex h-full items-center justify-center text-xs font-semibold text-slate-400">
-                    {loading ? 'Loading…' : 'No outstanding dues.'}
+                    {loading ? 'Loadingâ€¦' : 'No outstanding dues.'}
                   </div>
                 )}
               </div>
@@ -234,3 +234,4 @@ export const FeeMonitoring = () => {
 };
 
 export default FeeMonitoring;
+

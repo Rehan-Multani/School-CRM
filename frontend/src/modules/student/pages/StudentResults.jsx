@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useResults } from '../hooks/useStudentHooks';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -106,7 +106,7 @@ export const StudentResults = () => {
 
             <button
               onClick={handlePrint}
-              className="w-full flex items-center justify-center gap-2 border border-border hover:bg-slate-50 dark:hover:bg-slate-900 py-3 rounded-xl text-xs font-bold transition-all active:scale-95 duration-100 select-none"
+              className="w-full flex items-center justify-center gap-2 border border-border hover:bg-slate-50 dark:hover:bg-indigo-600 py-3 rounded-xl text-xs font-bold transition-all active:scale-95 duration-100 select-none"
             >
               <Printer className="w-4 h-4" />
               <span>Print Results Statement</span>
@@ -122,7 +122,7 @@ export const StudentResults = () => {
         </h3>
         <div className="space-y-4">
           {results.subjects.map((sub, i) => (
-            <div key={i} className="p-4 rounded-xl border border-border bg-slate-50/20 dark:bg-slate-900/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div key={i} className="p-4 rounded-xl border border-border bg-slate-50/20 dark:bg-indigo-600/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3">
                   <h4 className="text-xs font-bold text-foreground">{sub.subject}</h4>
@@ -140,7 +140,7 @@ export const StudentResults = () => {
                   <span className="text-[9px] text-slate-400 font-bold uppercase block">Obtained Score</span>
                   <span className="text-sm font-black text-foreground mt-0.5 block">{sub.score} / {sub.total}</span>
                 </div>
-                <div className="w-20 bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                <div className="w-20 bg-slate-100 dark:bg-indigo-600 h-2 rounded-full overflow-hidden">
                   <div 
                     className="bg-primary h-full rounded-full" 
                     style={{ width: `${(sub.score / sub.total) * 100}%` }}
@@ -154,3 +154,4 @@ export const StudentResults = () => {
     </div>
   );
 };
+

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { SearchBar } from '../components/ui/SearchBar';
@@ -66,7 +66,7 @@ export const TeacherClasses = () => {
             <p className="text-[10px] text-slate-400 font-medium mt-0.5">Regular (&gt;75%)</p>
           </Card>
           <Card className="text-center">
-            <div className="p-3 bg-rose-500/10 rounded-2xl w-fit mx-auto mb-2">
+            <div className="p-3 bg-indigo-600/10 rounded-2xl w-fit mx-auto mb-2">
               <Users className="w-5 h-5 text-rose-500" />
             </div>
             <p className="text-xl font-black text-foreground">
@@ -199,7 +199,7 @@ export const TeacherClasses = () => {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setSelectedStudent(null)}
-                className="flex-1 py-2.5 rounded-2xl border border-border text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                className="flex-1 py-2.5 rounded-2xl border border-border text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors"
               >
                 Close
               </button>
@@ -210,3 +210,4 @@ export const TeacherClasses = () => {
     </div>
   );
 };
+

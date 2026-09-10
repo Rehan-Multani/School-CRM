@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Moon, Smartphone, Sun } from 'lucide-react';
 import BrandLogo from '../../../shared/ui/BrandLogo';
@@ -13,7 +13,7 @@ const ThemeButton = () => {
       type="button"
       onClick={toggleTheme}
       aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-      className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+      className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-indigo-600"
     >
       {theme === 'dark' ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
     </button>
@@ -22,7 +22,7 @@ const ThemeButton = () => {
 
 const PortalPicker = () => {
   useEffect(() => {
-    document.title = `Sign in — ${PRODUCT.name}`;
+    document.title = `Sign in â€” ${PRODUCT.name}`;
   }, []);
 
   return (
@@ -38,7 +38,7 @@ const PortalPicker = () => {
           <div className="flex items-center gap-2">
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3.5 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-100 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3.5 py-2 text-sm font-bold text-slate-700 transition hover:bg-slate-100 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-indigo-600"
             >
               <ArrowLeft className="h-4 w-4" />
               <span className="hidden sm:inline">Back to home</span>
@@ -57,7 +57,7 @@ const PortalPicker = () => {
             Sign in to your portal
           </h1>
           <p className="mt-3 text-base leading-relaxed text-slate-600 dark:text-slate-400">
-            Choose the workspace built for your role. Office staff sign in here on the web — each
+            Choose the workspace built for your role. Office staff sign in here on the web â€” each
             portal has its own login and password reset.
           </p>
         </div>
@@ -68,7 +68,7 @@ const PortalPicker = () => {
           ))}
         </div>
 
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900/50">
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-indigo-600/50">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
               <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-600 text-white">
@@ -100,7 +100,7 @@ const PortalPicker = () => {
 
       <footer className="border-t border-slate-200 dark:border-slate-800">
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-slate-500 sm:flex-row sm:px-6">
-          <p>© {new Date().getFullYear()} {PRODUCT.name}</p>
+          <p>Â© {new Date().getFullYear()} {PRODUCT.name}</p>
           <p className="flex items-center gap-4">
             <Link to="/privacy" className="hover:text-slate-800 dark:hover:text-slate-300">Privacy</Link>
             <Link to="/terms" className="hover:text-slate-800 dark:hover:text-slate-300">Terms</Link>
@@ -119,3 +119,4 @@ export const PortalPickerPage = () => (
 );
 
 export default PortalPickerPage;
+

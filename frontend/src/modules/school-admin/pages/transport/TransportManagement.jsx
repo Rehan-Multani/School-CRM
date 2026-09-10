@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
@@ -42,10 +42,10 @@ import {
 } from 'lucide-react';
 
 /**
- * Transport — the whole module, in the order it must be set up:
+ * Transport â€” the whole module, in the order it must be set up:
  *
- *   1 Vehicle  →  2 Driver + Vehicle  →  3 Route + Stops (with times)
- *   →  4 Route + Vehicle + Driver  →  5 Student + Route + Stop
+ *   1 Vehicle  â†’  2 Driver + Vehicle  â†’  3 Route + Stops (with times)
+ *   â†’  4 Route + Vehicle + Driver  â†’  5 Student + Route + Stop
  *
  * Step 6 (daily pickup / drop) is the driver's own API and is not managed here.
  * Every action on this page calls the real backend; there is no local fixture.
@@ -55,13 +55,13 @@ const inputClass =
   'h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-xs font-semibold outline-none focus:border-indigo-500 focus:bg-white dark:border-slate-800 dark:bg-slate-950 dark:text-white';
 const labelClass = 'text-[11px] font-bold uppercase tracking-wider text-slate-400';
 const cardClass =
-  'rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900';
+  'rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600';
 const primaryBtn =
   'inline-flex items-center gap-2 rounded-xl bg-indigo-650 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition-colors hover:bg-indigo-700 disabled:opacity-60';
 const ghostBtn =
-  'inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-60 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800';
+  'inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-60 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-indigo-600';
 const iconBtn =
-  'inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800 disabled:opacity-40 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800';
+  'inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800 disabled:opacity-40 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-indigo-600';
 
 const VEHICLE_TYPES = [
   { id: 'SCHOOL_BUS', label: 'School Bus' },
@@ -85,9 +85,9 @@ const TABS = [
   { id: 'fees', label: 'Yearly Fee', icon: IndianRupee },
 ];
 
-/** ₹60,000 — or an em dash when the school has not set an amount yet. */
+/** â‚¹60,000 â€” or an em dash when the school has not set an amount yet. */
 const money = (amount) =>
-  amount === null || amount === undefined ? '—' : `₹${Number(amount).toLocaleString('en-IN')}`;
+  amount === null || amount === undefined ? 'â€”' : `â‚¹${Number(amount).toLocaleString('en-IN')}`;
 
 const emptyVehicle = {
   vehicleNumber: '',
@@ -114,14 +114,14 @@ const emptyRoute = { routeName: '', status: 'ACTIVE' };
 const emptyStop = { stopName: '', pickupTime: '07:30', dropTime: '16:00' };
 const emptyAssignment = { studentId: '', routeId: '', stopId: '' };
 
-/** Surface the backend's own message — it already explains exactly what failed. */
+/** Surface the backend's own message â€” it already explains exactly what failed. */
 const apiError = (error, fallback) =>
   error?.response?.data?.message || error?.message || fallback;
 
 const vehicleTypeLabel = (id) => VEHICLE_TYPES.find((t) => t.id === id)?.label || id;
 const fuelTypeLabel = (id) => FUEL_TYPES.find((f) => f.id === id)?.label || id;
 
-/** "07:30 AM" → "07:30" for an <input type="time">; passes 24h through. */
+/** "07:30 AM" â†’ "07:30" for an <input type="time">; passes 24h through. */
 function toTimeInput(display) {
   const match = String(display || '').match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
   if (!match) return String(display || '');
@@ -152,7 +152,7 @@ export const TransportManagement = () => {
   const [vehicleModal, setVehicleModal] = useState(null); // null | { editing, form }
   const [driverModal, setDriverModal] = useState(null);
   const [routeModal, setRouteModal] = useState(null);
-  const [assignModal, setAssignModal] = useState(null); // route → vehicle + driver
+  const [assignModal, setAssignModal] = useState(null); // route â†’ vehicle + driver
   const [stopModal, setStopModal] = useState(null);
   const [riderModal, setRiderModal] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
@@ -308,7 +308,7 @@ export const TransportManagement = () => {
     const target = index + direction;
     if (target < 0 || target >= next.length) return;
     [next[index], next[target]] = [next[target], next[index]];
-    setStops(next); // optimistic — the server response replaces it below
+    setStops(next); // optimistic â€” the server response replaces it below
     run(() => transportPortalApi.reorderStops(selectedRouteId, next.map((s) => s.id)), {
       success: 'Stop order updated',
       refreshStops: true,
@@ -334,7 +334,7 @@ export const TransportManagement = () => {
 
       <PageHeader
         title="Transport"
-        subtitle="Vehicle → Driver → Route → Stops & times → Student assignment"
+        subtitle="Vehicle â†’ Driver â†’ Route â†’ Stops & times â†’ Student assignment"
         actions={
           <button className={ghostBtn} onClick={() => loadAll()} disabled={loading}>
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -343,7 +343,7 @@ export const TransportManagement = () => {
         }
       />
 
-      {/* SETUP PROGRESS — the flow this module is required to follow, in order */}
+      {/* SETUP PROGRESS â€” the flow this module is required to follow, in order */}
       <div className={`${cardClass} p-4`}>
         <div className="flex flex-wrap items-center gap-2">
           {flow.map((step, index) => (
@@ -357,14 +357,14 @@ export const TransportManagement = () => {
               >
                 <span
                   className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-black ${
-                    step.done ? 'bg-emerald-600 text-white' : 'bg-slate-300 text-slate-600 dark:bg-slate-700'
+                    step.done ? 'bg-emerald-600 text-white' : 'bg-slate-300 text-slate-600 dark:bg-indigo-600'
                   }`}
                 >
                   {step.done ? <Check className="h-2.5 w-2.5" /> : index + 1}
                 </span>
                 {step.label}
               </div>
-              {index < flow.length - 1 && <span className="text-slate-300 dark:text-slate-700">›</span>}
+              {index < flow.length - 1 && <span className="text-slate-300 dark:text-slate-700">â€º</span>}
             </React.Fragment>
           ))}
         </div>
@@ -419,7 +419,7 @@ export const TransportManagement = () => {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={`Search ${activeTab}…`}
+              placeholder={`Search ${activeTab}â€¦`}
               className={`${inputClass} pl-9`}
             />
           </div>
@@ -428,14 +428,14 @@ export const TransportManagement = () => {
 
       {loading && <SkeletonTable rows={6} columns={5} />}
 
-      {/* ============================ 1 · VEHICLES =========================== */}
+      {/* ============================ 1 Â· VEHICLES =========================== */}
       {!loading && activeTab === 'vehicles' && (
         <div className={`${cardClass} overflow-hidden`}>
           <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Fleet</h3>
               <p className="text-[11px] font-semibold text-slate-400">
-                Step 1 — register each bus by its number plate
+                Step 1 â€” register each bus by its number plate
               </p>
             </div>
             <button className={primaryBtn} onClick={() => setVehicleModal({ editing: null, form: emptyVehicle })}>
@@ -528,14 +528,14 @@ export const TransportManagement = () => {
         </div>
       )}
 
-      {/* ============================ 2 · DRIVERS ============================ */}
+      {/* ============================ 2 Â· DRIVERS ============================ */}
       {!loading && activeTab === 'drivers' && (
         <div className={`${cardClass} overflow-hidden`}>
           <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Drivers</h3>
               <p className="text-[11px] font-semibold text-slate-400">
-                Step 2 — add the driver, then hand them a bus
+                Step 2 â€” add the driver, then hand them a bus
               </p>
             </div>
             <button
@@ -553,7 +553,7 @@ export const TransportManagement = () => {
               icon={IdCard}
               message={
                 vehicles.length === 0
-                  ? 'Add a vehicle first — a driver is given a bus at step 2.'
+                  ? 'Add a vehicle first â€” a driver is given a bus at step 2.'
                   : 'No drivers yet.'
               }
             />
@@ -694,7 +694,7 @@ export const TransportManagement = () => {
         </div>
       )}
 
-      {/* ======================= 3 + 4 · ROUTES & STOPS ====================== */}
+      {/* ======================= 3 + 4 Â· ROUTES & STOPS ====================== */}
       {!loading && activeTab === 'routes' && (
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-5">
           {/* Routes list */}
@@ -720,7 +720,7 @@ export const TransportManagement = () => {
                       key={route.id}
                       onClick={() => setSelectedRouteId(route.id)}
                       className={`w-full px-5 py-4 text-left transition-colors ${
-                        isActive ? 'bg-indigo-50/70 dark:bg-indigo-950/20' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                        isActive ? 'bg-indigo-50/70 dark:bg-indigo-950/20' : 'hover:bg-slate-50 dark:hover:bg-indigo-600/50'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
@@ -768,7 +768,7 @@ export const TransportManagement = () => {
                         {selectedRoute.routeName}
                       </h3>
                       <p className="mt-0.5 text-[11px] font-semibold text-slate-400">
-                        Step 4 — this route needs a bus and a driver before students can be assigned
+                        Step 4 â€” this route needs a bus and a driver before students can be assigned
                       </p>
                     </div>
                     <div className="flex gap-1.5">
@@ -862,7 +862,7 @@ export const TransportManagement = () => {
                     <div>
                       <h3 className="text-sm font-bold text-slate-900 dark:text-white">Stops</h3>
                       <p className="text-[11px] font-semibold text-slate-400">
-                        Step 3 — order matters, and every stop needs both times
+                        Step 3 â€” order matters, and every stop needs both times
                       </p>
                     </div>
                     <button className={primaryBtn} onClick={() => setStopModal({ editing: null, form: emptyStop })}>
@@ -969,14 +969,14 @@ export const TransportManagement = () => {
         </div>
       )}
 
-      {/* ========================= 5 · STUDENT RIDERS ======================== */}
+      {/* ========================= 5 Â· STUDENT RIDERS ======================== */}
       {!loading && activeTab === 'assignments' && (
         <div className={`${cardClass} overflow-hidden`}>
           <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">Student Assignments</h3>
               <p className="text-[11px] font-semibold text-slate-400">
-                Step 5 — the stop decides the student's pickup and drop time
+                Step 5 â€” the stop decides the student's pickup and drop time
               </p>
             </div>
             <button
@@ -999,7 +999,7 @@ export const TransportManagement = () => {
               message={
                 routes.some((r) => r.vehicle && r.driver && r.totalStops > 0)
                   ? 'No students on transport yet.'
-                  : 'Finish steps 1–4 first: a route with stops, a bus and a driver.'
+                  : 'Finish steps 1â€“4 first: a route with stops, a bus and a driver.'
               }
             />
           ) : (
@@ -1018,7 +1018,7 @@ export const TransportManagement = () => {
                         </div>
                       </td>
                       <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
-                        {row.student?.className || '—'}
+                        {row.student?.className || 'â€”'}
                       </td>
                       <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
                         {row.route?.routeName}
@@ -1034,7 +1034,7 @@ export const TransportManagement = () => {
                       </td>
                       <td className="px-5 py-3.5 font-bold text-amber-600 dark:text-amber-400">{row.dropTime}</td>
                       <td className="px-5 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
-                        {row.academicYear?.name || '—'}
+                        {row.academicYear?.name || 'â€”'}
                       </td>
                       <td className="px-5 py-3.5 font-black text-slate-900 dark:text-white">
                         {money(row.yearlyFeeAmount)}
@@ -1085,13 +1085,13 @@ export const TransportManagement = () => {
         </div>
       )}
 
-      {/* =========================== 6 · YEARLY FEE ========================== */}
+      {/* =========================== 6 Â· YEARLY FEE ========================== */}
       {!loading && activeTab === 'fees' && (
         <div className={`${cardClass} overflow-hidden`}>
           <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white">Yearly Transport Fee</h3>
             <p className="text-[11px] font-semibold text-slate-400">
-              Step 6 — one amount per academic year for the whole school. Every rider pays the same,
+              Step 6 â€” one amount per academic year for the whole school. Every rider pays the same,
               whatever their class, route or stop.
             </p>
           </div>
@@ -1125,7 +1125,7 @@ export const TransportManagement = () => {
                         </td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-black text-slate-400">₹</span>
+                            <span className="text-xs font-black text-slate-400">â‚¹</span>
                             <input
                               type="number"
                               min={0}
@@ -1240,7 +1240,7 @@ export const TransportManagement = () => {
                 ))}
               </select>
             </Field>
-            <Field label="Capacity" required hint="1–100 seats">
+            <Field label="Capacity" required hint="1â€“100 seats">
               <input
                 placeholder="e.g. 40"
                 type="number"
@@ -1251,7 +1251,7 @@ export const TransportManagement = () => {
                 onChange={(e) => setVehicleModal((m) => ({ ...m, form: { ...m.form, capacity: e.target.value } }))}
               />
             </Field>
-            <Field label="Model" hint="Optional — the make printed on the bus" className="sm:col-span-2">
+            <Field label="Model" hint="Optional â€” the make printed on the bus" className="sm:col-span-2">
               <input
                 className={inputClass}
                 placeholder="Tata Starbus"
@@ -1376,7 +1376,7 @@ export const TransportManagement = () => {
               <div className="flex flex-col gap-2">
                 <label className={labelClass}>Driver Profile Photo</label>
                 <div className="flex items-center gap-3">
-                  <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-slate-300 bg-white shadow-2xs dark:border-slate-700 dark:bg-slate-900">
+                  <div className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-slate-300 bg-white shadow-2xs dark:border-slate-700 dark:bg-indigo-600">
                     {driverModal.form.photoPreview ? (
                       <img
                         src={driverModal.form.photoPreview}
@@ -1420,7 +1420,7 @@ export const TransportManagement = () => {
                     <button
                       type="button"
                       onClick={() => photoInputRef.current?.click()}
-                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-indigo-600"
                     >
                       <Camera className="h-3.5 w-3.5 text-indigo-500" />
                       <span>{driverModal.form.photoPreview ? 'Change Photo' : 'Upload Photo'}</span>
@@ -1455,7 +1455,7 @@ export const TransportManagement = () => {
               <div className="flex flex-col gap-2">
                 <label className={labelClass}>Driving License Document</label>
                 <div className="flex items-center gap-3">
-                  <div className="relative flex h-20 w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-slate-300 bg-white shadow-2xs dark:border-slate-700 dark:bg-slate-900">
+                  <div className="relative flex h-20 w-28 shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-slate-300 bg-white shadow-2xs dark:border-slate-700 dark:bg-indigo-600">
                     {driverModal.form.licensePreview ? (
                       <img
                         src={driverModal.form.licensePreview}
@@ -1507,7 +1507,7 @@ export const TransportManagement = () => {
                       <button
                         type="button"
                         onClick={() => licenseInputRef.current?.click()}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-indigo-600"
                       >
                         <FileText className="h-3.5 w-3.5 text-indigo-500" />
                         <span>{driverModal.form.licensePreview ? 'Change Doc' : 'Upload License'}</span>
@@ -1615,7 +1615,7 @@ export const TransportManagement = () => {
                     })
                     .map((v) => (
                       <option key={v.id} value={v.id}>
-                        {v.vehicleNumber} · {v.capacity} seats
+                        {v.vehicleNumber} Â· {v.capacity} seats
                       </option>
                     ))}
                 </select>
@@ -1682,7 +1682,7 @@ export const TransportManagement = () => {
         )}
       </Modal>
 
-      {/* Route → vehicle + driver */}
+      {/* Route â†’ vehicle + driver */}
       <Modal
         isOpen={Boolean(assignModal)}
         onClose={() => setAssignModal(null)}
@@ -1726,8 +1726,8 @@ export const TransportManagement = () => {
                   )
                   .map((d) => (
                     <option key={d.id} value={d.id}>
-                      {d.name} · {d.mobile}
-                      {d.vehicle ? ` · ${d.vehicle.vehicleNumber}` : ''}
+                      {d.name} Â· {d.mobile}
+                      {d.vehicle ? ` Â· ${d.vehicle.vehicleNumber}` : ''}
                     </option>
                   ))}
               </select>
@@ -1747,7 +1747,7 @@ export const TransportManagement = () => {
                   )
                   .map((v) => (
                     <option key={v.id} value={v.id}>
-                      {v.vehicleNumber} · {v.capacity} seats
+                      {v.vehicleNumber} Â· {v.capacity} seats
                     </option>
                   ))}
               </select>
@@ -1856,8 +1856,8 @@ export const TransportManagement = () => {
                   .map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
-                      {s.className ? ` · ${s.className}` : ''}
-                      {s.admissionNumber ? ` · ${s.admissionNumber}` : ''}
+                      {s.className ? ` Â· ${s.className}` : ''}
+                      {s.admissionNumber ? ` Â· ${s.admissionNumber}` : ''}
                     </option>
                   ))}
               </select>
@@ -1876,7 +1876,7 @@ export const TransportManagement = () => {
                   .filter((r) => r.vehicle && r.driver && r.stops.length > 0)
                   .map((r) => (
                     <option key={r.id} value={r.id}>
-                      {r.routeName} · {r.vehicle.vehicleNumber}
+                      {r.routeName} Â· {r.vehicle.vehicleNumber}
                     </option>
                   ))}
               </select>
@@ -1921,7 +1921,7 @@ export const TransportManagement = () => {
               )}
             </div>
 
-            {/* Step 6 — what this student will be charged, before it is stamped
+            {/* Step 6 â€” what this student will be charged, before it is stamped
                 onto the assignment. Editing it later does not reach back. */}
             {!riderModal.editing && (
               <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950">
@@ -1931,7 +1931,7 @@ export const TransportManagement = () => {
                     {money(lookups.currentYearlyFee)}{' '}
                     <span className="text-[11px] font-semibold text-slate-400">
                       for {lookups.currentAcademicYear.name}
-                      {lookups.currentYearlyFee === null ? ' — not set yet, set it on the Yearly Fee tab' : ''}
+                      {lookups.currentYearlyFee === null ? ' â€” not set yet, set it on the Yearly Fee tab' : ''}
                     </span>
                   </p>
                 ) : (
@@ -2002,7 +2002,7 @@ const TableHead = ({ columns }) => (
 
 const EmptyState = ({ icon: Icon, message }) => (
   <div className="flex flex-col items-center justify-center gap-3 px-5 py-14 text-center">
-    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-800">
+    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-indigo-600">
       <Icon className="h-5 w-5" />
     </div>
     <p className="max-w-xs text-xs font-semibold text-slate-400">{message}</p>
@@ -2023,7 +2023,7 @@ const ResourceSlot = ({ icon: Icon, label, value, hint }) => (
   <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
     <div
       className={`flex h-9 w-9 items-center justify-center rounded-xl ${
-        value ? 'bg-indigo-50 text-indigo-650 dark:bg-indigo-950/40 dark:text-indigo-400' : 'bg-slate-200 text-slate-400 dark:bg-slate-800'
+        value ? 'bg-indigo-50 text-indigo-650 dark:bg-indigo-950/40 dark:text-indigo-400' : 'bg-slate-200 text-slate-400 dark:bg-indigo-600'
       }`}
     >
       <Icon className="h-4 w-4" />
@@ -2049,3 +2049,4 @@ const ModalFooter = ({ saving, onCancel, onSave, saveLabel = 'Save' }) => (
 );
 
 export default TransportManagement;
+

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -45,14 +45,14 @@ export const ParentAcademics = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-xs font-black text-foreground">{sub.name}</h4>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Teacher: {sub.teacher} • Classroom: {sub.rooms}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">Teacher: {sub.teacher} â€¢ Classroom: {sub.rooms}</p>
                 </div>
                 <Badge variant="primary">{sub.syllabusProgress}% Completed</Badge>
               </div>
 
               {/* Progress Line */}
               <div>
-                <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-2 bg-slate-100 dark:bg-indigo-600 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-500"
                     style={{ width: `${sub.syllabusProgress}%` }}
@@ -71,7 +71,7 @@ export const ParentAcademics = () => {
             const isVideo = mat.type === 'Video';
             return (
               <Card key={i} className="flex items-center gap-4">
-                <div className={`p-3 rounded-2xl shrink-0 ${isVideo ? 'bg-purple-500/10 text-purple-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                <div className={`p-3 rounded-2xl shrink-0 ${isVideo ? 'bg-purple-500/10 text-purple-500' : 'bg-indigo-600/10 text-rose-500'}`}>
                   {isVideo ? <Video className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -99,3 +99,4 @@ export const ParentAcademics = () => {
     </div>
   );
 };
+

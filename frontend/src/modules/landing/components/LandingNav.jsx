@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, Menu, Moon, Sun, X } from 'lucide-react';
@@ -25,7 +25,7 @@ const ThemeButton = ({ className = '' }) => {
       type="button"
       onClick={toggleTheme}
       aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-      className={`inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800 ${className}`}
+      className={`inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-indigo-600 ${className}`}
     >
       {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </button>
@@ -114,7 +114,7 @@ export const LandingNav = () => {
 
           <Link
             to="/login"
-            className="hidden sm:inline-flex items-center rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-100 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="hidden sm:inline-flex items-center rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-100 dark:border-slate-800 dark:text-slate-200 dark:hover:bg-indigo-600"
           >
             Staff Sign In
           </Link>
@@ -153,7 +153,7 @@ export const LandingNav = () => {
                   key={item.to}
                   href={item.to}
                   onClick={(e) => handleSectionClick(e, item.to)}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-indigo-600"
                 >
                   {item.label}
                 </a>
@@ -162,7 +162,7 @@ export const LandingNav = () => {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-indigo-600"
                 >
                   {item.label}
                 </Link>
@@ -191,3 +191,4 @@ export const LandingNav = () => {
 };
 
 export default LandingNav;
+

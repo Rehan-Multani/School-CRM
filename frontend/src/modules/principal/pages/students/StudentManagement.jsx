@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
@@ -48,7 +48,7 @@ const defaultForm = {
 };
 
 function formatDate(value) {
-  if (!value) return '—';
+  if (!value) return 'â€”';
   return new Date(value).toLocaleDateString('en-IN', {
     day: '2-digit',
     month: 'short',
@@ -151,7 +151,7 @@ export const StudentManagement = () => {
         .map((mapping) => mapping.classId);
       setYearClassMap((prev) => ({ ...prev, [yearId]: classIds }));
     } catch (error) {
-      // Mapping unavailable — fall back to the full class list for this year.
+      // Mapping unavailable â€” fall back to the full class list for this year.
       yearClassRequestRef.current[yearId] = false;
     }
   }, []);
@@ -518,11 +518,11 @@ export const StudentManagement = () => {
     return students.map((student) => ({
       ...student,
       name: student.name || [student.firstName, student.lastName].filter(Boolean).join(' '),
-      className: student.enrollment?.class?.name || '—',
-      sectionName: student.enrollment?.section?.name || '—',
-      academicYearName: student.enrollment?.academicYear?.name || '—',
-      enrollmentStatus: student.enrollment?.status || '—',
-      guardianPhone: student.parentPhone || student.phone || '—',
+      className: student.enrollment?.class?.name || 'â€”',
+      sectionName: student.enrollment?.section?.name || 'â€”',
+      academicYearName: student.enrollment?.academicYear?.name || 'â€”',
+      enrollmentStatus: student.enrollment?.status || 'â€”',
+      guardianPhone: student.parentPhone || student.phone || 'â€”',
       photoUrl: buildStudentPhotoUrl(student.photo),
     }));
   }, [students]);
@@ -585,7 +585,7 @@ export const StudentManagement = () => {
           <button
             type="button"
             onClick={() => handleToggleStatus(row)}
-            className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+            className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 dark:hover:bg-indigo-600 cursor-pointer"
             title={row.status === 'ACTIVE' ? `Deactivate ${row.name}` : `Activate ${row.name}`}
           >
             {row.status === 'ACTIVE' ? <UserX className="h-4 w-4 text-rose-500" /> : <UserCheck className="h-4 w-4 text-emerald-500" />}
@@ -621,7 +621,7 @@ export const StudentManagement = () => {
 
       <CountCards items={stats} />
 
-      <div className="grid gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-4 dark:border-slate-800 dark:bg-slate-900">
+      <div className="grid gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-4 dark:border-slate-800 dark:bg-indigo-600">
         <div>
           <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Academic Year</label>
           <select
@@ -729,7 +729,7 @@ export const StudentManagement = () => {
               <button
                 type="button"
                 onClick={() => photoInputRef.current?.click()}
-                className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900"
+                className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-indigo-600"
               >
                 {photoPreview ? (
                   <img src={photoPreview} alt="Student preview" className="h-full w-full object-cover" />
@@ -951,7 +951,7 @@ export const StudentManagement = () => {
                 className={`rounded-lg px-4 py-2 text-xs font-semibold transition-colors ${
                   form.status === 'ACTIVE'
                     ? 'bg-emerald-500 text-white'
-                    : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-900'
+                    : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-indigo-600'
                 }`}
               >
                 Active
@@ -961,8 +961,8 @@ export const StudentManagement = () => {
                 onClick={() => setForm((prev) => ({ ...prev, status: 'INACTIVE' }))}
                 className={`rounded-lg px-4 py-2 text-xs font-semibold transition-colors ${
                   form.status === 'INACTIVE'
-                    ? 'bg-slate-700 text-white dark:bg-slate-600'
-                    : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-900'
+                    ? 'bg-indigo-600 text-white dark:bg-slate-600'
+                    : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-indigo-600'
                 }`}
               >
                 Inactive
@@ -978,7 +978,7 @@ export const StudentManagement = () => {
                 const items = form.documents?.[category.key] || [];
                 const canAdd = items.length < MAX_DOC_IMAGES;
                 return (
-                  <div key={category.key} className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                  <div key={category.key} className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-indigo-600">
                     <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{category.label}</p>
                     <p className="mb-3 text-[10px] text-slate-400">{category.hint} Up to 2 images, max 5MB each.</p>
                     <div className="flex flex-wrap gap-2">
@@ -1046,3 +1046,4 @@ export const StudentManagement = () => {
 };
 
 export default StudentManagement;
+

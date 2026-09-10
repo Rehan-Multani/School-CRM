@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
 import { useToast } from '../../components/ui/Toast';
@@ -103,7 +103,7 @@ function passwordStrength(password) {
   if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score += 1;
   if (/\d/.test(password)) score += 1;
   if (/[^A-Za-z0-9]/.test(password)) score += 1;
-  if (score <= 2) return { score, label: 'Weak', color: 'bg-rose-500' };
+  if (score <= 2) return { score, label: 'Weak', color: 'bg-indigo-600' };
   if (score <= 3) return { score, label: 'Fair', color: 'bg-amber-500' };
   return { score, label: 'Strong', color: 'bg-emerald-500' };
 }
@@ -318,7 +318,7 @@ export const Settings = () => {
       <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
 
       {activeTab === 'theme' && (
-        <section className="space-y-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <section className="space-y-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <div className="flex items-start gap-3">
             <div className="rounded-2xl bg-primary/10 p-2.5 text-primary">
               <Palette className="h-5 w-5" />
@@ -365,10 +365,10 @@ export const Settings = () => {
                     : 'border-slate-200 hover:border-slate-300 dark:border-slate-800 dark:hover:border-slate-700'
                 }`}
               >
-                <div className="mb-4 h-20 overflow-hidden rounded-xl border border-slate-700 bg-slate-900">
-                  <div className="h-6 bg-slate-800" />
-                  <div className="m-3 h-3 w-2/3 rounded bg-slate-700" />
-                  <div className="mx-3 h-3 w-1/2 rounded bg-slate-800" />
+                <div className="mb-4 h-20 overflow-hidden rounded-xl border border-slate-700 bg-indigo-600">
+                  <div className="h-6 bg-indigo-600" />
+                  <div className="m-3 h-3 w-2/3 rounded bg-indigo-600" />
+                  <div className="mx-3 h-3 w-1/2 rounded bg-indigo-600" />
                 </div>
                 <div className="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-white">
                   <Moon className="h-4 w-4 text-primary" />
@@ -539,7 +539,7 @@ export const Settings = () => {
       {activeTab === 'security' && (
         <form
           onSubmit={handleChangePassword}
-          className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+          className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600"
         >
           <div className="flex items-start gap-3">
             <div className="rounded-2xl bg-primary/10 p-2.5 text-primary">
@@ -572,7 +572,7 @@ export const Settings = () => {
             </Field>
             {newPassword && (
               <div className="flex items-center gap-3">
-                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-indigo-600">
                   <div
                     className={`h-full ${strength.color}`}
                     style={{ width: `${Math.min(100, strength.score * 20)}%` }}
@@ -607,7 +607,7 @@ export const Settings = () => {
       {activeTab === 'email' && (
         <form
           onSubmit={handleSaveEmail}
-          className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+          className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600"
         >
           <div className="flex items-start gap-3">
             <div className="rounded-2xl bg-primary/10 p-2.5 text-primary">
@@ -659,7 +659,7 @@ export const Settings = () => {
                 id="smtpPass"
                 value={smtpPass}
                 onChange={(e) => setSmtpPass(e.target.value)}
-                placeholder={smtpPassSet ? '••••••••' : 'Enter SMTP password'}
+                placeholder={smtpPassSet ? 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢' : 'Enter SMTP password'}
               />
             </Field>
             <Field id="smtpFrom" label="From name / email" hint="Shown as the sender on outgoing mail.">
@@ -710,3 +710,4 @@ export const Settings = () => {
 };
 
 export default Settings;
+

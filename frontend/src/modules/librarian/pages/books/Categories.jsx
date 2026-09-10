@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '../../utils/cn';
 
 const inputClass =
-  'w-full h-11 px-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900';
+  'w-full h-11 px-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-indigo-600';
 
 const emptyForm = { name: '', description: '', status: 'ACTIVE' };
 
@@ -159,7 +159,7 @@ export const Categories = () => {
     {
       title: 'Description',
       key: 'description',
-      render: (val) => <span className="text-xs text-slate-500 dark:text-slate-400">{val || '—'}</span>,
+      render: (val) => <span className="text-xs text-slate-500 dark:text-slate-400">{val || 'â€”'}</span>,
     },
     {
       title: 'Status',
@@ -218,13 +218,13 @@ export const Categories = () => {
     <div className="space-y-6">
       <PageHeader
         title="Book Categories"
-        subtitle={`Manage library departments and classifications · ${activeCount} active of ${categories.length} total.`}
+        subtitle={`Manage library departments and classifications Â· ${activeCount} active of ${categories.length} total.`}
         actions={
           <div className="flex items-center gap-2">
             <button
               onClick={fetchCategories}
               disabled={loading}
-              className="p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-300 transition-colors"
+              className="p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-indigo-600 text-slate-600 dark:text-slate-300 transition-colors"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
@@ -278,7 +278,7 @@ export const Categories = () => {
           <SkeletonTable rows={8} columns={7} />
         )
       ) : categories.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
           <FolderTree className="h-8 w-8 mx-auto text-slate-400" />
           <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">No Categories Found</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
@@ -297,7 +297,7 @@ export const Categories = () => {
             <div
               key={category.id}
               className={cn(
-                'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 hover:shadow-md transition-all duration-200 hover:border-indigo-300 dark:hover:border-indigo-900/50 flex flex-col justify-between',
+                'bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 hover:shadow-md transition-all duration-200 hover:border-indigo-300 dark:hover:border-indigo-900/50 flex flex-col justify-between',
                 category.status !== 'ACTIVE' && 'opacity-60'
               )}
             >
@@ -359,7 +359,7 @@ export const Categories = () => {
           ))}
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
           <DataTable
             columns={columns}
             data={categories}
@@ -399,7 +399,7 @@ export const Categories = () => {
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Short note about what this category covers"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-slate-900"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-indigo-500 focus:bg-white dark:focus:bg-indigo-600"
             />
           </div>
 
@@ -421,7 +421,7 @@ export const Categories = () => {
             <button
               type="button"
               onClick={closeModal}
-              className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+              className="px-4 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-xl transition-colors"
             >
               Cancel
             </button>
@@ -450,3 +450,4 @@ export const Categories = () => {
   );
 };
 export default Categories;
+

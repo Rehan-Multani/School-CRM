@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTeacherAuth } from '../context/TeacherAuthContext';
 import { BookOpenCheck, ArrowRight, ShieldAlert, Eye, EyeOff, LayoutGrid } from 'lucide-react';
@@ -40,7 +40,7 @@ export const TeacherLogin = () => {
 
   return (
     <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950">
-      {/* Left Panel — Brand / Illustration */}
+      {/* Left Panel â€” Brand / Illustration */}
       <div className="hidden lg:flex flex-col justify-between w-1/2 bg-gradient-to-br from-primary via-indigo-600 to-accent p-12 relative overflow-hidden">
         {/* Abstract blobs */}
         <div className="absolute right-0 top-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
@@ -67,7 +67,7 @@ export const TeacherLogin = () => {
             Your classroom,<br />at your fingertips.
           </h2>
           <p className="text-white/70 text-sm leading-relaxed max-w-sm">
-            Manage attendance, homework, marks, and student communication — all in one beautifully designed workspace.
+            Manage attendance, homework, marks, and student communication â€” all in one beautifully designed workspace.
           </p>
 
           {/* Feature Pills */}
@@ -82,11 +82,11 @@ export const TeacherLogin = () => {
 
         {/* Bottom tagline */}
         <div className="relative">
-          <p className="text-white/50 text-[11px] font-medium">© 2025 School Management. All rights reserved.</p>
+          <p className="text-white/50 text-[11px] font-medium">Â© 2025 School Management. All rights reserved.</p>
         </div>
       </div>
 
-      {/* Right Panel — Login Form */}
+      {/* Right Panel â€” Login Form */}
       <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-10">
         {/* Mobile brand */}
         <div className="lg:hidden flex items-center gap-3 mb-8">
@@ -102,7 +102,7 @@ export const TeacherLogin = () => {
         <div className="w-full max-w-md">
           <div className="mb-6">
             {/* Prominent Role Identifier Badge */}
-            <span className="mb-2.5 inline-flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-blue-500/10 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 shadow-sm">
+            <span className="mb-2.5 inline-flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-indigo-500/10 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 shadow-sm">
               <BookOpenCheck className="h-3.5 w-3.5" />
               TEACHER PORTAL
             </span>
@@ -111,7 +111,7 @@ export const TeacherLogin = () => {
           </div>
 
           {error && (
-            <div className="flex items-center gap-2.5 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 p-3.5 rounded-2xl text-xs font-medium mb-6">
+            <div className="flex items-center gap-2.5 bg-indigo-600/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 p-3.5 rounded-2xl text-xs font-medium mb-6">
               <ShieldAlert className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -128,7 +128,7 @@ export const TeacherLogin = () => {
                 value={employeeId}
                 onChange={(e) => setEmployeeId(e.target.value)}
                 placeholder="e.g. EMP-2019-045"
-                className="w-full px-4 py-3 rounded-2xl border border-border bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
+                className="w-full px-4 py-3 rounded-2xl border border-border bg-white dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
                 id="teacher-login-id"
               />
             </div>
@@ -143,8 +143,8 @@ export const TeacherLogin = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-3 pr-11 rounded-2xl border border-border bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  className="w-full px-4 py-3 pr-11 rounded-2xl border border-border bg-white dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
                   id="teacher-login-password"
                 />
                 <button
@@ -189,7 +189,7 @@ export const TeacherLogin = () => {
             className="w-full border-2 border-primary/30 text-primary dark:border-primary/40 py-3 rounded-2xl text-sm font-bold transition-all duration-150 active:scale-95 select-none hover:bg-primary/5"
             id="teacher-quick-login"
           >
-            🚀 Quick Demo Login
+            ðŸš€ Quick Demo Login
           </button>
 
           <div className="mt-6 flex flex-col items-center gap-1.5 text-center">
@@ -199,7 +199,7 @@ export const TeacherLogin = () => {
             <div className="flex items-center gap-1.5 text-xs text-slate-400">
               <span>Looking for another panel?</span>
               <Link to="/login" className="inline-flex items-center gap-1 font-semibold text-primary hover:underline">
-                <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals →
+                <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals â†’
               </Link>
             </div>
           </div>
@@ -208,4 +208,5 @@ export const TeacherLogin = () => {
     </div>
   );
 };
+
 

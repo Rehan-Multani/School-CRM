@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Mail, Phone, Calendar, ArrowRight, Building, User, Clock, CheckCircle2, XCircle, Pencil } from 'lucide-react';
 import { Badge } from './Badge';
 
@@ -8,7 +8,7 @@ export const EmployeeCard = ({ employee, onViewProfile, onEdit, onToggleStatus, 
   const isRejected = employee.status === 'REJECTED';
 
   return (
-    <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-xs font-semibold">
+    <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-xs font-semibold">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           {employee.photo ? (
@@ -48,7 +48,7 @@ export const EmployeeCard = ({ employee, onViewProfile, onEdit, onToggleStatus, 
               {employee.name}
             </h4>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium truncate">
-              {employee.designation || 'Staff'} • {employee.department || 'General'}
+              {employee.designation || 'Staff'} â€¢ {employee.department || 'General'}
             </p>
           </div>
         </div>
@@ -59,7 +59,7 @@ export const EmployeeCard = ({ employee, onViewProfile, onEdit, onToggleStatus, 
             <span>Pending Approval</span>
           </span>
         ) : isRejected ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 shrink-0">
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-600/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 shrink-0">
             <XCircle className="w-2.5 h-2.5" />
             <span>Rejected</span>
           </span>
@@ -97,7 +97,7 @@ export const EmployeeCard = ({ employee, onViewProfile, onEdit, onToggleStatus, 
             <button
               type="button"
               onClick={() => onApprove(employee)}
-              className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-2xs transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg shadow-2xs transition-colors cursor-pointer"
             >
               <CheckCircle2 className="w-3 h-3" />
               <span>Approve</span>
@@ -119,7 +119,7 @@ export const EmployeeCard = ({ employee, onViewProfile, onEdit, onToggleStatus, 
             <button
               type="button"
               onClick={() => onToggleStatus(employee)}
-              className="px-2.5 py-1 text-[11px] font-bold border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 cursor-pointer"
+              className="px-2.5 py-1 text-[11px] font-bold border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-indigo-600 text-slate-600 dark:text-slate-300 cursor-pointer"
             >
               {isActive ? 'Deactivate' : 'Activate'}
             </button>
@@ -141,3 +141,5 @@ export const EmployeeCard = ({ employee, onViewProfile, onEdit, onToggleStatus, 
   );
 };
 export default EmployeeCard;
+
+

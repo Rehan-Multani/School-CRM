@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { AddEditBook } from './AddEditBook';
@@ -32,7 +32,7 @@ export const AddBook = () => {
         actions={
           <button
             onClick={() => navigate('/librarian/books')}
-            className="h-10 px-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-2 transition-all"
+            className="h-10 px-4 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-indigo-600 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-2 transition-all"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Back to Books</span>
@@ -40,7 +40,7 @@ export const AddBook = () => {
         }
       />
 
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-xs">
+      <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-xs">
         <AddEditBook
           onSuccess={handleSave}
           onCancel={() => navigate('/librarian/books')}
@@ -51,3 +51,4 @@ export const AddBook = () => {
   );
 };
 export default AddBook;
+

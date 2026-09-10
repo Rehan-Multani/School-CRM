@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { cn } from '../lib/cn';
 
-// Canonical merged Avatar — superset of teacher (hashed color background
+// Canonical merged Avatar â€” superset of teacher (hashed color background
 // per name, sizes sm/md/lg/xl) and parent (div-wrapped image with an `xs`
 // size and a flat primary-tinted fallback). Uses parent's more robust
 // "always wrap in a sized div" structure (avoids a broken-image icon
@@ -27,7 +27,7 @@ export const Avatar = ({ src, name, size = 'md', className }) => {
     'bg-emerald-500 text-white',
     'bg-violet-500 text-white',
     'bg-amber-500 text-white',
-    'bg-rose-500 text-white',
+    'bg-indigo-600 text-white',
     'bg-sky-500 text-white',
   ];
   const colorIndex = name ? name.charCodeAt(0) % colors.length : 0;
@@ -56,3 +56,4 @@ export const Avatar = ({ src, name, size = 'md', className }) => {
 };
 
 export default Avatar;
+

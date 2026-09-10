@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
 import { useSchoolAdminAuth } from '../../context/SchoolAdminAuthContext';
@@ -276,7 +276,7 @@ export const SchoolConfig = () => {
         subtitle="Update your school profile, contact, address, and academic details."
       />
 
-      <form onSubmit={handleSave} className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <form onSubmit={handleSave} className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
         <section className="space-y-4">
           <SectionTitle icon={Building2} title="School Details" />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -593,3 +593,4 @@ export const SchoolConfig = () => {
 };
 
 export default SchoolConfig;
+

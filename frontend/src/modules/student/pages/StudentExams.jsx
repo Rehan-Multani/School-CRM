@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useExams } from '../hooks/useStudentHooks';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -64,7 +64,7 @@ export const StudentExams = () => {
             </h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="flex gap-3">
-                <div className="p-2.5 bg-slate-100 dark:bg-slate-900 rounded-xl text-slate-500">
+                <div className="p-2.5 bg-slate-100 dark:bg-indigo-600 rounded-xl text-slate-500">
                   <UserCheck className="w-5 h-5" />
                 </div>
                 <div>
@@ -74,7 +74,7 @@ export const StudentExams = () => {
               </div>
 
               <div className="flex gap-3">
-                <div className="p-2.5 bg-slate-100 dark:bg-slate-900 rounded-xl text-slate-500">
+                <div className="p-2.5 bg-slate-100 dark:bg-indigo-600 rounded-xl text-slate-500">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
@@ -116,7 +116,7 @@ export const StudentExams = () => {
               </thead>
               <tbody className="divide-y divide-border font-medium">
                 {exams.schedule.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/20">
+                  <tr key={row.id} className="hover:bg-slate-50/50 dark:hover:bg-indigo-600/20">
                     <td className="py-3.5 text-slate-800 dark:text-slate-200 font-bold">{row.subject}</td>
                     <td className="py-3.5 flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
                       <Calendar className="w-3.5 h-3.5 text-slate-400" />
@@ -145,7 +145,7 @@ export const StudentExams = () => {
           <ul className="space-y-3">
             {exams.instructions.map((inst, i) => (
               <li key={i} className="flex gap-3 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-900 font-bold text-[10px] text-slate-500">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-indigo-600 font-bold text-[10px] text-slate-500">
                   {i + 1}
                 </span>
                 <span>{inst}</span>
@@ -158,3 +158,4 @@ export const StudentExams = () => {
     </div>
   );
 };
+

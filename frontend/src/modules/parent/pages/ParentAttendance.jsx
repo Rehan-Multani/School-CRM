@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -10,7 +10,7 @@ import { Download, Calendar, CheckCircle2, Clock, ShieldAlert } from 'lucide-rea
 
 const statusColor = {
   Present: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
-  Absent: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800',
+  Absent: 'bg-indigo-600/10 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800',
   Late: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800',
   Leave: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800',
 };
@@ -52,7 +52,7 @@ export const ParentAttendance = () => {
     if (!attendance) return [];
     return [
       { label: 'Present', count: attendance.present, color: 'text-emerald-500 bg-emerald-500/10' },
-      { label: 'Absent', count: attendance.absent, color: 'text-rose-500 bg-rose-500/10' },
+      { label: 'Absent', count: attendance.absent, color: 'text-rose-500 bg-indigo-600/10' },
       { label: 'Late', count: attendance.late, color: 'text-amber-500 bg-amber-500/10' },
       { label: 'Leave', count: attendance.leave || 0, color: 'text-purple-500 bg-purple-500/10' },
     ];
@@ -72,7 +72,7 @@ export const ParentAttendance = () => {
         </div>
         <button
           onClick={handleDownloadReport}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-border text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-border text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors"
         >
           <Download className="w-3.5 h-3.5" /> Report
         </button>
@@ -113,7 +113,7 @@ export const ParentAttendance = () => {
             </h3>
             <div className="flex gap-2 text-[9px] font-bold">
               <div className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-emerald-500" /> Present</div>
-              <div className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-rose-500" /> Absent</div>
+              <div className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-indigo-600" /> Absent</div>
               <div className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-amber-500" /> Late</div>
             </div>
           </div>
@@ -132,9 +132,9 @@ export const ParentAttendance = () => {
               const dayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
               const historyItem = attendance.history.find(h => h.date === dayStr);
               
-              let style = 'bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400';
+              let style = 'bg-slate-50 dark:bg-indigo-600 text-slate-600 dark:text-slate-400';
               if (historyItem?.status === 'Present') style = 'bg-emerald-500 text-white font-extrabold shadow-sm';
-              if (historyItem?.status === 'Absent') style = 'bg-rose-500 text-white font-extrabold shadow-sm';
+              if (historyItem?.status === 'Absent') style = 'bg-indigo-600 text-white font-extrabold shadow-sm';
               if (historyItem?.status === 'Late') style = 'bg-amber-500 text-white font-extrabold shadow-sm';
               if (historyItem?.status === 'Leave') style = 'bg-purple-500 text-white font-extrabold shadow-sm';
 
@@ -185,3 +185,4 @@ export const ParentAttendance = () => {
     </div>
   );
 };
+

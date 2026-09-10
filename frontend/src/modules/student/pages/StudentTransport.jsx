@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useTransport } from '../hooks/useStudentHooks';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -44,7 +44,7 @@ export const StudentTransport = () => {
               Driver Information
             </h4>
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-slate-100 dark:bg-slate-900 flex items-center justify-center text-slate-500 shrink-0 border border-border">
+              <div className="h-12 w-12 rounded-xl bg-slate-100 dark:bg-indigo-600 flex items-center justify-center text-slate-500 shrink-0 border border-border">
                 <User className="w-6 h-6" />
               </div>
               <div className="min-w-0 flex-1">
@@ -71,7 +71,7 @@ export const StudentTransport = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Pickup stop */}
-              <div className="p-4 rounded-xl border border-border bg-slate-50/20 dark:bg-slate-900/10 flex items-start gap-4">
+              <div className="p-4 rounded-xl border border-border bg-slate-50/20 dark:bg-indigo-600/10 flex items-start gap-4">
                 <div className="p-2 bg-emerald-500/10 text-emerald-500 rounded-lg shrink-0">
                   <MapPin className="w-5 h-5" />
                 </div>
@@ -86,7 +86,7 @@ export const StudentTransport = () => {
               </div>
 
               {/* Drop Stop */}
-              <div className="p-4 rounded-xl border border-border bg-slate-50/20 dark:bg-slate-900/10 flex items-start gap-4">
+              <div className="p-4 rounded-xl border border-border bg-slate-50/20 dark:bg-indigo-600/10 flex items-start gap-4">
                 <div className="p-2 bg-indigo-500/10 text-indigo-500 rounded-lg shrink-0">
                   <MapPin className="w-5 h-5" />
                 </div>
@@ -118,3 +118,4 @@ export const StudentTransport = () => {
     </div>
   );
 };
+

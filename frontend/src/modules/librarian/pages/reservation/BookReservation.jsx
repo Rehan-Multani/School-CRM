@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
@@ -177,7 +177,7 @@ export const BookReservation = () => {
       sortable: true,
       render: (val, row) => (
         <div>
-          <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val || '—'}</span>
+          <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val || 'â€”'}</span>
           <span className="text-3xs text-slate-400">Category: {row.bookCategory || 'General'}</span>
         </div>
       ),
@@ -189,7 +189,7 @@ export const BookReservation = () => {
       render: (val, row) => (
         <div>
           <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val}</span>
-          <span className="text-3xs text-slate-400">{row.borrowerType} • {row.borrowerCode || 'STU'}</span>
+          <span className="text-3xs text-slate-400">{row.borrowerType} â€¢ {row.borrowerCode || 'STU'}</span>
         </div>
       ),
     },
@@ -276,7 +276,7 @@ export const BookReservation = () => {
             <button
               onClick={fetchData}
               disabled={loading}
-              className="p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-300 transition-colors"
+              className="p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-indigo-600 text-slate-600 dark:text-slate-300 transition-colors"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
@@ -298,7 +298,7 @@ export const BookReservation = () => {
       {loading ? (
         <SkeletonTable rows={8} columns={6} />
       ) : reservations.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
           <Bookmark className="h-8 w-8 mx-auto text-slate-400" />
           <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">No Reservations</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
@@ -306,7 +306,7 @@ export const BookReservation = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
           <DataTable
             columns={columns}
             data={reservations}
@@ -336,7 +336,7 @@ export const BookReservation = () => {
               <option value="">-- Choose Catalogue Title --</option>
               {books.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.title} ({b.availableCopies} available) — Code: {b.bookCode}
+                  {b.title} ({b.availableCopies} available) â€” Code: {b.bookCode}
                 </option>
               ))}
             </select>
@@ -353,7 +353,7 @@ export const BookReservation = () => {
               <option value="">-- Choose Student / Faculty --</option>
               {borrowers.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.name} ({b.type}) — {b.code}
+                  {b.name} ({b.type}) â€” {b.code}
                 </option>
               ))}
             </select>
@@ -404,3 +404,4 @@ export const BookReservation = () => {
   );
 };
 export default BookReservation;
+

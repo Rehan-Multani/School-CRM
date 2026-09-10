@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -92,7 +92,7 @@ export const ParentFees = () => {
                     {inst.status}
                   </Badge>
                 </div>
-                <span className="text-[10px] text-slate-400 font-semibold mt-0.5 block">Due Date: {inst.dueDate} {inst.receiptNo && `• Receipt ${inst.receiptNo}`}</span>
+                <span className="text-[10px] text-slate-400 font-semibold mt-0.5 block">Due Date: {inst.dueDate} {inst.receiptNo && `â€¢ Receipt ${inst.receiptNo}`}</span>
               </div>
 
               <div className="flex items-center gap-3">
@@ -108,7 +108,7 @@ export const ParentFees = () => {
                       paymentDate: '2026-08-14',
                       paymentMethod: 'UPI Online'
                     })}
-                    className="flex items-center gap-1 px-3 py-1.5 border border-border hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 transition-all"
+                    className="flex items-center gap-1 px-3 py-1.5 border border-border hover:bg-slate-50 dark:hover:bg-indigo-600 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 transition-all"
                   >
                     <Printer className="w-3.5 h-3.5 text-indigo-600" />
                     <span>View Receipt</span>
@@ -172,7 +172,7 @@ export const ParentFees = () => {
           <div className="space-y-4">
             {paymentStatus === 'idle' && (
               <>
-                <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-xl border border-border text-xs">
+                <div className="p-3 bg-slate-50 dark:bg-indigo-600 rounded-xl border border-border text-xs">
                   <div className="flex justify-between font-bold">
                     <span>{payingInstallment.name}</span>
                     <span className="text-indigo-600">{formatCurrency(payingInstallment.amount)}</span>
@@ -218,7 +218,7 @@ export const ParentFees = () => {
                 <p className="text-xs text-slate-400">Institutional receipt generated. Ledger synchronized in real time.</p>
                 <button
                   onClick={() => setPayingInstallment(null)}
-                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-xs font-bold rounded-xl"
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-indigo-600 text-xs font-bold rounded-xl"
                 >
                   Close & Refresh
                 </button>
@@ -233,7 +233,7 @@ export const ParentFees = () => {
         <PrintReportModal
           isOpen={!!selectedReceipt}
           onClose={() => setSelectedReceipt(null)}
-          title={`Fee Receipt — ${selectedReceipt.receiptNo}`}
+          title={`Fee Receipt â€” ${selectedReceipt.receiptNo}`}
           documentType="Official Fee Receipt"
         >
           <div className="space-y-6">
@@ -278,3 +278,4 @@ export const ParentFees = () => {
   );
 };
 export default ParentFees;
+

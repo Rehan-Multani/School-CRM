@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -49,7 +49,7 @@ export const ParentTimetable = () => {
             <div className="space-y-4">
               {todayClasses.map((cl, i) => (
                 <div key={i} className="flex items-start gap-4 animate-in fade-in duration-200">
-                  <div className="w-14 h-14 shrink-0 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-border flex items-center justify-center text-xs font-black text-slate-500">
+                  <div className="w-14 h-14 shrink-0 rounded-2xl bg-slate-100 dark:bg-indigo-600 border border-border flex items-center justify-center text-xs font-black text-slate-500">
                     P{cl.period}
                   </div>
 
@@ -80,11 +80,11 @@ export const ParentTimetable = () => {
       {tab === 'weekly' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-2">
-            <button onClick={() => setWeeklyDay(d => Math.max(0, d - 1))} className="p-2 rounded-xl border border-border text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40" disabled={weeklyDay === 0}>
+            <button onClick={() => setWeeklyDay(d => Math.max(0, d - 1))} className="p-2 rounded-xl border border-border text-slate-500 hover:bg-slate-50 dark:hover:bg-indigo-600 disabled:opacity-40" disabled={weeklyDay === 0}>
               <ChevronLeft className="w-4 h-4" />
             </button>
             <span className="text-xs font-extrabold text-foreground uppercase tracking-wider">{DAY_LABELS[weeklyDay]}</span>
-            <button onClick={() => setWeeklyDay(d => Math.min(4, d + 1))} className="p-2 rounded-xl border border-border text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40" disabled={weeklyDay === 4}>
+            <button onClick={() => setWeeklyDay(d => Math.min(4, d + 1))} className="p-2 rounded-xl border border-border text-slate-500 hover:bg-slate-50 dark:hover:bg-indigo-600 disabled:opacity-40" disabled={weeklyDay === 4}>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -116,3 +116,4 @@ export const ParentTimetable = () => {
     </div>
   );
 };
+

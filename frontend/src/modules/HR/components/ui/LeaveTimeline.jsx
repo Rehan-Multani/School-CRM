@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Calendar, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { formatDate } from '../../utils/formatters';
 import { Badge } from './Badge';
@@ -28,14 +28,14 @@ export const LeaveTimeline = ({ leaves = [] }) => {
                   <Clock className="w-3.5 h-3.5" />
                 </div>
               ) : (
-                <div className="bg-rose-500 text-white rounded-full p-0.5 border-4 border-white dark:border-slate-900 shadow-sm">
+                <div className="bg-indigo-600 text-white rounded-full p-0.5 border-4 border-white dark:border-slate-900 shadow-sm">
                   <XCircle className="w-3.5 h-3.5" />
                 </div>
               )}
             </div>
 
             {/* Information container */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-2">
+            <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-sm space-y-2">
               <div className="flex items-center justify-between gap-3">
                 <span className="font-bold text-slate-900 dark:text-white">{leave.leaveType}</span>
                 <Badge variant={isApproved ? 'success' : isPending ? 'warning' : 'danger'}>
@@ -61,3 +61,4 @@ export const LeaveTimeline = ({ leaves = [] }) => {
   );
 };
 export default LeaveTimeline;
+

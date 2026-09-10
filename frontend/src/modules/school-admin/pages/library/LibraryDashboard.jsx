@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+﻿import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BookOpen,
@@ -162,7 +162,7 @@ export const LibraryDashboard = () => {
             value={kpis.overdueCount}
             icon={Clock}
             subtitle="Past due date"
-            colorClass="bg-rose-500"
+            colorClass="bg-indigo-600"
           />
           <StatCard
             title="Active Reservations"
@@ -173,14 +173,14 @@ export const LibraryDashboard = () => {
           />
           <StatCard
             title="Fines Collected"
-            value={`₹${kpis.totalFinesCollected}`}
+            value={`â‚¹${kpis.totalFinesCollected}`}
             icon={Coins}
             subtitle="Total paid to date"
             colorClass="bg-amber-500"
           />
           <StatCard
             title="Fines Pending"
-            value={`₹${kpis.totalPendingFines}`}
+            value={`â‚¹${kpis.totalPendingFines}`}
             icon={Coins}
             subtitle="Awaiting settlement"
             colorClass="bg-orange-500"
@@ -190,7 +190,7 @@ export const LibraryDashboard = () => {
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         {/* Recent Activity */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:col-span-1">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600 lg:col-span-1">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white">Recent Library Activity</h3>
           <div className="mt-4">
             {loading ? (
@@ -222,7 +222,7 @@ export const LibraryDashboard = () => {
         </div>
 
         {/* Most Issued Books */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:col-span-1">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600 lg:col-span-1">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white">Most Issued Books</h3>
           <div className="mt-4">
             {loading ? (
@@ -246,7 +246,7 @@ export const LibraryDashboard = () => {
         </div>
 
         {/* Category Distribution */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:col-span-1">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600 lg:col-span-1">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white">Category Distribution</h3>
           <div className="mt-4">
             {loading ? (
@@ -261,7 +261,7 @@ export const LibraryDashboard = () => {
                       <span className="font-bold text-slate-700 dark:text-slate-200">{c.name}</span>
                       <span className="font-semibold text-slate-400">{c.count} titles</span>
                     </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-indigo-600">
                       <div
                         className="h-full rounded-full bg-primary"
                         style={{ width: `${Math.round(((c.count || 0) / totalCategoryBooks) * 100)}%` }}
@@ -276,7 +276,7 @@ export const LibraryDashboard = () => {
       </div>
 
       {/* Overdue Overview */}
-      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 dark:border-slate-800">
           <h3 className="text-sm font-bold text-slate-900 dark:text-white">Overdue Overview</h3>
           <Link
@@ -304,14 +304,14 @@ export const LibraryDashboard = () => {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {overdue.map((i) => (
-                  <tr key={i.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                  <tr key={i.id} className="hover:bg-slate-50/80 dark:hover:bg-indigo-600/40">
                     <td className="px-5 py-3 font-bold text-slate-900 dark:text-white">{i.borrowerName}</td>
                     <td className="px-3 py-3 text-slate-700 dark:text-slate-300">{i.bookTitle}</td>
                     <td className="px-3 py-3 text-rose-600 font-semibold">{formatDisplayDate(i.dueDate)}</td>
                     <td className="px-3 py-3">
                       <Badge variant={ISSUE_STATUS_BADGE.OVERDUE}>{i.overdueDays || 0} days</Badge>
                     </td>
-                    <td className="px-5 py-3 text-right font-black text-rose-600">₹{i.fineAmount || 0}</td>
+                    <td className="px-5 py-3 text-right font-black text-rose-600">â‚¹{i.fineAmount || 0}</td>
                   </tr>
                 ))}
               </tbody>
@@ -324,3 +324,4 @@ export const LibraryDashboard = () => {
 };
 
 export default LibraryDashboard;
+

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
 import { hrApi } from '../../../../shared/api/client';
@@ -81,7 +81,7 @@ export const StaffManagement = () => {
       setStaffList((prev) =>
         prev.map((s) => (s.id === staff.id ? { ...s, status: 'ACTIVE' } : s))
       );
-      showToast(`✓ Staff member ${staff.name} approved & activated!`, 'success');
+      showToast(`âœ“ Staff member ${staff.name} approved & activated!`, 'success');
     } catch (err) {
       showToast(err.response?.data?.message || err.message || 'Failed to approve staff member', 'error');
     }
@@ -117,7 +117,7 @@ export const StaffManagement = () => {
   }, [staffList]);
 
   const handleModalSuccess = () => {
-    showToast(`✓ Staff member submitted for Admin Approval successfully!`, 'success');
+    showToast(`âœ“ Staff member submitted for Admin Approval successfully!`, 'success');
     fetchStaff();
   };
 
@@ -151,7 +151,7 @@ export const StaffManagement = () => {
         header: 'Employee ID',
         id: 'employeeId',
         sortable: true,
-        render: (val) => <span className="font-mono text-xs text-slate-600 dark:text-slate-400">{val || '—'}</span>,
+        render: (val) => <span className="font-mono text-xs text-slate-600 dark:text-slate-400">{val || 'â€”'}</span>,
       },
       {
         header: 'Role',
@@ -183,14 +183,14 @@ export const StaffManagement = () => {
       {
         header: 'Gender',
         id: 'gender',
-        render: (val) => <span className="text-slate-600 capitalize dark:text-slate-400">{val?.toLowerCase() || '—'}</span>,
+        render: (val) => <span className="text-slate-600 capitalize dark:text-slate-400">{val?.toLowerCase() || 'â€”'}</span>,
       },
       {
         header: 'Date of Birth / Joined',
         id: 'joiningDate',
         render: (val) => (
           <span className="text-slate-500 whitespace-nowrap">
-            {val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+            {val ? new Date(val).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'â€”'}
           </span>
         ),
       },
@@ -253,7 +253,7 @@ export const StaffManagement = () => {
                   <button
                     type="button"
                     onClick={() => handleOpenReject(s)}
-                    className="rounded-lg bg-rose-600 px-2 py-1 text-[11px] font-bold text-white shadow-2xs transition hover:bg-rose-700 cursor-pointer"
+                    className="rounded-lg bg-indigo-600 px-2 py-1 text-[11px] font-bold text-white shadow-2xs transition hover:bg-indigo-500 cursor-pointer"
                     title="Reject Registration"
                   >
                     Reject
@@ -282,7 +282,7 @@ export const StaffManagement = () => {
               <button
                 type="button"
                 onClick={() => handleToggleStatus(s)}
-                className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 dark:hover:bg-indigo-600 cursor-pointer"
                 title={s.status === 'ACTIVE' ? 'Deactivate Staff' : 'Activate Staff'}
               >
                 <MoreVertical className="h-4 w-4" />
@@ -345,7 +345,7 @@ export const StaffManagement = () => {
             <button
               onClick={fetchStaff}
               disabled={loading}
-              className="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer"
+              className="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-indigo-600 cursor-pointer"
               title="Refresh Staff"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -356,7 +356,7 @@ export const StaffManagement = () => {
                 setEditingStaff(null);
                 setModalOpen(true);
               }}
-              className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700 cursor-pointer"
+              className="flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-indigo-500 cursor-pointer"
             >
               <UserPlus className="h-4 w-4" />
               <span>Add Staff Member</span>
@@ -367,22 +367,22 @@ export const StaffManagement = () => {
 
       {/* Summary Stat Cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-indigo-600">
           <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Staff</span>
           <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">{stats.total}</p>
           <span className="text-[10px] text-slate-400">Non-Teaching Personnel</span>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-indigo-600">
           <span className="block text-[11px] font-bold uppercase tracking-wider text-emerald-600">Active Staff</span>
           <p className="mt-1 text-2xl font-black text-emerald-600">{stats.active}</p>
           <span className="text-[10px] text-slate-400">Operational & Working</span>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-indigo-600">
           <span className="block text-[11px] font-bold uppercase tracking-wider text-amber-600">Pending Approval</span>
           <p className="mt-1 text-2xl font-black text-amber-600">{stats.pending}</p>
           <span className="text-[10px] text-slate-400">Awaiting Admin Verification</span>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-indigo-600">
           <span className="block text-[11px] font-bold uppercase tracking-wider text-slate-500">Inactive</span>
           <p className="mt-1 text-2xl font-black text-slate-600 dark:text-slate-400">{stats.inactive}</p>
           <span className="text-[10px] text-slate-400">Disabled accounts</span>
@@ -432,7 +432,7 @@ export const StaffManagement = () => {
         <Modal
           isOpen={!!rejectingStaff}
           onClose={() => setRejectingStaff(null)}
-          title={`Reject Registration — ${rejectingStaff.name}`}
+          title={`Reject Registration â€” ${rejectingStaff.name}`}
           size="sm"
         >
           <form onSubmit={handleConfirmReject} className="space-y-4 p-1">
@@ -459,7 +459,7 @@ export const StaffManagement = () => {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer"
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer"
               >
                 Confirm Rejection
               </button>
@@ -474,3 +474,5 @@ export const StaffManagement = () => {
 };
 
 export default StaffManagement;
+
+

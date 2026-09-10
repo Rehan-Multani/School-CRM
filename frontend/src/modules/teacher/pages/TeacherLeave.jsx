@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { FilterBar } from '../components/ui/FilterBar';
@@ -104,7 +104,7 @@ export const TeacherLeave = () => {
               <select
                 value={form.type}
                 onChange={(e) => setForm({ ...form, type: e.target.value })}
-                className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-slate-900 border-border text-foreground"
+                className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-indigo-600 border-border text-foreground"
               >
                 {LEAVE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
@@ -118,7 +118,7 @@ export const TeacherLeave = () => {
                   required
                   value={form.from}
                   onChange={(e) => setForm({ ...form, from: e.target.value })}
-                  className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-slate-900 border-border text-foreground"
+                  className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-indigo-600 border-border text-foreground"
                 />
               </div>
               <div className="space-y-1">
@@ -128,7 +128,7 @@ export const TeacherLeave = () => {
                   required
                   value={form.to}
                   onChange={(e) => setForm({ ...form, to: e.target.value })}
-                  className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-slate-900 border-border text-foreground"
+                  className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-indigo-600 border-border text-foreground"
                 />
               </div>
             </div>
@@ -141,7 +141,7 @@ export const TeacherLeave = () => {
                 value={form.reason}
                 onChange={(e) => setForm({ ...form, reason: e.target.value })}
                 placeholder="State detailed reason..."
-                className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-slate-900 border-border text-foreground"
+                className="w-full px-3 py-2 text-xs border rounded-xl bg-slate-50 dark:bg-indigo-600 border-border text-foreground"
               />
             </div>
 
@@ -192,7 +192,7 @@ export const TeacherLeave = () => {
                       <Badge variant={statusVariant[l.status] || 'default'}>{l.status}</Badge>
                     </div>
                     <p className="text-xs text-slate-500 mt-0.5">{l.reason}</p>
-                    <span className="text-[10px] text-slate-400 font-semibold">{l.startDate} to {l.endDate} ({l.days} days) • Approver: {l.approverName || 'Principal Dr. Chatterjee'}</span>
+                    <span className="text-[10px] text-slate-400 font-semibold">{l.startDate} to {l.endDate} ({l.days} days) â€¢ Approver: {l.approverName || 'Principal Dr. Chatterjee'}</span>
                   </div>
                   {l.comments && (
                     <div className="text-xs text-indigo-600 bg-indigo-50 dark:bg-indigo-950 px-2.5 py-1 rounded-lg">
@@ -223,7 +223,7 @@ export const TeacherLeave = () => {
                       <Badge variant={statusVariant[sl.status] || 'default'}>{sl.status}</Badge>
                     </div>
                     <p className="text-xs text-slate-600 dark:text-slate-300 mt-1">{sl.reason}</p>
-                    <span className="text-[10px] text-slate-400 font-semibold">{sl.startDate} to {sl.endDate} ({sl.days} days) • Category: {sl.leaveType}</span>
+                    <span className="text-[10px] text-slate-400 font-semibold">{sl.startDate} to {sl.endDate} ({sl.days} days) â€¢ Category: {sl.leaveType}</span>
                   </div>
 
                   {sl.status === 'Pending' ? (
@@ -254,3 +254,4 @@ export const TeacherLeave = () => {
   );
 };
 export default TeacherLeave;
+

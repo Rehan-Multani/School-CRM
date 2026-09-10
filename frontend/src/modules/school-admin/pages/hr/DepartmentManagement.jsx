@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+﻿import React, { useCallback, useEffect, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
@@ -143,7 +143,7 @@ export const DepartmentManagement = () => {
         }
       />
 
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
         {loading ? (
           <SkeletonTable rows={5} columns={5} />
         ) : departments.length === 0 ? (
@@ -176,7 +176,7 @@ export const DepartmentManagement = () => {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {departments.map((dept) => (
-                  <tr key={dept.id} className="transition hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                  <tr key={dept.id} className="transition hover:bg-slate-50/80 dark:hover:bg-indigo-600/40">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
                         <div className="rounded-xl bg-primary/10 p-2 text-primary">
@@ -185,8 +185,8 @@ export const DepartmentManagement = () => {
                         <span className="font-bold text-slate-900 dark:text-white">{dept.name}</span>
                       </div>
                     </td>
-                    <td className="px-3 py-3 font-bold uppercase text-slate-500">{dept.code || '—'}</td>
-                    <td className="px-3 py-3 max-w-xs truncate text-slate-500">{dept.description || '—'}</td>
+                    <td className="px-3 py-3 font-bold uppercase text-slate-500">{dept.code || 'â€”'}</td>
+                    <td className="px-3 py-3 max-w-xs truncate text-slate-500">{dept.description || 'â€”'}</td>
                     <td className="px-3 py-3">
                       <span className="inline-flex items-center gap-1 font-bold text-indigo-600 dark:text-indigo-400">
                         <Users className="h-3.5 w-3.5" /> {dept.employeeCount || 0}
@@ -203,7 +203,7 @@ export const DepartmentManagement = () => {
                           className={`rounded-lg p-1.5 transition-colors ${
                             dept.status === 'ACTIVE'
                               ? 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
-                              : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                              : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-indigo-600'
                           }`}
                           title={dept.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
                         >
@@ -212,7 +212,7 @@ export const DepartmentManagement = () => {
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(dept)}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-primary dark:hover:bg-slate-800"
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-primary dark:hover:bg-indigo-600"
                           title="Edit"
                         >
                           <Pencil className="h-3.5 w-3.5" />
@@ -292,7 +292,7 @@ export const DepartmentManagement = () => {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-indigo-600"
             >
               Cancel
             </button>
@@ -323,3 +323,4 @@ export const DepartmentManagement = () => {
 };
 
 export default DepartmentManagement;
+

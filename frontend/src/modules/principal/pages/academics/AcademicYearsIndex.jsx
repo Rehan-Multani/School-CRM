@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+﻿import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
@@ -61,7 +61,7 @@ function getNextStep(year) {
   return 'Next: Unarchive to use again';
 }
 
-// ── CSV / Excel helpers ──────────────────────────────────────────────────────
+// â”€â”€ CSV / Excel helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const CSV_HEADERS = ['name', 'code', 'startDate', 'endDate', 'status'];
 const CSV_SAMPLE = `name,code,startDate,endDate,status\n2024-25,2024-25,2024-04-01,2025-03-31,DRAFT\n2025-26,2025-26,2025-04-01,2026-03-31,DRAFT`;
 
@@ -109,7 +109,7 @@ function parseCSV(text) {
   });
 }
 
-// ── BulkCreateModal ─────────────────────────────────────────────────────────
+// â”€â”€ BulkCreateModal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const BulkCreateModal = ({ open, onClose, onSaved }) => {
   const { showToast, ToastComponent } = useToast();
   const [rows, setRows] = useState([EMPTY_ROW()]);
@@ -169,7 +169,7 @@ const BulkCreateModal = ({ open, onClose, onSaved }) => {
   if (!open) return null;
 
   const modalInputClass =
-    'w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2 text-xs font-semibold text-slate-800 outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:focus:bg-slate-900';
+    'w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2 text-xs font-semibold text-slate-800 outline-none transition focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20 dark:border-slate-800 dark:bg-slate-950 dark:text-white dark:focus:bg-indigo-600';
 
   return (
     <Modal isOpen={open} onClose={onClose} title="Create Academic Years" size="xl">
@@ -179,21 +179,21 @@ const BulkCreateModal = ({ open, onClose, onSaved }) => {
           <button
             type="button"
             onClick={addRow}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-indigo-600"
           >
             <Plus className="h-3.5 w-3.5 text-primary" /> Add Row
           </button>
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-indigo-600"
           >
             <FileUp className="h-3.5 w-3.5 text-indigo-500" /> Import CSV
           </button>
           <button
             type="button"
             onClick={downloadSampleCSV}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-indigo-600"
           >
             <Download className="h-3.5 w-3.5 text-emerald-500" /> Sample CSV
           </button>
@@ -201,7 +201,7 @@ const BulkCreateModal = ({ open, onClose, onSaved }) => {
         </div>
 
         {/* Rows Table */}
-        <div className="max-h-[55vh] overflow-x-auto overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="max-h-[55vh] overflow-x-auto overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <table className="w-full text-left text-xs">
             <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-100/90 text-[11px] font-extrabold uppercase tracking-wider text-slate-600 backdrop-blur-sm dark:border-slate-800 dark:bg-slate-950/90 dark:text-slate-300">
               <tr>
@@ -216,7 +216,7 @@ const BulkCreateModal = ({ open, onClose, onSaved }) => {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {rows.map((row, i) => (
-                <tr key={i} className="transition hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                <tr key={i} className="transition hover:bg-slate-50/50 dark:hover:bg-indigo-600/30">
                   <td className="px-3 py-2.5 font-bold text-slate-400">{i + 1}</td>
                   <td className="px-3 py-2.5">
                     <input
@@ -282,7 +282,7 @@ const BulkCreateModal = ({ open, onClose, onSaved }) => {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+            className="rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-indigo-600"
           >
             Cancel
           </button>
@@ -302,7 +302,7 @@ const BulkCreateModal = ({ open, onClose, onSaved }) => {
   );
 };
 
-// ── Main Page ────────────────────────────────────────────────────────────────
+// â”€â”€ Main Page â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export const AcademicYearsIndex = () => {
   const { showToast, ToastComponent } = useToast();
   const [loading, setLoading] = useState(true);
@@ -345,13 +345,13 @@ export const AcademicYearsIndex = () => {
     }
   };
 
-  // ── Export ─────────────────────────────────────────────────────────────────
+  // â”€â”€ Export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleExport = () => {
     const toExport = filteredYears.length > 0 ? filteredYears : years;
     exportToCSV(toExport);
   };
 
-  // ── Import from CSV ────────────────────────────────────────────────────────
+  // â”€â”€ Import from CSV â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const handleImportFile = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -511,9 +511,9 @@ export const AcademicYearsIndex = () => {
       )}
 
       {loading ? (
-        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
           <table className="w-full text-left text-xs">
-            <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
+            <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-indigo-600/60 dark:text-slate-400">
               <tr>
                 <th className="w-12 px-3.5 py-3 text-center">#</th>
                 <th className="px-3.5 py-3">Academic Year</th>
@@ -529,15 +529,15 @@ export const AcademicYearsIndex = () => {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
               {Array.from({ length: 5 }).map((_, index) => (
                 <tr key={index} className="animate-pulse">
-                  <td className="w-12 px-3.5 py-3 text-center"><div className="mx-auto h-3.5 w-4 rounded bg-slate-100 dark:bg-slate-800" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-28 rounded bg-slate-100 dark:bg-slate-800" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-16 rounded bg-slate-100 dark:bg-slate-800" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-32 rounded bg-slate-100 dark:bg-slate-800" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-20 rounded bg-slate-100 dark:bg-slate-800" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-16 rounded bg-slate-100 dark:bg-slate-800" /></td>
-                  <td className="px-3.5 py-3 text-center"><div className="mx-auto h-4 w-8 rounded bg-slate-100 dark:bg-slate-800" /></td>
-                  <td className="px-3.5 py-3 text-center"><div className="mx-auto h-4 w-8 rounded bg-slate-100 dark:bg-slate-800" /></td>
-                  <td className="px-3.5 py-3 text-right"><div className="ml-auto h-7 w-24 rounded bg-slate-100 dark:bg-slate-800" /></td>
+                  <td className="w-12 px-3.5 py-3 text-center"><div className="mx-auto h-3.5 w-4 rounded bg-slate-100 dark:bg-indigo-600" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-28 rounded bg-slate-100 dark:bg-indigo-600" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-16 rounded bg-slate-100 dark:bg-indigo-600" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-32 rounded bg-slate-100 dark:bg-indigo-600" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-20 rounded bg-slate-100 dark:bg-indigo-600" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-16 rounded bg-slate-100 dark:bg-indigo-600" /></td>
+                  <td className="px-3.5 py-3 text-center"><div className="mx-auto h-4 w-8 rounded bg-slate-100 dark:bg-indigo-600" /></td>
+                  <td className="px-3.5 py-3 text-center"><div className="mx-auto h-4 w-8 rounded bg-slate-100 dark:bg-indigo-600" /></td>
+                  <td className="px-3.5 py-3 text-right"><div className="ml-auto h-7 w-24 rounded bg-slate-100 dark:bg-indigo-600" /></td>
                 </tr>
               ))}
             </tbody>
@@ -573,9 +573,9 @@ export const AcademicYearsIndex = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
+              <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-indigo-600/60 dark:text-slate-400">
                 <tr>
                   <th className="w-12 px-3.5 py-3 text-center">#</th>
                   <th className="px-3.5 py-3">Academic Year</th>
@@ -592,7 +592,7 @@ export const AcademicYearsIndex = () => {
                 {filteredYears.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((year, index) => {
                   const serialNo = (page - 1) * PAGE_SIZE + index + 1;
                   return (
-                    <tr key={year.id} className="transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-900/50">
+                    <tr key={year.id} className="transition-colors hover:bg-slate-50/80 dark:hover:bg-indigo-600/50">
                       <td className="w-12 px-3.5 py-3 text-center font-bold text-slate-400 text-xs">{serialNo}</td>
                       <td className="px-3.5 py-3 whitespace-nowrap">
                         <span className="font-bold text-slate-900 dark:text-white">{year.name}</span>
@@ -603,11 +603,11 @@ export const AcademicYearsIndex = () => {
                             {year.code}
                           </span>
                         ) : (
-                          <span className="text-slate-400">—</span>
+                          <span className="text-slate-400">â€”</span>
                         )}
                       </td>
                       <td className="px-3.5 py-3 whitespace-nowrap text-slate-600 dark:text-slate-400">
-                        {formatDate(year.startDate)} – {formatDate(year.endDate)}
+                        {formatDate(year.startDate)} â€“ {formatDate(year.endDate)}
                       </td>
                       <td className="px-3.5 py-3 whitespace-nowrap">
                         <Badge variant={YEAR_STATUS_VARIANT[year.status] || 'default'}>{year.status}</Badge>
@@ -722,7 +722,7 @@ export const AcademicYearsIndex = () => {
           {/* Super Admin Style Pagination Bar */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-1">
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Showing {(page - 1) * PAGE_SIZE + 1}–
+              Showing {(page - 1) * PAGE_SIZE + 1}â€“
               {Math.min(page * PAGE_SIZE, filteredYears.length)} of {filteredYears.length} academic years
             </p>
             {Math.ceil(filteredYears.length / PAGE_SIZE) > 1 && (
@@ -731,7 +731,7 @@ export const AcademicYearsIndex = () => {
                   type="button"
                   disabled={page <= 1}
                   onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-slate-900"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-indigo-600"
                   aria-label="Previous page"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -744,7 +744,7 @@ export const AcademicYearsIndex = () => {
                     className={`inline-flex h-9 min-w-9 items-center justify-center rounded-xl px-2.5 text-xs font-semibold transition ${
                       pageNumber === page
                         ? 'bg-indigo-600 text-white shadow-xs shadow-indigo-600/20'
-                        : 'border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
+                        : 'border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-indigo-600'
                     }`}
                   >
                     {pageNumber}
@@ -754,7 +754,7 @@ export const AcademicYearsIndex = () => {
                   type="button"
                   disabled={page >= Math.ceil(filteredYears.length / PAGE_SIZE)}
                   onClick={() => setPage((prev) => Math.min(Math.ceil(filteredYears.length / PAGE_SIZE), prev + 1))}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-slate-900"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-indigo-600"
                   aria-label="Next page"
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -849,3 +849,4 @@ export const AcademicYearsIndex = () => {
 };
 
 export default AcademicYearsIndex;
+

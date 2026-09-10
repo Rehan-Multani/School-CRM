@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Modal } from '../../components/ui/Modal';
@@ -142,7 +142,7 @@ export const DesignationManagement = () => {
             <button
               onClick={loadData}
               disabled={loading}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
               title="Refresh"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -158,7 +158,7 @@ export const DesignationManagement = () => {
         }
       />
 
-      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
         {loading ? (
           <SkeletonTable rows={5} columns={4} />
         ) : designations.length === 0 ? (
@@ -180,7 +180,7 @@ export const DesignationManagement = () => {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {designations.map((desig) => (
-                  <tr key={desig.id} className="transition hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                  <tr key={desig.id} className="transition hover:bg-slate-50/80 dark:hover:bg-indigo-600/40">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
                         <div className="rounded-xl bg-primary/10 p-2 text-primary">
@@ -208,7 +208,7 @@ export const DesignationManagement = () => {
                           className={`rounded-lg p-1.5 transition-colors cursor-pointer ${
                             desig.status === 'ACTIVE'
                               ? 'text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
-                              : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                              : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-indigo-600'
                           }`}
                           title={desig.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
                         >
@@ -217,7 +217,7 @@ export const DesignationManagement = () => {
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(desig)}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-primary dark:hover:bg-slate-800 cursor-pointer"
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-primary dark:hover:bg-indigo-600 cursor-pointer"
                           title="Edit"
                         >
                           <Pencil className="h-3.5 w-3.5" />
@@ -301,7 +301,7 @@ export const DesignationManagement = () => {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer"
+              className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-indigo-600 cursor-pointer"
             >
               Cancel
             </button>
@@ -332,3 +332,4 @@ export const DesignationManagement = () => {
 };
 
 export default DesignationManagement;
+

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { FilterBar } from '../components/ui/FilterBar';
@@ -37,7 +37,7 @@ export const TeacherPerformance = () => {
 
   const getRowStyle = (index, total) => {
     if (index < 3) return 'border-l-4 border-l-emerald-400 bg-emerald-500/5';
-    if (index >= total - 2) return 'border-l-4 border-l-rose-400 bg-rose-500/5';
+    if (index >= total - 2) return 'border-l-4 border-l-rose-400 bg-indigo-600/5';
     return '';
   };
 
@@ -54,7 +54,7 @@ export const TeacherPerformance = () => {
           <h2 className="text-lg font-black text-foreground">Student Performance</h2>
           <p className="text-xs text-slate-500 mt-0.5">Analyze and track student progress</p>
         </div>
-        <button className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-border text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+        <button className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-border text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors">
           <Download className="w-3.5 h-3.5" /> Export
         </button>
       </div>
@@ -95,7 +95,7 @@ export const TeacherPerformance = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="w-full sm:w-auto px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
+              className="w-full sm:w-auto px-3 py-2.5 rounded-xl border border-border bg-white dark:bg-indigo-600 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20"
               id="performance-sort"
             >
               <option value="attendance">Sort: Attendance</option>
@@ -151,7 +151,7 @@ export const TeacherPerformance = () => {
               <Avatar src={selectedStudent.photo} name={selectedStudent.name} size="lg" />
               <div>
                 <h3 className="text-base font-black text-foreground">{selectedStudent.name}</h3>
-                <p className="text-xs text-slate-500">Roll #{selectedStudent.rollNo} • {selectedStudent.gender}</p>
+                <p className="text-xs text-slate-500">Roll #{selectedStudent.rollNo} â€¢ {selectedStudent.gender}</p>
               </div>
             </div>
 
@@ -181,3 +181,4 @@ export const TeacherPerformance = () => {
     </div>
   );
 };
+

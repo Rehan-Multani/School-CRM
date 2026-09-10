@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { FilterBar } from '../components/ui/FilterBar';
@@ -52,7 +52,7 @@ export const TeacherAnnouncements = () => {
               {urgent.map(ann => (
                 <div
                   key={ann.id}
-                  className="rounded-2xl border-2 border-rose-300 dark:border-rose-800 bg-rose-500/5 overflow-hidden"
+                  className="rounded-2xl border-2 border-rose-300 dark:border-rose-800 bg-indigo-600/5 overflow-hidden"
                 >
                   <div
                     className="flex items-center justify-between p-4 cursor-pointer"
@@ -60,7 +60,7 @@ export const TeacherAnnouncements = () => {
                   >
                     <div className="flex-1 min-w-0 mr-3">
                       <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="danger" className="text-[8px]">🚨 Urgent</Badge>
+                        <Badge variant="danger" className="text-[8px]">ðŸš¨ Urgent</Badge>
                         <span className="text-[10px] text-slate-400">{ann.date}</span>
                       </div>
                       <h4 className="text-sm font-bold text-foreground truncate">{ann.title}</h4>
@@ -108,3 +108,4 @@ export const TeacherAnnouncements = () => {
     </div>
   );
 };
+

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Modal } from '../../components/ui/Modal';
@@ -164,7 +164,7 @@ export const PerformanceManagement = () => {
             <button
               onClick={fetchReviews}
               disabled={loading}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
               title="Refresh"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -185,7 +185,7 @@ export const PerformanceManagement = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Evaluations</span>
             <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">{stats.totalReviews || reviews.length}</div>
@@ -196,7 +196,7 @@ export const PerformanceManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-amber-500 uppercase tracking-wider">Campus Avg Rating</span>
             <div className="flex items-center gap-2 mt-1">
@@ -221,9 +221,9 @@ export const PerformanceManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Top 5★ Performers</span>
+            <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Top 5â˜… Performers</span>
             <div className="text-2xl font-black text-emerald-600 mt-1">
               {reviews.filter((r) => Number(r.rating) === 5).length}
             </div>
@@ -234,7 +234,7 @@ export const PerformanceManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">Faculty Appraised</span>
             <div className="text-2xl font-black text-blue-600 mt-1">
@@ -249,7 +249,7 @@ export const PerformanceManagement = () => {
       </div>
 
       {/* Search & Filters */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1 min-w-[240px]">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
@@ -281,11 +281,11 @@ export const PerformanceManagement = () => {
             className="bg-slate-50/80 dark:bg-slate-950 text-slate-900 dark:text-white px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-semibold cursor-pointer outline-none"
           >
             <option value="ALL">All Star Ratings</option>
-            <option value="5">5 Stars — Outstanding</option>
-            <option value="4">4 Stars — Exceeds Standards</option>
-            <option value="3">3 Stars — Meets Standards</option>
-            <option value="2">2 Stars — Needs Improvement</option>
-            <option value="1">1 Star — Unsatisfactory</option>
+            <option value="5">5 Stars â€” Outstanding</option>
+            <option value="4">4 Stars â€” Exceeds Standards</option>
+            <option value="3">3 Stars â€” Meets Standards</option>
+            <option value="2">2 Stars â€” Needs Improvement</option>
+            <option value="1">1 Star â€” Unsatisfactory</option>
           </select>
         </div>
       </div>
@@ -301,11 +301,11 @@ export const PerformanceManagement = () => {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {[1, 2, 3, 4, 5, 6].map((n) => (
-            <div key={n} className="h-64 bg-slate-100 dark:bg-slate-800/60 rounded-3xl animate-pulse" />
+            <div key={n} className="h-64 bg-slate-100 dark:bg-indigo-600/60 rounded-3xl animate-pulse" />
           ))}
         </div>
       ) : filteredReviews.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-3 shadow-xs">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-3 shadow-xs">
           <Award className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-700" />
           <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">No appraisals found</h4>
           <p className="text-xs max-w-sm mx-auto">
@@ -321,7 +321,7 @@ export const PerformanceManagement = () => {
             return (
               <div
                 key={rev.id}
-                className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-xs font-semibold space-y-4"
+                className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between text-xs font-semibold space-y-4"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3">
@@ -337,7 +337,7 @@ export const PerformanceManagement = () => {
                           {rev.employeeName}
                         </h4>
                         <p className="text-[10px] text-slate-400 font-mono mt-0.5">
-                          {rev.employeeId} • {rev.department || 'General'}
+                          {rev.employeeId} â€¢ {rev.department || 'General'}
                         </p>
                       </div>
                     </div>
@@ -418,7 +418,7 @@ export const PerformanceManagement = () => {
               >
                 {employees.map((e) => (
                   <option key={e.id} value={e.id}>
-                    {e.name} ({e.employeeId || 'EMP'}) — {e.department || 'General'}
+                    {e.name} ({e.employeeId || 'EMP'}) â€” {e.department || 'General'}
                   </option>
                 ))}
               </select>
@@ -527,7 +527,7 @@ export const PerformanceManagement = () => {
         <Modal
           isOpen={!!selectedScorecard}
           onClose={() => setSelectedScorecard(null)}
-          title={`Performance Scorecard — ${selectedScorecard.employeeName}`}
+          title={`Performance Scorecard â€” ${selectedScorecard.employeeName}`}
           size="md"
         >
           <div className="space-y-4 p-2">
@@ -535,7 +535,7 @@ export const PerformanceManagement = () => {
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                 <div>
                   <h3 className="text-base font-black text-slate-900 dark:text-white">{selectedScorecard.employeeName}</h3>
-                  <p className="text-xs text-slate-400">{selectedScorecard.employeeId} • {selectedScorecard.department}</p>
+                  <p className="text-xs text-slate-400">{selectedScorecard.employeeId} â€¢ {selectedScorecard.department}</p>
                 </div>
                 <div className="flex items-center gap-1 px-3 py-1 bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 font-black rounded-xl text-sm">
                   <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
@@ -593,3 +593,4 @@ export const PerformanceManagement = () => {
 };
 
 export default PerformanceManagement;
+

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs } from '../../components/ui/Tabs';
 import { Badge } from '../../components/ui/Badge';
@@ -128,7 +128,7 @@ export const BookDetail = () => {
 
   if (!book) {
     return (
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-4">
+      <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-4">
         <p className="text-slate-500 font-bold">Book catalog entry not found in library.</p>
         <button
           onClick={() => navigate('/librarian/books')}
@@ -165,7 +165,7 @@ export const BookDetail = () => {
     {
       title: 'Location',
       key: 'rackNumber',
-      render: (val, row) => (val ? `Rack ${val}, Shelf ${row.shelfNumber || '1'}` : '—'),
+      render: (val, row) => (val ? `Rack ${val}, Shelf ${row.shelfNumber || '1'}` : 'â€”'),
     },
     {
       title: 'Acquired Date',
@@ -207,7 +207,7 @@ export const BookDetail = () => {
     {
       title: 'Fine',
       key: 'fineAmount',
-      render: (val) => (val > 0 ? `₹${val}` : '—'),
+      render: (val) => (val > 0 ? `â‚¹${val}` : 'â€”'),
     },
   ];
 
@@ -259,7 +259,7 @@ export const BookDetail = () => {
       </div>
 
       {/* Book Summary Card */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row gap-6 items-start">
+      <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row gap-6 items-start">
         <div className="w-28 h-40 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl flex flex-col items-center justify-center shrink-0 shadow-md relative overflow-hidden text-center p-2">
           <BookOpen className="h-10 w-10 text-indigo-100 mb-2" />
           <span className="text-3xs text-indigo-200 font-mono tracking-wider font-bold">{book.bookCode}</span>
@@ -292,11 +292,11 @@ export const BookDetail = () => {
             </div>
             <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
               <Tag className="h-4 w-4 text-indigo-500" />
-              <span>ISBN: {book.isbn || '—'}</span>
+              <span>ISBN: {book.isbn || 'â€”'}</span>
             </div>
             <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
               <MapPin className="h-4 w-4 text-indigo-500" />
-              <span>Rack {book.rackNumber || '—'}, Shelf {book.shelfNumber || '—'}</span>
+              <span>Rack {book.rackNumber || 'â€”'}, Shelf {book.shelfNumber || 'â€”'}</span>
             </div>
           </div>
         </div>
@@ -306,7 +306,7 @@ export const BookDetail = () => {
       <Tabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
       {/* Tab Panels */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+      <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
         {activeTab === 'overview' && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -320,19 +320,19 @@ export const BookDetail = () => {
                   <span className="font-bold text-slate-800 dark:text-slate-200">{book.category}</span>
 
                   <span className="font-semibold text-slate-400">Subject:</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">{book.subject || '—'}</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{book.subject || 'â€”'}</span>
 
                   <span className="font-semibold text-slate-400">Publisher:</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">{book.publisher || '—'}</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{book.publisher || 'â€”'}</span>
 
                   <span className="font-semibold text-slate-400">Publication Year:</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">{book.publicationYear || '—'}</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{book.publicationYear || 'â€”'}</span>
 
                   <span className="font-semibold text-slate-400">Language:</span>
                   <span className="font-bold text-slate-800 dark:text-slate-200">{book.language || 'English'}</span>
 
                   <span className="font-semibold text-slate-400">Pages:</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">{book.pages || '—'}</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200">{book.pages || 'â€”'}</span>
 
                   <span className="font-semibold text-slate-400">Added On:</span>
                   <span className="font-bold text-slate-800 dark:text-slate-200">{formatDate(book.createdAt)}</span>
@@ -472,7 +472,7 @@ export const BookDetail = () => {
               </select>
             </div>
             <div className="space-y-1">
-              <label className="text-3xs font-bold text-slate-500 uppercase">Acquisition Price (₹)</label>
+              <label className="text-3xs font-bold text-slate-500 uppercase">Acquisition Price (â‚¹)</label>
               <input
                 placeholder="e.g. 450"
                 type="number"
@@ -517,3 +517,4 @@ export const BookDetail = () => {
   );
 };
 export default BookDetail;
+

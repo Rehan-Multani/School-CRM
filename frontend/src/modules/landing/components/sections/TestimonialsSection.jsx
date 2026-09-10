@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, MessageSquareQuote, Star } from 'lucide-react';
 import Reveal from '../Reveal';
 import GradientBadge from '../ui/GradientBadge';
@@ -101,7 +101,7 @@ export const TestimonialsSection = () => {
                       className={`h-2.5 rounded-full transition-all duration-300 ${
                         currentIndex === dotIdx
                           ? 'w-8 bg-indigo-600'
-                          : 'w-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700'
+                          : 'w-2.5 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-indigo-600'
                       }`}
                     />
                   ))}
@@ -112,7 +112,7 @@ export const TestimonialsSection = () => {
                     type="button"
                     onClick={handlePrev}
                     aria-label="Previous testimonial"
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-indigo-600"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
@@ -120,7 +120,7 @@ export const TestimonialsSection = () => {
                     type="button"
                     onClick={handleNext}
                     aria-label="Next testimonial"
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-indigo-600"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </button>
@@ -135,7 +135,7 @@ export const TestimonialsSection = () => {
               <div
                 key={item.id}
                 onClick={() => setCurrentIndex(TESTIMONIALS.findIndex((t) => t.id === item.id))}
-                className="cursor-pointer rounded-2xl border border-slate-200/60 bg-white/70 p-4 transition-all duration-200 hover:border-indigo-300 hover:bg-white hover:shadow-md dark:border-slate-800/80 dark:bg-slate-900/40 dark:hover:border-indigo-700"
+                className="cursor-pointer rounded-2xl border border-slate-200/60 bg-white/70 p-4 transition-all duration-200 hover:border-indigo-300 hover:bg-white hover:shadow-md dark:border-slate-800/80 dark:bg-indigo-600/40 dark:hover:border-indigo-700"
               >
                 <div className="flex items-center gap-1 text-amber-400 mb-2">
                   {[...Array(item.rating)].map((_, i) => (
@@ -170,4 +170,5 @@ export const TestimonialsSection = () => {
 };
 
 export default TestimonialsSection;
+
 

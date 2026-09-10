@@ -1,8 +1,8 @@
-import React from 'react';
+﻿import React from 'react';
 import { cn } from '../lib/cn';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
-// Canonical merged StatCard — superset of gen-2 (HR/accountant/librarian/
+// Canonical merged StatCard â€” superset of gen-2 (HR/accountant/librarian/
 // principal/school-admin/transport, prop names `subtitle`/`trend` as a
 // signed string e.g. "+12%") and gen-1 (student/teacher/parent, prop names
 // `subtext`/`colorClass`/`onClick`, no trend). Both `subtitle`/`subtext`
@@ -28,7 +28,7 @@ export const StatCard = ({
     <div
       onClick={onClick}
       className={cn(
-        "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between",
+        "bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between",
         onClick && "cursor-pointer active:scale-[0.98]",
         className
       )}
@@ -77,3 +77,4 @@ export const StatCard = ({
 };
 
 export default StatCard;
+

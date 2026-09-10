@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ServerTable } from '../../components/ui/ServerTable';
@@ -69,15 +69,15 @@ export const DuesPendingFees = () => {
   const columns = useMemo(
     () => [
       { key: 'admissionNumber', title: 'Admn No', render: (r) => (
-        <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{r.admissionNumber || '—'}</span>
+        <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{r.admissionNumber || 'â€”'}</span>
       ) },
       { key: 'studentName', title: 'Student', render: (r) => (
         <div>
           <p className="font-bold text-slate-900 dark:text-white">{r.studentName}</p>
-          <p className="text-[10px] text-slate-400">{r.invoiceNumber} • {r.periodLabel}</p>
+          <p className="text-[10px] text-slate-400">{r.invoiceNumber} â€¢ {r.periodLabel}</p>
         </div>
       ) },
-      { key: 'className', title: 'Class', render: (r) => [r.className, r.sectionName].filter(Boolean).join(' - ') || '—' },
+      { key: 'className', title: 'Class', render: (r) => [r.className, r.sectionName].filter(Boolean).join(' - ') || 'â€”' },
       { key: 'totalAmount', title: 'Total Fee', align: 'right', render: (r) => formatCurrency(r.totalAmount) },
       { key: 'paidAmount', title: 'Paid', align: 'right', render: (r) => formatCurrency(r.paidAmount) },
       { key: 'discountAmount', title: 'Discount', align: 'right', render: (r) => formatCurrency(r.discountAmount) },
@@ -119,7 +119,7 @@ export const DuesPendingFees = () => {
               exportToCSV(rows, `dues_${new Date().toISOString().split('T')[0]}.csv`);
               showToast('Current page exported to CSV', 'success');
             }}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs"
           >
             <Download className="w-3.5 h-3.5" /> Export CSV
           </button>
@@ -139,20 +139,20 @@ export const DuesPendingFees = () => {
           <input
             value={filters.search}
             onChange={(e) => set({ search: e.target.value })}
-            placeholder="Search student / invoice…"
-            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold outline-none focus:border-violet-500"
+            placeholder="Search student / invoiceâ€¦"
+            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold outline-none focus:border-violet-500"
           />
         </div>
         <input
           value={filters.admissionNumber}
           onChange={(e) => set({ admissionNumber: e.target.value })}
           placeholder="Admission no"
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
         />
         <select
           value={filters.classId}
           onChange={(e) => set({ classId: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
         >
           <option value="">All Classes</option>
           {classes.map((c) => (
@@ -164,7 +164,7 @@ export const DuesPendingFees = () => {
         <select
           value={filters.status}
           onChange={(e) => set({ status: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
         >
           {STATUS_OPTIONS.map((s) => (
             <option key={s} value={s}>
@@ -185,7 +185,7 @@ export const DuesPendingFees = () => {
       />
 
       {history && (
-        <Modal isOpen onClose={() => setHistory(null)} title={`Fee History — ${history.student?.name}`} size="lg">
+        <Modal isOpen onClose={() => setHistory(null)} title={`Fee History â€” ${history.student?.name}`} size="lg">
           <div className="space-y-5 text-xs">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Invoices</p>
@@ -235,3 +235,5 @@ export const DuesPendingFees = () => {
 };
 
 export default DuesPendingFees;
+
+

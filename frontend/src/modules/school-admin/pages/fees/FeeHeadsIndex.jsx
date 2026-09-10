@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
@@ -256,7 +256,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
       )}
 
       {/* Toolbar & Filters */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
         {/* Left Side: Search + Category Selector */}
         <div className="flex flex-wrap items-center gap-2.5">
           <div className="relative min-w-[200px] sm:min-w-[240px]">
@@ -317,7 +317,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
               <Download className="h-3.5 w-3.5" /> Sample
             </button>
 
-            <div className="h-4 w-px bg-slate-200 dark:bg-slate-800" />
+            <div className="h-4 w-px bg-slate-200 dark:bg-indigo-600" />
 
             <button
               type="button"
@@ -332,7 +332,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
 
             {feeHeads.length > 0 && (
               <>
-                <div className="h-4 w-px bg-slate-200 dark:bg-slate-800" />
+                <div className="h-4 w-px bg-slate-200 dark:bg-indigo-600" />
                 <button
                   type="button"
                   onClick={() => exportFeeHeadsCSV(feeHeads)}
@@ -401,7 +401,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
       {loading ? (
         <SkeletonTable rows={5} columns={4} />
       ) : filteredHeads.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <ListChecks className="h-10 w-10 text-slate-300 dark:text-slate-700" />
           <h4 className="mt-3 text-sm font-bold text-slate-700 dark:text-slate-200">
             No Fee Heads Found
@@ -418,7 +418,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
           </button>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="border-b border-slate-100 bg-slate-50/70 text-slate-500 dark:border-slate-800 dark:bg-slate-950/60 dark:text-slate-400">
@@ -435,7 +435,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
                 {filteredHeads.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((head) => (
                   <tr
                     key={head.id}
-                    className="group transition hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
+                    className="group transition hover:bg-slate-50/80 dark:hover:bg-indigo-600/40"
                   >
                     {/* Head Name */}
                     <td className="px-4 py-3.5">
@@ -465,7 +465,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
 
                     {/* Description */}
                     <td className="px-4 py-3.5 text-slate-500 dark:text-slate-400">
-                      {head.description || '—'}
+                      {head.description || 'â€”'}
                     </td>
 
                     {/* Status */}
@@ -505,7 +505,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
           {/* Pagination Bar */}
           <div className="flex flex-col gap-3 border-t border-slate-100 px-4 py-3 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Showing {(page - 1) * PAGE_SIZE + 1}–
+              Showing {(page - 1) * PAGE_SIZE + 1}â€“
               {Math.min(page * PAGE_SIZE, filteredHeads.length)} of {filteredHeads.length} fee heads
             </p>
             {Math.ceil(filteredHeads.length / PAGE_SIZE) > 1 && (
@@ -514,7 +514,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
                   type="button"
                   disabled={page <= 1}
                   onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-slate-900"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-indigo-600"
                   aria-label="Previous page"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -527,7 +527,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
                     className={`inline-flex h-9 min-w-9 items-center justify-center rounded-xl px-2.5 text-xs font-semibold transition ${
                       pageNumber === page
                         ? 'bg-indigo-600 text-white shadow-xs shadow-indigo-600/20'
-                        : 'border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
+                        : 'border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-indigo-600'
                     }`}
                   >
                     {pageNumber}
@@ -537,7 +537,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
                   type="button"
                   disabled={page >= Math.ceil(filteredHeads.length / PAGE_SIZE)}
                   onClick={() => setPage((prev) => Math.min(Math.ceil(filteredHeads.length / PAGE_SIZE), prev + 1))}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-slate-900"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-indigo-600"
                   aria-label="Next page"
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -636,7 +636,7 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-indigo-600"
             >
               Cancel
             </button>
@@ -669,3 +669,4 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
 };
 
 export default FeeHeadsIndex;
+

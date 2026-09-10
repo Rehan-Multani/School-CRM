@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useToast } from '../../components/ui/Toast';
 import { librarianApi } from '../../../../shared/api/client';
 
@@ -246,7 +246,7 @@ export const AddEditBook = ({ book, onSuccess, onCancel, isLoading }) => {
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800 transition-colors"
+          className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-indigo-600 transition-colors"
         >
           Cancel
         </button>
@@ -263,3 +263,4 @@ export const AddEditBook = ({ book, onSuccess, onCancel, isLoading }) => {
 };
 
 export default AddEditBook;
+

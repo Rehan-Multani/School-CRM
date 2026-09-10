@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, CornerDownLeft } from 'lucide-react';
 import { NAVIGATION_ITEMS } from '../../utils/constants';
@@ -93,11 +93,11 @@ export const CommandPalette = ({ isOpen, onClose }) => {
       {/* Backdrop */}
       <div 
         onClick={onClose}
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs"
+        className="fixed inset-0 bg-indigo-600/60 backdrop-blur-xs"
       />
 
       {/* Palette Container */}
-      <div className="w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-10 overflow-hidden flex flex-col max-h-[50vh]">
+      <div className="w-full max-w-lg bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-10 overflow-hidden flex flex-col max-h-[50vh]">
         {/* Search Input bar */}
         <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-200 dark:border-slate-800 shrink-0">
           <Search className="h-5 w-5 text-slate-400" />
@@ -158,3 +158,4 @@ export const CommandPalette = ({ isOpen, onClose }) => {
     </div>
   );
 };
+

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
 import { DataTable } from '../../components/ui/DataTable';
@@ -17,7 +17,7 @@ const AUDIENCES = ['ALL', 'TEACHERS', 'STUDENTS', 'PARENTS', 'STAFF'];
 const STATUS_VARIANT = { DRAFT: 'default', PUBLISHED: 'success', ARCHIVED: 'warning' };
 
 function fmt(v) {
-  if (!v) return '—';
+  if (!v) return 'â€”';
   return new Date(v).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
@@ -155,7 +155,7 @@ export const CommunicationHub = () => {
     e.preventDefault();
     if (!bcForm.content.trim()) return showToast('Message content is required', 'error');
     if (bcForm.channel === 'SMS' && bcForm.content.length > 160) {
-      showToast('SMS is over 160 chars — it will be sent as multiple parts', 'warning');
+      showToast('SMS is over 160 chars â€” it will be sent as multiple parts', 'warning');
     }
     setBcSaving(true);
     try {
@@ -216,7 +216,7 @@ export const CommunicationHub = () => {
         ),
       },
       { key: 'audiences', title: 'Audience', render: (v) => <Badge variant="primary">{(v || []).join(', ')}</Badge> },
-      { key: 'publishedByName', title: 'Author', render: (v) => v || '—' },
+      { key: 'publishedByName', title: 'Author', render: (v) => v || 'â€”' },
       { key: 'publishAt', title: 'Published', render: (v) => fmt(v) },
       { key: 'status', title: 'Status', render: (v) => <Badge variant={STATUS_VARIANT[v] || 'default'}>{v}</Badge> },
       {
@@ -230,15 +230,15 @@ export const CommunicationHub = () => {
                 Publish
               </button>
             )}
-            <button type="button" onClick={() => doPinArchive(row, { pinned: !row.pinned })} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-amber-600 dark:hover:bg-slate-800" title={row.pinned ? 'Unpin' : 'Pin'}>
+            <button type="button" onClick={() => doPinArchive(row, { pinned: !row.pinned })} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-amber-600 dark:hover:bg-indigo-600" title={row.pinned ? 'Unpin' : 'Pin'}>
               <Pin size={14} />
             </button>
             {row.status !== 'ARCHIVED' && (
-              <button type="button" onClick={() => doPinArchive(row, { status: 'ARCHIVED' })} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800" title="Archive">
+              <button type="button" onClick={() => doPinArchive(row, { status: 'ARCHIVED' })} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-indigo-600" title="Archive">
                 <Archive size={14} />
               </button>
             )}
-            <button type="button" onClick={() => openAnnEdit(row)} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800" title="Edit">
+            <button type="button" onClick={() => openAnnEdit(row)} className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-indigo-600" title="Edit">
               <Pencil size={14} />
             </button>
             <button type="button" onClick={() => setDeleteAnn(row)} className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30" title="Delete">
@@ -257,7 +257,7 @@ export const CommunicationHub = () => {
       { key: 'audienceLabel', title: 'Recipient' },
       { key: 'content', title: 'Content', render: (v) => <span className="line-clamp-2 max-w-md text-xs">{v}</span> },
       { key: 'status', title: 'Status', render: (v) => <Badge variant="success">{v}</Badge> },
-      { key: 'sentByName', title: 'Sent By', render: (v) => v || '—' },
+      { key: 'sentByName', title: 'Sent By', render: (v) => v || 'â€”' },
       { key: 'createdAt', title: 'When', render: (v) => fmt(v) },
     ],
     []
@@ -270,7 +270,7 @@ export const CommunicationHub = () => {
         subtitle="Broadcast school announcements, send targeted SMS/Email alerts, and message staff directly."
         actions={
           <div className="flex gap-2">
-            <button onClick={() => setBcModal(true)} className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-bold hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800">
+            <button onClick={() => setBcModal(true)} className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-bold hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-indigo-600">
               <Send className="h-3.5 w-3.5" /> Broadcast Alert
             </button>
             <button onClick={openAnnCreate} className="flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-white shadow-sm">
@@ -334,7 +334,7 @@ export const CommunicationHub = () => {
         />
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="flex flex-col divide-y divide-slate-100 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex flex-col divide-y divide-slate-100 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:divide-slate-800 dark:border-slate-800 dark:bg-indigo-600">
             <span className="p-4 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Conversations</span>
             {threads.length === 0 && (
               <div className="p-6 text-center text-xs font-semibold text-slate-400">No conversations yet.</div>
@@ -359,7 +359,7 @@ export const CommunicationHub = () => {
             ))}
           </div>
 
-          <div className="flex min-h-[360px] flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:col-span-2">
+          <div className="flex min-h-[360px] flex-col justify-between rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600 lg:col-span-2">
             {!activeThread ? (
               <div className="flex h-full items-center justify-center text-xs font-semibold text-slate-400">
                 Select a conversation
@@ -372,7 +372,7 @@ export const CommunicationHub = () => {
                     <span>{activeThread.fromName}</span>
                   </div>
                   {threadLoading ? (
-                    <div className="py-8 text-center text-xs text-slate-400">Loading…</div>
+                    <div className="py-8 text-center text-xs text-slate-400">Loadingâ€¦</div>
                   ) : (
                     threadMsgs.map((m) => (
                       <div key={m.id} className={`flex ${m.direction === 'OUT' ? 'justify-end' : 'justify-start'}`}>
@@ -402,7 +402,7 @@ export const CommunicationHub = () => {
                     disabled={replySending}
                     className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-white disabled:opacity-60"
                   >
-                    <Send className="h-3.5 w-3.5" /> {replySending ? 'Sending…' : 'Send'}
+                    <Send className="h-3.5 w-3.5" /> {replySending ? 'Sendingâ€¦' : 'Send'}
                   </button>
                 </form>
               </>
@@ -449,7 +449,7 @@ export const CommunicationHub = () => {
               Save Draft
             </button>
             <button type="button" disabled={annSaving} onClick={() => submitAnn(true)} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
-              {annSaving ? 'Saving…' : 'Publish'}
+              {annSaving ? 'Savingâ€¦' : 'Publish'}
             </button>
           </div>
         </div>
@@ -474,12 +474,12 @@ export const CommunicationHub = () => {
           </div>
           <div>
             <label className="mb-1 block text-[11px] font-bold text-slate-400">Message ({bcForm.content.length} chars)</label>
-            <textarea rows={4} className={`${inputCls} resize-y`} value={bcForm.content} onChange={(e) => setBcForm({ ...bcForm, content: e.target.value })} placeholder="Keep below 160 chars for a single SMS…" />
+            <textarea rows={4} className={`${inputCls} resize-y`} value={bcForm.content} onChange={(e) => setBcForm({ ...bcForm, content: e.target.value })} placeholder="Keep below 160 chars for a single SMSâ€¦" />
           </div>
           <div className="flex justify-end gap-3 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setBcModal(false)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>
             <button type="submit" disabled={bcSaving} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
-              {bcSaving ? 'Sending…' : 'Send Alert'}
+              {bcSaving ? 'Sendingâ€¦' : 'Send Alert'}
             </button>
           </div>
         </form>
@@ -501,3 +501,4 @@ export const CommunicationHub = () => {
 };
 
 export default CommunicationHub;
+

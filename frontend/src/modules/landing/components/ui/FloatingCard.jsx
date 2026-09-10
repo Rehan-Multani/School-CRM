@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 
 /**
  * Premium floating mini-card for Hero and product visual previews.
@@ -36,8 +36,8 @@ export const FloatingCard = ({
       badge: 'border-amber-200 dark:border-amber-800',
     },
     rose: {
-      bg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
-      dot: 'bg-rose-500',
+      bg: 'bg-indigo-600/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+      dot: 'bg-indigo-600',
       pill: 'bg-rose-50 text-rose-700 dark:bg-rose-950/70 dark:text-rose-300',
       badge: 'border-rose-200 dark:border-rose-800',
     },
@@ -59,7 +59,7 @@ export const FloatingCard = ({
 
   return (
     <div
-      className={`group relative rounded-2xl border border-slate-200/80 bg-white/90 p-3.5 shadow-xl shadow-slate-900/5 backdrop-blur-xl transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 dark:border-slate-800/90 dark:bg-slate-900/90 dark:shadow-black/40 ${animationClass} ${className}`}
+      className={`group relative rounded-2xl border border-slate-200/80 bg-white/90 p-3.5 shadow-xl shadow-slate-900/5 backdrop-blur-xl transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/10 dark:border-slate-800/90 dark:bg-indigo-600/90 dark:shadow-black/40 ${animationClass} ${className}`}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
@@ -112,4 +112,5 @@ export const FloatingCard = ({
 };
 
 export default FloatingCard;
+
 

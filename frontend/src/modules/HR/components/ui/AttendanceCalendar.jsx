@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const AttendanceCalendar = ({ attendanceRecords = [] }) => {
@@ -37,12 +37,12 @@ export const AttendanceCalendar = ({ attendanceRecords = [] }) => {
     const dateString = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const record = attendanceRecords.find(r => r.date === dateString);
 
-    if (!record) return 'bg-slate-50 text-slate-400 dark:bg-slate-900';
+    if (!record) return 'bg-slate-50 text-slate-400 dark:bg-indigo-600';
     if (record.status === 'Present') return 'bg-emerald-500 text-white font-bold';
     if (record.status === 'Late') return 'bg-amber-500 text-white font-bold';
-    if (record.status === 'Absent') return 'bg-rose-500 text-white font-bold';
+    if (record.status === 'Absent') return 'bg-indigo-600 text-white font-bold';
     if (record.status === 'Leave') return 'bg-sky-500 text-white font-bold';
-    return 'bg-slate-300 text-slate-700 dark:bg-slate-800';
+    return 'bg-slate-300 text-slate-700 dark:bg-indigo-600';
   };
 
   return (
@@ -56,14 +56,14 @@ export const AttendanceCalendar = ({ attendanceRecords = [] }) => {
           <button 
             type="button" 
             onClick={handlePrevMonth}
-            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-500 dark:text-slate-400 cursor-pointer transition-colors"
+            className="p-1.5 hover:bg-slate-100 dark:hover:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-500 dark:text-slate-400 cursor-pointer transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button 
             type="button" 
             onClick={handleNextMonth}
-            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-500 dark:text-slate-400 cursor-pointer transition-colors"
+            className="p-1.5 hover:bg-slate-100 dark:hover:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-500 dark:text-slate-400 cursor-pointer transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -102,7 +102,7 @@ export const AttendanceCalendar = ({ attendanceRecords = [] }) => {
           <span>Late</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-2.5 h-2.5 rounded bg-rose-500"></div>
+          <div className="w-2.5 h-2.5 rounded bg-indigo-600"></div>
           <span>Absent</span>
         </div>
         <div className="flex items-center gap-1">
@@ -114,3 +114,4 @@ export const AttendanceCalendar = ({ attendanceRecords = [] }) => {
   );
 };
 export default AttendanceCalendar;
+

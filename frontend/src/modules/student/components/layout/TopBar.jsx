@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Bell } from 'lucide-react';
 import { useStudentNotifications } from '../../context/NotificationContext';
@@ -44,7 +44,7 @@ export const TopBar = () => {
         {!isDashboard ? (
           <button 
             onClick={() => navigate(-1)}
-            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl text-slate-600 dark:text-slate-400 transition-colors"
+            className="p-1.5 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-xl text-slate-600 dark:text-slate-400 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -66,11 +66,11 @@ export const TopBar = () => {
         <ThemeToggle />
         <button 
           onClick={() => navigate('/student/notifications')}
-          className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl text-slate-500 dark:text-slate-400 relative transition-colors"
+          className="p-2 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-xl text-slate-500 dark:text-slate-400 relative transition-colors"
         >
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white rounded-full flex items-center justify-center text-[8px] font-bold">
+            <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[8px] font-bold">
               {unreadCount}
             </span>
           )}
@@ -79,3 +79,4 @@ export const TopBar = () => {
     </header>
   );
 };
+

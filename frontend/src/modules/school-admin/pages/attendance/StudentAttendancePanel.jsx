@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useToast } from '../../components/ui/Toast';
 import { studentAttendanceApi, academicPortalApi } from '../../../../shared/api/client';
 import { apiMessage } from '../academics/utils';
@@ -6,7 +6,7 @@ import { CheckCircle2, Save, Users, Loader2 } from 'lucide-react';
 
 const STATUSES = [
   { key: 'PRESENT', label: 'Present', cls: 'bg-emerald-500 text-white', dim: 'text-emerald-600' },
-  { key: 'ABSENT', label: 'Absent', cls: 'bg-rose-500 text-white', dim: 'text-rose-600' },
+  { key: 'ABSENT', label: 'Absent', cls: 'bg-indigo-600 text-white', dim: 'text-rose-600' },
   { key: 'LATE', label: 'Late', cls: 'bg-amber-500 text-white', dim: 'text-amber-600' },
   { key: 'HALF_DAY', label: 'Half Day', cls: 'bg-sky-500 text-white', dim: 'text-sky-600' },
   { key: 'LEAVE', label: 'Leave', cls: 'bg-slate-500 text-white', dim: 'text-slate-600' },
@@ -106,7 +106,7 @@ export const StudentAttendancePanel = () => {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
         <div>
           <label className="mb-1 block text-[11px] font-bold text-slate-400">Class</label>
           <select
@@ -130,7 +130,7 @@ export const StudentAttendancePanel = () => {
             onChange={(e) => setSectionId(e.target.value)}
             className="h-10 rounded-xl border border-slate-200 bg-slate-50/80 px-3 text-xs font-semibold outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
           >
-            <option value="">Select section…</option>
+            <option value="">Select sectionâ€¦</option>
             {sectionsForClass.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
@@ -164,7 +164,7 @@ export const StudentAttendancePanel = () => {
             className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
           >
             {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-            {saving ? 'Saving…' : 'Save Attendance'}
+            {saving ? 'Savingâ€¦' : 'Save Attendance'}
           </button>
         </div>
       </div>
@@ -172,7 +172,7 @@ export const StudentAttendancePanel = () => {
       {entries.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {STATUSES.map((s) => (
-            <span key={s.key} className={`rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold ${s.dim} dark:border-slate-800 dark:bg-slate-900`}>
+            <span key={s.key} className={`rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold ${s.dim} dark:border-slate-800 dark:bg-indigo-600`}>
               {s.label}: {counts[s.key] || 0}
             </span>
           ))}
@@ -180,23 +180,23 @@ export const StudentAttendancePanel = () => {
       )}
 
       {loading ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-slate-900">
-          Loading roster…
+        <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-indigo-600">
+          Loading rosterâ€¦
         </div>
       ) : !sectionId ? (
-        <div className="flex flex-col items-center gap-2 rounded-3xl border border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex flex-col items-center gap-2 rounded-3xl border border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-indigo-600">
           <Users className="h-8 w-8 text-slate-300" />
           <p className="text-xs font-semibold text-slate-400">Pick a section and date to mark student attendance.</p>
         </div>
       ) : entries.length === 0 ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-indigo-600">
           {message || 'No active students in this section.'}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           {markedInfo && (
             <div className="border-b border-slate-100 bg-slate-50/60 px-4 py-2 text-[11px] font-semibold text-slate-500 dark:border-slate-800 dark:bg-slate-950/40">
-              {meta?.className} {meta?.sectionName} · {date} · previously saved{markedInfo.by ? ` by ${markedInfo.by}` : ''}
+              {meta?.className} {meta?.sectionName} Â· {date} Â· previously saved{markedInfo.by ? ` by ${markedInfo.by}` : ''}
             </div>
           )}
           <table className="w-full text-left text-xs">
@@ -212,7 +212,7 @@ export const StudentAttendancePanel = () => {
               {entries.map((e, i) => (
                 <tr key={e.studentId} className="hover:bg-slate-50/60 dark:hover:bg-slate-950/30">
                   <td className="px-3 py-2.5 text-center font-bold text-slate-400">{i + 1}</td>
-                  <td className="px-3 py-2.5 font-mono text-[11px] text-slate-500">{e.rollNumber || '—'}</td>
+                  <td className="px-3 py-2.5 font-mono text-[11px] text-slate-500">{e.rollNumber || 'â€”'}</td>
                   <td className="px-3 py-2.5 font-bold text-slate-900 dark:text-white">{e.studentName}</td>
                   <td className="px-3 py-2.5">
                     <div className="flex flex-wrap gap-1">
@@ -245,3 +245,4 @@ export const StudentAttendancePanel = () => {
 };
 
 export default StudentAttendancePanel;
+

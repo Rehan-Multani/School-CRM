@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+﻿import React, { useCallback, useEffect, useState } from 'react';
 import { Save, RefreshCw, AlertOctagon, Info } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
@@ -9,7 +9,7 @@ import { apiMessage } from '../academics/utils';
 import { LibraryTabsNav, inputClass, labelClass } from './libraryShared';
 
 const Section = ({ icon: Icon, title, description, children }) => (
-  <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+  <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
     <div className="mb-4 flex items-start gap-3">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
         <Icon className="h-4 w-4" />
@@ -29,7 +29,7 @@ const ToggleRow = ({ label, description, checked, onChange }) => (
       <span className="block text-xs font-bold text-slate-800 dark:text-slate-200">{label}</span>
       {description && <span className="text-[11px] text-slate-400">{description}</span>}
     </div>
-    <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-slate-300 transition-colors checked:bg-primary relative before:absolute before:left-0.5 before:top-0.5 before:h-4 before:w-4 before:rounded-full before:bg-white before:transition-transform checked:before:translate-x-4 dark:bg-slate-700" />
+    <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full bg-slate-300 transition-colors checked:bg-primary relative before:absolute before:left-0.5 before:top-0.5 before:h-4 before:w-4 before:rounded-full before:bg-white before:transition-transform checked:before:translate-x-4 dark:bg-indigo-600" />
   </label>
 );
 
@@ -110,7 +110,7 @@ export const LibrarySettings = () => {
         <div>
           <p className="font-bold text-sky-800 dark:text-sky-300">{user?.schoolName || 'This school'}'s Library</p>
           <p className="mt-0.5 text-slate-600 dark:text-slate-400">
-            {stats?.totalTitles || 0} titles · {stats?.totalCopies || 0} physical copies · {stats?.activeIssued || 0} currently on loan.
+            {stats?.totalTitles || 0} titles Â· {stats?.totalCopies || 0} physical copies Â· {stats?.activeIssued || 0} currently on loan.
             Borrowing limits and fine amounts are configured on the <strong>Rules</strong> page.
           </p>
         </div>
@@ -139,7 +139,7 @@ export const LibrarySettings = () => {
 
         <div className="flex justify-end">
           <button type="submit" disabled={saving} className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-primary/90 disabled:opacity-60">
-            <Save className="h-3.5 w-3.5" /> {saving ? 'Saving…' : 'Save Settings'}
+            <Save className="h-3.5 w-3.5" /> {saving ? 'Savingâ€¦' : 'Save Settings'}
           </button>
         </div>
       </form>
@@ -148,3 +148,4 @@ export const LibrarySettings = () => {
 };
 
 export default LibrarySettings;
+

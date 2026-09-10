@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
@@ -32,7 +32,7 @@ import { SkeletonTable } from '../../components/ui/SkeletonLoader';
 
 function formatCurrency(amount) {
   const num = Number(amount) || 0;
-  return `₹${num.toLocaleString('en-IN')}`;
+  return `â‚¹${num.toLocaleString('en-IN')}`;
 }
 
 function getCurrentMonthString() {
@@ -376,7 +376,7 @@ export const HRAndPayroll = () => {
 
       {/* KPI Metric Cards */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">Monthly Net Payroll</span>
             <DollarSign className="h-4 w-4 text-primary" />
@@ -386,7 +386,7 @@ export const HRAndPayroll = () => {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">Salaries Paid</span>
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
@@ -394,7 +394,7 @@ export const HRAndPayroll = () => {
           <p className="mt-2 text-2xl font-black text-emerald-600">{stats.paidCount}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">Processed / Ready</span>
             <Clock className="h-4 w-4 text-indigo-500" />
@@ -402,7 +402,7 @@ export const HRAndPayroll = () => {
           <p className="mt-2 text-2xl font-black text-indigo-600">{stats.processedCount}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">Total Staff / Faculty</span>
             <Users className="h-4 w-4 text-amber-500" />
@@ -412,7 +412,7 @@ export const HRAndPayroll = () => {
       </div>
 
       {/* Month & Status Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
         <div className="relative min-w-[260px] flex-1">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
@@ -478,7 +478,7 @@ export const HRAndPayroll = () => {
       </div>
 
       {/* Payroll Records Data Table */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
         {loading ? (
           <SkeletonTable rows={6} columns={6} />
         ) : payrolls.length === 0 ? (
@@ -520,7 +520,7 @@ export const HRAndPayroll = () => {
                   return (
                     <tr
                       key={p.id}
-                      className="group transition hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
+                      className="group transition hover:bg-slate-50/80 dark:hover:bg-indigo-600/40"
                     >
                       <td className="px-4 py-3">
                         <div>
@@ -533,13 +533,13 @@ export const HRAndPayroll = () => {
                         <Badge variant="primary" className="mb-0.5 text-[10px]">
                           {p.employeeRole}
                         </Badge>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400">{p.department || '—'}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">{p.department || 'â€”'}</p>
                       </td>
 
                       <td className="px-3 py-3">
                         <span className="font-semibold text-slate-800 dark:text-slate-200">{p.payrollMonth}</span>
                         <span className="block text-[10px] text-slate-400">
-                          {p.payrollDate ? new Date(p.payrollDate).toLocaleDateString() : '—'}
+                          {p.payrollDate ? new Date(p.payrollDate).toLocaleDateString() : 'â€”'}
                         </span>
                       </td>
 
@@ -548,7 +548,7 @@ export const HRAndPayroll = () => {
                       </td>
 
                       <td className="px-3 py-3 font-semibold text-rose-500">
-                        {p.totalDeductions > 0 ? `-${formatCurrency(p.totalDeductions)}` : '₹0'}
+                        {p.totalDeductions > 0 ? `-${formatCurrency(p.totalDeductions)}` : 'â‚¹0'}
                       </td>
 
                       <td className="px-3 py-3">
@@ -636,7 +636,7 @@ export const HRAndPayroll = () => {
                   type="button"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={pagination.page <= 1}
-                  className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                  className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-indigo-600"
                 >
                   <ChevronLeft className="h-4 w-4" /> Prev
                 </button>
@@ -650,7 +650,7 @@ export const HRAndPayroll = () => {
                       className={`h-8 w-8 rounded-xl text-xs font-bold transition-all ${
                         p === pagination.page
                           ? 'bg-primary text-white shadow-sm shadow-primary/30'
-                          : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
+                          : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-indigo-600'
                       }`}
                     >
                       {p}
@@ -662,7 +662,7 @@ export const HRAndPayroll = () => {
                   type="button"
                   onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                   disabled={pagination.page >= pagination.totalPages}
-                  className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                  className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-indigo-600"
                 >
                   Next <ChevronRight className="h-4 w-4" />
                 </button>
@@ -752,7 +752,7 @@ export const HRAndPayroll = () => {
                     <span className="text-[10px] text-slate-400">(Auto-fetched)</span>
                   </div>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">â‚¹</span>
                     <input
                       type="number"
                       min="0"
@@ -771,7 +771,7 @@ export const HRAndPayroll = () => {
                       Incentive
                     </label>
                     <div className="relative">
-                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">â‚¹</span>
                       <input
                         type="number"
                         min="0"
@@ -788,7 +788,7 @@ export const HRAndPayroll = () => {
                       Overtime
                     </label>
                     <div className="relative">
-                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">â‚¹</span>
                       <input
                         type="number"
                         min="0"
@@ -805,7 +805,7 @@ export const HRAndPayroll = () => {
                       Bonus
                     </label>
                     <div className="relative">
-                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">â‚¹</span>
                       <input
                         type="number"
                         min="0"
@@ -834,7 +834,7 @@ export const HRAndPayroll = () => {
                     <span className="text-[10px] text-slate-400">(Auto-calculated / Editable)</span>
                   </div>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">â‚¹</span>
                     <input
                       type="number"
                       min="0"
@@ -877,7 +877,7 @@ export const HRAndPayroll = () => {
           </div>
 
           {/* Net Salary Highlight Summary Banner */}
-          <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 via-indigo-50/50 to-primary/5 p-4 sm:flex-row dark:border-primary/30 dark:bg-slate-900">
+          <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 via-indigo-50/50 to-primary/5 p-4 sm:flex-row dark:border-primary/30 dark:bg-indigo-600">
             <div>
               <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Net Take-Home Salary
@@ -888,7 +888,7 @@ export const HRAndPayroll = () => {
             </div>
             <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
               <span>Gross: <strong className="text-slate-800 dark:text-slate-200">{formatCurrency(calculation.gross)}</strong></span>
-              <span>•</span>
+              <span>â€¢</span>
               <span>Deductions: <strong className="text-rose-500">-{formatCurrency(calculation.deductions)}</strong></span>
             </div>
           </div>
@@ -912,7 +912,7 @@ export const HRAndPayroll = () => {
             <button
               type="button"
               onClick={() => setCreateModalOpen(false)}
-              className="rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-indigo-600"
             >
               Cancel
             </button>
@@ -965,7 +965,7 @@ export const HRAndPayroll = () => {
                 </div>
                 <div>
                   <span className="text-[10px] font-bold uppercase text-slate-400">Department</span>
-                  <p className="font-semibold text-slate-700 dark:text-slate-300">{selectedPay.department || '—'}</p>
+                  <p className="font-semibold text-slate-700 dark:text-slate-300">{selectedPay.department || 'â€”'}</p>
                 </div>
                 <div>
                   <span className="text-[10px] font-bold uppercase text-slate-400">Payment Status</span>
@@ -1033,7 +1033,7 @@ export const HRAndPayroll = () => {
                     <div className="flex justify-between">
                       <span>Leave / Absent Deduction</span>
                       <span className="font-semibold">
-                        {selectedPay.leaveDeduction > 0 ? `-${formatCurrency(selectedPay.leaveDeduction)}` : '₹0'}
+                        {selectedPay.leaveDeduction > 0 ? `-${formatCurrency(selectedPay.leaveDeduction)}` : 'â‚¹0'}
                       </span>
                     </div>
                     {selectedPay.otherDeduction > 0 && (
@@ -1057,7 +1057,7 @@ export const HRAndPayroll = () => {
               </div>
 
               {/* Net Pay Box */}
-              <div className="mt-5 flex items-center justify-between rounded-xl bg-slate-50 p-3.5 text-xs font-bold dark:bg-slate-900">
+              <div className="mt-5 flex items-center justify-between rounded-xl bg-slate-50 p-3.5 text-xs font-bold dark:bg-indigo-600">
                 <span className="text-slate-700 dark:text-slate-200">Net Take-Home Salary</span>
                 <span className="text-lg font-black text-emerald-600 dark:text-emerald-400">
                   {formatCurrency(selectedPay.netSalary)}
@@ -1070,7 +1070,7 @@ export const HRAndPayroll = () => {
               <button
                 type="button"
                 onClick={() => setPayslipModalOpen(false)}
-                className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-indigo-600"
               >
                 Close
               </button>
@@ -1132,7 +1132,7 @@ export const HRAndPayroll = () => {
                           </div>
                           <div>
                             <div class="info-label">Department</div>
-                            <div class="info-val">${selectedPay?.department || '—'}</div>
+                            <div class="info-val">${selectedPay?.department || 'â€”'}</div>
                           </div>
                           <div>
                             <div class="info-label">Payment Status</div>
@@ -1156,7 +1156,7 @@ export const HRAndPayroll = () => {
 
                           <div class="card-box">
                             <div class="card-head" style="color: #be123c;">2. Deductions (Debit)</div>
-                            <div class="row"><span>Leave / Absent Deduction</span><span>${selectedPay?.leaveDeduction > 0 ? `-${formatCurrency(selectedPay?.leaveDeduction)}` : '₹0'}</span></div>
+                            <div class="row"><span>Leave / Absent Deduction</span><span>${selectedPay?.leaveDeduction > 0 ? `-${formatCurrency(selectedPay?.leaveDeduction)}` : 'â‚¹0'}</span></div>
                             <div class="row total" style="color: #be123c;"><span>Total Deductions</span><span>-${formatCurrency(selectedPay?.totalDeductions)}</span></div>
                           </div>
                         </div>
@@ -1203,3 +1203,4 @@ export const HRAndPayroll = () => {
 };
 
 export default HRAndPayroll;
+

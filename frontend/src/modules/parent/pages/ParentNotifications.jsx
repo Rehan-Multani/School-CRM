@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { FilterBar } from '../components/ui/FilterBar';
@@ -18,7 +18,7 @@ const TYPE_COLORS = {
   attendance: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
   homework: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
   results: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
-  fees: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
+  fees: 'bg-indigo-600/10 text-rose-600 dark:text-rose-400',
   announcements: 'bg-sky-500/10 text-sky-600 dark:text-sky-400',
 };
 
@@ -58,7 +58,7 @@ export const ParentNotifications = () => {
           {unreadNotifCount > 0 && (
             <button
               onClick={markAllNotificationsAsRead}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors"
             >
               <Check className="w-3.5 h-3.5" /> Mark all read
             </button>
@@ -66,7 +66,7 @@ export const ParentNotifications = () => {
           {notifications.length > 0 && (
             <button
               onClick={clearNotifications}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-450 text-xs font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-600/10 hover:bg-indigo-600/20 text-rose-600 dark:text-rose-450 text-xs font-semibold transition-colors"
             >
               <Trash2 className="w-3.5 h-3.5" /> Clear All
             </button>
@@ -90,7 +90,7 @@ export const ParentNotifications = () => {
         ) : (
           filteredNotifications.map((notif) => {
             const Icon = TYPE_ICONS[notif.type] || Bell;
-            const colorClass = TYPE_COLORS[notif.type] || 'bg-slate-100 dark:bg-slate-800 text-slate-500';
+            const colorClass = TYPE_COLORS[notif.type] || 'bg-slate-100 dark:bg-indigo-600 text-slate-500';
 
             return (
               <Card
@@ -109,7 +109,7 @@ export const ParentNotifications = () => {
                       <h4 className={`text-xs font-bold text-foreground ${!notif.read ? 'font-black' : ''}`}>
                         {notif.title}
                       </h4>
-                      {!notif.read && <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0 animate-ping" />}
+                      {!notif.read && <span className="w-2 h-2 rounded-full bg-indigo-600 shrink-0 animate-ping" />}
                     </div>
                     <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                       {notif.message}
@@ -127,3 +127,4 @@ export const ParentNotifications = () => {
     </div>
   );
 };
+

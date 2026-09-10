@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ServerTable } from '../../components/ui/ServerTable';
 import { Tabs } from '../../components/ui/Tabs';
@@ -84,7 +84,7 @@ export const ReceiptManagement = () => {
           <p className="text-[10px] text-slate-400">{r.admissionNumber}</p>
         </div>
       ) },
-      { key: 'invoiceNumber', title: 'Invoice', render: (r) => `${r.invoiceNumber || '—'}` },
+      { key: 'invoiceNumber', title: 'Invoice', render: (r) => `${r.invoiceNumber || 'â€”'}` },
       { key: 'paymentDate', title: 'Date', render: (r) => formatDate(r.paymentDate) },
       { key: 'amount', title: 'Amount', align: 'right', render: (r) => (
         <span className="font-bold text-emerald-600">{formatCurrency(r.amount)}</span>
@@ -99,7 +99,7 @@ export const ReceiptManagement = () => {
             e.stopPropagation();
             openReceipt(r);
           }}
-          className="flex items-center gap-1 px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300"
+          className="flex items-center gap-1 px-2 py-1 bg-slate-50 dark:bg-indigo-600 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300"
         >
           <Printer className="w-3 h-3 text-indigo-600" /> Print
         </button>
@@ -117,7 +117,7 @@ export const ReceiptManagement = () => {
           <p className="text-[10px] text-slate-400">{r.admissionNumber}</p>
         </div>
       ) },
-      { key: 'className', title: 'Class', render: (r) => [r.className, r.sectionName].filter(Boolean).join(' - ') || '—' },
+      { key: 'className', title: 'Class', render: (r) => [r.className, r.sectionName].filter(Boolean).join(' - ') || 'â€”' },
       { key: 'periodLabel', title: 'Period' },
       { key: 'dueDate', title: 'Due', render: (r) => formatDate(r.dueDate) },
       { key: 'totalAmount', title: 'Total', align: 'right', render: (r) => formatCurrency(r.totalAmount) },
@@ -132,7 +132,7 @@ export const ReceiptManagement = () => {
             e.stopPropagation();
             openInvoice(r);
           }}
-          className="flex items-center gap-1 px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300"
+          className="flex items-center gap-1 px-2 py-1 bg-slate-50 dark:bg-indigo-600 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300"
         >
           <Printer className="w-3 h-3 text-indigo-600" /> Print
         </button>
@@ -145,7 +145,7 @@ export const ReceiptManagement = () => {
     <div className="space-y-6">
       <PageHeader
         title="Receipts / Invoices"
-        subtitle="Payment receipts and fee invoices in one place — search, filter, print and download."
+        subtitle="Payment receipts and fee invoices in one place â€” search, filter, print and download."
         actions={
           <button
             onClick={() => {
@@ -153,7 +153,7 @@ export const ReceiptManagement = () => {
               exportToCSV(rows, `${tab}_${new Date().toISOString().split('T')[0]}.csv`);
               showToast('Current page exported to CSV', 'success');
             }}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs"
           >
             <Download className="w-3.5 h-3.5" /> Export
           </button>
@@ -168,15 +168,15 @@ export const ReceiptManagement = () => {
           <input
             value={filters.search}
             onChange={(e) => set({ search: e.target.value })}
-            placeholder={tab === 'receipts' ? 'Search receipt, student, invoice…' : 'Search invoice, student…'}
-            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold outline-none focus:border-violet-500"
+            placeholder={tab === 'receipts' ? 'Search receipt, student, invoiceâ€¦' : 'Search invoice, studentâ€¦'}
+            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold outline-none focus:border-violet-500"
           />
         </div>
         {tab === 'receipts' ? (
           <select
             value={filters.paymentMethod}
             onChange={(e) => set({ paymentMethod: e.target.value })}
-            className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
+            className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
           >
             <option value="">All Methods</option>
             {PAYMENT_METHODS.map((m) => (
@@ -189,7 +189,7 @@ export const ReceiptManagement = () => {
           <select
             value={filters.status}
             onChange={(e) => set({ status: e.target.value })}
-            className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
+            className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
           >
             <option value="">All Statuses</option>
             {['PENDING', 'PARTIALLY_PAID', 'PAID', 'OVERDUE', 'CANCELLED'].map((s) => (
@@ -216,7 +216,7 @@ export const ReceiptManagement = () => {
         <PrintReportModal
           isOpen
           onClose={() => setPrint(null)}
-          title={`Official Fee Receipt — ${print.data.receiptNumber}`}
+          title={`Official Fee Receipt â€” ${print.data.receiptNumber}`}
           documentType="Official Fee Receipt"
         >
           <div className="space-y-6">
@@ -228,12 +228,12 @@ export const ReceiptManagement = () => {
             <div className="grid grid-cols-2 gap-4 text-xs">
               <Row label="Student" value={print.data.studentName} />
               <Row label="Admission No" value={print.data.admissionNumber} />
-              <Row label="Invoice" value={`${print.data.invoiceNumber || '—'} ${print.data.periodLabel ? `(${print.data.periodLabel})` : ''}`} />
+              <Row label="Invoice" value={`${print.data.invoiceNumber || 'â€”'} ${print.data.periodLabel ? `(${print.data.periodLabel})` : ''}`} />
               <Row label="Payment Date" value={formatDate(print.data.paymentDate)} />
               <Row label="Method" value={print.data.paymentMethod} />
               <Row label="Reference" value={print.data.paymentReference || 'N/A'} />
             </div>
-            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-border flex justify-between items-center text-sm font-black">
+            <div className="p-4 bg-slate-50 dark:bg-indigo-600 rounded-xl border border-border flex justify-between items-center text-sm font-black">
               <span>Amount Settled:</span>
               <span className="text-emerald-600">{formatCurrency(print.data.amount)}</span>
             </div>
@@ -249,7 +249,7 @@ export const ReceiptManagement = () => {
         <PrintReportModal
           isOpen
           onClose={() => setPrint(null)}
-          title={`Fee Invoice — ${print.data.invoiceNumber}`}
+          title={`Fee Invoice â€” ${print.data.invoiceNumber}`}
           documentType="Fee Invoice"
         >
           <div className="space-y-6">
@@ -277,7 +277,7 @@ export const ReceiptManagement = () => {
                 </tbody>
               </table>
             )}
-            <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-border space-y-1 text-sm">
+            <div className="p-4 bg-slate-50 dark:bg-indigo-600 rounded-xl border border-border space-y-1 text-sm">
               <div className="flex justify-between"><span>Total</span><span className="font-black">{formatCurrency(print.data.totalAmount)}</span></div>
               <div className="flex justify-between"><span>Paid</span><span className="text-emerald-600 font-bold">{formatCurrency(print.data.paidAmount)}</span></div>
               <div className="flex justify-between"><span>Balance</span><span className="text-rose-600 font-black">{formatCurrency(print.data.balanceAmount ?? print.data.pendingAmount)}</span></div>
@@ -294,8 +294,10 @@ export const ReceiptManagement = () => {
 const Row = ({ label, value }) => (
   <div>
     <span className="text-slate-400 block font-semibold">{label}:</span>
-    <span className="font-bold">{value ?? '—'}</span>
+    <span className="font-bold">{value ?? 'â€”'}</span>
   </div>
 );
 
 export default ReceiptManagement;
+
+

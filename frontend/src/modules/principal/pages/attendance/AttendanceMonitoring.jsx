@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
 import { DataTable } from '../../components/ui/DataTable';
@@ -90,7 +90,7 @@ export const AttendanceMonitoring = () => {
             { label: 'Absent Today', value: monitor.totals.absent },
             { label: 'Attendance Rate', value: `${monitor.totals.presentRate}%` },
           ].map((c) => (
-            <div key={c.label} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div key={c.label} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
               <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">{c.label}</div>
               <div className="mt-0.5 text-xl font-extrabold text-slate-900 dark:text-white">{c.value}</div>
             </div>
@@ -117,7 +117,7 @@ export const AttendanceMonitoring = () => {
         </div>
       ) : activeTab === 'students' ? (
         !loading && (!monitor || !monitor.marked) ? (
-          <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-indigo-600">
             No section has been marked for {today()} yet. Roll-call is captured by the School Admin.
           </div>
         ) : (
@@ -143,19 +143,19 @@ export const AttendanceMonitoring = () => {
         />
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="space-y-3 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="space-y-3 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
             <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
-              Student Attendance Rate — last 30 days (%)
+              Student Attendance Rate â€” last 30 days (%)
             </span>
             {trend.length > 0 ? (
               <AreaChart data={trend} dataKey="attendance" xKey="date" height={245} color="#059669" />
             ) : (
               <div className="py-16 text-center text-xs font-semibold text-slate-400">
-                {loading ? 'Loading…' : 'No attendance history yet.'}
+                {loading ? 'Loadingâ€¦' : 'No attendance history yet.'}
               </div>
             )}
           </div>
-          <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 text-xs font-semibold shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 text-xs font-semibold shadow-sm dark:border-slate-800 dark:bg-indigo-600">
             <span className="block border-b pb-2 text-[10px] font-black uppercase tracking-wider text-slate-400">
               Today at a glance
             </span>
@@ -177,3 +177,4 @@ export const AttendanceMonitoring = () => {
 };
 
 export default AttendanceMonitoring;
+

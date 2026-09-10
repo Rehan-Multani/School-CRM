@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Eye, EyeOff, Loader2, Lock, ShieldAlert } from 'lucide-react';
 import { SchoolAdminBrandingEffect } from '../components/layout/SchoolAdminBrandingEffect';
@@ -59,11 +59,11 @@ export default function SchoolAdminResetPassword() {
           <p className="mt-1.5 text-sm text-slate-400">This link works once and expires in 30 minutes.</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/75 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
+        <div className="rounded-2xl border border-slate-800 bg-indigo-600/75 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
           {error && (
             <div
               role="alert"
-              className="mb-5 flex items-start gap-2.5 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3.5 py-3 text-sm text-rose-300"
+              className="mb-5 flex items-start gap-2.5 rounded-xl border border-rose-500/20 bg-indigo-600/10 px-3.5 py-3 text-sm text-rose-300"
             >
               <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{error}</span>
@@ -73,7 +73,7 @@ export default function SchoolAdminResetPassword() {
           {done ? (
             <div className="flex items-start gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-3 text-sm text-emerald-300">
               <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>Password updated. Redirecting to sign in…</span>
+              <span>Password updated. Redirecting to sign inâ€¦</span>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -101,7 +101,7 @@ export default function SchoolAdminResetPassword() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((open) => !open)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition hover:bg-slate-800 hover:text-slate-200"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition hover:bg-indigo-600 hover:text-slate-200"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -136,7 +136,7 @@ export default function SchoolAdminResetPassword() {
               <button
                 type="submit"
                 disabled={loading || !token}
-                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-500 disabled:pointer-events-none disabled:opacity-50"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition hover:bg-indigo-500 disabled:pointer-events-none disabled:opacity-50"
               >
                 {loading ? (
                   <>
@@ -163,3 +163,4 @@ export default function SchoolAdminResetPassword() {
     </div>
   );
 }
+

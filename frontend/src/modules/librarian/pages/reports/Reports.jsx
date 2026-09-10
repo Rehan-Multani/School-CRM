@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+﻿import React, { useState, useEffect, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
@@ -58,7 +58,7 @@ function printAllReports(title, sections) {
             ${
               rows.length
                 ? rows
-                    .map((row) => `<tr>${columns.map((c) => `<td>${row[c] ?? '—'}</td>`).join('')}</tr>`)
+                    .map((row) => `<tr>${columns.map((c) => `<td>${row[c] ?? 'â€”'}</td>`).join('')}</tr>`)
                     .join('')
                 : `<tr><td>No records.</td></tr>`
             }
@@ -381,20 +381,20 @@ export const Reports = () => {
     <div className="space-y-6">
       <PageHeader
         title="Reports & Analytics Hub"
-        subtitle="Overall library report — inventory, circulation, members and fine records, all in one place."
+        subtitle="Overall library report â€” inventory, circulation, members and fine records, all in one place."
         actions={
           <div className="flex items-center gap-2.5">
             <button
               onClick={fetchAll}
               disabled={loading}
-              className="p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-300 transition-colors"
+              className="p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-indigo-600 text-slate-600 dark:text-slate-300 transition-colors"
               title="Refresh"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
             <button
               onClick={handleDownloadPDF}
-              className="h-10 px-4 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl flex items-center gap-2 transition-all"
+              className="h-10 px-4 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-indigo-600 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl flex items-center gap-2 transition-all"
             >
               <Printer className="h-4 w-4" />
               <span>Download PDF</span>
@@ -411,7 +411,7 @@ export const Reports = () => {
       />
 
       {/* Filters */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5">
+      <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-5">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 items-end">
           <div className="space-y-1.5">
             <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
@@ -471,7 +471,7 @@ export const Reports = () => {
           </button>
           <button
             onClick={() => setFilters(EMPTY_FILTERS)}
-            className="h-9 px-4 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-900 transition-all"
+            className="h-9 px-4 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-indigo-600 transition-all"
           >
             Reset
           </button>
@@ -496,12 +496,12 @@ export const Reports = () => {
             <StatCard title="Total Members" value={totalMembers} icon={Users} />
             <StatCard title="Books Issued" value={stats.activeIssued || 0} icon={FileCheck} />
             <StatCard title="Books Returned" value={booksReturned} icon={RotateCcw} />
-            <StatCard title="Overdue Books" value={stats.overdueCount || 0} icon={AlertTriangle} colorClass="bg-rose-500" />
+            <StatCard title="Overdue Books" value={stats.overdueCount || 0} icon={AlertTriangle} colorClass="bg-indigo-600" />
             <StatCard title="Total Fine" value={formatCurrency(totalFine)} icon={Receipt} colorClass="bg-emerald-500" />
           </div>
 
           {/* Report Tabs */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden">
+          <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden">
             <div className="px-4 pt-2">
               <Tabs tabs={reportTabs} activeTab={activeTab} onChange={setActiveTab} />
             </div>
@@ -603,7 +603,7 @@ export const Reports = () => {
                   title="Daily / Weekly / Monthly Report"
                   onExport={() => exportToCSV(rows.trend, 'circulation_trend_report.csv')}
                   extra={
-                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
+                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-indigo-600 rounded-lg p-1">
                       {['daily', 'weekly', 'monthly'].map((g) => (
                         <button
                           key={g}
@@ -754,3 +754,4 @@ export const Reports = () => {
   );
 };
 export default Reports;
+

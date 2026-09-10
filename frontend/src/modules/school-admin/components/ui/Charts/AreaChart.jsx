@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { readAccentColor } from '../../../../../shared/theme/accent';
 import { ResponsiveContainer, AreaChart as RechartsAreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 
@@ -7,7 +7,7 @@ export const AreaChart = ({ data, xKey, yKey, height = 300, strokeColor = readAc
     return (
       <div
         style={{ width: '100%', height }}
-        className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-slate-400 text-xs font-semibold"
+        className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-indigo-600/50 text-slate-400 text-xs font-semibold"
       >
         <span>No Result</span>
       </div>
@@ -62,3 +62,4 @@ export const AreaChart = ({ data, xKey, yKey, height = 300, strokeColor = readAc
     </div>
   );
 };
+

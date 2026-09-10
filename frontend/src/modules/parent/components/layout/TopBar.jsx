@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Bell, MessageSquare, ChevronDown, Check } from 'lucide-react';
 import { useParentNotifications } from '../../context/ParentNotificationContext';
@@ -29,14 +29,14 @@ export const TopBar = () => {
         {!isDashboard ? (
           <button
             onClick={() => navigate(-1)}
-            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl text-slate-600 dark:text-slate-400 transition-colors"
+            className="p-1.5 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-xl text-slate-600 dark:text-slate-400 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
         ) : activeChildInfo ? (
           <button
             onClick={() => setShowSwitchModal(true)}
-            className="flex items-center gap-2 text-left bg-slate-100 dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-border"
+            className="flex items-center gap-2 text-left bg-slate-100 dark:bg-indigo-600 px-3 py-1.5 rounded-xl border border-border"
           >
             <img
               src={activeChildInfo.photo}
@@ -63,7 +63,7 @@ export const TopBar = () => {
         {/* Message Notifications */}
         <button
           onClick={() => navigate('/parent/messages')}
-          className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl text-slate-500 dark:text-slate-400 relative transition-colors"
+          className="p-2 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-xl text-slate-500 dark:text-slate-400 relative transition-colors"
         >
           <MessageSquare className="w-5 h-5" />
           {unreadMsgCount > 0 && (
@@ -76,11 +76,11 @@ export const TopBar = () => {
         {/* Alert Notifications */}
         <button
           onClick={() => navigate('/parent/notifications')}
-          className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl text-slate-500 dark:text-slate-400 relative transition-colors"
+          className="p-2 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-xl text-slate-500 dark:text-slate-400 relative transition-colors"
         >
           <Bell className="w-5 h-5" />
           {unreadNotifCount > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white rounded-full flex items-center justify-center text-[8px] font-bold">
+            <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[8px] font-bold">
               {unreadNotifCount}
             </span>
           )}
@@ -101,13 +101,13 @@ export const TopBar = () => {
                     key={c.id}
                     onClick={() => { changeSelectedChild(c.id); setShowSwitchModal(false); }}
                     className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition-all text-left ${
-                      isActive ? 'bg-primary/5 border-primary' : 'bg-slate-50/50 dark:bg-slate-900/50 border-border hover:border-primary/20'
+                      isActive ? 'bg-primary/5 border-primary' : 'bg-slate-50/50 dark:bg-indigo-600/50 border-border hover:border-primary/20'
                     }`}
                   >
                     <img src={c.photo} alt={c.name} className="w-10 h-10 rounded-xl object-cover" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-foreground">{c.name}</p>
-                      <p className="text-[10px] text-slate-400 font-medium">{c.class} - {c.section} • Roll #{c.rollNo}</p>
+                      <p className="text-[10px] text-slate-400 font-medium">{c.class} - {c.section} â€¢ Roll #{c.rollNo}</p>
                     </div>
                     {isActive && <Check className="w-4.5 h-4.5 text-primary shrink-0" />}
                   </button>
@@ -116,7 +116,7 @@ export const TopBar = () => {
             </div>
             <button
               onClick={() => setShowSwitchModal(false)}
-              className="w-full mt-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-xs font-bold rounded-xl"
+              className="w-full mt-4 py-2.5 bg-slate-100 dark:bg-indigo-600 text-xs font-bold rounded-xl"
             >
               Cancel
             </button>
@@ -126,3 +126,4 @@ export const TopBar = () => {
     </header>
   );
 };
+

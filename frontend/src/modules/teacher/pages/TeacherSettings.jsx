@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { useToast } from '../components/ui/Toast';
@@ -88,12 +88,12 @@ export const TeacherSettings = () => {
             <p className="text-[10px] text-slate-400">Toggle light or dark theme for the teacher portal</p>
           </div>
         </div>
-        <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-border">
+        <div className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-indigo-600/50 rounded-2xl border border-border">
           <span className="text-xs font-bold text-foreground">Dark Mode</span>
           <button
             onClick={toggleTheme}
             className={`w-11 h-6 rounded-full transition-colors relative flex items-center ${
-              theme === 'dark' ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'
+              theme === 'dark' ? 'bg-primary' : 'bg-slate-300 dark:bg-indigo-600'
             }`}
             id="settings-theme-toggle"
           >
@@ -119,7 +119,7 @@ export const TeacherSettings = () => {
         </div>
         <div className="space-y-2">
           {Object.entries(notifs).map(([key, enabled]) => (
-            <div key={key} className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-border capitalize">
+            <div key={key} className="flex items-center justify-between p-3.5 bg-slate-50 dark:bg-indigo-600/50 rounded-2xl border border-border capitalize">
               <div>
                 <span className="text-xs font-bold text-foreground">{key}</span>
                 <p className="text-[9px] text-slate-400">Receive alerts related to {key}</p>
@@ -127,7 +127,7 @@ export const TeacherSettings = () => {
               <button
                 onClick={() => handleToggleNotif(key)}
                 className={`w-11 h-6 rounded-full transition-colors relative flex items-center ${
-                  enabled ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'
+                  enabled ? 'bg-primary' : 'bg-slate-300 dark:bg-indigo-600'
                 }`}
                 id={`settings-notif-toggle-${key}`}
               >
@@ -157,7 +157,7 @@ export const TeacherSettings = () => {
           <select
             value={language}
             onChange={(e) => { setLanguage(e.target.value); toast.success('Language changed!'); }}
-            className="w-full px-4 py-3 rounded-2xl border border-border bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="w-full px-4 py-3 rounded-2xl border border-border bg-white dark:bg-indigo-600 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
             id="settings-language"
           >
             <option>English</option>
@@ -196,8 +196,8 @@ export const TeacherSettings = () => {
                   required
                   value={field.value}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, [field.id]: e.target.value }))}
-                  className="w-full px-4 py-3 pr-11 rounded-2xl border border-border bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
-                  placeholder="••••••••"
+                  className="w-full px-4 py-3 pr-11 rounded-2xl border border-border bg-white dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   id={`settings-pw-${field.id}`}
                 />
                 <button
@@ -227,9 +227,9 @@ export const TeacherSettings = () => {
       </Card>
 
       {/* Danger Zone */}
-      <Card className="border-rose-200 dark:border-rose-950 bg-rose-500/5 space-y-4">
+      <Card className="border-rose-200 dark:border-rose-950 bg-indigo-600/5 space-y-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-rose-500/10 rounded-xl text-rose-500">
+          <div className="p-2.5 bg-indigo-600/10 rounded-xl text-rose-500">
             <LogOut className="w-5 h-5" />
           </div>
           <div>
@@ -239,7 +239,7 @@ export const TeacherSettings = () => {
         </div>
         <button
           onClick={handleLogoutClick}
-          className="w-full bg-rose-500 hover:bg-rose-600 text-white py-3.5 rounded-2xl text-sm font-bold shadow-md transition-colors active:scale-95 select-none"
+          className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-3.5 rounded-2xl text-sm font-bold shadow-md transition-colors active:scale-95 select-none"
           id="settings-logout"
         >
           Sign Out of Account
@@ -259,3 +259,5 @@ export const TeacherSettings = () => {
     </div>
   );
 };
+
+

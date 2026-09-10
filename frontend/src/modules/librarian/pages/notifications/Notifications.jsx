@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Modal } from '../../components/ui/Modal';
 import { Tabs } from '../../components/ui/Tabs';
@@ -185,7 +185,7 @@ export const Notifications = () => {
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="h-10 px-4 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all duration-150 bg-white dark:bg-slate-900"
+                className="h-10 px-4 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all duration-150 bg-white dark:bg-indigo-600"
               >
                 <CheckCheck className="h-4.5 w-4.5 text-emerald-600 dark:text-emerald-400" />
                 <span>Mark All as Read</span>
@@ -204,7 +204,7 @@ export const Notifications = () => {
 
       <Tabs tabs={inboxTabs} activeTab={inboxTab} onChange={setInboxTab} />
 
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden">
+      <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden">
         {filteredNotifications.length > 0 ? (
           <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {filteredNotifications.map((notif) => (
@@ -217,7 +217,7 @@ export const Notifications = () => {
                 )}
               >
                 <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', !notif.read ? 'bg-indigo-600' : 'bg-transparent')} />
-                <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                <div className="h-8 w-8 rounded-lg bg-slate-100 dark:bg-indigo-600 flex items-center justify-center shrink-0">
                   {getIcon(notif.type)}
                 </div>
                 <div className="min-w-0 flex-1 flex items-baseline gap-2">
@@ -235,7 +235,7 @@ export const Notifications = () => {
           </div>
         ) : (
           <div className="p-12 text-center space-y-3">
-            <div className="inline-flex p-3 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-full w-12 h-12 items-center justify-center">
+            <div className="inline-flex p-3 bg-slate-100 dark:bg-indigo-600 text-slate-400 rounded-full w-12 h-12 items-center justify-center">
               <Bell className="h-6 w-6" />
             </div>
             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">No Alert Notifications</h3>
@@ -298,7 +298,7 @@ export const Notifications = () => {
                       'px-2.5 py-1 rounded-lg text-3xs font-bold flex items-center gap-1 transition-colors',
                       typeFilter === f.id
                         ? 'bg-indigo-600 text-white'
-                        : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-900'
+                        : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-indigo-600'
                     )}
                   >
                     <f.icon className="h-3 w-3" />
@@ -350,7 +350,7 @@ export const Notifications = () => {
                       key={r.id}
                       className={cn(
                         'flex items-center gap-3 px-3.5 py-2.5 cursor-pointer transition-colors',
-                        selectedIds.has(r.id) ? 'bg-indigo-50/60 dark:bg-indigo-950/20' : 'hover:bg-slate-50 dark:hover:bg-slate-900'
+                        selectedIds.has(r.id) ? 'bg-indigo-50/60 dark:bg-indigo-950/20' : 'hover:bg-slate-50 dark:hover:bg-indigo-600'
                       )}
                     >
                       <input
@@ -410,3 +410,4 @@ export const Notifications = () => {
   );
 };
 export default Notifications;
+

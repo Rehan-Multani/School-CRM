@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
@@ -91,7 +91,7 @@ function buildPhotoUrl(photo) {
 
 function SectionBlock({ title, subtitle, icon: Icon, children, action }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-indigo-600">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h3 className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white">
@@ -443,10 +443,10 @@ export const AddEditEmployee = () => {
 
       if (isEdit) {
         await hrApi.updateEmployee(id, payload);
-        showToast('✓ Employee profile updated successfully!', 'success');
+        showToast('âœ“ Employee profile updated successfully!', 'success');
       } else {
         await hrApi.createEmployee(payload);
-        showToast(`✓ ${isTeacher ? 'Teacher' : 'Staff Member'} registered for Admin Approval!`, 'success');
+        showToast(`âœ“ ${isTeacher ? 'Teacher' : 'Staff Member'} registered for Admin Approval!`, 'success');
       }
 
       navigate('/hr/employees');
@@ -462,9 +462,9 @@ export const AddEditEmployee = () => {
   if (loading) {
     return (
       <div className="space-y-6 pb-12 max-w-4xl mx-auto">
-        <div className="h-8 w-48 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
-        <div className="h-64 bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse" />
-        <div className="h-64 bg-slate-100 dark:bg-slate-800 rounded-3xl animate-pulse" />
+        <div className="h-8 w-48 bg-slate-100 dark:bg-indigo-600 rounded-xl animate-pulse" />
+        <div className="h-64 bg-slate-100 dark:bg-indigo-600 rounded-3xl animate-pulse" />
+        <div className="h-64 bg-slate-100 dark:bg-indigo-600 rounded-3xl animate-pulse" />
       </div>
     );
   }
@@ -488,13 +488,13 @@ export const AddEditEmployee = () => {
       <form onSubmit={handleSave} className="space-y-6">
         {/* Switcher if creating new */}
         {!isEdit && (
-          <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+          <div className="flex p-1 bg-slate-100 dark:bg-indigo-600 rounded-2xl border border-slate-200 dark:border-slate-700">
             <button
               type="button"
               onClick={() => updateField('employeeType', 'TEACHER')}
               className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 isTeacher
-                  ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                  ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-indigo-400 shadow-xs'
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
@@ -506,7 +506,7 @@ export const AddEditEmployee = () => {
               onClick={() => updateField('employeeType', 'STAFF')}
               className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                 !isTeacher
-                  ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs'
+                  ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-indigo-400 shadow-xs'
                   : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
               }`}
             >
@@ -532,7 +532,7 @@ export const AddEditEmployee = () => {
             <button
               type="button"
               onClick={() => photoInputRef.current?.click()}
-              className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-2 border-slate-200 bg-white shadow-sm transition hover:border-indigo-600 dark:border-slate-700 dark:bg-slate-900 cursor-pointer"
+              className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-2 border-slate-200 bg-white shadow-sm transition hover:border-indigo-600 dark:border-slate-700 dark:bg-indigo-600 cursor-pointer"
               title="Click to select profile photo"
             >
               {photoPreview ? (
@@ -716,7 +716,7 @@ export const AddEditEmployee = () => {
                       type={showPassword ? 'text' : 'password'}
                       value={form.password}
                       onChange={(e) => updateField('password', e.target.value)}
-                      placeholder={isEdit ? '••••••••' : 'Min 6 characters'}
+                      placeholder={isEdit ? 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢' : 'Min 6 characters'}
                       required={!isEdit}
                       minLength={6}
                       className={`${inputClass} pr-10`}
@@ -916,7 +916,7 @@ export const AddEditEmployee = () => {
         >
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div>
-              <label className="mb-1 block text-[11px] font-bold text-slate-500">Basic Salary (₹ / Month)</label>
+              <label className="mb-1 block text-[11px] font-bold text-slate-500">Basic Salary (â‚¹ / Month)</label>
               <input
                 type="number"
                 min="0"
@@ -1056,7 +1056,7 @@ export const AddEditEmployee = () => {
         ) : (
           <SectionBlock
             title="4. KYC & Verification Documents (Max 3 Images)"
-            subtitle="Attach Aadhaar, PAN Card, Qualification Degrees, or Identity Proof (JPG, PNG, WebP — Max 5MB each)"
+            subtitle="Attach Aadhaar, PAN Card, Qualification Degrees, or Identity Proof (JPG, PNG, WebP â€” Max 5MB each)"
             icon={FileText}
             action={
               <span className="rounded-lg bg-amber-50 px-2.5 py-0.5 text-[11px] font-bold text-amber-700 dark:bg-amber-950/50 dark:text-amber-300">
@@ -1081,7 +1081,7 @@ export const AddEditEmployee = () => {
                 onClick={() => docInputRef.current?.click()}
                 className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/70 p-6 text-center transition hover:border-indigo-600 hover:bg-indigo-50/10 dark:border-slate-700 dark:bg-slate-950/50 dark:hover:border-indigo-600"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm transition group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white dark:bg-slate-900">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm transition group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white dark:bg-indigo-600">
                   <UploadCloud className="h-6 w-6 text-indigo-600 group-hover:text-white" />
                 </div>
                 <h5 className="mt-3 text-xs font-bold text-slate-800 dark:text-slate-200">
@@ -1109,14 +1109,14 @@ export const AddEditEmployee = () => {
                 {form.documents.kyc.map((item, idx) => (
                   <div
                     key={item.id || idx}
-                    className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                    className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-indigo-600"
                   >
                     <div className="relative h-28 w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-950">
                       <img src={item.preview} alt={`Document ${idx + 1}`} className="h-full w-full object-cover transition group-hover:scale-105" />
                       <button
                         type="button"
                         onClick={() => handleKycDocRemove(item.id)}
-                        className="absolute right-1.5 top-1.5 rounded-lg bg-rose-500 p-1 text-white shadow-sm transition hover:bg-rose-600 cursor-pointer"
+                        className="absolute right-1.5 top-1.5 rounded-lg bg-indigo-600 p-1 text-white shadow-sm transition hover:bg-indigo-600 cursor-pointer"
                         title="Remove document"
                       >
                         <X className="h-3.5 w-3.5" />
@@ -1147,7 +1147,7 @@ export const AddEditEmployee = () => {
           <button
             type="button"
             onClick={() => navigate('/hr/employees')}
-            className="rounded-xl px-5 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="rounded-xl px-5 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
           >
             Cancel
           </button>
@@ -1171,3 +1171,4 @@ export const AddEditEmployee = () => {
 };
 
 export default AddEditEmployee;
+

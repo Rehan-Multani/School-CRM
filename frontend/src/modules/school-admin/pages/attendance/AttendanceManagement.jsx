@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
@@ -98,7 +98,7 @@ function getAvatarColor(name = '') {
     'bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400',
     'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400',
     'bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400',
-    'bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400',
+    'bg-indigo-600/10 text-rose-600 dark:bg-indigo-600/20 dark:text-rose-400',
   ];
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
@@ -570,7 +570,7 @@ export const AttendanceManagement = () => {
       {/* Top Metric Cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {/* Total Staff */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 flex items-center gap-3">
           <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
             <Users className="h-5 w-5" />
           </div>
@@ -583,7 +583,7 @@ export const AttendanceManagement = () => {
         </div>
 
         {/* Present */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 flex items-center gap-3">
           <div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-600 dark:text-emerald-400">
             <CheckCircle2 className="h-5 w-5" />
           </div>
@@ -603,8 +603,8 @@ export const AttendanceManagement = () => {
         </div>
 
         {/* Absent */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center gap-3">
-          <div className="rounded-xl bg-rose-500/10 p-2.5 text-rose-600 dark:text-rose-400">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 flex items-center gap-3">
+          <div className="rounded-xl bg-indigo-600/10 p-2.5 text-rose-600 dark:text-rose-400">
             <XCircle className="h-5 w-5" />
           </div>
           <div>
@@ -616,7 +616,7 @@ export const AttendanceManagement = () => {
         </div>
 
         {/* On Leave */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 flex items-center gap-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 flex items-center gap-3">
           <div className="rounded-xl bg-amber-500/10 p-2.5 text-amber-600 dark:text-amber-400">
             <Clock className="h-5 w-5" />
           </div>
@@ -630,7 +630,7 @@ export const AttendanceManagement = () => {
       </div>
 
       {/* Date Filter & Search Toolbar */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-3">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600 space-y-3">
         {/* Top bar: Mode switcher & Date controls */}
         <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
           <div className="flex flex-wrap items-center gap-2">
@@ -865,7 +865,7 @@ export const AttendanceManagement = () => {
       {/* VIEW 1: DAILY ROLL CALL TABLE */}
       {dateMode === 'single' && (
         <div className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
             {loading ? (
               <SkeletonTable rows={5} columns={4} />
             ) : attendanceList.length === 0 ? (
@@ -881,7 +881,7 @@ export const AttendanceManagement = () => {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
+                  <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-indigo-600/60 dark:text-slate-400">
                     <tr>
                       <th className="w-12 px-3.5 py-3 text-center">#</th>
                       <th className="px-3.5 py-3">Staff Member</th>
@@ -900,7 +900,7 @@ export const AttendanceManagement = () => {
                       return (
                         <tr
                           key={emp.employeeRefId}
-                          className="group transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-900/50"
+                          className="group transition-colors hover:bg-slate-50/80 dark:hover:bg-indigo-600/50"
                         >
                           {/* Serial No */}
                           <td className="w-12 px-3.5 py-3.5 text-center font-bold text-slate-400 text-xs">
@@ -962,7 +962,7 @@ export const AttendanceManagement = () => {
                                 onClick={() => handleStatusChange(emp.employeeRefId, 'ABSENT')}
                                 className={`inline-flex h-8 items-center gap-1 whitespace-nowrap rounded-xl px-3 text-xs font-bold transition-all cursor-pointer ${
                                   isAbsent
-                                    ? 'bg-rose-600 text-white shadow-xs shadow-rose-600/30'
+                                    ? 'bg-indigo-600 text-white shadow-xs shadow-rose-600/30'
                                     : 'border border-slate-200 bg-white text-slate-600 hover:border-rose-300 hover:bg-rose-50/70 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-rose-950/40'
                                 }`}
                                 title="Mark Absent"
@@ -1007,7 +1007,7 @@ export const AttendanceManagement = () => {
                                   handleFieldChange(emp.employeeRefId, 'remarks', e.target.value)
                                 }
                                 placeholder="Add remark..."
-                                className="h-8 w-full max-w-xs rounded-lg border border-transparent bg-slate-50/80 px-2.5 text-xs text-slate-700 placeholder-slate-400 outline-none transition hover:border-slate-200 focus:border-primary focus:bg-white dark:bg-slate-950 dark:hover:border-slate-800 dark:text-slate-200 dark:focus:bg-slate-900"
+                                className="h-8 w-full max-w-xs rounded-lg border border-transparent bg-slate-50/80 px-2.5 text-xs text-slate-700 placeholder-slate-400 outline-none transition hover:border-slate-200 focus:border-primary focus:bg-white dark:bg-slate-950 dark:hover:border-slate-800 dark:text-slate-200 dark:focus:bg-indigo-600"
                               />
                             )}
                           </td>
@@ -1024,7 +1024,7 @@ export const AttendanceManagement = () => {
           {!loading && attendanceList.length > 0 && (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-1">
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Showing {(dailyPage - 1) * PAGE_SIZE + 1}–
+                Showing {(dailyPage - 1) * PAGE_SIZE + 1}â€“
                 {Math.min(dailyPage * PAGE_SIZE, attendanceList.length)} of {attendanceList.length} staff members
               </p>
 
@@ -1034,7 +1034,7 @@ export const AttendanceManagement = () => {
                     type="button"
                     disabled={dailyPage <= 1}
                     onClick={() => setDailyPage((prev) => Math.max(1, prev - 1))}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-slate-900 cursor-pointer"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-indigo-600 cursor-pointer"
                     aria-label="Previous page"
                   >
                     <ChevronLeft className="h-4 w-4" />
@@ -1047,7 +1047,7 @@ export const AttendanceManagement = () => {
                       className={`inline-flex h-9 min-w-9 items-center justify-center rounded-xl px-2.5 text-xs font-semibold transition cursor-pointer ${
                         pageNumber === dailyPage
                           ? 'bg-indigo-600 text-white shadow-xs shadow-indigo-600/20'
-                          : 'border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
+                          : 'border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-indigo-600'
                       }`}
                     >
                       {pageNumber}
@@ -1057,7 +1057,7 @@ export const AttendanceManagement = () => {
                     type="button"
                     disabled={dailyPage >= dailyTotalPages}
                     onClick={() => setDailyPage((prev) => Math.min(dailyTotalPages, prev + 1))}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-slate-900 cursor-pointer"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-indigo-600 cursor-pointer"
                     aria-label="Next page"
                   >
                     <ChevronRight className="h-4 w-4" />
@@ -1072,7 +1072,7 @@ export const AttendanceManagement = () => {
       {/* VIEW 2: CUSTOM DATE RANGE AUDIT TABLE */}
       {dateMode === 'range' && (
         <div className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
             {rangeLoading ? (
               <SkeletonTable rows={5} columns={5} />
             ) : rangeRecords.length === 0 ? (
@@ -1088,7 +1088,7 @@ export const AttendanceManagement = () => {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
-                  <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
+                  <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-indigo-600/60 dark:text-slate-400">
                     <tr>
                       <th className="px-3.5 py-3">Date</th>
                       <th className="px-3.5 py-3">Staff Member</th>
@@ -1101,7 +1101,7 @@ export const AttendanceManagement = () => {
                     {paginatedRangeRecords.map((r) => (
                       <tr
                         key={`${r.id}-${r.date}`}
-                        className="group transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-900/50"
+                        className="group transition-colors hover:bg-slate-50/80 dark:hover:bg-indigo-600/50"
                       >
                         <td className="px-3.5 py-3.5 whitespace-nowrap font-semibold text-slate-800 dark:text-slate-200">
                           {formatDisplayDate(r.date)}
@@ -1121,7 +1121,7 @@ export const AttendanceManagement = () => {
                             {r.employeeRole}
                           </span>
                           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                            {r.department || '—'}
+                            {r.department || 'â€”'}
                           </p>
                         </td>
 
@@ -1151,7 +1151,7 @@ export const AttendanceManagement = () => {
                             </div>
                           ) : (
                             <span className="text-slate-500 dark:text-slate-400">
-                              {r.remarks || '—'}
+                              {r.remarks || 'â€”'}
                             </span>
                           )}
                         </td>
@@ -1167,7 +1167,7 @@ export const AttendanceManagement = () => {
           {!rangeLoading && rangeRecords.length > 0 && (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-1">
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Showing {(rangePage - 1) * PAGE_SIZE + 1}–
+                Showing {(rangePage - 1) * PAGE_SIZE + 1}â€“
                 {Math.min(rangePage * PAGE_SIZE, rangeRecords.length)} of {rangeRecords.length} logs
               </p>
 
@@ -1177,7 +1177,7 @@ export const AttendanceManagement = () => {
                     type="button"
                     disabled={rangePage <= 1}
                     onClick={() => setRangePage((prev) => Math.max(1, prev - 1))}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-slate-900 cursor-pointer"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-indigo-600 cursor-pointer"
                     aria-label="Previous page"
                   >
                     <ChevronLeft className="h-4 w-4" />
@@ -1190,7 +1190,7 @@ export const AttendanceManagement = () => {
                       className={`inline-flex h-9 min-w-9 items-center justify-center rounded-xl px-2.5 text-xs font-semibold transition cursor-pointer ${
                         pageNumber === rangePage
                           ? 'bg-indigo-600 text-white shadow-xs shadow-indigo-600/20'
-                          : 'border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
+                          : 'border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-indigo-600'
                       }`}
                     >
                       {pageNumber}
@@ -1200,7 +1200,7 @@ export const AttendanceManagement = () => {
                     type="button"
                     disabled={rangePage >= rangeTotalPages}
                     onClick={() => setRangePage((prev) => Math.min(rangeTotalPages, prev + 1))}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-slate-900 cursor-pointer"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-indigo-600 cursor-pointer"
                     aria-label="Next page"
                   >
                     <ChevronRight className="h-4 w-4" />
@@ -1225,7 +1225,7 @@ export const AttendanceManagement = () => {
               {targetEmployee?.employeeName} ({targetEmployee?.employeeId})
             </p>
             <p className="mt-0.5 text-slate-500 dark:text-slate-400">
-              Role: <strong>{targetEmployee?.employeeRole}</strong> • Date:{' '}
+              Role: <strong>{targetEmployee?.employeeRole}</strong> â€¢ Date:{' '}
               <strong>{formatDisplayDate(date)}</strong>
             </p>
           </div>
@@ -1264,7 +1264,7 @@ export const AttendanceManagement = () => {
             <button
               type="button"
               onClick={() => setLeaveModalOpen(false)}
-              className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-indigo-600"
             >
               Cancel
             </button>
@@ -1285,3 +1285,4 @@ export const AttendanceManagement = () => {
 };
 
 export default AttendanceManagement;
+

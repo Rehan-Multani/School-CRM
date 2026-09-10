@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useAccountantAuth } from '../context/AccountantAuthContext';
 import { useAccountantNotifications } from '../context/AccountantNotificationContext';
 import {
@@ -68,7 +68,7 @@ export const Dashboard = () => {
   return (
     <div className="space-y-6">
       {/* Welcome Board */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 transition-colors">
+      <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 transition-colors">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-2xl object-cover border-2 border-violet-500 shrink-0 shadow-sm overflow-hidden bg-violet-100 dark:bg-violet-900/40 flex items-center justify-center text-xl font-black text-violet-600 dark:text-violet-300">
             {user?.photo ? (
@@ -85,7 +85,7 @@ export const Dashboard = () => {
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">
               {[user?.employeeId, user?.department, user?.academicSession && `Session ${user.academicSession}`]
                 .filter(Boolean)
-                .join(' • ')}
+                .join(' â€¢ ')}
             </p>
           </div>
         </div>
@@ -98,7 +98,7 @@ export const Dashboard = () => {
       </div>
 
       {/* Quick Operations Actions bar */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm">
+      <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm">
         <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-3">Quick Accountant Tools</span>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {[
@@ -146,7 +146,7 @@ export const Dashboard = () => {
 
           {/* Charts */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm">
+            <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm">
               <span className="text-[10px] font-black text-slate-450 uppercase tracking-widest block mb-4">Collection Overview (Last 7 Days)</span>
               {collectionSeries.length ? (
                 <AreaChart data={collectionSeries} dataKey="collection" xKey="day" height={220} color="#7c3aed" />
@@ -155,7 +155,7 @@ export const Dashboard = () => {
               )}
             </div>
 
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm flex flex-col justify-between">
+            <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm flex flex-col justify-between">
               <span className="text-[10px] font-black text-slate-455 uppercase tracking-widest block mb-4">Pending / Dues Summary</span>
               <div className="flex-1 flex items-center justify-center">
                 {duesSeries.length ? (
@@ -169,7 +169,7 @@ export const Dashboard = () => {
 
           {/* Transaction Feed & Notifications */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm lg:col-span-2 space-y-4">
+            <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm lg:col-span-2 space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <h4 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Recent Transactions</h4>
                 <button onClick={() => navigate('/accountant/transactions')} className="text-[10px] font-bold text-violet-600 hover:underline flex items-center gap-1">
@@ -189,8 +189,8 @@ export const Dashboard = () => {
                           <Badge variant={item.status === 'COMPLETED' ? 'success' : 'warning'}>{item.status}</Badge>
                         </div>
                         <p className="text-[10px] text-slate-400 mt-0.5">
-                          {item.receiptNumber} • {item.paymentMethod}
-                          {item.invoiceNumber ? ` • ${item.invoiceNumber}` : ''}
+                          {item.receiptNumber} â€¢ {item.paymentMethod}
+                          {item.invoiceNumber ? ` â€¢ ${item.invoiceNumber}` : ''}
                         </p>
                       </div>
                       <div className="text-right">
@@ -203,7 +203,7 @@ export const Dashboard = () => {
               )}
             </div>
 
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4">
+            <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                 <h4 className="text-xs font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Notifications</h4>
               </div>
@@ -231,3 +231,4 @@ export const Dashboard = () => {
 };
 
 export default Dashboard;
+

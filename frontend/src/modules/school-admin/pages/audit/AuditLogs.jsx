@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { useToast } from '../../components/ui/Toast';
@@ -63,10 +63,10 @@ export const AuditLogs = () => {
     <div className="space-y-6">
       <PageHeader
         title="Audit Logs Registry"
-        subtitle="Every write action taken across the school portal — who did what, and when."
+        subtitle="Every write action taken across the school portal â€” who did what, and when."
       />
 
-      <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
         <div>
           <label className="mb-1 block text-[11px] font-bold text-slate-400">Module</label>
           <select
@@ -114,7 +114,7 @@ export const AuditLogs = () => {
           </button>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <table className="w-full text-left text-xs">
             <thead className="border-b border-slate-100 bg-slate-50/60 text-[11px] font-bold uppercase text-slate-500 dark:border-slate-800 dark:bg-slate-950/40">
               <tr>
@@ -132,7 +132,7 @@ export const AuditLogs = () => {
                   <tr key={i} className="animate-pulse">
                     {Array.from({ length: 6 }).map((__, j) => (
                       <td key={j} className="px-4 py-3">
-                        <div className="h-3.5 w-2/3 rounded bg-slate-100 dark:bg-slate-800" />
+                        <div className="h-3.5 w-2/3 rounded bg-slate-100 dark:bg-indigo-600" />
                       </td>
                     ))}
                   </tr>
@@ -156,13 +156,13 @@ export const AuditLogs = () => {
                         <Badge variant={MODULE_VARIANT[r.module] || 'default'}>{r.module}</Badge>
                       </td>
                       <td className="px-4 py-3 font-mono text-[11px] font-bold text-indigo-600 dark:text-indigo-400">{r.action}</td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{r.summary || '—'}</td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{r.summary || 'â€”'}</td>
                       <td className="px-2 py-3 text-center">
                         {(r.before || r.after) && (
                           <button
                             type="button"
                             onClick={() => setExpanded(expanded === r.id ? null : r.id)}
-                            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 dark:hover:bg-indigo-600"
                           >
                             {expanded === r.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                           </button>
@@ -175,14 +175,14 @@ export const AuditLogs = () => {
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <span className="text-[10px] font-black uppercase text-slate-400">Before</span>
-                              <pre className="mt-1 max-h-48 overflow-auto rounded-lg bg-white p-2 text-[10px] dark:bg-slate-900">
-                                {r.before ? JSON.stringify(r.before, null, 2) : '—'}
+                              <pre className="mt-1 max-h-48 overflow-auto rounded-lg bg-white p-2 text-[10px] dark:bg-indigo-600">
+                                {r.before ? JSON.stringify(r.before, null, 2) : 'â€”'}
                               </pre>
                             </div>
                             <div>
                               <span className="text-[10px] font-black uppercase text-slate-400">After</span>
-                              <pre className="mt-1 max-h-48 overflow-auto rounded-lg bg-white p-2 text-[10px] dark:bg-slate-900">
-                                {r.after ? JSON.stringify(r.after, null, 2) : '—'}
+                              <pre className="mt-1 max-h-48 overflow-auto rounded-lg bg-white p-2 text-[10px] dark:bg-indigo-600">
+                                {r.after ? JSON.stringify(r.after, null, 2) : 'â€”'}
                               </pre>
                             </div>
                           </div>
@@ -197,7 +197,7 @@ export const AuditLogs = () => {
 
           <div className="flex items-center justify-between border-t border-slate-100 px-6 py-3 dark:border-slate-800">
             <p className="text-xs font-medium text-slate-500">
-              {pagination.total} entr{pagination.total === 1 ? 'y' : 'ies'} · page {pagination.page} / {pagination.totalPages}
+              {pagination.total} entr{pagination.total === 1 ? 'y' : 'ies'} Â· page {pagination.page} / {pagination.totalPages}
             </p>
             <div className="flex gap-1.5">
               <button
@@ -227,3 +227,4 @@ export const AuditLogs = () => {
 };
 
 export default AuditLogs;
+

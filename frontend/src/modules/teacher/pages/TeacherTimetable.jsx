@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { FilterBar } from '../components/ui/FilterBar';
@@ -64,7 +64,7 @@ export const TeacherTimetable = () => {
             </div>
             <div>
               <p className="text-xs font-bold text-foreground">{todayClasses.length} Classes Today</p>
-              <p className="text-[10px] text-slate-500 capitalize">{todayKey} · {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+              <p className="text-[10px] text-slate-500 capitalize">{todayKey} Â· {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
             </div>
           </div>
 
@@ -131,7 +131,7 @@ export const TeacherTimetable = () => {
         <div className="space-y-4">
           {/* Day selector */}
           <div className="flex items-center justify-between gap-2">
-            <button onClick={() => setWeekDay(d => Math.max(0, d - 1))} className="p-2 rounded-xl border border-border text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-40" disabled={weekDay === 0}>
+            <button onClick={() => setWeekDay(d => Math.max(0, d - 1))} className="p-2 rounded-xl border border-border text-slate-500 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors disabled:opacity-40" disabled={weekDay === 0}>
               <ChevronLeft className="w-4 h-4" />
             </button>
             <div className="flex gap-2 flex-1 justify-center overflow-x-auto no-scrollbar">
@@ -150,7 +150,7 @@ export const TeacherTimetable = () => {
                 </button>
               ))}
             </div>
-            <button onClick={() => setWeekDay(d => Math.min(5, d + 1))} className="p-2 rounded-xl border border-border text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-40" disabled={weekDay === 5}>
+            <button onClick={() => setWeekDay(d => Math.min(5, d + 1))} className="p-2 rounded-xl border border-border text-slate-500 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors disabled:opacity-40" disabled={weekDay === 5}>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -185,7 +185,7 @@ export const TeacherTimetable = () => {
       {/* Monthly View */}
       {tab === 'monthly' && (
         <Card>
-          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">July 2025 — Teaching Load</h3>
+          <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">July 2025 â€” Teaching Load</h3>
           <div className="space-y-3">
             {DAY_KEYS.map((key, i) => {
               const cls = mockTimetable[key] || [];
@@ -213,3 +213,4 @@ export const TeacherTimetable = () => {
     </div>
   );
 };
+

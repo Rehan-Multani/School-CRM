@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
 import { DataTable } from '../../components/ui/DataTable';
@@ -15,7 +15,7 @@ const STATUS_VARIANT = {
 };
 
 function fmt(value) {
-  if (!value) return '—';
+  if (!value) return 'â€”';
   return new Date(value).toLocaleString('en-IN', {
     day: '2-digit',
     month: 'short',
@@ -58,8 +58,8 @@ export const Events = () => {
       { key: 'title', title: 'School Event Name', sortable: true },
       { key: 'category', title: 'Category', render: (val) => <Badge variant="info">{val}</Badge> },
       { key: 'startAt', title: 'Scheduled', sortable: true, render: (val) => fmt(val) },
-      { key: 'venue', title: 'Venue', render: (val) => val || '—' },
-      { key: 'leadName', title: 'Lead Representative', render: (val) => val || '—' },
+      { key: 'venue', title: 'Venue', render: (val) => val || 'â€”' },
+      { key: 'leadName', title: 'Lead Representative', render: (val) => val || 'â€”' },
       {
         key: 'status',
         title: 'Status',
@@ -88,7 +88,7 @@ export const Events = () => {
           ].map((c) => (
             <div
               key={c.label}
-              className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+              className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600"
             >
               <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">{c.label}</div>
               <div className="mt-0.5 text-xl font-extrabold text-slate-900 dark:text-white">{c.value ?? 0}</div>
@@ -132,11 +132,11 @@ export const Events = () => {
           csvFilename="principal_events.csv"
         />
       ) : loading ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-slate-900">
-          Loading events…
+        <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-indigo-600">
+          Loading eventsâ€¦
         </div>
       ) : upcoming.length === 0 ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-indigo-600">
           No upcoming events.
         </div>
       ) : (
@@ -144,7 +144,7 @@ export const Events = () => {
           {upcoming.map((evt) => (
             <div
               key={evt.id}
-              className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 text-xs font-semibold shadow-sm dark:border-slate-800 dark:bg-slate-900"
+              className="space-y-4 rounded-3xl border border-slate-200 bg-white p-5 text-xs font-semibold shadow-sm dark:border-slate-800 dark:bg-indigo-600"
             >
               <div className="flex items-center justify-between border-b pb-2">
                 <span className="text-[10px] font-black uppercase text-slate-400">{evt.category}</span>
@@ -173,3 +173,4 @@ export const Events = () => {
 };
 
 export default Events;
+

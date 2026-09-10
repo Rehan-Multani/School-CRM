@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ServerTable } from '../../components/ui/ServerTable';
 import { Badge } from '../../components/ui/Badge';
@@ -61,7 +61,7 @@ export const InstallmentManagement = () => {
           <p className="text-[10px] text-slate-400">{r.admissionNumber || r.invoiceNumber}</p>
         </div>
       ) },
-      { key: 'className', title: 'Class', render: (r) => [r.className, r.sectionName].filter(Boolean).join(' - ') || '—' },
+      { key: 'className', title: 'Class', render: (r) => [r.className, r.sectionName].filter(Boolean).join(' - ') || 'â€”' },
       { key: 'periodLabel', title: 'Installment' },
       { key: 'dueDate', title: 'Due Date', render: (r) => formatDate(r.dueDate) },
       { key: 'totalAmount', title: 'Amount', align: 'right', render: (r) => formatCurrency(r.totalAmount) },
@@ -89,14 +89,14 @@ export const InstallmentManagement = () => {
           <input
             value={filters.search}
             onChange={(e) => set({ search: e.target.value })}
-            placeholder="Search student, admission no, invoice…"
-            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold outline-none focus:border-violet-500"
+            placeholder="Search student, admission no, invoiceâ€¦"
+            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold outline-none focus:border-violet-500"
           />
         </div>
         <select
           value={filters.classId}
           onChange={(e) => set({ classId: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold outline-none focus:border-violet-500"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold outline-none focus:border-violet-500"
         >
           <option value="">All Classes</option>
           {classes.map((c) => (
@@ -108,7 +108,7 @@ export const InstallmentManagement = () => {
         <select
           value={filters.status}
           onChange={(e) => set({ status: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold outline-none focus:border-violet-500"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold outline-none focus:border-violet-500"
         >
           {STATUS_OPTIONS.map((s) => (
             <option key={s} value={s}>
@@ -132,3 +132,4 @@ export const InstallmentManagement = () => {
 };
 
 export default InstallmentManagement;
+

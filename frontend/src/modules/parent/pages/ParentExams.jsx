@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -47,7 +47,7 @@ export const ParentExams = () => {
             </div>
           </Card>
           <Card className="flex items-center gap-4">
-            <div className="p-3 bg-rose-500/10 text-rose-600 rounded-2xl shrink-0">
+            <div className="p-3 bg-indigo-600/10 text-rose-600 rounded-2xl shrink-0">
               <MapPin className="w-6 h-6" />
             </div>
             <div>
@@ -104,3 +104,4 @@ export const ParentExams = () => {
     </div>
   );
 };
+

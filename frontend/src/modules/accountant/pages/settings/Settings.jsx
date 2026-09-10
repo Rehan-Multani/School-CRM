@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
 import { useAccountantAuth } from '../../context/AccountantAuthContext';
@@ -116,7 +116,7 @@ export const Settings = () => {
       <Tabs tabs={TABS} activeTab={tab} onChange={setTab} />
 
       {tab === 'profile' && (
-        <form onSubmit={saveProfile} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+        <form onSubmit={saveProfile} className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <label className="space-y-1 block">
               <span>First Name</span>
@@ -159,7 +159,7 @@ export const Settings = () => {
       )}
 
       {tab === 'receipt' && (
-        <form onSubmit={savePrefs} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-5">
+        <form onSubmit={savePrefs} className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-5">
           <div className="space-y-3">
             <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Receipt</p>
             <label className="space-y-1 block">
@@ -191,7 +191,7 @@ export const Settings = () => {
       )}
 
       {tab === 'notifications' && (
-        <form onSubmit={savePrefs} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-3 max-w-md">
+        <form onSubmit={savePrefs} className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-3 max-w-md">
           {[
             ['payment', 'Payment notifications'],
             ['feeUpdates', 'Fee updates'],
@@ -217,7 +217,7 @@ export const Settings = () => {
       )}
 
       {tab === 'security' && (
-        <form onSubmit={savePassword} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4 max-w-xl">
+        <form onSubmit={savePassword} className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4 max-w-xl">
           <label className="space-y-1 block">
             <span>Current Password</span>
             <input placeholder="Enter current password" type="password" value={pw.currentPassword} onChange={(e) => setPw((p) => ({ ...p, currentPassword: e.target.value }))} required className={inp} />
@@ -235,7 +235,7 @@ export const Settings = () => {
       )}
 
       {tab === 'appearance' && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
           <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-2xl max-w-md">
             <div className="flex items-center gap-2">
               {darkMode ? <Moon className="w-4 h-4 text-violet-400" /> : <Sun className="w-4 h-4 text-amber-500" />}
@@ -258,3 +258,4 @@ export const Settings = () => {
 };
 
 export default Settings;
+

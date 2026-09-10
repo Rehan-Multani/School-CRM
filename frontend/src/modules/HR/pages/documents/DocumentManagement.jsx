@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+﻿import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Modal } from '../../components/ui/Modal';
@@ -182,7 +182,7 @@ export const DocumentManagement = () => {
             <button
               onClick={fetchData}
               disabled={loading}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
               title="Refresh"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -203,7 +203,7 @@ export const DocumentManagement = () => {
 
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Vaulted Files</span>
             <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">{documents.length}</div>
@@ -214,7 +214,7 @@ export const DocumentManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Verified Records</span>
             <div className="text-2xl font-black text-emerald-600 mt-1">{verifiedCount}</div>
@@ -225,7 +225,7 @@ export const DocumentManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-amber-500 uppercase tracking-wider">Pending Check</span>
             <div className="text-2xl font-black text-amber-500 mt-1">{documents.length - verifiedCount}</div>
@@ -236,7 +236,7 @@ export const DocumentManagement = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">Covered Faculty</span>
             <div className="text-2xl font-black text-blue-600 mt-1">
@@ -251,7 +251,7 @@ export const DocumentManagement = () => {
       </div>
 
       {/* Search & Filters */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1 min-w-[240px]">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
@@ -300,7 +300,7 @@ export const DocumentManagement = () => {
       {loading ? (
         <SkeletonTable rows={7} columns={6} />
       ) : filteredDocuments.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-3 shadow-xs">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-3 shadow-xs">
           <FolderOpen className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-700" />
           <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">No documents in locker</h4>
           <p className="text-xs max-w-sm mx-auto">
@@ -310,7 +310,7 @@ export const DocumentManagement = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200/80 dark:border-slate-800 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -346,7 +346,7 @@ export const DocumentManagement = () => {
                       </td>
 
                       <td className="p-4 whitespace-nowrap">
-                        <span className="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold">
+                        <span className="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-indigo-600 text-slate-700 dark:text-slate-300 text-[10px] font-bold">
                           {doc.documentType || 'General'}
                         </span>
                       </td>
@@ -417,7 +417,7 @@ export const DocumentManagement = () => {
             >
               {employees.map((e) => (
                 <option key={e.id} value={e.id}>
-                  {e.name} ({e.employeeId || 'EMP'}) — {e.department || 'General'}
+                  {e.name} ({e.employeeId || 'EMP'}) â€” {e.department || 'General'}
                 </option>
               ))}
             </select>
@@ -586,3 +586,4 @@ export const DocumentManagement = () => {
 };
 
 export default DocumentManagement;
+

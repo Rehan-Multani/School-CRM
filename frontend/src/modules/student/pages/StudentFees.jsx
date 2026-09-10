@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useFees } from '../hooks/useStudentHooks';
 import { formatCurrency } from '../utils/formatters';
 import { Card } from '../components/ui/Card';
@@ -46,7 +46,7 @@ export const StudentFees = () => {
           <span className="text-[9px] text-white/50 mt-1">Academic Session 2025-26</span>
         </Card>
         <StatCard title="Paid Amount" value={formatCurrency(fees.paidFees)} icon={Coins} colorClass="bg-emerald-500" />
-        <StatCard title="Pending Due" value={formatCurrency(fees.pendingFees)} icon={AlertCircle} colorClass="bg-rose-500" />
+        <StatCard title="Pending Due" value={formatCurrency(fees.pendingFees)} icon={AlertCircle} colorClass="bg-indigo-600" />
         <StatCard 
           title="Scholarship Applied" 
           value={formatCurrency(fees.discounts[0]?.amount || 0)} 
@@ -62,7 +62,7 @@ export const StudentFees = () => {
         </h3>
         <div className="space-y-4">
           {fees.installments.map((inst, i) => (
-            <div key={i} className="p-4 rounded-xl border border-border bg-slate-50/20 dark:bg-slate-900/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div key={i} className="p-4 rounded-xl border border-border bg-slate-50/20 dark:bg-indigo-600/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="min-w-0">
                 <h4 className="text-xs font-bold text-foreground">{inst.name}</h4>
                 <div className="flex items-center gap-3 text-[10px] text-slate-400 mt-1 font-semibold">
@@ -79,7 +79,7 @@ export const StudentFees = () => {
                     <Badge variant="success">Paid</Badge>
                     <button 
                       onClick={() => handleDownloadReceipt(inst.receiptNo)}
-                      className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 active:scale-95 duration-100"
+                      className="p-1.5 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-lg text-slate-500 active:scale-95 duration-100"
                       title="Download Receipt"
                     >
                       <Download className="w-4 h-4" />
@@ -120,7 +120,7 @@ export const StudentFees = () => {
             </thead>
             <tbody className="divide-y divide-border font-medium">
               {fees.history.map((row, i) => (
-                <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/20">
+                <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-indigo-600/20">
                   <td className="py-3.5 text-primary font-bold">{row.receiptNo}</td>
                   <td className="py-3.5 text-slate-500 dark:text-slate-400">{row.date}</td>
                   <td className="py-3.5 text-slate-800 dark:text-slate-200 font-bold">{formatCurrency(row.amount)}</td>
@@ -177,7 +177,7 @@ export const StudentFees = () => {
                         className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 duration-100 ${
                           paymentMethod === method.id 
                             ? 'border-primary bg-primary/5 text-primary' 
-                            : 'border-border text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900'
+                            : 'border-border text-slate-500 hover:bg-slate-50 dark:hover:bg-indigo-600'
                         }`}
                       >
                         <Icon className="w-4 h-4" />
@@ -198,7 +198,7 @@ export const StudentFees = () => {
             <div className="flex justify-end gap-3 pt-3 border-t border-border">
               <button
                 onClick={() => setSelectedInstallment(null)}
-                className="px-4 py-2 border border-border hover:bg-slate-50 dark:hover:bg-slate-900 rounded-xl text-xs font-bold"
+                className="px-4 py-2 border border-border hover:bg-slate-50 dark:hover:bg-indigo-600 rounded-xl text-xs font-bold"
               >
                 Cancel
               </button>
@@ -215,3 +215,4 @@ export const StudentFees = () => {
     </div>
   );
 };
+

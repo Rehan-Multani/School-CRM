@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { 
@@ -34,15 +34,15 @@ export const UnifiedDemoBar = () => {
 
   const ROLES = [
     { role: 'Student', path: '/student/dashboard', userKey: 'student-user', defaultUser: store.auth.users.find(u => u.role === 'student'), badge: 'bg-emerald-500' },
-    { role: 'Teacher', path: '/teacher/dashboard', userKey: 'teacher-user', defaultUser: store.auth.users.find(u => u.role === 'teacher'), badge: 'bg-blue-500' },
+    { role: 'Teacher', path: '/teacher/dashboard', userKey: 'teacher-user', defaultUser: store.auth.users.find(u => u.role === 'teacher'), badge: 'bg-indigo-500' },
     { role: 'Parent', path: '/parent/dashboard', userKey: 'parent-user', defaultUser: store.auth.users.find(u => u.role === 'parent'), badge: 'bg-purple-500' },
     { role: 'School Admin', path: '/school-admin/dashboard', userKey: 'school-admin-user', defaultUser: store.auth.users.find(u => u.role === 'school-admin'), badge: 'bg-indigo-500' },
     { role: 'Principal', path: '/principal/dashboard', userKey: 'principal-user', defaultUser: store.auth.users.find(u => u.role === 'principal'), badge: 'bg-amber-500' },
     { role: 'Accountant', path: '/accountant/dashboard', userKey: 'accountant-user', defaultUser: store.auth.users.find(u => u.role === 'accountant'), badge: 'bg-teal-500' },
-    { role: 'HR Staff', path: '/hr/dashboard', userKey: 'hr-user', defaultUser: store.auth.users.find(u => u.role === 'hr'), badge: 'bg-rose-500' },
+    { role: 'HR Staff', path: '/hr/dashboard', userKey: 'hr-user', defaultUser: store.auth.users.find(u => u.role === 'hr'), badge: 'bg-indigo-600' },
     { role: 'Librarian', path: '/librarian/dashboard', userKey: 'librarian_user', defaultUser: store.auth.users.find(u => u.role === 'librarian'), badge: 'bg-cyan-500' },
     { role: 'Transport', path: '/transport/dashboard', userKey: 'transport_user', defaultUser: store.auth.users.find(u => u.role === 'transport'), badge: 'bg-orange-500' },
-    { role: 'Super Admin', path: '/super-admin/dashboard', userKey: 'super_admin_user', defaultUser: store.auth.users.find(u => u.role === 'super-admin'), badge: 'bg-slate-700' }
+    { role: 'Super Admin', path: '/super-admin/dashboard', userKey: 'super_admin_user', defaultUser: store.auth.users.find(u => u.role === 'super-admin'), badge: 'bg-indigo-600' }
   ];
 
   const handleSwitchRole = (item) => {
@@ -64,7 +64,7 @@ export const UnifiedDemoBar = () => {
 
   return (
     <div className="fixed bottom-4 right-4 z-50 font-sans print:hidden">
-      <div className="bg-slate-900/95 backdrop-blur-md border border-slate-700/80 shadow-2xl rounded-2xl p-2.5 text-white max-w-sm sm:max-w-md transition-all">
+      <div className="bg-indigo-600/95 backdrop-blur-md border border-slate-700/80 shadow-2xl rounded-2xl p-2.5 text-white max-w-sm sm:max-w-md transition-all">
         {/* Header Bar */}
         <div className="flex items-center justify-between gap-3 px-2 py-1">
           <div className="flex items-center gap-2">
@@ -82,7 +82,7 @@ export const UnifiedDemoBar = () => {
               type="button"
               onClick={() => navigate('/login')}
               title="Central Universal Login"
-              className="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-[10px] font-bold rounded-lg text-slate-300 flex items-center gap-1 transition-all"
+              className="px-2 py-1 bg-indigo-600 hover:bg-indigo-600 text-[10px] font-bold rounded-lg text-slate-300 flex items-center gap-1 transition-all"
             >
               <span>Login</span>
               <ExternalLink className="w-3 h-3" />
@@ -91,14 +91,14 @@ export const UnifiedDemoBar = () => {
               type="button"
               onClick={handleReset}
               title="Reset shared state to default"
-              className="p-1 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-[10px] transition-all"
+              className="p-1 hover:bg-indigo-600 text-slate-400 hover:text-slate-200 rounded-lg text-[10px] transition-all"
             >
               <RotateCcw className="w-3.5 h-3.5" />
             </button>
             <button
               type="button"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1 hover:bg-slate-800 text-slate-400 hover:text-slate-200 rounded-lg text-[10px] transition-all"
+              className="p-1 hover:bg-indigo-600 text-slate-400 hover:text-slate-200 rounded-lg text-[10px] transition-all"
             >
               {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
             </button>
@@ -121,7 +121,7 @@ export const UnifiedDemoBar = () => {
                   className={`p-1.5 rounded-lg border text-left text-[11px] font-bold transition-all truncate flex items-center gap-1.5 ${
                     activeRole === r.role 
                       ? 'bg-indigo-600 border-indigo-500 text-white shadow-md' 
-                      : 'bg-slate-800/80 border-slate-700/60 text-slate-300 hover:bg-slate-800 hover:border-slate-600'
+                      : 'bg-indigo-600/80 border-slate-700/60 text-slate-300 hover:bg-indigo-600 hover:border-slate-600'
                   }`}
                 >
                   <span className={`w-2 h-2 rounded-full shrink-0 ${r.badge}`} />
@@ -135,3 +135,4 @@ export const UnifiedDemoBar = () => {
     </div>
   );
 };
+

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Mail, Phone, ShieldCheck, Sparkles } from 'lucide-react';
 import Reveal from '../Reveal';
@@ -49,7 +49,7 @@ export const CtaSection = () => {
 
                 <Link
                   to="/contact"
-                  className="inline-flex items-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-7 py-4 text-sm font-black text-white backdrop-blur-md transition-all duration-200 hover:bg-white/20 hover:-translate-y-0.5 dark:border-slate-700 dark:bg-slate-800/80 dark:hover:bg-slate-700"
+                  className="inline-flex items-center gap-2 rounded-2xl border border-white/25 bg-white/10 px-7 py-4 text-sm font-black text-white backdrop-blur-md transition-all duration-200 hover:bg-white/20 hover:-translate-y-0.5 dark:border-slate-700 dark:bg-indigo-600/80 dark:hover:bg-indigo-600"
                 >
                   <Mail className="h-4 w-4 text-white" />
                   <span>Contact Sales</span>
@@ -76,3 +76,4 @@ export const CtaSection = () => {
 };
 
 export default CtaSection;
+

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useAttendance } from '../hooks/useStudentHooks';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -43,7 +43,7 @@ export const StudentAttendance = () => {
           </Card>
         </div>
         <StatCard title="Present Days" value={`${data.present} Days`} icon={UserCheck} colorClass="bg-emerald-500" />
-        <StatCard title="Absent Days" value={`${data.absent} Days`} icon={CalendarCheck} colorClass="bg-rose-500" />
+        <StatCard title="Absent Days" value={`${data.absent} Days`} icon={CalendarCheck} colorClass="bg-indigo-600" />
         <StatCard title="Late Arrivals" value={`${data.late} Days`} icon={Clock} colorClass="bg-amber-500" />
         <StatCard title="Approved Leaves" value={`${data.leave} Days`} icon={FileText} colorClass="bg-indigo-500" />
       </div>
@@ -56,9 +56,9 @@ export const StudentAttendance = () => {
           <div className="flex items-center justify-between pb-4 border-b border-border mb-4">
             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Monthly Calendar View</h3>
             <div className="flex items-center gap-2">
-              <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"><ChevronLeft className="w-4 h-4" /></button>
+              <button className="p-1 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-lg"><ChevronLeft className="w-4 h-4" /></button>
               <span className="text-xs font-bold">{selectedMonth}</span>
-              <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"><ChevronRight className="w-4 h-4" /></button>
+              <button className="p-1 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-lg"><ChevronRight className="w-4 h-4" /></button>
             </div>
           </div>
           
@@ -70,7 +70,7 @@ export const StudentAttendance = () => {
           <div className="grid grid-cols-7 gap-2">
             {/* Days padding */}
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={`pad-${i}`} className="aspect-square bg-slate-50/20 dark:bg-slate-900/10 rounded-xl"></div>
+              <div key={`pad-${i}`} className="aspect-square bg-slate-50/20 dark:bg-indigo-600/10 rounded-xl"></div>
             ))}
             
             {/* Calendar Days */}
@@ -83,7 +83,7 @@ export const StudentAttendance = () => {
 
               const colors = {
                 Present: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20',
-                Absent: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20',
+                Absent: 'bg-indigo-600/10 text-rose-600 dark:text-rose-400 border border-rose-500/20',
                 Late: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20',
                 Leave: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20',
               };
@@ -151,7 +151,7 @@ export const StudentAttendance = () => {
             </thead>
             <tbody className="divide-y divide-border font-medium">
               {data.history.map((row, i) => (
-                <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/20">
+                <tr key={i} className="hover:bg-slate-50/50 dark:hover:bg-indigo-600/20">
                   <td className="py-3.5 text-slate-700 dark:text-slate-300 font-semibold">{row.date}</td>
                   <td className="py-3.5">
                     <Badge variant={
@@ -172,3 +172,4 @@ export const StudentAttendance = () => {
     </div>
   );
 };
+

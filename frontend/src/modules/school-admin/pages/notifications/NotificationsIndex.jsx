@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Bell, Loader2, Send, Smartphone } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -33,7 +33,7 @@ function deliveryLabel(item) {
   if (!item.delivery?.firebaseConfigured) {
     return {
       tone: 'amber',
-      text: 'Saved only · Firebase not configured',
+      text: 'Saved only Â· Firebase not configured',
     };
   }
   if (item.delivery?.skippedReason) {
@@ -164,7 +164,7 @@ export default function NotificationsIndex() {
         subtitle="Send Firebase notifications to selected audiences. Only checked audience groups with registered devices will receive the push."
       />
 
-      <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm dark:border-slate-800 dark:bg-indigo-600">
         <Smartphone className={`h-4 w-4 ${firebaseConfigured ? 'text-emerald-500' : 'text-amber-500'}`} />
         <span className={firebaseConfigured ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}>
           {firebaseConfigured
@@ -174,7 +174,7 @@ export default function NotificationsIndex() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_1.4fr]">
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <div className="mb-5 flex items-center gap-2">
             <Send className="h-4 w-4 text-primary" />
             <h2 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
@@ -236,7 +236,7 @@ export default function NotificationsIndex() {
           </form>
         </section>
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <div className="mb-5 flex items-center gap-2">
             <Bell className="h-4 w-4 text-primary" />
             <h2 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">
@@ -276,7 +276,7 @@ export default function NotificationsIndex() {
                           delivery.tone === 'emerald'
                             ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
                             : delivery.tone === 'rose'
-                              ? 'bg-rose-100 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300'
+                              ? 'bg-rose-100 text-rose-700 dark:bg-indigo-600/10 dark:text-rose-300'
                               : 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'
                         }`}
                       >
@@ -299,3 +299,4 @@ export default function NotificationsIndex() {
     </div>
   );
 }
+

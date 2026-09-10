@@ -1,7 +1,7 @@
-import React from 'react';
+﻿import React from 'react';
 import { Sun, Moon } from 'lucide-react';
 
-// Canonical merged ThemeToggle — PARTIAL merge.
+// Canonical merged ThemeToggle â€” PARTIAL merge.
 // student/teacher/parent each read from a *different* React Context
 // (student's own ThemeContext, TeacherThemeContext, ParentThemeContext)
 // because every portal mounts its own independent theme provider in
@@ -13,7 +13,7 @@ import { Sun, Moon } from 'lucide-react';
 export const ThemeToggleBase = ({ theme, toggleTheme, id }) => (
   <button
     onClick={toggleTheme}
-    className="p-2 rounded-xl border border-border hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors"
+    className="p-2 rounded-xl border border-border hover:bg-slate-100 dark:hover:bg-indigo-600 text-slate-500 dark:text-slate-400 transition-colors"
     aria-label="Toggle theme"
     id={id}
   >
@@ -32,3 +32,4 @@ export const createThemeToggle = (useThemeHook, id) => {
 };
 
 export default ThemeToggleBase;
+

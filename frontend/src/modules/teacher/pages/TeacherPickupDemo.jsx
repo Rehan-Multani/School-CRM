@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+﻿import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ShieldCheck, Loader2, X, CheckCircle2, RotateCcw, LogIn } from 'lucide-react';
 import { teacherPickupApi } from '../../../shared/api/client';
 
 /**
- * STAGING DEMO — drives the real Student Safe Pickup API from the mock teacher
+ * STAGING DEMO â€” drives the real Student Safe Pickup API from the mock teacher
  * web panel. Logs in for real (its own token), lists eligible students, and runs
- * initiate → OTP → verify → handover → complete. Production teacher UI is the
+ * initiate â†’ OTP â†’ verify â†’ handover â†’ complete. Production teacher UI is the
  * Flutter APK; this page just proves the end-to-end flow.
  */
 function msg(e, fb) {
@@ -57,7 +57,7 @@ function Sheet({ children, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={onClose}>
       <div
-        className="w-full max-w-md rounded-t-2xl bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl dark:bg-slate-900 sm:rounded-2xl"
+        className="w-full max-w-md rounded-t-2xl bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl dark:bg-indigo-600 sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {children}
@@ -202,21 +202,21 @@ export function TeacherPickupDemo() {
       <div className="mx-auto max-w-sm space-y-4 p-6">
         <div className="flex items-center gap-2 text-emerald-600">
           <ShieldCheck className="h-6 w-6" />
-          <h1 className="text-lg font-bold">Safe Pickup — demo</h1>
+          <h1 className="text-lg font-bold">Safe Pickup â€” demo</h1>
         </div>
         <p className="text-sm text-slate-500">Staging demo. Sign in with a real teacher account.</p>
         <input
           value={creds.identifier}
           onChange={(e) => setCreds((c) => ({ ...c, identifier: e.target.value }))}
           placeholder="teacher email / employee id"
-          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-600 dark:bg-indigo-600"
         />
         <input
           type="password"
           value={creds.password}
           onChange={(e) => setCreds((c) => ({ ...c, password: e.target.value }))}
           placeholder="password"
-          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-600 dark:bg-indigo-600"
         />
         {error && <p className="text-sm text-rose-600">{error}</p>}
         <button
@@ -268,17 +268,17 @@ export function TeacherPickupDemo() {
             return (
               <li
                 key={s.id}
-                className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800/50"
+                className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-indigo-600/50"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-slate-700 dark:text-slate-100">{s.name}</p>
                   <p className="text-xs text-slate-400">
-                    {[s.className, s.sectionName].filter(Boolean).join(' ')} · Roll {s.rollNumber || '—'} ·{' '}
+                    {[s.className, s.sectionName].filter(Boolean).join(' ')} Â· Roll {s.rollNumber || 'â€”'} Â·{' '}
                     {s.attendanceStatus}
                   </p>
                 </div>
                 {s.alreadyPickedUpToday ? (
-                  <span className="shrink-0 rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-500 dark:bg-slate-700">
+                  <span className="shrink-0 rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-500 dark:bg-indigo-600">
                     Picked up
                   </span>
                 ) : (
@@ -286,7 +286,7 @@ export function TeacherPickupDemo() {
                     type="button"
                     disabled={blocked}
                     onClick={() => startPickup(s)}
-                    className="shrink-0 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:disabled:bg-slate-700"
+                    className="shrink-0 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 dark:disabled:bg-indigo-600"
                   >
                     Pickup
                   </button>
@@ -391,7 +391,7 @@ export function TeacherPickupDemo() {
               placeholder="e.g. Uncle Ramesh"
               value={handover.pickupPersonName}
               onChange={(e) => setHandover((h) => ({ ...h, pickupPersonName: e.target.value }))}
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-600 dark:bg-indigo-600"
             />
           </label>
           <label className="mb-3 block text-xs font-semibold text-slate-500">
@@ -399,7 +399,7 @@ export function TeacherPickupDemo() {
             <select
               value={handover.pickupPersonRelationship}
               onChange={(e) => setHandover((h) => ({ ...h, pickupPersonRelationship: e.target.value }))}
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800"
+              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm dark:border-slate-600 dark:bg-indigo-600"
             >
               {RELATIONSHIPS.map((r) => (
                 <option key={r}>{r}</option>
@@ -433,12 +433,12 @@ export function TeacherPickupDemo() {
             <CheckCircle2 className="mx-auto h-12 w-12 text-emerald-500" />
             <h2 className="mt-2 text-lg font-bold text-slate-800 dark:text-slate-100">Student pickup completed</h2>
             <p className="mt-1 text-sm text-slate-500">
-              {active.student.name} — verified by parent OTP and handed over.
+              {active.student.name} â€” verified by parent OTP and handed over.
             </p>
             <button
               type="button"
               onClick={cancel}
-              className="mt-5 w-full rounded-lg bg-slate-800 py-2.5 text-sm font-semibold text-white dark:bg-slate-100 dark:text-slate-900"
+              className="mt-5 w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white dark:bg-slate-100 dark:text-slate-900"
             >
               Done
             </button>
@@ -450,3 +450,4 @@ export function TeacherPickupDemo() {
 }
 
 export default TeacherPickupDemo;
+

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppStore } from '../store/useAppStore';
 import { 
@@ -47,7 +47,7 @@ export const UniversalLogin = () => {
       id: 'admin', 
       pass: 'admin123', 
       target: '/school-admin/dashboard', 
-      color: 'bg-blue-500/15 text-blue-200 border-blue-500/30 hover:bg-blue-500/25 hover:border-blue-400',
+      color: 'bg-indigo-500/15 text-blue-200 border-blue-500/30 hover:bg-indigo-500/25 hover:border-blue-400',
       isComplete: true 
     },
     { 
@@ -56,7 +56,7 @@ export const UniversalLogin = () => {
       id: 'accountant', 
       pass: 'accountant123', 
       target: '/accountant/dashboard', 
-      color: 'bg-blue-500/10 text-blue-200 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-400',
+      color: 'bg-indigo-500/10 text-blue-200 border-blue-500/30 hover:bg-indigo-500/20 hover:border-blue-400',
       isComplete: false 
     },
     { 
@@ -65,7 +65,7 @@ export const UniversalLogin = () => {
       id: 'librarian', 
       pass: 'lib123', 
       target: '/librarian/dashboard', 
-      color: 'bg-blue-500/10 text-blue-200 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-400',
+      color: 'bg-indigo-500/10 text-blue-200 border-blue-500/30 hover:bg-indigo-500/20 hover:border-blue-400',
       isComplete: true 
     },
     { 
@@ -74,7 +74,7 @@ export const UniversalLogin = () => {
       id: 'hr', 
       pass: 'hr123', 
       target: '/hr/dashboard', 
-      color: 'bg-blue-500/10 text-blue-200 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-400',
+      color: 'bg-indigo-500/10 text-blue-200 border-blue-500/30 hover:bg-indigo-500/20 hover:border-blue-400',
       isComplete: false 
     },
     { 
@@ -83,7 +83,7 @@ export const UniversalLogin = () => {
       id: 'principal', 
       pass: 'principal123', 
       target: '/principal/dashboard', 
-      color: 'bg-blue-500/10 text-blue-200 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-400',
+      color: 'bg-indigo-500/10 text-blue-200 border-blue-500/30 hover:bg-indigo-500/20 hover:border-blue-400',
       isComplete: false 
     }
   ];
@@ -95,7 +95,7 @@ export const UniversalLogin = () => {
       id: 'rajesh.sharma@gmail.com', 
       pass: 'password123', 
       target: '/parent/dashboard', 
-      color: 'bg-blue-500/10 text-blue-200 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-400',
+      color: 'bg-indigo-500/10 text-blue-200 border-blue-500/30 hover:bg-indigo-500/20 hover:border-blue-400',
       isComplete: false 
     },
     { 
@@ -104,7 +104,7 @@ export const UniversalLogin = () => {
       id: 'STU108902', 
       pass: 'password123', 
       target: '/student/dashboard', 
-      color: 'bg-blue-500/10 text-blue-200 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-400',
+      color: 'bg-indigo-500/10 text-blue-200 border-blue-500/30 hover:bg-indigo-500/20 hover:border-blue-400',
       isComplete: false 
     },
     { 
@@ -113,7 +113,7 @@ export const UniversalLogin = () => {
       id: 'EMP101', 
       pass: 'password123', 
       target: '/teacher/dashboard', 
-      color: 'bg-blue-500/15 text-blue-200 border-blue-500/30 hover:bg-blue-500/25 hover:border-blue-400',
+      color: 'bg-indigo-500/15 text-blue-200 border-blue-500/30 hover:bg-indigo-500/25 hover:border-blue-400',
       isComplete: false 
     },
     { 
@@ -122,7 +122,7 @@ export const UniversalLogin = () => {
       id: 'transport', 
       pass: 'transport123', 
       target: '/transport/dashboard', 
-      color: 'bg-blue-500/10 text-blue-200 border-blue-500/30 hover:bg-blue-500/20 hover:border-blue-400',
+      color: 'bg-indigo-500/10 text-blue-200 border-blue-500/30 hover:bg-indigo-500/20 hover:border-blue-400',
       isComplete: false 
     }
   ];
@@ -269,7 +269,7 @@ export const UniversalLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-slate-900 text-slate-100 font-sans">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-indigo-600 text-slate-100 font-sans">
       {/* Left Brand Visual Panel */}
       <div className="lg:w-1/2 p-8 lg:p-14 flex flex-col justify-between bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 border-b lg:border-b-0 lg:border-r border-slate-800">
         <div>
@@ -299,9 +299,9 @@ export const UniversalLogin = () => {
         <div className="mt-8 pt-5 border-t border-slate-800 space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-              <span>⚡</span> Quick Demo Accounts (1-Click Switch)
+              <span>âš¡</span> Quick Demo Accounts (1-Click Switch)
             </span>
-            <span className="text-[10px] text-slate-400 font-semibold bg-slate-800/80 px-2 py-0.5 rounded-full border border-slate-700/60">
+            <span className="text-[10px] text-slate-400 font-semibold bg-indigo-600/80 px-2 py-0.5 rounded-full border border-slate-700/60">
               Web & App Split
             </span>
           </div>
@@ -376,7 +376,7 @@ export const UniversalLogin = () => {
       <div className="lg:w-1/2 p-8 lg:p-14 flex items-center justify-center bg-slate-950">
         <div className="w-full max-w-md space-y-6">
           <div>
-            <span className="mb-2.5 inline-flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-blue-500/20 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-blue-300 shadow-sm">
+            <span className="mb-2.5 inline-flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-indigo-500/20 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-blue-300 shadow-sm">
               <Globe className="h-3.5 w-3.5 text-blue-400" />
               UNIVERSAL LOGIN (ALL ROLES)
             </span>
@@ -385,7 +385,7 @@ export const UniversalLogin = () => {
           </div>
 
           {error && (
-            <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs font-semibold text-rose-400 flex items-center gap-2">
+            <div className="p-3 bg-indigo-600/10 border border-rose-500/30 rounded-xl text-xs font-semibold text-rose-400 flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -404,7 +404,7 @@ export const UniversalLogin = () => {
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="e.g. STU108902, EMP101, or admin"
                   required
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full bg-indigo-600 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
                 />
               </div>
             </div>
@@ -428,7 +428,7 @@ export const UniversalLogin = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   required
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+                  className="w-full bg-indigo-600 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
                 />
               </div>
             </div>
@@ -436,7 +436,7 @@ export const UniversalLogin = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
+              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-50"
             >
               {isLoading ? (
                 <span>Authenticating Credentials...</span>
@@ -450,7 +450,7 @@ export const UniversalLogin = () => {
           </form>
 
           {/* Dedicated Panel Direct Links */}
-          <div className="p-4 bg-slate-900/70 border border-slate-800 rounded-2xl space-y-3 text-xs">
+          <div className="p-4 bg-indigo-600/70 border border-slate-800 rounded-2xl space-y-3 text-xs">
             <div className="flex items-center justify-between text-slate-300">
               <span className="font-bold uppercase tracking-wider text-[11px] text-slate-400">Direct Portal Login Pages:</span>
               <span className="text-[10px] text-blue-400 font-semibold">Zero Confusion</span>
@@ -459,22 +459,22 @@ export const UniversalLogin = () => {
             <div className="space-y-1.5">
               <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Web Panels:</div>
               <div className="flex flex-wrap gap-1.5">
-                <Link to="/school-admin/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                <Link to="/school-admin/login" className="px-2 py-1 rounded-md bg-indigo-600 border border-slate-700 text-blue-300 hover:bg-indigo-600 hover:text-white transition-colors text-[11px]">
                   School Admin
                 </Link>
-                <Link to="/principal/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                <Link to="/principal/login" className="px-2 py-1 rounded-md bg-indigo-600 border border-slate-700 text-blue-300 hover:bg-indigo-600 hover:text-white transition-colors text-[11px]">
                   Principal
                 </Link>
-                <Link to="/accountant/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                <Link to="/accountant/login" className="px-2 py-1 rounded-md bg-indigo-600 border border-slate-700 text-blue-300 hover:bg-indigo-600 hover:text-white transition-colors text-[11px]">
                   Accountant
                 </Link>
-                <Link to="/hr/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                <Link to="/hr/login" className="px-2 py-1 rounded-md bg-indigo-600 border border-slate-700 text-blue-300 hover:bg-indigo-600 hover:text-white transition-colors text-[11px]">
                   HR & Staff
                 </Link>
-                <Link to="/librarian/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                <Link to="/librarian/login" className="px-2 py-1 rounded-md bg-indigo-600 border border-slate-700 text-blue-300 hover:bg-indigo-600 hover:text-white transition-colors text-[11px]">
                   Librarian
                 </Link>
-                <Link to="/transport/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                <Link to="/transport/login" className="px-2 py-1 rounded-md bg-indigo-600 border border-slate-700 text-blue-300 hover:bg-indigo-600 hover:text-white transition-colors text-[11px]">
                   Transport
                 </Link>
               </div>
@@ -483,13 +483,13 @@ export const UniversalLogin = () => {
             <div className="space-y-1.5 pt-1 border-t border-slate-800/60">
               <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Mobile App Portals:</div>
               <div className="flex flex-wrap gap-1.5">
-                <Link to="/teacher/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                <Link to="/teacher/login" className="px-2 py-1 rounded-md bg-indigo-600 border border-slate-700 text-blue-300 hover:bg-indigo-600 hover:text-white transition-colors text-[11px]">
                   Teacher Portal
                 </Link>
-                <Link to="/student/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                <Link to="/student/login" className="px-2 py-1 rounded-md bg-indigo-600 border border-slate-700 text-blue-300 hover:bg-indigo-600 hover:text-white transition-colors text-[11px]">
                   Student Portal
                 </Link>
-                <Link to="/parent/login" className="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors text-[11px]">
+                <Link to="/parent/login" className="px-2 py-1 rounded-md bg-indigo-600 border border-slate-700 text-blue-300 hover:bg-indigo-600 hover:text-white transition-colors text-[11px]">
                   Parent Portal
                 </Link>
               </div>
@@ -498,10 +498,10 @@ export const UniversalLogin = () => {
         </div>
       </div>
 
-      {/* Forgot Password OTP Modal (FRD §6.2) */}
+      {/* Forgot Password OTP Modal (FRD Â§6.2) */}
       {forgotModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl">
+          <div className="bg-indigo-600 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl">
             <div className="flex justify-between items-start">
               <div>
                 <h4 className="text-lg font-black text-white">Reset Account Password</h4>
@@ -511,7 +511,7 @@ export const UniversalLogin = () => {
                 onClick={() => setForgotModalOpen(false)}
                 className="text-slate-500 hover:text-slate-300 text-xs font-bold"
               >
-                ✕
+                âœ•
               </button>
             </div>
 
@@ -587,3 +587,5 @@ export const UniversalLogin = () => {
   );
 };
 export default UniversalLogin;
+
+

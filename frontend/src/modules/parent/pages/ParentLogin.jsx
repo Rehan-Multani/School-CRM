@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { GraduationCap, ArrowRight, ShieldAlert, Eye, EyeOff, LayoutGrid } from 'lucide-react';
@@ -40,7 +40,7 @@ export const ParentLogin = () => {
 
   return (
     <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950">
-      {/* Left Panel — Brand / Illustration */}
+      {/* Left Panel â€” Brand / Illustration */}
       <div className="hidden lg:flex flex-col justify-between w-1/2 bg-gradient-to-br from-primary via-indigo-600 to-accent p-12 relative overflow-hidden">
         <div className="absolute right-0 top-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
         <div className="absolute left-0 bottom-0 w-80 h-80 bg-secondary/20 rounded-full blur-3xl -ml-20 -mb-20" />
@@ -72,11 +72,11 @@ export const ParentLogin = () => {
 
         {/* Bottom tagline */}
         <div className="relative">
-          <p className="text-white/50 text-[11px] font-medium">© 2025 School Management. All rights reserved.</p>
+          <p className="text-white/50 text-[11px] font-medium">Â© 2025 School Management. All rights reserved.</p>
         </div>
       </div>
 
-      {/* Right Panel — Login Form */}
+      {/* Right Panel â€” Login Form */}
       <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-10">
         {/* Mobile brand */}
         <div className="lg:hidden flex items-center gap-3 mb-8">
@@ -92,7 +92,7 @@ export const ParentLogin = () => {
         <div className="w-full max-w-md">
           <div className="mb-6">
             {/* Prominent Role Identifier Badge */}
-            <span className="mb-2.5 inline-flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-blue-500/10 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 shadow-sm">
+            <span className="mb-2.5 inline-flex items-center gap-1.5 rounded-full border border-blue-500/40 bg-indigo-500/10 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-blue-600 dark:text-blue-400 shadow-sm">
               <GraduationCap className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400" />
               PARENT PORTAL
             </span>
@@ -101,7 +101,7 @@ export const ParentLogin = () => {
           </div>
 
           {error && (
-            <div className="flex items-center gap-2.5 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 p-3.5 rounded-2xl text-xs font-medium mb-6">
+            <div className="flex items-center gap-2.5 bg-indigo-600/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 p-3.5 rounded-2xl text-xs font-medium mb-6">
               <ShieldAlert className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -118,7 +118,7 @@ export const ParentLogin = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="e.g. rajesh.sharma@gmail.com"
-                className="w-full px-4 py-3 rounded-2xl border border-border bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
+                className="w-full px-4 py-3 rounded-2xl border border-border bg-white dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
                 id="parent-login-email"
               />
             </div>
@@ -133,8 +133,8 @@ export const ParentLogin = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full px-4 py-3 pr-11 rounded-2xl border border-border bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  className="w-full px-4 py-3 pr-11 rounded-2xl border border-border bg-white dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
                   id="parent-login-password"
                 />
                 <button
@@ -176,14 +176,14 @@ export const ParentLogin = () => {
             className="w-full border-2 border-primary/30 text-primary dark:border-primary/40 py-3 rounded-2xl text-sm font-bold transition-all duration-150 active:scale-95 select-none hover:bg-primary/5"
             id="parent-quick-login"
           >
-            🚀 Demo Parent Account Sign In
+            ðŸš€ Demo Parent Account Sign In
           </button>
 
           <div className="mt-6 flex flex-col items-center gap-1.5 text-center">
             <div className="flex items-center gap-1.5 text-xs text-slate-400">
               <span>Looking for another panel?</span>
               <Link to="/login" className="inline-flex items-center gap-1 font-semibold text-primary hover:underline">
-                <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals →
+                <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals â†’
               </Link>
             </div>
           </div>
@@ -194,3 +194,4 @@ export const ParentLogin = () => {
 };
 
 export default ParentLogin;
+

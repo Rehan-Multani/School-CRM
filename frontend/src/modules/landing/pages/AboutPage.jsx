@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+﻿import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Building2, Layers, Radio, ShieldCheck } from 'lucide-react';
 import Reveal from '../components/Reveal';
@@ -13,12 +13,12 @@ const PILLARS = [
   {
     icon: ShieldCheck,
     title: 'Multi-tenant by architecture',
-    body: 'Each school is an isolated tenant. Access is checked per tenant and per role at the API gateway, so one school’s staff can never see another school’s students, fees or academic records.',
+    body: 'Each school is an isolated tenant. Access is checked per tenant and per role at the API gateway, so one schoolâ€™s staff can never see another schoolâ€™s students, fees or academic records.',
   },
   {
     icon: Building2,
     title: 'It looks like your school',
-    body: 'Your logo, favicon and primary colour propagate into every portal and the app. Parents and staff see your school’s identity, not ours.',
+    body: 'Your logo, favicon and primary colour propagate into every portal and the app. Parents and staff see your schoolâ€™s identity, not ours.',
   },
   {
     icon: Radio,
@@ -29,7 +29,7 @@ const PILLARS = [
 
 export const AboutPage = () => {
   useEffect(() => {
-    document.title = `About — ${PRODUCT.name}`;
+    document.title = `About â€” ${PRODUCT.name}`;
   }, []);
 
   return (
@@ -51,7 +51,7 @@ export const AboutPage = () => {
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-400 sm:text-lg">
               {PRODUCT.name} is a multi-tenant school management platform. One system carries
               admissions, academics, attendance, examinations, fees, communication, library,
-              transport and HR — with a dedicated portal for every role and a single app for
+              transport and HR â€” with a dedicated portal for every role and a single app for
               the people who are rarely at a desk.
             </p>
           </Reveal>
@@ -62,7 +62,7 @@ export const AboutPage = () => {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {STATS.map((stat, i) => (
             <Reveal key={stat.label} delay={i * 0.04}>
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 text-center dark:border-slate-800 dark:bg-slate-900">
+              <div className="rounded-2xl border border-slate-200 bg-white p-5 text-center dark:border-slate-800 dark:bg-indigo-600">
                 <p className="text-3xl font-black text-slate-900 dark:text-white">{stat.value}</p>
                 <p className="mt-1 text-sm font-bold text-slate-700 dark:text-slate-300">{stat.label}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-500">{stat.hint}</p>
@@ -76,7 +76,7 @@ export const AboutPage = () => {
             const Icon = pillar.icon;
             return (
               <Reveal key={pillar.title} delay={i * 0.04}>
-                <div className="flex h-full gap-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
+                <div className="flex h-full gap-4 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-indigo-600">
                   <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300">
                     <Icon className="h-5 w-5" />
                   </span>
@@ -92,7 +92,7 @@ export const AboutPage = () => {
           })}
         </div>
 
-        <Reveal className="mt-14 rounded-2xl border border-slate-200 bg-slate-50 p-7 dark:border-slate-800 dark:bg-slate-900/50 sm:p-9">
+        <Reveal className="mt-14 rounded-2xl border border-slate-200 bg-slate-50 p-7 dark:border-slate-800 dark:bg-indigo-600/50 sm:p-9">
           <h2 className="text-xl font-black text-slate-900 dark:text-white">Who signs in where</h2>
           <div className="mt-5 grid gap-6 md:grid-cols-2">
             <div>
@@ -134,11 +134,11 @@ export const AboutPage = () => {
           </p>
         </Reveal>
 
-        <Reveal className="mt-14 flex flex-col items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-7 dark:border-slate-800 dark:bg-slate-900 sm:flex-row sm:items-center">
+        <Reveal className="mt-14 flex flex-col items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-7 dark:border-slate-800 dark:bg-indigo-600 sm:flex-row sm:items-center">
           <div>
             <h2 className="text-lg font-black text-slate-900 dark:text-white">Want a walkthrough?</h2>
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-              We’ll show you the portals with your school’s data in mind.
+              Weâ€™ll show you the portals with your schoolâ€™s data in mind.
             </p>
           </div>
           <Link
@@ -154,3 +154,4 @@ export const AboutPage = () => {
 };
 
 export default AboutPage;
+

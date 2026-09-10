@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Modal } from './Modal';
 import { AlertTriangle } from 'lucide-react';
 import { cn } from '../lib/cn';
 
-// Canonical merged ConfirmDialog — superset of gen-2 (HR/accountant/
+// Canonical merged ConfirmDialog â€” superset of gen-2 (HR/accountant/
 // librarian/principal/school-admin/transport, prop names onClose/
 // confirmText/cancelText) and gen-1 (teacher/parent, prop names
 // onCancel/confirmLabel/cancelLabel). Both naming conventions are
@@ -35,11 +35,11 @@ export const ConfirmDialog = ({
   const activeVariant = confirmVariant || variant;
 
   const colorVariants = {
-    danger: 'bg-rose-600 hover:bg-rose-700 focus:ring-rose-500 text-white',
-    warning: 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500 text-white',
+    danger: 'bg-indigo-600 hover:bg-indigo-500 focus:ring-rose-500 text-white',
+    warning: 'bg-indigo-600 hover:bg-indigo-500 focus:ring-amber-500 text-white',
     info: 'bg-sky-600 hover:bg-sky-700 focus:ring-sky-500 text-white',
     primary: 'bg-primary hover:bg-primary-hover focus:ring-primary text-white',
-    success: 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500 text-white',
+    success: 'bg-indigo-600 hover:bg-indigo-500 focus:ring-emerald-500 text-white',
   };
 
   const iconVariants = {
@@ -130,3 +130,4 @@ export const ConfirmDialog = ({
 };
 
 export default ConfirmDialog;
+

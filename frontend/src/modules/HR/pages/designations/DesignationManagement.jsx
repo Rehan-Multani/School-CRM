@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Modal } from '../../components/ui/Modal';
@@ -182,7 +182,7 @@ export const DesignationManagement = () => {
             <button
               onClick={loadData}
               disabled={loading}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
               title="Refresh"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -199,7 +199,7 @@ export const DesignationManagement = () => {
       />
 
       {/* Search & Filter Bar */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1 min-w-[240px]">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
@@ -238,7 +238,7 @@ export const DesignationManagement = () => {
       </div>
 
       {/* Data Table */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
         {loading ? (
           <SkeletonTable rows={5} columns={5} />
         ) : filteredDesignations.length === 0 ? (
@@ -278,7 +278,7 @@ export const DesignationManagement = () => {
 
                       <td className="p-4 text-slate-600 dark:text-slate-300">
                         {desig.departmentName ? (
-                          <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold inline-flex items-center gap-1.5">
+                          <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-indigo-600 text-slate-700 dark:text-slate-300 text-xs font-bold inline-flex items-center gap-1.5">
                             <Building className="w-3 h-3 text-slate-400" />
                             <span>{desig.departmentName}</span>
                           </span>
@@ -312,7 +312,7 @@ export const DesignationManagement = () => {
                             className={`rounded-lg p-1.5 transition-colors ${
                               isActive
                                 ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
-                                : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-indigo-600'
                             }`}
                             title={isActive ? 'Deactivate' : 'Activate'}
                           >
@@ -416,7 +416,7 @@ export const DesignationManagement = () => {
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer"
+              className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-indigo-600 cursor-pointer"
             >
               Cancel
             </button>
@@ -448,3 +448,4 @@ export const DesignationManagement = () => {
 };
 
 export default DesignationManagement;
+

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useAnnouncements } from '../hooks/useStudentHooks';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -24,7 +24,7 @@ export const StudentAnnouncements = () => {
             className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap select-none transition-colors ${
               filter === cat 
                 ? 'bg-primary text-white shadow-premium' 
-                : 'bg-card border border-border text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-900'
+                : 'bg-card border border-border text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-indigo-600'
             }`}
           >
             {cat}s
@@ -58,3 +58,4 @@ export const StudentAnnouncements = () => {
     </div>
   );
 };
+

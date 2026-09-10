@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -47,22 +47,22 @@ export const ChildrenManagement = () => {
                 <div>
                   <h3 className="text-sm font-extrabold text-foreground">{c.name}</h3>
                   <p className="text-xs text-slate-400 font-medium mt-0.5">{c.class} - Section {c.section}</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Roll No: {c.rollNo} • ID: {c.id}</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Roll No: {c.rollNo} â€¢ ID: {c.id}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-2 border-t border-border pt-4 text-center">
-                <div className="p-2 bg-slate-50 dark:bg-slate-900 rounded-xl">
+                <div className="p-2 bg-slate-50 dark:bg-indigo-600 rounded-xl">
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Attendance</p>
-                  <p className="text-xs font-black text-foreground mt-0.5">{att?.overallPercentage || '—'}%</p>
+                  <p className="text-xs font-black text-foreground mt-0.5">{att?.overallPercentage || 'â€”'}%</p>
                 </div>
-                <div className="p-2 bg-slate-50 dark:bg-slate-900 rounded-xl">
+                <div className="p-2 bg-slate-50 dark:bg-indigo-600 rounded-xl">
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Pending Fees</p>
-                  <p className="text-xs font-black text-rose-500 mt-0.5">₹{fee?.pendingFees || '0'}</p>
+                  <p className="text-xs font-black text-rose-500 mt-0.5">â‚¹{fee?.pendingFees || '0'}</p>
                 </div>
-                <div className="p-2 bg-slate-50 dark:bg-slate-900 rounded-xl">
+                <div className="p-2 bg-slate-50 dark:bg-indigo-600 rounded-xl">
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">GPA</p>
-                  <p className="text-xs font-black text-indigo-500 mt-0.5">{res?.gpa || '—'}</p>
+                  <p className="text-xs font-black text-indigo-500 mt-0.5">{res?.gpa || 'â€”'}</p>
                 </div>
               </div>
 
@@ -77,3 +77,4 @@ export const ChildrenManagement = () => {
     </div>
   );
 };
+

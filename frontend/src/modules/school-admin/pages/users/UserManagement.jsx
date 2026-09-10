@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
@@ -124,7 +124,7 @@ function exportUsersToCSV(users) {
     'Designation',
     'Specialization',
     'Joining Date',
-    'Basic Salary (₹)',
+    'Basic Salary (â‚¹)',
     'Status',
     'Bank Name',
     'Account Number',
@@ -142,7 +142,7 @@ function exportUsersToCSV(users) {
     `"${u.designation || ''}"`,
     `"${u.specialization || ''}"`,
     `"${u.joiningDate ? new Date(u.joiningDate).toLocaleDateString() : ''}"`,
-    `"${u.basicSalary ? `₹${Number(u.basicSalary).toLocaleString('en-IN')}` : '₹0'}"`,
+    `"${u.basicSalary ? `â‚¹${Number(u.basicSalary).toLocaleString('en-IN')}` : 'â‚¹0'}"`,
     `"${u.status || ''}"`,
     `"${u.bankDetails?.bankName || ''}"`,
     `"${u.bankDetails?.accountNumber || ''}"`,
@@ -477,7 +477,7 @@ export const UserManagement = () => {
 
       {/* Top Metric Cards */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">Total Staff</span>
             <Users className="h-4 w-4 text-primary" />
@@ -487,7 +487,7 @@ export const UserManagement = () => {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">Active Staff</span>
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
@@ -495,7 +495,7 @@ export const UserManagement = () => {
           <p className="mt-2 text-2xl font-black text-emerald-600">{stats.active || 0}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">HR & Accounts</span>
             <Briefcase className="h-4 w-4 text-indigo-500" />
@@ -505,7 +505,7 @@ export const UserManagement = () => {
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500">Library & Transport</span>
             <Building2 className="h-4 w-4 text-amber-500" />
@@ -528,7 +528,7 @@ export const UserManagement = () => {
             className={`rounded-xl px-4 py-2 text-xs font-bold transition ${
               selectedRoleTab === tab.id
                 ? 'bg-primary text-white shadow-sm'
-                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'
+                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-indigo-600'
             }`}
           >
             {tab.label}
@@ -537,7 +537,7 @@ export const UserManagement = () => {
       </div>
 
       {/* Search & Status Filters */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
         <div className="relative min-w-[260px] flex-1">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
@@ -580,7 +580,7 @@ export const UserManagement = () => {
       </div>
 
       {/* Users Data Table */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-indigo-600">
         {loading ? (
           <SkeletonTable rows={6} columns={6} />
         ) : users.length === 0 ? (
@@ -622,7 +622,7 @@ export const UserManagement = () => {
                   return (
                     <tr
                       key={user.id}
-                      className="group transition hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
+                      className="group transition hover:bg-slate-50/80 dark:hover:bg-indigo-600/40"
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2.5">
@@ -660,12 +660,12 @@ export const UserManagement = () => {
                       </td>
 
                       <td className="px-3 py-3">
-                        <p className="font-semibold text-slate-800 dark:text-slate-200">{user.department || '—'}</p>
+                        <p className="font-semibold text-slate-800 dark:text-slate-200">{user.department || 'â€”'}</p>
                         <p className="text-[10px] text-slate-400">{user.designation || 'Staff'}</p>
                       </td>
 
                       <td className="px-3 py-3 font-medium text-slate-600 dark:text-slate-300">
-                        {user.phone || '—'}
+                        {user.phone || 'â€”'}
                       </td>
 
                       <td className="px-3 py-3">
@@ -678,7 +678,7 @@ export const UserManagement = () => {
                         <div className="flex items-center justify-end gap-1">
                           <Link
                             to={`/school-admin/users/${user.id}`}
-                            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-primary dark:hover:bg-slate-800"
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-primary dark:hover:bg-indigo-600"
                             title="View Full Profile"
                           >
                             <Eye className="h-4 w-4" />
@@ -686,7 +686,7 @@ export const UserManagement = () => {
 
                           <button
                             onClick={() => handleOpenEditModal(user)}
-                            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-amber-600 dark:hover:bg-slate-800"
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-amber-600 dark:hover:bg-indigo-600"
                             title="Edit User"
                           >
                             <Edit3 className="h-4 w-4" />
@@ -700,7 +700,7 @@ export const UserManagement = () => {
                               setShowNewPassword(false);
                               setShowConfirmPassword(false);
                             }}
-                            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-amber-500 dark:hover:bg-slate-800"
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-amber-500 dark:hover:bg-indigo-600"
                             title="Change Password"
                           >
                             <Key className="h-4 w-4" />
@@ -708,7 +708,7 @@ export const UserManagement = () => {
 
                           <button
                             onClick={() => handleSendCredentials(user)}
-                            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-sky-600 dark:hover:bg-slate-800"
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-sky-600 dark:hover:bg-indigo-600"
                             title="Send Password to Email"
                           >
                             <Send className="h-4 w-4" />
@@ -716,7 +716,7 @@ export const UserManagement = () => {
 
                           <button
                             onClick={() => handleToggleStatus(user)}
-                            className={`rounded-lg p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 ${
+                            className={`rounded-lg p-1.5 hover:bg-slate-100 dark:hover:bg-indigo-600 ${
                               user.status === 'ACTIVE' ? 'text-amber-500' : 'text-emerald-500'
                             }`}
                             title={user.status === 'ACTIVE' ? 'Deactivate User' : 'Activate User'}
@@ -763,7 +763,7 @@ export const UserManagement = () => {
                   type="button"
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={pagination.page <= 1}
-                  className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                  className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-indigo-600"
                 >
                   <ChevronLeft className="h-4 w-4" /> Prev
                 </button>
@@ -777,7 +777,7 @@ export const UserManagement = () => {
                       className={`h-8 w-8 rounded-xl text-xs font-bold transition-all ${
                         p === pagination.page
                           ? 'bg-primary text-white shadow-sm shadow-primary/30'
-                          : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
+                          : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-indigo-600'
                       }`}
                     >
                       {p}
@@ -789,7 +789,7 @@ export const UserManagement = () => {
                   type="button"
                   onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                   disabled={pagination.page >= pagination.totalPages}
-                  className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+                  className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-indigo-600"
                 >
                   Next <ChevronRight className="h-4 w-4" />
                 </button>
@@ -813,7 +813,7 @@ export const UserManagement = () => {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-2 border-slate-200 bg-white shadow-sm transition hover:border-primary dark:border-slate-700 dark:bg-slate-900"
+                className="group relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border-2 border-slate-200 bg-white shadow-sm transition hover:border-primary dark:border-slate-700 dark:bg-indigo-600"
                 title="Click to select profile photo"
               >
                 {photoPreview ? (
@@ -919,7 +919,7 @@ export const UserManagement = () => {
                     type={showFormPassword ? 'text' : 'password'}
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    placeholder={editingUser ? '••••••••' : 'Min 6 characters'}
+                    placeholder={editingUser ? 'â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢' : 'Min 6 characters'}
                     required={!editingUser}
                     minLength={6}
                     className={`${inputClass} pr-10`}
@@ -1079,7 +1079,7 @@ export const UserManagement = () => {
 
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="mb-1 block text-[11px] font-bold text-slate-500">Basic Salary (₹ / Month)</label>
+                <label className="mb-1 block text-[11px] font-bold text-slate-500">Basic Salary (â‚¹ / Month)</label>
                 <input
                   type="number"
                   min="0"
@@ -1188,14 +1188,14 @@ export const UserManagement = () => {
                 onClick={() => docInputRef.current?.click()}
                 className="group flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/70 p-6 text-center transition hover:border-primary hover:bg-primary/5 dark:border-slate-700 dark:bg-slate-950/50 dark:hover:border-primary dark:hover:bg-primary/10"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm transition group-hover:scale-110 group-hover:bg-primary group-hover:text-white dark:bg-slate-900">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm transition group-hover:scale-110 group-hover:bg-primary group-hover:text-white dark:bg-indigo-600">
                   <UploadCloud className="h-6 w-6 text-primary group-hover:text-white" />
                 </div>
                 <h5 className="mt-3 text-xs font-bold text-slate-800 dark:text-slate-200">
                   Click to Browse & Upload Documents
                 </h5>
                 <p className="mt-1 max-w-sm text-[11px] text-slate-500 dark:text-slate-400">
-                  Attach Aadhaar, PAN Card, Qualification Degrees, or Identity Proof (JPG, PNG, WebP — Max 5MB each)
+                  Attach Aadhaar, PAN Card, Qualification Degrees, or Identity Proof (JPG, PNG, WebP â€” Max 5MB each)
                 </p>
                 <button
                   type="button"
@@ -1219,7 +1219,7 @@ export const UserManagement = () => {
                   return (
                     <div
                       key={`exist-${idx}`}
-                      className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+                      className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm dark:border-slate-800 dark:bg-indigo-600"
                     >
                       <div className="relative h-28 w-full overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-950">
                         {url ? (
@@ -1232,7 +1232,7 @@ export const UserManagement = () => {
                         <button
                           type="button"
                           onClick={() => handleRemoveExistingDoc(doc)}
-                          className="absolute right-1.5 top-1.5 rounded-lg bg-rose-500 p-1 text-white shadow-sm transition hover:bg-rose-600"
+                          className="absolute right-1.5 top-1.5 rounded-lg bg-indigo-600 p-1 text-white shadow-sm transition hover:bg-indigo-600"
                           title="Remove document"
                         >
                           <X className="h-3.5 w-3.5" />
@@ -1260,7 +1260,7 @@ export const UserManagement = () => {
                         <button
                           type="button"
                           onClick={() => handleRemoveNewDoc(idx)}
-                          className="absolute right-1.5 top-1.5 rounded-lg bg-rose-500 p-1 text-white shadow-sm transition hover:bg-rose-600"
+                          className="absolute right-1.5 top-1.5 rounded-lg bg-indigo-600 p-1 text-white shadow-sm transition hover:bg-indigo-600"
                           title="Remove document"
                         >
                           <X className="h-3.5 w-3.5" />
@@ -1284,7 +1284,7 @@ export const UserManagement = () => {
             <button
               type="button"
               onClick={() => setCreateModalOpen(false)}
-              className="rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-indigo-600"
             >
               Cancel
             </button>
@@ -1373,7 +1373,7 @@ export const UserManagement = () => {
               <button
                 type="button"
                 onClick={() => setPasswordModalUser(null)}
-                className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-indigo-600"
               >
                 Cancel
               </button>
@@ -1407,3 +1407,4 @@ export const UserManagement = () => {
 };
 
 export default UserManagement;
+

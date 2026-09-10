@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStudentAuth } from '../context/StudentAuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -79,14 +79,14 @@ export const StudentSettings = () => {
                 <span className="font-bold text-foreground block">Portal Interface Theme</span>
                 <span className="text-[10px] text-slate-400 block mt-0.5">Switch between dark and light themes</span>
               </div>
-              <div className="flex bg-slate-100 dark:bg-slate-900 rounded-xl p-1 shrink-0 border border-border">
+              <div className="flex bg-slate-100 dark:bg-indigo-600 rounded-xl p-1 shrink-0 border border-border">
                 {['light', 'dark'].map((t) => (
                   <button
                     key={t}
                     onClick={() => setTheme(t)}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-bold capitalize select-none transition-all ${
                       theme === t 
-                        ? 'bg-white dark:bg-slate-800 text-foreground shadow-sm' 
+                        ? 'bg-white dark:bg-indigo-600 text-foreground shadow-sm' 
                         : 'text-slate-500 hover:text-foreground'
                     }`}
                   >
@@ -105,11 +105,11 @@ export const StudentSettings = () => {
               <select
                 value={language}
                 onChange={(e) => setLanguage(e.target.value)}
-                className="px-3 py-2 rounded-xl border border-border bg-slate-50 dark:bg-slate-900 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="px-3 py-2 rounded-xl border border-border bg-slate-50 dark:bg-indigo-600 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="English">English</option>
-                <option value="Hindi">हिन्दी (Hindi)</option>
-                <option value="Spanish">Español (Spanish)</option>
+                <option value="Hindi">à¤¹à¤¿à¤¨à¥à¤¦à¥€ (Hindi)</option>
+                <option value="Spanish">EspaÃ±ol (Spanish)</option>
               </select>
             </div>
           </div>
@@ -129,7 +129,7 @@ export const StudentSettings = () => {
                 <button
                   onClick={() => handleTogglePreference(key)}
                   className={`w-10 h-6 rounded-full p-1 transition-colors duration-200 shrink-0 ${
-                    enabled ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700'
+                    enabled ? 'bg-primary' : 'bg-slate-300 dark:bg-indigo-600'
                   }`}
                 >
                   <div className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ${
@@ -161,8 +161,8 @@ export const StudentSettings = () => {
                 required
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs"
+                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-50 dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs"
               />
             </div>
 
@@ -175,8 +175,8 @@ export const StudentSettings = () => {
                 required
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs"
+                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-50 dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs"
               />
             </div>
 
@@ -189,8 +189,8 @@ export const StudentSettings = () => {
                 required
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs"
+                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                className="w-full px-4 py-2.5 rounded-xl border border-border bg-slate-50 dark:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-xs"
               />
             </div>
 
@@ -204,14 +204,14 @@ export const StudentSettings = () => {
         </Card>
 
         {/* Danger zone log out */}
-        <Card className="p-6 border border-rose-500/20 bg-rose-500/5">
+        <Card className="p-6 border border-rose-500/20 bg-indigo-600/5">
           <h3 className="text-xs font-bold text-rose-500 uppercase tracking-wider mb-3">Session Management</h3>
           <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
             Signing out will clear local authentication token states. Securely close browser sessions.
           </p>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 bg-rose-500 hover:bg-rose-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition-all active:scale-95 duration-100 select-none"
+            className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition-all active:scale-95 duration-100 select-none"
           >
             <LogOut className="w-4 h-4" />
             <span>Sign Out Session</span>
@@ -222,3 +222,5 @@ export const StudentSettings = () => {
     </div>
   );
 };
+
+

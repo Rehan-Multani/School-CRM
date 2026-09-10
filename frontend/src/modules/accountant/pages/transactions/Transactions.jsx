@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ServerTable } from '../../components/ui/ServerTable';
 import { Tabs } from '../../components/ui/Tabs';
@@ -77,7 +77,7 @@ export const Transactions = () => {
       { key: 'date', title: 'Date', render: (r) => formatDate(r.date) },
       { key: 'party', title: 'Party / Note', render: (r) => (
         <div>
-          <p className="font-bold text-slate-900 dark:text-white">{r.party || '—'}</p>
+          <p className="font-bold text-slate-900 dark:text-white">{r.party || 'â€”'}</p>
           <p className="text-[10px] text-slate-400 truncate max-w-xs">{r.note}</p>
         </div>
       ) },
@@ -87,7 +87,7 @@ export const Transactions = () => {
           className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${
             r.direction === 'CREDIT'
               ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-              : 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
+              : 'bg-indigo-600/15 text-rose-600 dark:text-rose-400'
           }`}
         >
           {r.direction === 'CREDIT' ? '+ INFLOW' : '- OUTFLOW'}
@@ -117,7 +117,7 @@ export const Transactions = () => {
               exportToCSV(rows, `transactions_${new Date().toISOString().split('T')[0]}.csv`);
               showToast('Current page exported to CSV', 'success');
             }}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs"
           >
             <Download className="w-4 h-4" /> Export
           </button>
@@ -134,14 +134,14 @@ export const Transactions = () => {
           <input
             value={filters.search}
             onChange={(e) => set({ search: e.target.value })}
-            placeholder="Search ref, party, note…"
-            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold outline-none focus:border-violet-500"
+            placeholder="Search ref, party, noteâ€¦"
+            className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold outline-none focus:border-violet-500"
           />
         </div>
         <select
           value={filters.paymentMethod}
           onChange={(e) => set({ paymentMethod: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
         >
           <option value="">All Methods</option>
           {PAYMENT_METHODS.map((m) => (
@@ -156,14 +156,14 @@ export const Transactions = () => {
             type="date"
             value={filters.dateFrom}
             onChange={(e) => set({ dateFrom: e.target.value })}
-            className="h-10 px-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs"
+            className="h-10 px-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs"
           />
         </label>
         <input
           type="date"
           value={filters.dateTo}
           onChange={(e) => set({ dateTo: e.target.value })}
-          className="h-10 px-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
+          className="h-10 px-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
         />
       </div>
 
@@ -179,7 +179,7 @@ export const Transactions = () => {
       />
 
       {detail && (
-        <Modal isOpen onClose={() => setDetail(null)} title={`Transaction — ${detail.transactionId || detail.receiptNumber || detail.expenseNumber || ''}`} size="md">
+        <Modal isOpen onClose={() => setDetail(null)} title={`Transaction â€” ${detail.transactionId || detail.receiptNumber || detail.expenseNumber || ''}`} size="md">
           <div className="space-y-4 text-xs">
             <div className="grid grid-cols-2 gap-3">
               <Info label="Type" value={detail.type} />
@@ -187,7 +187,7 @@ export const Transactions = () => {
               <Info label="Amount" value={formatCurrency(detail.amount)} />
               <Info label="Method" value={detail.paymentMethod} />
               <Info label="Status" value={detail.status} />
-              <Info label="Reference" value={detail.paymentReference || detail.reference || '—'} />
+              <Info label="Reference" value={detail.paymentReference || detail.reference || 'â€”'} />
               {detail.student && <Info label="Student" value={detail.student.name} />}
               {detail.invoice && <Info label="Invoice" value={`${detail.invoice.invoiceNumber} (${detail.invoice.periodLabel})`} />}
               {detail.vendorName && <Info label="Vendor" value={detail.vendorName} />}
@@ -201,7 +201,7 @@ export const Transactions = () => {
                     <li key={i} className="flex justify-between">
                       <span className="font-semibold text-slate-600 dark:text-slate-300">{t.label}</span>
                       <span className="text-slate-400">
-                        {formatDate(t.at)} {t.by ? `• ${t.by}` : ''}
+                        {formatDate(t.at)} {t.by ? `â€¢ ${t.by}` : ''}
                       </span>
                     </li>
                   ))}
@@ -220,8 +220,10 @@ export const Transactions = () => {
 const Info = ({ label, value }) => (
   <div>
     <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</span>
-    <span className="font-bold text-slate-800 dark:text-slate-200">{value ?? '—'}</span>
+    <span className="font-bold text-slate-800 dark:text-slate-200">{value ?? 'â€”'}</span>
   </div>
 );
 
 export default Transactions;
+
+

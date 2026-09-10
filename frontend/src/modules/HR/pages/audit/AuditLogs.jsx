@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
 import { hrApi } from '../../../../shared/api/client';
@@ -71,7 +71,7 @@ export const AuditLogs = () => {
           events.push({
             id: `PAY-REL-${p.id}`,
             user: 'Finance / HR Operations',
-            action: `Disbursed monthly salary of ₹${p.netSalary} to ${p.employeeName} (${p.month})`,
+            action: `Disbursed monthly salary of â‚¹${p.netSalary} to ${p.employeeName} (${p.month})`,
             date: p.updatedAt ? new Date(p.updatedAt).toLocaleString() : 'Recent',
             type: 'PAYROLL_RELEASED',
           });
@@ -137,7 +137,7 @@ export const AuditLogs = () => {
             <button
               onClick={fetchAuditTrail}
               disabled={loading}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
               title="Refresh"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -173,7 +173,7 @@ export const AuditLogs = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Audit Events</span>
             <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">{logs.length}</div>
@@ -184,7 +184,7 @@ export const AuditLogs = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Leave Approvals</span>
             <div className="text-2xl font-black text-emerald-600 mt-1">
@@ -197,7 +197,7 @@ export const AuditLogs = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-purple-600 uppercase tracking-wider">Payroll Releases</span>
             <div className="text-2xl font-black text-purple-600 mt-1">
@@ -210,7 +210,7 @@ export const AuditLogs = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider">Onboarding Events</span>
             <div className="text-2xl font-black text-blue-600 mt-1">
@@ -225,7 +225,7 @@ export const AuditLogs = () => {
       </div>
 
       {/* Search & Event Filters */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div className="relative flex-1 min-w-[240px]">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
@@ -256,13 +256,13 @@ export const AuditLogs = () => {
       {loading ? (
         <SkeletonTable rows={8} columns={4} />
       ) : filteredLogs.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-3 shadow-xs">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-3 shadow-xs">
           <ClipboardList className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-700" />
           <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">No audit events found</h4>
           <p className="text-xs max-w-sm mx-auto">No records match your active search or filter criteria.</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200/80 dark:border-slate-800 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -322,3 +322,4 @@ export const AuditLogs = () => {
 };
 
 export default AuditLogs;
+

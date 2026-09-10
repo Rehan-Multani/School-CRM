@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { NAVIGATION_ITEMS } from '../../utils/constants';
 import { useStudentAuth } from '../../context/StudentAuthContext';
@@ -23,7 +23,7 @@ const NavItem = ({ item, isCollapsed }) => {
         isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5',
         isActive
           ? 'bg-primary/10 text-primary dark:bg-primary/20 font-semibold'
-          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-foreground dark:hover:text-slate-100'
+          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-indigo-600 hover:text-foreground dark:hover:text-slate-100'
       )}
     >
       <Icon className="h-[18px] w-[18px] shrink-0" />
@@ -134,7 +134,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isOpen, toggleSidebar }) 
         <div className="shrink-0 border-t border-slate-200 bg-white px-2 py-3 dark:border-slate-800 dark:bg-slate-950">
           <div
             className={cn(
-              'flex items-center rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-slate-800 dark:bg-slate-900/50',
+              'flex items-center rounded-lg border border-slate-200 bg-slate-50 p-2 dark:border-slate-800 dark:bg-indigo-600/50',
               isCollapsed ? 'justify-center' : 'gap-2.5'
             )}
           >
@@ -156,7 +156,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isOpen, toggleSidebar }) 
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-500/10 dark:hover:text-rose-400 cursor-pointer"
+                  className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-indigo-600/10 dark:hover:text-rose-400 cursor-pointer"
                   aria-label="Logout"
                 >
                   <LogOut className="h-4 w-4" />
@@ -169,7 +169,7 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isOpen, toggleSidebar }) 
             <button
               type="button"
               onClick={handleLogout}
-              className="mt-2 flex w-full items-center justify-center rounded-lg p-2 text-rose-500 transition-colors hover:bg-rose-50 dark:hover:bg-rose-500/10 cursor-pointer"
+              className="mt-2 flex w-full items-center justify-center rounded-lg p-2 text-rose-500 transition-colors hover:bg-rose-50 dark:hover:bg-indigo-600/10 cursor-pointer"
               aria-label="Logout"
             >
               <LogOut className="h-4 w-4" />
@@ -182,3 +182,4 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isOpen, toggleSidebar }) 
 };
 
 export default Sidebar;
+

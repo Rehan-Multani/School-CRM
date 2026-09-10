@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
@@ -333,7 +333,7 @@ export const SubjectsIndex = () => {
       />
 
       {/* Filters */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
         <div className="flex flex-wrap items-center gap-6">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold text-slate-500 shrink-0 select-none">Academic Year:</span>
@@ -417,9 +417,9 @@ export const SubjectsIndex = () => {
       </div>
 
       {loading ? (
-        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
           <table className="w-full text-left text-xs">
-            <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
+            <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-indigo-600/60 dark:text-slate-400">
               <tr>
                 <th className="w-12 px-3.5 py-3 text-center">#</th>
                 <th className="px-3.5 py-3">Subject</th>
@@ -433,13 +433,13 @@ export const SubjectsIndex = () => {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
               {Array.from({ length: 5 }).map((_, index) => (
                 <tr key={index} className="animate-pulse">
-                  <td className="w-12 px-3.5 py-3 text-center"><div className="mx-auto h-3.5 w-4 rounded bg-slate-100 dark:bg-slate-800" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-28 rounded bg-slate-100 dark:bg-slate-800" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-16 rounded bg-slate-100 dark:bg-slate-800" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-16 rounded bg-slate-100 dark:bg-slate-800" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-32 rounded bg-slate-100 dark:bg-slate-800" /></td>
-                  <td className="px-3.5 py-3"><div className="h-4 w-16 rounded bg-slate-100 dark:bg-slate-800" /></td>
-                  <td className="px-3.5 py-3 text-right"><div className="ml-auto h-7 w-16 rounded bg-slate-100 dark:bg-slate-800" /></td>
+                  <td className="w-12 px-3.5 py-3 text-center"><div className="mx-auto h-3.5 w-4 rounded bg-slate-100 dark:bg-indigo-600" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-28 rounded bg-slate-100 dark:bg-indigo-600" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-16 rounded bg-slate-100 dark:bg-indigo-600" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-16 rounded bg-slate-100 dark:bg-indigo-600" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-32 rounded bg-slate-100 dark:bg-indigo-600" /></td>
+                  <td className="px-3.5 py-3"><div className="h-4 w-16 rounded bg-slate-100 dark:bg-indigo-600" /></td>
+                  <td className="px-3.5 py-3 text-right"><div className="ml-auto h-7 w-16 rounded bg-slate-100 dark:bg-indigo-600" /></td>
                 </tr>
               ))}
             </tbody>
@@ -449,9 +449,9 @@ export const SubjectsIndex = () => {
         <EmptyState title="No subjects yet" description="Create subjects once and assign them to multiple sections." />
       ) : (
         <div className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
+              <thead className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-indigo-600/60 dark:text-slate-400">
                 <tr>
                   <th className="w-12 px-3.5 py-3 text-center">#</th>
                   <th className="px-3.5 py-3">Subject</th>
@@ -466,7 +466,7 @@ export const SubjectsIndex = () => {
                 {filteredSubjects.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE).map((subject, index) => {
                   const serialNo = (page - 1) * PAGE_SIZE + index + 1;
                   return (
-                    <tr key={subject.id} className="transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-900/50">
+                    <tr key={subject.id} className="transition-colors hover:bg-slate-50/80 dark:hover:bg-indigo-600/50">
                       <td className="w-12 px-3.5 py-3 text-center font-bold text-slate-400 text-xs">{serialNo}</td>
                       <td className="px-3.5 py-3 whitespace-nowrap">
                         <span className="font-bold text-slate-900 dark:text-white">{subject.name}</span>
@@ -480,7 +480,7 @@ export const SubjectsIndex = () => {
                             {subject.code}
                           </span>
                         ) : (
-                          <span className="text-slate-400">—</span>
+                          <span className="text-slate-400">â€”</span>
                         )}
                       </td>
                       <td className="px-3.5 py-3 whitespace-nowrap">
@@ -530,7 +530,7 @@ export const SubjectsIndex = () => {
           {/* Super Admin Style Pagination Bar */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-1">
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Showing {(page - 1) * PAGE_SIZE + 1}–
+              Showing {(page - 1) * PAGE_SIZE + 1}â€“
               {Math.min(page * PAGE_SIZE, filteredSubjects.length)} of {filteredSubjects.length} subjects
             </p>
             {Math.ceil(filteredSubjects.length / PAGE_SIZE) > 1 && (
@@ -539,7 +539,7 @@ export const SubjectsIndex = () => {
                   type="button"
                   disabled={page <= 1}
                   onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-slate-900"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-indigo-600"
                   aria-label="Previous page"
                 >
                   <ChevronLeft className="h-4 w-4" />
@@ -552,7 +552,7 @@ export const SubjectsIndex = () => {
                     className={`inline-flex h-9 min-w-9 items-center justify-center rounded-xl px-2.5 text-xs font-semibold transition ${
                       pageNumber === page
                         ? 'bg-indigo-600 text-white shadow-xs shadow-indigo-600/20'
-                        : 'border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-900'
+                        : 'border border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-indigo-600'
                     }`}
                   >
                     {pageNumber}
@@ -562,7 +562,7 @@ export const SubjectsIndex = () => {
                   type="button"
                   disabled={page >= Math.ceil(filteredSubjects.length / PAGE_SIZE)}
                   onClick={() => setPage((prev) => Math.min(Math.ceil(filteredSubjects.length / PAGE_SIZE), prev + 1))}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-slate-900"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-800 dark:hover:bg-indigo-600"
                   aria-label="Next page"
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -649,7 +649,7 @@ export const SubjectsIndex = () => {
                       );
                     })
                   )}
-                  <span className="ml-auto text-slate-400 text-[10px] select-none">▼</span>
+                  <span className="ml-auto text-slate-400 text-[10px] select-none">â–¼</span>
                 </div>
 
                 {dropdownOpen && (
@@ -667,12 +667,12 @@ export const SubjectsIndex = () => {
                                 : [...form.classIds, c.id];
                               setForm({ ...form, classIds: newIds });
                             }}
-                            className={`flex items-center justify-between w-full px-3 py-2 text-left text-xs font-semibold rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900 cursor-pointer select-none text-slate-800 dark:text-slate-200 ${
+                            className={`flex items-center justify-between w-full px-3 py-2 text-left text-xs font-semibold rounded-lg hover:bg-slate-50 dark:hover:bg-indigo-600 cursor-pointer select-none text-slate-800 dark:text-slate-200 ${
                               isChecked ? 'bg-primary/5 text-primary font-bold' : ''
                             }`}
                           >
                             <span>{c.name}</span>
-                            {isChecked && <span className="text-primary font-extrabold text-sm">✓</span>}
+                            {isChecked && <span className="text-primary font-extrabold text-sm">âœ“</span>}
                           </button>
                         );
                       })}
@@ -694,7 +694,7 @@ export const SubjectsIndex = () => {
                 className={`rounded-lg px-4 py-2 text-xs font-semibold transition-colors ${
                   form.status === 'ACTIVE'
                     ? 'bg-emerald-500 text-white'
-                    : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-900'
+                    : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-indigo-600'
                 }`}
               >
                 Active
@@ -704,8 +704,8 @@ export const SubjectsIndex = () => {
                 onClick={() => setForm({ ...form, status: 'INACTIVE' })}
                 className={`rounded-lg px-4 py-2 text-xs font-semibold transition-colors ${
                   form.status === 'INACTIVE'
-                    ? 'bg-slate-700 text-white dark:bg-slate-600'
-                    : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-900'
+                    ? 'bg-indigo-600 text-white dark:bg-slate-600'
+                    : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-indigo-600'
                 }`}
               >
                 Inactive
@@ -740,3 +740,4 @@ export const SubjectsIndex = () => {
 };
 
 export default SubjectsIndex;
+

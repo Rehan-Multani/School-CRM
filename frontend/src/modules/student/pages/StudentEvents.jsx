@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useEvents } from '../hooks/useStudentHooks';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -78,7 +78,7 @@ export const StudentEvents = () => {
           <div className="grid grid-cols-7 gap-2">
             {/* Days padding */}
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={`pad-${i}`} className="aspect-square bg-slate-50/20 dark:bg-slate-900/10 rounded-xl"></div>
+              <div key={`pad-${i}`} className="aspect-square bg-slate-50/20 dark:bg-indigo-600/10 rounded-xl"></div>
             ))}
             
             {/* Calendar Days */}
@@ -92,12 +92,12 @@ export const StudentEvents = () => {
                   key={day} 
                   className={`aspect-square flex flex-col items-center justify-center rounded-xl font-bold text-xs relative ${
                     isEvent ? 'border border-primary text-primary' : 
-                    isHoliday ? 'border border-rose-500 text-rose-500 bg-rose-500/5' : 'text-slate-700 dark:text-slate-300'
+                    isHoliday ? 'border border-rose-500 text-rose-500 bg-indigo-600/5' : 'text-slate-700 dark:text-slate-300'
                   }`}
                 >
                   <span>{day}</span>
                   {isEvent && <span className="absolute bottom-1 w-1.5 h-1.5 bg-primary rounded-full"></span>}
-                  {isHoliday && <span className="absolute bottom-1 w-1.5 h-1.5 bg-rose-500 rounded-full"></span>}
+                  {isHoliday && <span className="absolute bottom-1 w-1.5 h-1.5 bg-indigo-600 rounded-full"></span>}
                 </div>
               );
             })}
@@ -108,3 +108,4 @@ export const StudentEvents = () => {
     </div>
   );
 };
+

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Avatar } from '../components/ui/Avatar';
@@ -76,7 +76,7 @@ export const TeacherMessages = () => {
                   key={msg.id}
                   onClick={() => handleOpenConv(msg)}
                   className={cn(
-                    "w-full flex items-center gap-3 p-4 border-b border-border hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors text-left",
+                    "w-full flex items-center gap-3 p-4 border-b border-border hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors text-left",
                     activeConv === msg.id && "bg-primary/5 border-l-2 border-l-primary"
                   )}
                   id={`msg-conv-${msg.id}`}
@@ -84,7 +84,7 @@ export const TeacherMessages = () => {
                   <div className="relative shrink-0">
                     <Avatar src={msg.photo} name={msg.name} size="md" />
                     {msg.unread > 0 && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full text-[9px] font-black flex items-center justify-center">
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-indigo-600 text-white rounded-full text-[9px] font-black flex items-center justify-center">
                         {msg.unread}
                       </span>
                     )}
@@ -121,7 +121,7 @@ export const TeacherMessages = () => {
               <div className="flex items-center gap-3 p-4 border-b border-border bg-card">
                 <button
                   onClick={() => setIsMobileChat(false)}
-                  className="md:hidden p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                  className="md:hidden p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-xl transition-colors"
                 >
                   <ArrowLeft className="w-4 h-4" />
                 </button>
@@ -143,7 +143,7 @@ export const TeacherMessages = () => {
                       "max-w-[75%] px-4 py-2.5 rounded-2xl text-xs",
                       chat.sender === 'me'
                         ? "bg-primary text-white rounded-br-md"
-                        : "bg-slate-100 dark:bg-slate-800 text-foreground rounded-bl-md"
+                        : "bg-slate-100 dark:bg-indigo-600 text-foreground rounded-bl-md"
                     )}>
                       <p className="leading-relaxed">{chat.text}</p>
                       <p className={cn("text-[9px] mt-1 text-right", chat.sender === 'me' ? "text-white/70" : "text-slate-400")}>
@@ -166,7 +166,7 @@ export const TeacherMessages = () => {
                     onKeyDown={handleKeyDown}
                     placeholder="Type a message..."
                     rows={1}
-                    className="flex-1 px-4 py-2.5 rounded-2xl border border-border bg-slate-50 dark:bg-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                    className="flex-1 px-4 py-2.5 rounded-2xl border border-border bg-slate-50 dark:bg-indigo-600 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
                     id="message-input"
                   />
                   <button
@@ -194,3 +194,4 @@ export const TeacherMessages = () => {
     </div>
   );
 };
+

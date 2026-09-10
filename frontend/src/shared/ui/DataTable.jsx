@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import {
   Search,
   ChevronDown,
@@ -226,7 +226,7 @@ export const DataTable = ({
   return (
     <div className="space-y-4">
       {/* Top Filter & Controls Card */}
-      <div className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-3xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-indigo-600">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           {/* Search Box */}
           <div className="relative min-w-[280px] flex-1">
@@ -287,7 +287,7 @@ export const DataTable = ({
                 <span>Columns</span>
               </button>
               {showColumnToggle && (
-                <div className="absolute right-0 z-30 mt-2 w-48 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl dark:border-slate-800 dark:bg-slate-900">
+                <div className="absolute right-0 z-30 mt-2 w-48 rounded-2xl border border-slate-200 bg-white p-3 shadow-xl dark:border-slate-800 dark:bg-indigo-600">
                   <span className="mb-2 block border-b border-slate-100 pb-1 text-[10px] font-black uppercase tracking-wider text-slate-400 dark:border-slate-800">
                     Visible Columns
                   </span>
@@ -364,7 +364,7 @@ export const DataTable = ({
       )}
 
       {/* Table Main View */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+      <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-indigo-600">
         <div className="w-full overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
@@ -386,7 +386,7 @@ export const DataTable = ({
                     onClick={() => handleSort(col)}
                     className={cn(
                       'px-4 py-4 font-bold select-none',
-                      col.sortable && 'cursor-pointer hover:bg-slate-100/50 dark:hover:bg-slate-800/40',
+                      col.sortable && 'cursor-pointer hover:bg-slate-100/50 dark:hover:bg-indigo-600/40',
                       col.align === 'center' && 'text-center',
                       col.align === 'right' && 'text-right'
                     )}
@@ -420,22 +420,22 @@ export const DataTable = ({
                   <tr key={idx} className="animate-pulse">
                     {showBulkCheckboxes && (
                       <td className="px-4 py-3.5 text-center">
-                        <div className="mx-auto h-4 w-4 rounded bg-slate-100 dark:bg-slate-800" />
+                        <div className="mx-auto h-4 w-4 rounded bg-slate-100 dark:bg-indigo-600" />
                       </td>
                     )}
                     {enableIndex && (
                       <td className="px-3 py-3.5 text-center">
-                        <div className="mx-auto h-3 w-4 rounded bg-slate-100 dark:bg-slate-800" />
+                        <div className="mx-auto h-3 w-4 rounded bg-slate-100 dark:bg-indigo-600" />
                       </td>
                     )}
                     {activeColumns.map((c) => (
                       <td key={getKey(c)} className="px-4 py-3.5">
-                        <div className="h-4 w-2/3 rounded bg-slate-100 dark:bg-slate-800" />
+                        <div className="h-4 w-2/3 rounded bg-slate-100 dark:bg-indigo-600" />
                       </td>
                     ))}
                     {(onView || onEdit || onMore) && (
                       <td className="px-4 py-3.5">
-                        <div className="ml-auto h-4 w-12 rounded bg-slate-100 dark:bg-slate-800" />
+                        <div className="ml-auto h-4 w-12 rounded bg-slate-100 dark:bg-indigo-600" />
                       </td>
                     )}
                   </tr>
@@ -465,7 +465,7 @@ export const DataTable = ({
                       key={rowId}
                       onClick={() => onRowClick && onRowClick(row)}
                       className={cn(
-                        'transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-800/30',
+                        'transition-colors hover:bg-slate-50/70 dark:hover:bg-indigo-600/30',
                         onRowClick && 'cursor-pointer',
                         isSelected && 'bg-indigo-50/30 dark:bg-indigo-950/20'
                       )}
@@ -494,7 +494,7 @@ export const DataTable = ({
                             col.align === 'right' && 'text-right'
                           )}
                         >
-                          {col.render ? col.render(row[getKey(col)], row, serialNo) : row[getKey(col)] ?? '—'}
+                          {col.render ? col.render(row[getKey(col)], row, serialNo) : row[getKey(col)] ?? 'â€”'}
                         </td>
                       ))}
 
@@ -525,7 +525,7 @@ export const DataTable = ({
                               <button
                                 type="button"
                                 onClick={() => onMore(row)}
-                                className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                                className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 dark:hover:bg-indigo-600 cursor-pointer"
                                 title="More options"
                               >
                                 <MoreVertical className="h-3.5 w-3.5" />
@@ -580,7 +580,7 @@ export const DataTable = ({
                 type="button"
                 onClick={() => setCurrentPage(1)}
                 disabled={currentPage === 1}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:hover:bg-slate-900 cursor-pointer disabled:cursor-not-allowed"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:hover:bg-indigo-600 cursor-pointer disabled:cursor-not-allowed"
                 title="First Page"
               >
                 <ChevronsLeft className="h-3.5 w-3.5" />
@@ -589,7 +589,7 @@ export const DataTable = ({
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:hover:bg-slate-900 cursor-pointer disabled:cursor-not-allowed"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:hover:bg-indigo-600 cursor-pointer disabled:cursor-not-allowed"
                 title="Previous Page"
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
@@ -615,8 +615,8 @@ export const DataTable = ({
                     className={cn(
                       'flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition cursor-pointer',
                       isCurrent
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-900'
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-indigo-600'
                     )}
                   >
                     {page}
@@ -628,7 +628,7 @@ export const DataTable = ({
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:hover:bg-slate-900 cursor-pointer disabled:cursor-not-allowed"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:hover:bg-indigo-600 cursor-pointer disabled:cursor-not-allowed"
                 title="Next Page"
               >
                 <ChevronRight className="h-3.5 w-3.5" />
@@ -637,7 +637,7 @@ export const DataTable = ({
                 type="button"
                 onClick={() => setCurrentPage(totalPages)}
                 disabled={currentPage === totalPages}
-                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:hover:bg-slate-900 cursor-pointer disabled:cursor-not-allowed"
+                className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 disabled:opacity-30 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:hover:bg-indigo-600 cursor-pointer disabled:cursor-not-allowed"
                 title="Last Page"
               >
                 <ChevronsRight className="h-3.5 w-3.5" />
@@ -649,9 +649,9 @@ export const DataTable = ({
 
       {/* Floating bulk action drawer */}
       {selectedIds.size > 0 && hasBulkArray && (
-        <div className="fixed bottom-6 left-1/2 z-40 flex -translate-x-1/2 items-center gap-4 rounded-2xl border border-slate-800 bg-slate-900 px-5 py-3 text-white shadow-xl">
+        <div className="fixed bottom-6 left-1/2 z-40 flex -translate-x-1/2 items-center gap-4 rounded-2xl border border-slate-800 bg-indigo-600 px-5 py-3 text-white shadow-xl">
           <span className="text-xs font-bold text-indigo-400">{selectedIds.size} row(s) selected</span>
-          <div className="h-4 w-px bg-slate-800" />
+          <div className="h-4 w-px bg-indigo-600" />
           <div className="flex items-center gap-2">
             {bulkActions.map((action, idx) => {
               const ActionIcon = action.icon;
@@ -665,7 +665,7 @@ export const DataTable = ({
                   }}
                   className={cn(
                     'flex items-center gap-1.5 rounded-xl px-3.5 py-1.5 text-xs font-bold text-white transition cursor-pointer',
-                    action.variant === 'danger' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-slate-800 hover:bg-slate-700'
+                    action.variant === 'danger' ? 'bg-indigo-600 hover:bg-indigo-500' : 'bg-indigo-600 hover:bg-indigo-600'
                   )}
                 >
                   {ActionIcon && <ActionIcon className="h-3.5 w-3.5" />}
@@ -681,3 +681,5 @@ export const DataTable = ({
 };
 
 export default DataTable;
+
+

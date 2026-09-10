@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { FilterBar } from '../components/ui/FilterBar';
@@ -26,7 +26,7 @@ const FORMAT_ICONS = {
 
 const FORMAT_COLORS = {
   CSV: 'text-emerald-500 bg-emerald-500/10',
-  PDF: 'text-rose-500 bg-rose-500/10',
+  PDF: 'text-rose-500 bg-indigo-600/10',
   ZIP: 'text-amber-500 bg-amber-500/10',
 };
 
@@ -99,7 +99,7 @@ export const TeacherDownloads = () => {
                   </div>
                   <h4 className="text-xs font-bold text-foreground truncate">{dl.title}</h4>
                   <p className="text-[10px] text-slate-400 font-medium mt-1">
-                    Size: {dl.size} • Created: {dl.date}
+                    Size: {dl.size} â€¢ Created: {dl.date}
                   </p>
                 </div>
                 <button
@@ -117,3 +117,4 @@ export const TeacherDownloads = () => {
     </div>
   );
 };
+

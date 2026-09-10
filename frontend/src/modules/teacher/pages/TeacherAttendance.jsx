@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { FilterBar } from '../components/ui/FilterBar';
@@ -84,7 +84,7 @@ export const TeacherAttendance = () => {
               setAttendanceDate(e.target.value);
               setSubmitted(false);
             }}
-            className="px-3 py-1.5 text-xs font-semibold rounded-xl border border-border bg-white dark:bg-slate-900 text-foreground"
+            className="px-3 py-1.5 text-xs font-semibold rounded-xl border border-border bg-white dark:bg-indigo-600 text-foreground"
           />
           <button
             onClick={handleSubmit}
@@ -128,7 +128,7 @@ export const TeacherAttendance = () => {
 
       {tab === 'mark' && (
         <div className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 dark:bg-slate-900 border border-border rounded-2xl">
+          <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 dark:bg-indigo-600 border border-border rounded-2xl">
             <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
               Bulk Roll Call Actions ({classStudents.length} Students)
             </span>
@@ -152,14 +152,14 @@ export const TeacherAttendance = () => {
             {classStudents.map((st, idx) => {
               const currentStatus = attendance[st.id] || 'Present';
               return (
-                <div key={st.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                <div key={st.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/50 dark:hover:bg-indigo-600/40">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-xs font-bold text-indigo-600">
                       {idx + 1}
                     </div>
                     <div>
                       <h4 className="text-xs font-bold text-foreground">{st.name}</h4>
-                      <span className="text-[10px] text-slate-400 font-semibold">{st.admissionNo} • Roll #{st.rollNo || (100 + idx)}</span>
+                      <span className="text-[10px] text-slate-400 font-semibold">{st.admissionNo} â€¢ Roll #{st.rollNo || (100 + idx)}</span>
                     </div>
                   </div>
 
@@ -171,10 +171,10 @@ export const TeacherAttendance = () => {
                         className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                           currentStatus === stVal
                             ? stVal === 'Present' ? 'bg-emerald-600 text-white shadow-sm' :
-                              stVal === 'Absent' ? 'bg-rose-600 text-white shadow-sm' :
+                              stVal === 'Absent' ? 'bg-indigo-600 text-white shadow-sm' :
                               stVal === 'Late' ? 'bg-amber-600 text-white shadow-sm' :
-                              'bg-blue-600 text-white shadow-sm'
-                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                              'bg-indigo-600 text-white shadow-sm'
+                            : 'bg-slate-100 dark:bg-indigo-600 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
                         }`}
                       >
                         {stVal}
@@ -243,3 +243,4 @@ export const TeacherAttendance = () => {
   );
 };
 export default TeacherAttendance;
+

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+﻿import React, { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { CalendarClock } from 'lucide-react';
 import Reveal from './Reveal';
@@ -16,12 +16,12 @@ function formatDate(value, fallback) {
 
 const Skeleton = () => (
   <div className="mt-8 animate-pulse space-y-4">
-    <div className="h-8 w-2/3 rounded bg-slate-200 dark:bg-slate-800" />
+    <div className="h-8 w-2/3 rounded bg-slate-200 dark:bg-indigo-600" />
     {Array.from({ length: 8 }).map((_, i) => (
       <div key={i} className="space-y-2">
-        <div className="h-3.5 w-1/3 rounded bg-slate-200 dark:bg-slate-800" />
-        <div className="h-3 w-full rounded bg-slate-100 dark:bg-slate-800/70" />
-        <div className="h-3 w-5/6 rounded bg-slate-100 dark:bg-slate-800/70" />
+        <div className="h-3.5 w-1/3 rounded bg-slate-200 dark:bg-indigo-600" />
+        <div className="h-3 w-full rounded bg-slate-100 dark:bg-indigo-600/70" />
+        <div className="h-3 w-5/6 rounded bg-slate-100 dark:bg-indigo-600/70" />
       </div>
     ))}
   </div>
@@ -36,7 +36,7 @@ export const LegalPage = ({ docTitle, kicker, which, other }) => {
   const lastUpdated = formatDate(updatedAt, LEGAL_LAST_UPDATED);
 
   useEffect(() => {
-    document.title = `${docTitle} — ${PRODUCT.name}`;
+    document.title = `${docTitle} â€” ${PRODUCT.name}`;
   }, [docTitle]);
 
   return (
@@ -67,7 +67,7 @@ export const LegalPage = ({ docTitle, kicker, which, other }) => {
       )}
 
       <Reveal delay={0.12}>
-        <div className="mt-12 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm dark:border-slate-800 dark:bg-slate-900/50">
+        <div className="mt-12 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm dark:border-slate-800 dark:bg-indigo-600/50">
           <p className="text-slate-600 dark:text-slate-400">
             See also{' '}
             <Link to={other.to} className="font-bold text-indigo-600 dark:text-indigo-400">
@@ -86,3 +86,4 @@ export const LegalPage = ({ docTitle, kicker, which, other }) => {
 };
 
 export default LegalPage;
+

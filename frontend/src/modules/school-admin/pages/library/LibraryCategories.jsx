@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+﻿import React, { useCallback, useEffect, useState } from 'react';
 import { Plus, Pencil, Trash2, FolderTree } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
@@ -117,7 +117,7 @@ export const LibraryCategories = () => {
       <LibraryTabsNav />
 
       {categories.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-indigo-600">
           <FolderTree className="h-10 w-10 text-slate-300 dark:text-slate-700" />
           <h4 className="mt-3 text-sm font-bold text-slate-700 dark:text-slate-200">No categories found</h4>
           <p className="mt-1 max-w-sm text-xs text-slate-400">Add subject categories such as Science, Fiction or Reference to organize books.</p>
@@ -129,7 +129,7 @@ export const LibraryCategories = () => {
           searchKeys={['name', 'description']}
           columns={[
             { key: 'name', title: 'Category', sortable: true, render: (v) => <span className="font-bold text-slate-900 dark:text-white">{v}</span> },
-            { key: 'description', title: 'Description', render: (v) => v || '—' },
+            { key: 'description', title: 'Description', render: (v) => v || 'â€”' },
             { key: 'count', title: 'Books', sortable: true, render: (v) => <span className="font-black">{v || 0}</span> },
             { key: 'availableCopies', title: 'Available Copies', sortable: true },
             {
@@ -179,7 +179,7 @@ export const LibraryCategories = () => {
           <div className="flex justify-end gap-2.5 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setFormModalOpen(false)} className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 dark:border-slate-800 dark:text-slate-300">Cancel</button>
             <button type="submit" disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-primary/90 disabled:opacity-60">
-              {saving ? 'Saving…' : editing ? 'Save Changes' : 'Add Category'}
+              {saving ? 'Savingâ€¦' : editing ? 'Save Changes' : 'Add Category'}
             </button>
           </div>
         </form>
@@ -199,3 +199,4 @@ export const LibraryCategories = () => {
 };
 
 export default LibraryCategories;
+

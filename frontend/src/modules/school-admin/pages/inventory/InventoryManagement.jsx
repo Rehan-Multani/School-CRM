@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
 import { DataTable } from '../../components/ui/DataTable';
@@ -15,12 +15,12 @@ const inputCls =
 
 const CONDITIONS = ['NEW', 'GOOD', 'FAIR', 'POOR', 'DAMAGED'];
 const STATUSES = ['IN_STORE', 'ISSUED', 'UNDER_REPAIR', 'WRITTEN_OFF'];
-// ISSUED / WRITTEN_OFF follow from stock movements — only these two are a manual call.
+// ISSUED / WRITTEN_OFF follow from stock movements â€” only these two are a manual call.
 const MANUAL_STATUSES = ['IN_STORE', 'UNDER_REPAIR'];
 const STATUS_VARIANT = { IN_STORE: 'success', ISSUED: 'info', UNDER_REPAIR: 'warning', WRITTEN_OFF: 'danger' };
 
 function inr(n) {
-  return `₹${Number(n || 0).toLocaleString('en-IN')}`;
+  return `â‚¹${Number(n || 0).toLocaleString('en-IN')}`;
 }
 function toDateInput(v) {
   if (!v) return '';
@@ -236,7 +236,7 @@ export const InventoryManagement = () => {
     () => [
       { key: 'assetCode', title: 'Code', render: (v) => <span className="font-mono text-[11px] font-bold text-indigo-600">{v}</span> },
       { key: 'name', title: 'Asset', sortable: true, render: (v) => <span className="font-bold">{v}</span> },
-      { key: 'categoryName', title: 'Category', render: (v) => v || '—' },
+      { key: 'categoryName', title: 'Category', render: (v) => v || 'â€”' },
       {
         key: 'availableQuantity',
         title: 'Available / Total',
@@ -247,7 +247,7 @@ export const InventoryManagement = () => {
           </span>
         ),
       },
-      { key: 'location', title: 'Location', render: (v) => v || '—' },
+      { key: 'location', title: 'Location', render: (v) => v || 'â€”' },
       { key: 'totalValue', title: 'Value', render: (v) => inr(v) },
       { key: 'condition', title: 'Condition', render: (v) => <Badge variant={v === 'DAMAGED' || v === 'POOR' ? 'danger' : 'default'}>{v}</Badge> },
       { key: 'status', title: 'Status', render: (v) => <Badge variant={STATUS_VARIANT[v] || 'default'}>{v.replace('_', ' ')}</Badge> },
@@ -268,7 +268,7 @@ export const InventoryManagement = () => {
             <button
               type="button"
               onClick={() => openAssetEdit(row)}
-              className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
+              className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-indigo-600"
               title="Edit"
             >
               <Pencil size={15} />
@@ -291,8 +291,8 @@ export const InventoryManagement = () => {
   const catColumns = useMemo(
     () => [
       { key: 'name', title: 'Category', sortable: true, render: (v) => <span className="font-bold">{v}</span> },
-      { key: 'code', title: 'Code', render: (v) => v || '—' },
-      { key: 'description', title: 'Description', render: (v) => v || '—' },
+      { key: 'code', title: 'Code', render: (v) => v || 'â€”' },
+      { key: 'description', title: 'Description', render: (v) => v || 'â€”' },
       { key: 'assetCount', title: 'Assets', align: 'center' },
       {
         key: '_actions',
@@ -307,7 +307,7 @@ export const InventoryManagement = () => {
                 setCatForm({ name: row.name, code: row.code || '', description: row.description || '' });
                 setCatModal(true);
               }}
-              className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
+              className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-indigo-600"
               title="Edit"
             >
               <Pencil size={15} />
@@ -342,9 +342,9 @@ export const InventoryManagement = () => {
       },
       { key: 'qty', title: 'Qty', align: 'center' },
       { key: 'balanceAfter', title: 'Balance', align: 'center' },
-      { key: 'toWhom', title: 'To / From', render: (v) => v || '—' },
-      { key: 'byName', title: 'By', render: (v) => v || '—' },
-      { key: 'note', title: 'Note', render: (v) => v || '—' },
+      { key: 'toWhom', title: 'To / From', render: (v) => v || 'â€”' },
+      { key: 'byName', title: 'By', render: (v) => v || 'â€”' },
+      { key: 'note', title: 'Note', render: (v) => v || 'â€”' },
     ],
     []
   );
@@ -360,7 +360,7 @@ export const InventoryManagement = () => {
     <div className="space-y-6">
       <PageHeader
         title="Inventory & Assets"
-        subtitle="Track furniture, equipment and consumables — stock levels, issue/return and asset value."
+        subtitle="Track furniture, equipment and consumables â€” stock levels, issue/return and asset value."
         actions={
           tab === 'assets' ? (
             <button type="button" onClick={openAssetCreate} className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-white">
@@ -384,7 +384,7 @@ export const InventoryManagement = () => {
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {statCards.map((c) => (
-          <div key={c.label} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div key={c.label} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
             <div className={`mb-2 inline-flex h-9 w-9 items-center justify-center rounded-xl ${c.tone}`}>
               <c.icon className="h-4 w-4" />
             </div>
@@ -413,7 +413,7 @@ export const InventoryManagement = () => {
         </div>
       ) : tab === 'assets' ? (
         <>
-          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
             <select
               value={filters.categoryId}
               onChange={(e) => setFilters((f) => ({ ...f, categoryId: e.target.value }))}
@@ -484,7 +484,7 @@ export const InventoryManagement = () => {
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Category</label>
               <select className={inputCls} value={assetForm.categoryId} onChange={(e) => setAssetForm({ ...assetForm, categoryId: e.target.value })}>
-                <option value="">—</option>
+                <option value="">â€”</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
@@ -506,7 +506,7 @@ export const InventoryManagement = () => {
               <input placeholder="e.g. pcs" className={inputCls} value={assetForm.unit} onChange={(e) => setAssetForm({ ...assetForm, unit: e.target.value })} />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold text-slate-500">Unit Cost (₹)</label>
+              <label className="mb-1 block text-xs font-bold text-slate-500">Unit Cost (â‚¹)</label>
               <input placeholder="e.g. 2500" type="number" min="0" className={inputCls} value={assetForm.unitCost} onChange={(e) => setAssetForm({ ...assetForm, unitCost: e.target.value })} />
             </div>
           </div>
@@ -532,12 +532,12 @@ export const InventoryManagement = () => {
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Status</label>
               {editingAsset.issuedQuantity > 0 || editingAsset.status === 'WRITTEN_OFF' ? (
-                <div className="flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-slate-100/70 px-3.5 dark:border-slate-800 dark:bg-slate-900">
+                <div className="flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-slate-100/70 px-3.5 dark:border-slate-800 dark:bg-indigo-600">
                   <Badge variant={STATUS_VARIANT[editingAsset.status] || 'default'}>{editingAsset.status.replace('_', ' ')}</Badge>
                   <span className="text-[11px] text-slate-500">
                     {editingAsset.status === 'WRITTEN_OFF'
-                      ? 'Written off — status is final.'
-                      : `${editingAsset.issuedQuantity} unit(s) issued out — return them to change status.`}
+                      ? 'Written off â€” status is final.'
+                      : `${editingAsset.issuedQuantity} unit(s) issued out â€” return them to change status.`}
                   </span>
                 </div>
               ) : (
@@ -571,17 +571,17 @@ export const InventoryManagement = () => {
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setAssetModal(false)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>
             <button type="submit" disabled={savingAsset} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
-              {savingAsset ? 'Saving…' : editingAsset ? 'Update Asset' : 'Add Asset'}
+              {savingAsset ? 'Savingâ€¦' : editingAsset ? 'Update Asset' : 'Add Asset'}
             </button>
           </div>
         </form>
       </Modal>
 
       {/* MOVEMENT MODAL */}
-      <Modal isOpen={Boolean(moveModal)} onClose={() => setMoveModal(null)} title={`Stock Movement — ${moveModal?.name || ''}`}>
+      <Modal isOpen={Boolean(moveModal)} onClose={() => setMoveModal(null)} title={`Stock Movement â€” ${moveModal?.name || ''}`}>
         <form onSubmit={submitMove} className="space-y-4">
           <p className="text-xs font-semibold text-slate-500">
-            Available: <strong>{moveModal?.availableQuantity}</strong> · Issued: <strong>{moveModal?.issuedQuantity}</strong> · Total:{' '}
+            Available: <strong>{moveModal?.availableQuantity}</strong> Â· Issued: <strong>{moveModal?.issuedQuantity}</strong> Â· Total:{' '}
             <strong>{moveModal?.quantity}</strong> {moveModal?.unit}
           </p>
           <div className="grid grid-cols-2 gap-4">
@@ -616,7 +616,7 @@ export const InventoryManagement = () => {
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setMoveModal(null)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>
             <button type="submit" disabled={savingMove} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
-              {savingMove ? 'Saving…' : 'Record Movement'}
+              {savingMove ? 'Savingâ€¦' : 'Record Movement'}
             </button>
           </div>
         </form>
@@ -640,7 +640,7 @@ export const InventoryManagement = () => {
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setCatModal(false)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>
             <button type="submit" disabled={savingCat} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
-              {savingCat ? 'Saving…' : editingCat ? 'Update' : 'Create'}
+              {savingCat ? 'Savingâ€¦' : editingCat ? 'Update' : 'Create'}
             </button>
           </div>
         </form>
@@ -671,3 +671,4 @@ export const InventoryManagement = () => {
 };
 
 export default InventoryManagement;
+

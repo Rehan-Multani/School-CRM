@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+﻿import React, { createContext, useContext, useState, useCallback } from 'react';
 import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-react';
 import { cn } from '../lib/cn';
 
-// Canonical "global provider" Toast — Pattern B.
+// Canonical "global provider" Toast â€” Pattern B.
 // Used by librarian, transport, teacher and parent: mount <ToastProvider>
 // once near the app root, then call `const toast = useToast()` anywhere
 // beneath it and use `toast.success(msg)` / `.error()` / `.warning()` / `.info()`.
@@ -73,7 +73,7 @@ const ToastItem = ({ toast, onRemove }) => {
 
   return (
     <div className={cn(
-      "pointer-events-auto flex items-center gap-3 bg-white dark:bg-slate-900 border shadow-xl rounded-2xl px-4 py-3 animate-in slide-in-from-right-4 fade-in duration-300",
+      "pointer-events-auto flex items-center gap-3 bg-white dark:bg-indigo-600 border shadow-xl rounded-2xl px-4 py-3 animate-in slide-in-from-right-4 fade-in duration-300",
       styles[toast.type] || styles.info
     )}>
       {icons[toast.type] || icons.info}
@@ -89,3 +89,4 @@ const ToastItem = ({ toast, onRemove }) => {
 };
 
 export const useToast = () => useContext(ToastContext);
+

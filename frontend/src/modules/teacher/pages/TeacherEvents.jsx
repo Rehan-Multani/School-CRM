@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { FilterBar } from '../components/ui/FilterBar';
@@ -115,7 +115,7 @@ export const TeacherEvents = () => {
                       ? 'bg-primary text-white shadow-premium'
                       : hasEvent
                         ? 'bg-primary/10 text-primary border border-primary/20'
-                        : 'hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-400'
+                        : 'hover:bg-slate-50 dark:hover:bg-indigo-600 text-slate-600 dark:text-slate-400'
                   }`}
                 >
                   {day}
@@ -178,3 +178,4 @@ export const TeacherEvents = () => {
     </div>
   );
 };
+

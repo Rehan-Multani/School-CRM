@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { Card } from '../components/ui/Card';
@@ -67,7 +67,7 @@ export const ParentDashboard = () => {
 
   const quickActions = [
     { label: 'Switch Sibling', action: () => setShowSwitchModal(true), icon: Users, color: 'text-indigo-500 bg-indigo-500/10' },
-    { label: 'Pay Fees', action: () => navigate('/parent/fees'), icon: CreditCard, color: 'text-rose-500 bg-rose-500/10' },
+    { label: 'Pay Fees', action: () => navigate('/parent/fees'), icon: CreditCard, color: 'text-rose-500 bg-indigo-600/10' },
     { label: 'Child Profile', action: () => navigate('/parent/profile'), icon: User, color: 'text-sky-500 bg-sky-500/10' },
     { label: 'View Results', action: () => navigate('/parent/results'), icon: GraduationCap, color: 'text-purple-500 bg-purple-500/10' },
     { label: 'Message Teacher', action: () => navigate('/parent/messages'), icon: MessageSquare, color: 'text-emerald-500 bg-emerald-500/10' },
@@ -76,7 +76,7 @@ export const ParentDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* ── Hero Profile Section ── */}
+      {/* â”€â”€ Hero Profile Section â”€â”€ */}
       <Card className="bg-gradient-to-br from-primary via-indigo-600 to-accent text-white border-none p-6 shadow-premium relative overflow-hidden">
         <div className="absolute right-0 top-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16" />
         <div className="absolute left-1/3 bottom-0 w-36 h-36 bg-secondary/20 rounded-full blur-2xl -mb-10" />
@@ -93,7 +93,7 @@ export const ParentDashboard = () => {
               <Sparkles className="w-3.5 h-3.5 text-yellow-300 animate-pulse" />
             </div>
             <h1 className="text-lg sm:text-xl font-black mt-0 mb-0 tracking-tight text-white">{user?.name}</h1>
-            <p className="text-[11px] text-white/70 mt-1">{user?.occupation} • Linked Sibling Count: {user?.childrenCount || 0}</p>
+            <p className="text-[11px] text-white/70 mt-1">{user?.occupation} â€¢ Linked Sibling Count: {user?.childrenCount || 0}</p>
             
             {activeChildInfo && (
               <span className="inline-flex items-center gap-1.5 mt-3 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-[9px] font-black text-white uppercase tracking-wider">
@@ -104,7 +104,7 @@ export const ParentDashboard = () => {
         </div>
       </Card>
 
-      {/* ── Sibling Stats Dashboard Row ── */}
+      {/* â”€â”€ Sibling Stats Dashboard Row â”€â”€ */}
       {activeChildInfo && (
         <div>
           <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
@@ -129,10 +129,10 @@ export const ParentDashboard = () => {
             />
             <StatCard
               title="Outstanding Fees"
-              value={`₹${childFees?.pendingFees ?? 0}`}
+              value={`â‚¹${childFees?.pendingFees ?? 0}`}
               subtext="Pending payment balance"
               icon={CreditCard}
-              colorClass="bg-rose-500"
+              colorClass="bg-indigo-600"
               onClick={() => navigate('/parent/fees')}
             />
             <StatCard
@@ -147,7 +147,7 @@ export const ParentDashboard = () => {
         </div>
       )}
 
-      {/* ── Quick Actions ── */}
+      {/* â”€â”€ Quick Actions â”€â”€ */}
       <div>
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Quick Actions</h3>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
@@ -172,7 +172,7 @@ export const ParentDashboard = () => {
         </div>
       </div>
 
-      {/* ── Split Timetable & Circulars Info ── */}
+      {/* â”€â”€ Split Timetable & Circulars Info â”€â”€ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Today's Timetable */}
         <Card className="flex flex-col">
@@ -184,14 +184,14 @@ export const ParentDashboard = () => {
             </button>
           </div>
           {todayClasses.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-8">No Result — No periods scheduled today</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result â€” No periods scheduled today</p>
           ) : (
             <div className="space-y-3 flex-1 overflow-y-auto max-h-72 no-scrollbar">
               {todayClasses.map((cl, i) => (
-                <div key={i} className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-slate-50/50 dark:bg-slate-900/50">
+                <div key={i} className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-slate-50/50 dark:bg-indigo-600/50">
                   <div>
                     <h4 className="text-xs font-bold text-foreground leading-tight">{cl.subject}</h4>
-                    <span className="text-[10px] text-slate-400 mt-0.5 block">{cl.teacher} · Room {cl.room}</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">{cl.teacher} Â· Room {cl.room}</span>
                   </div>
                   <div className="text-right">
                     <Badge variant="info" className="text-[9px]">{cl.time}</Badge>
@@ -213,7 +213,7 @@ export const ParentDashboard = () => {
             </button>
           </div>
           <div className="space-y-3">
-            <p className="text-xs text-slate-400 text-center py-8">No Result — No circulars or notices</p>
+            <p className="text-xs text-slate-400 text-center py-8">No Result â€” No circulars or notices</p>
           </div>
         </Card>
       </div>
@@ -232,13 +232,13 @@ export const ParentDashboard = () => {
                     key={c.id}
                     onClick={() => { changeSelectedChild(c.id); setShowSwitchModal(false); }}
                     className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition-all text-left ${
-                      isActive ? 'bg-primary/5 border-primary' : 'bg-slate-50/50 dark:bg-slate-900/50 border-border hover:border-primary/20'
+                      isActive ? 'bg-primary/5 border-primary' : 'bg-slate-50/50 dark:bg-indigo-600/50 border-border hover:border-primary/20'
                     }`}
                   >
                     <img src={c.photo} alt={c.name} className="w-10 h-10 rounded-xl object-cover" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-foreground">{c.name}</p>
-                      <p className="text-[10px] text-slate-400 font-medium">{c.class} - {c.section} • Roll #{c.rollNo}</p>
+                      <p className="text-[10px] text-slate-400 font-medium">{c.class} - {c.section} â€¢ Roll #{c.rollNo}</p>
                     </div>
                   </button>
                 );
@@ -246,7 +246,7 @@ export const ParentDashboard = () => {
             </div>
             <button
               onClick={() => setShowSwitchModal(false)}
-              className="w-full mt-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-xs font-bold rounded-xl"
+              className="w-full mt-4 py-2.5 bg-slate-100 dark:bg-indigo-600 text-xs font-bold rounded-xl"
             >
               Cancel
             </button>
@@ -256,3 +256,4 @@ export const ParentDashboard = () => {
     </div>
   );
 };
+

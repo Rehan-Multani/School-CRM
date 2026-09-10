@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -121,7 +121,7 @@ export const ParentHomework = () => {
 
                         {/* Submission/Grade Information */}
                         {hw.submission && (
-                          <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-border space-y-2">
+                          <div className="p-3 bg-slate-50 dark:bg-indigo-600 rounded-2xl border border-border space-y-2">
                             <h5 className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Child's Submission</h5>
                             <div className="flex items-center justify-between text-xs">
                               <span className="font-semibold text-foreground truncate max-w-[200px]">{hw.submission.fileName}</span>
@@ -159,3 +159,4 @@ export const ParentHomework = () => {
     </div>
   );
 };
+

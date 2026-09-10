@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Download } from 'lucide-react';
 import { useAppConfig } from '../data/siteContent';
 
@@ -35,7 +35,7 @@ export const StoreBadges = ({ className = '' }) => {
         aria-disabled={playUnset || undefined}
         title={playUnset ? 'Google Play listing coming soon' : 'Open in Google Play'}
         onClick={playUnset ? (e) => e.preventDefault() : undefined}
-        className={`inline-flex items-center gap-3 rounded-xl bg-slate-900 px-4 py-2.5 text-white ring-1 ring-white/15 transition hover:bg-slate-800 ${
+        className={`inline-flex items-center gap-3 rounded-xl bg-indigo-600 px-4 py-2.5 text-white ring-1 ring-white/15 transition hover:bg-indigo-600 ${
           playUnset ? 'cursor-default' : ''
         }`}
       >
@@ -66,3 +66,4 @@ export const StoreBadges = ({ className = '' }) => {
 };
 
 export default StoreBadges;
+

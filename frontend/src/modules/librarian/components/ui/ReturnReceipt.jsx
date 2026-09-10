@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+﻿import React, { useRef } from 'react';
 import { formatDate, formatCurrency } from '../../utils/formatters';
 import { Printer, Library, CheckCircle } from 'lucide-react';
 
@@ -71,7 +71,7 @@ export const ReturnReceipt = ({ returnRecord, onClose }) => {
       <div className="p-6 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl flex justify-center">
         <div 
           ref={printRef} 
-          className="w-full max-w-[320px] p-5 bg-white dark:bg-slate-900 border border-slate-350 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl shadow-xs relative"
+          className="w-full max-w-[320px] p-5 bg-white dark:bg-indigo-600 border border-slate-350 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-mono text-xs rounded-xl shadow-xs relative"
         >
           {/* Print Stamp */}
           <div className="absolute top-16 right-4 rotate-12 border-2 border-emerald-500/40 text-emerald-500 text-3xs font-bold px-2 py-0.5 rounded uppercase tracking-wider select-none">
@@ -161,3 +161,4 @@ export const ReturnReceipt = ({ returnRecord, onClose }) => {
     </div>
   );
 };
+

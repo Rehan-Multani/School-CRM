@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
@@ -21,7 +21,7 @@ const ToggleSwitch = ({ checked, onChange, label, description }) => (
       aria-checked={checked}
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-        checked ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-700'
+        checked ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-indigo-600'
       }`}
     >
       <span
@@ -180,7 +180,7 @@ export const Settings = () => {
           <button
             onClick={fetchAll}
             disabled={loading}
-            className="p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-300 transition-colors"
+            className="p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-indigo-600 text-slate-600 dark:text-slate-300 transition-colors"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -194,7 +194,7 @@ export const Settings = () => {
         <SkeletonForm fields={6} />
       ) : activeTab === 'profile' ? (
         <form onSubmit={handleSaveProfile} className="space-y-6">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
+          <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
             <div className="flex items-center gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
               <img
                 src={user?.photoUrl || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face'}
@@ -203,7 +203,7 @@ export const Settings = () => {
               />
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">{user?.name || 'Librarian'}</h3>
-                <p className="text-xs text-slate-500">{user?.role || 'Head Librarian'} • {profile.email}</p>
+                <p className="text-xs text-slate-500">{user?.role || 'Head Librarian'} â€¢ {profile.email}</p>
                 <span className="inline-block mt-1 px-2.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-3xs font-bold rounded-full">
                   Active Librarian Session
                 </span>
@@ -333,7 +333,7 @@ export const Settings = () => {
       ) : (
         <form onSubmit={handleSaveRules} className="space-y-6">
           {/* Issue / Return / Renewal Rules */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
+          <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 Circulation Loan & Renewal Rules
@@ -455,7 +455,7 @@ export const Settings = () => {
           </div>
 
           {/* Fine Rates & Penalty Rules */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
+          <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 space-y-6">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 Fine Rates & Penalty Rules
@@ -475,7 +475,7 @@ export const Settings = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-3xs font-bold text-slate-500 uppercase">
-                  Overdue Tariff (₹ / Day) *
+                  Overdue Tariff (â‚¹ / Day) *
                 </label>
                 <input
                   placeholder="e.g. 5"
@@ -491,7 +491,7 @@ export const Settings = () => {
 
               <div className="space-y-1.5">
                 <label className="text-3xs font-bold text-slate-500 uppercase">
-                  Maximum Penalty Cap (₹) *
+                  Maximum Penalty Cap (â‚¹) *
                 </label>
                 <input
                   placeholder="e.g. 500"
@@ -579,3 +579,4 @@ export const Settings = () => {
   );
 };
 export default Settings;
+

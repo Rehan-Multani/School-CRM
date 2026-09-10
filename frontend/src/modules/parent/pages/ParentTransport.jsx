@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -54,7 +54,7 @@ export const ParentTransport = () => {
           <Card className="space-y-4">
             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Pickup & Drop Schedule</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-3.5 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-border">
+              <div className="p-3.5 bg-slate-50 dark:bg-indigo-600 rounded-2xl border border-border">
                 <Badge variant="primary" className="mb-2">Morning Pickup</Badge>
                 <div className="space-y-2 mt-2 text-xs">
                   <div className="flex items-center gap-2 text-slate-500">
@@ -67,7 +67,7 @@ export const ParentTransport = () => {
                   </div>
                 </div>
               </div>
-              <div className="p-3.5 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-border">
+              <div className="p-3.5 bg-slate-50 dark:bg-indigo-600 rounded-2xl border border-border">
                 <Badge variant="success" className="mb-2">Afternoon Drop</Badge>
                 <div className="space-y-2 mt-2 text-xs">
                   <div className="flex items-center gap-2 text-slate-500">
@@ -102,3 +102,4 @@ export const ParentTransport = () => {
     </div>
   );
 };
+

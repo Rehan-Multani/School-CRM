@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+﻿import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
@@ -41,7 +41,7 @@ function formatInr(value) {
 }
 
 function formatDate(value) {
-  if (!value) return '—';
+  if (!value) return 'â€”';
   return new Intl.DateTimeFormat('en-IN', {
     day: '2-digit',
     month: 'short',
@@ -69,7 +69,7 @@ function ActivePlanCard({
 
   return (
     <div className="mx-auto max-w-2xl">
-      <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
+      <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-indigo-600 sm:p-8">
         {/* Decorative subtle ambient blur */}
         <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-indigo-500/10 blur-3xl dark:bg-indigo-500/5" />
 
@@ -77,8 +77,8 @@ function ActivePlanCard({
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-6 dark:border-slate-800">
           <div>
             {isCancelled ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700 dark:border-rose-900/40 dark:bg-rose-500/10 dark:text-rose-400">
-                <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700 dark:border-rose-900/40 dark:bg-indigo-600/10 dark:text-rose-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
                 Cancelled Subscription
               </span>
             ) : (
@@ -184,10 +184,10 @@ function ActivePlanCard({
                     type="button"
                     onClick={() => onCancel()}
                     disabled={cancelling}
-                    className="flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-rose-700 disabled:opacity-60"
+                    className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60"
                   >
                     {cancelling ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-                    <span>{cancelling ? 'Cancelling…' : 'Yes, Cancel Subscription'}</span>
+                    <span>{cancelling ? 'Cancellingâ€¦' : 'Yes, Cancel Subscription'}</span>
                   </button>
                 </div>
               </div>
@@ -235,8 +235,8 @@ function OnboardingBanner({ user }) {
         </div>
 
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-indigo-100/90">
-          Your institution portal account is verified and ready. To unlock all administrative modules—including
-          student admissions, teacher records, fee processing, and examinations—please choose a subscription tier below.
+          Your institution portal account is verified and ready. To unlock all administrative modulesâ€”including
+          student admissions, teacher records, fee processing, and examinationsâ€”please choose a subscription tier below.
         </p>
       </div>
     </section>
@@ -255,7 +255,7 @@ function InitialPricingCard({ plan, onSelect, selectingId, confirming }) {
 
   return (
     <div
-      className={`group relative flex flex-col justify-between rounded-3xl border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-xl dark:bg-slate-900 ${
+      className={`group relative flex flex-col justify-between rounded-3xl border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-xl dark:bg-indigo-600 ${
         isPopular
           ? 'border-indigo-400/80 shadow-indigo-500/5 ring-2 ring-indigo-500/20 hover:border-indigo-500 dark:border-indigo-500/40'
           : 'border-slate-200 hover:border-slate-300 dark:border-slate-800 dark:hover:border-slate-700'
@@ -321,7 +321,7 @@ function InitialPricingCard({ plan, onSelect, selectingId, confirming }) {
           {isSelectingThis ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>{confirming ? 'Confirming with Razorpay…' : 'Opening Checkout…'}</span>
+              <span>{confirming ? 'Confirming with Razorpayâ€¦' : 'Opening Checkoutâ€¦'}</span>
             </>
           ) : (
             <>
@@ -421,7 +421,7 @@ export default function SubscriptionPlans() {
         key: razorpayKeyId,
         subscription_id: razorpaySubscriptionId,
         name: user?.schoolName || 'School Subscription',
-        description: `${plan.name} plan — recurring subscription`,
+        description: `${plan.name} plan â€” recurring subscription`,
         prefill: { email: user?.email || '' },
         theme: { color: '#4f46e5' },
         handler: async () => {
@@ -433,7 +433,7 @@ export default function SubscriptionPlans() {
             applyUser(activatedUser);
             navigate('/school-admin/dashboard', { replace: true });
           } else {
-            setError('Payment received — Razorpay is confirming it. Refresh shortly.');
+            setError('Payment received â€” Razorpay is confirming it. Refresh shortly.');
           }
         },
         modal: {
@@ -570,7 +570,7 @@ export default function SubscriptionPlans() {
       {confirming && (
         <div className="flex items-center gap-3 rounded-2xl border border-indigo-200 bg-indigo-50/90 p-4 text-sm font-semibold text-indigo-800 shadow-sm dark:border-indigo-500/30 dark:bg-indigo-950/30 dark:text-indigo-300">
           <Loader2 className="h-5 w-5 animate-spin text-indigo-600" />
-          <span>Confirming your payment with Razorpay — unlocking your portal now…</span>
+          <span>Confirming your payment with Razorpay â€” unlocking your portal nowâ€¦</span>
         </div>
       )}
 
@@ -584,7 +584,7 @@ export default function SubscriptionPlans() {
           <button
             type="button"
             onClick={loadPlans}
-            className="rounded-xl bg-rose-600 px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-rose-700"
+            className="rounded-xl bg-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white transition hover:bg-indigo-500"
           >
             Retry
           </button>
@@ -593,7 +593,7 @@ export default function SubscriptionPlans() {
 
       {loading ? (
         <div className="mx-auto max-w-2xl animate-pulse space-y-4">
-          <div className="h-64 rounded-3xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-900" />
+          <div className="h-64 rounded-3xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-indigo-600" />
         </div>
       ) : isPlanActive ? (
         /* ===================================================================
@@ -680,3 +680,4 @@ export default function SubscriptionPlans() {
     </div>
   );
 }
+

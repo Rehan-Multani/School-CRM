@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -43,9 +43,9 @@ export const ParentLibrary = () => {
           {library.booksIssued.map((book, idx) => {
             const isOverdue = book.status === 'Overdue';
             return (
-              <Card key={idx} className={`border ${isOverdue ? 'border-rose-200 dark:border-rose-950 bg-rose-500/5' : 'border-border'}`}>
+              <Card key={idx} className={`border ${isOverdue ? 'border-rose-200 dark:border-rose-950 bg-indigo-600/5' : 'border-border'}`}>
                 <div className="flex items-start gap-4">
-                  <div className={`p-3 rounded-2xl shrink-0 ${isOverdue ? 'bg-rose-500/10 text-rose-500' : 'bg-primary/10 text-primary'}`}>
+                  <div className={`p-3 rounded-2xl shrink-0 ${isOverdue ? 'bg-indigo-600/10 text-rose-500' : 'bg-primary/10 text-primary'}`}>
                     <Library className="w-5 h-5" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -60,7 +60,7 @@ export const ParentLibrary = () => {
                       </span>
                       {book.fine > 0 && (
                         <span className="flex items-center gap-1 text-rose-500 font-bold">
-                          <AlertTriangle className="w-3.5 h-3.5" /> Fine: ₹{book.fine}
+                          <AlertTriangle className="w-3.5 h-3.5" /> Fine: â‚¹{book.fine}
                         </span>
                       )}
                     </div>
@@ -94,7 +94,7 @@ export const ParentLibrary = () => {
               <div>
                 <h4 className="text-xs font-bold text-foreground">{book.title}</h4>
                 <p className="text-[10px] text-slate-400 mt-0.5">Author: {book.author}</p>
-                <p className="text-[9px] text-slate-500 mt-1.5">Issued: {book.issueDate} • Returned: {book.returnDate}</p>
+                <p className="text-[9px] text-slate-500 mt-1.5">Issued: {book.issueDate} â€¢ Returned: {book.returnDate}</p>
               </div>
               <Badge variant="success">{book.status}</Badge>
             </Card>
@@ -104,3 +104,4 @@ export const ParentLibrary = () => {
     </div>
   );
 };
+

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useHRNotifications } from '../../context/HRNotificationContext';
 import { Bell, Check, Eye, Trash2, CheckCircle2, AlertCircle, Calendar, Sparkles } from 'lucide-react';
@@ -22,7 +22,7 @@ export const Notifications = () => {
             <button
               onClick={fetchNotifications}
               disabled={loading}
-              className="p-2 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold transition-colors cursor-pointer"
+              className="p-2 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-indigo-600 text-slate-600 dark:text-slate-300 text-xs font-bold transition-colors cursor-pointer"
               title="Refresh Notifications"
             >
               <Sparkles className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -30,7 +30,7 @@ export const Notifications = () => {
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
-                className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-50 dark:hover:bg-indigo-600 text-slate-600 dark:text-slate-300 text-xs font-bold transition-colors cursor-pointer"
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>Mark All Read</span>
@@ -51,7 +51,7 @@ export const Notifications = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
         {/* Filter bar */}
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs space-y-1.5 shrink-0 text-left">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs space-y-1.5 shrink-0 text-left">
           <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider block px-2 pb-1.5 border-b border-slate-100 dark:border-slate-800">
             Alert Categories
           </span>
@@ -68,7 +68,7 @@ export const Notifications = () => {
               className={`w-full px-3.5 py-2 rounded-xl text-left text-xs transition-all cursor-pointer font-bold ${
                 filterType === cat.id
                   ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 shadow-2xs'
-                  : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
+                  : 'hover:bg-slate-50 dark:hover:bg-indigo-600 text-slate-600 dark:text-slate-400'
               }`}
             >
               {cat.label}
@@ -77,7 +77,7 @@ export const Notifications = () => {
         </div>
 
         {/* List Feed */}
-        <div className="lg:col-span-3 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-3.5">
+        <div className="lg:col-span-3 bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-3.5">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white">Recent Activity Stream</h3>
             <span className="text-xs text-slate-400 font-semibold">{unreadCount} unread notices</span>
@@ -97,10 +97,10 @@ export const Notifications = () => {
                   className={`pt-3 first:pt-0 flex items-start gap-3.5 p-3.5 rounded-2xl transition-all cursor-pointer ${
                     !n.read
                       ? 'bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40'
-                      : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                      : 'hover:bg-slate-50 dark:hover:bg-indigo-600/40'
                   }`}
                 >
-                  <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${!n.read ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-700'}`} />
+                  <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${!n.read ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-indigo-600'}`} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                       <h4 className="text-xs font-bold text-slate-900 dark:text-white truncate">
@@ -123,3 +123,4 @@ export const Notifications = () => {
 };
 
 export default Notifications;
+

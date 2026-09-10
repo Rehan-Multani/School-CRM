@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { LifeBuoy, Loader2, MessageSquare, Plus, Send } from 'lucide-react';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -156,7 +156,7 @@ export const Support = () => {
         ].map((item) => (
           <div
             key={item.label}
-            className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900"
+            className="rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-indigo-600"
           >
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{item.label}</p>
             <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">{item.value}</p>
@@ -165,7 +165,7 @@ export const Support = () => {
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-5">
-        <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 xl:col-span-3">
+        <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-indigo-600 xl:col-span-3">
           <Select
             label="Filter status"
             value={status}
@@ -200,7 +200,7 @@ export const Support = () => {
                   key={ticket.id}
                   type="button"
                   onClick={() => setSelectedId(ticket.id)}
-                  className={`flex w-full flex-col gap-2 px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 ${
+                  className={`flex w-full flex-col gap-2 px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-indigo-600/50 ${
                     selectedId === ticket.id ? 'bg-indigo-50 dark:bg-indigo-950/20' : ''
                   }`}
                 >
@@ -215,7 +215,7 @@ export const Support = () => {
                     </div>
                   </div>
                   <p className="text-[11px] font-medium text-slate-400">
-                    {ticket.category} · {relativeTime(ticket.createdAt)}
+                    {ticket.category} Â· {relativeTime(ticket.createdAt)}
                   </p>
                 </button>
               ))}
@@ -223,7 +223,7 @@ export const Support = () => {
           )}
         </div>
 
-        <div className="flex min-h-[480px] flex-col rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900 xl:col-span-2">
+        <div className="flex min-h-[480px] flex-col rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-indigo-600 xl:col-span-2">
           {activeTicket ? (
             <>
               <div className="mb-4 border-b border-slate-200 pb-4 dark:border-slate-800">
@@ -253,7 +253,7 @@ export const Support = () => {
                         }`}
                       >
                         <p className={`mb-1 text-[10px] font-bold ${mine ? 'text-indigo-100' : 'text-slate-400'}`}>
-                          {mine ? 'You' : 'Super Admin'} · {relativeTime(message.createdAt)}
+                          {mine ? 'You' : 'Super Admin'} Â· {relativeTime(message.createdAt)}
                         </p>
                         {message.body}
                       </div>
@@ -358,3 +358,4 @@ export const Support = () => {
 };
 
 export default Support;
+

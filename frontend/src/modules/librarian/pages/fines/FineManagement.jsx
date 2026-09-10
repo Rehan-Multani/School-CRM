@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { StatCard } from '../../components/ui/StatCard';
@@ -96,7 +96,7 @@ export const FineManagement = () => {
       render: (val, row) => (
         <div>
           <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val}</span>
-          <span className="text-3xs text-slate-400">{row.borrowerType} • {row.borrowerCode || 'STU'}</span>
+          <span className="text-3xs text-slate-400">{row.borrowerType} â€¢ {row.borrowerCode || 'STU'}</span>
         </div>
       ),
     },
@@ -112,7 +112,7 @@ export const FineManagement = () => {
       ),
     },
     { title: 'Due Date', key: 'dueDate', render: (val) => formatDate(val) },
-    { title: 'Return Date', key: 'returnDate', render: (val) => (val ? formatDate(val) : '—') },
+    { title: 'Return Date', key: 'returnDate', render: (val) => (val ? formatDate(val) : 'â€”') },
     {
       title: 'Fine Amount',
       key: 'fineAmount',
@@ -150,7 +150,7 @@ export const FineManagement = () => {
               onClick={() => handleUpdateFineStatus(row, 'WAIVED')}
               disabled={isProcessing}
               title="Waive Fine"
-              className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-3xs font-bold rounded-lg transition-colors flex items-center gap-1 disabled:opacity-50"
+              className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-indigo-600 text-slate-700 dark:text-slate-200 text-3xs font-bold rounded-lg transition-colors flex items-center gap-1 disabled:opacity-50"
             >
               <Ban className="h-3.5 w-3.5" />
               <span>Waive</span>
@@ -170,7 +170,7 @@ export const FineManagement = () => {
           <button
             onClick={fetchData}
             disabled={loading}
-            className="p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-300 transition-colors"
+            className="p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-indigo-600 text-slate-600 dark:text-slate-300 transition-colors"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -191,7 +191,7 @@ export const FineManagement = () => {
         />
         <StatCard
           title="Daily Overdue Rate"
-          value={`₹${settings?.finePerDay ?? 5} / day`}
+          value={`â‚¹${settings?.finePerDay ?? 5} / day`}
           icon={Sliders}
         />
       </div>
@@ -203,7 +203,7 @@ export const FineManagement = () => {
         <SkeletonTable rows={8} columns={6} />
       ) : activeTab === 'pending' ? (
         pendingFines.length === 0 ? (
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
+          <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
             <CheckCircle2 className="h-8 w-8 mx-auto text-emerald-500" />
             <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">No Pending Fines</h3>
             <p className="text-xs text-slate-400 max-w-sm mx-auto">
@@ -211,7 +211,7 @@ export const FineManagement = () => {
             </p>
           </div>
         ) : (
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+          <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
             <DataTable
               columns={columns}
               data={pendingFines}
@@ -222,7 +222,7 @@ export const FineManagement = () => {
           </div>
         )
       ) : collectedFines.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
           <Receipt className="h-8 w-8 mx-auto text-slate-400" />
           <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">No Fine Collections Yet</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
@@ -230,7 +230,7 @@ export const FineManagement = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
           <DataTable
             columns={columns}
             data={collectedFines}
@@ -244,3 +244,4 @@ export const FineManagement = () => {
   );
 };
 export default FineManagement;
+

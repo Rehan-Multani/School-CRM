@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
@@ -84,7 +84,7 @@ export const OverdueBooks = () => {
       render: (val, row) => (
         <div>
           <span className="font-bold text-slate-800 dark:text-slate-200 text-xs block">{val}</span>
-          <span className="text-3xs text-slate-400">{row.borrowerType} • {row.borrowerCode || 'STU'}</span>
+          <span className="text-3xs text-slate-400">{row.borrowerType} â€¢ {row.borrowerCode || 'STU'}</span>
         </div>
       ),
     },
@@ -125,7 +125,7 @@ export const OverdueBooks = () => {
             onClick={() => handleSendReminder(row)}
             disabled={reminding === row.id}
             title="Send Alert Reminder"
-            className="p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg transition-colors disabled:opacity-50"
+            className="p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-indigo-600 text-slate-700 dark:text-slate-200 rounded-lg transition-colors disabled:opacity-50"
           >
             <Bell className={`h-3.5 w-3.5 ${reminding === row.id ? 'animate-pulse' : ''}`} />
           </button>
@@ -150,7 +150,7 @@ export const OverdueBooks = () => {
           <button
             onClick={fetchOverdueBooks}
             disabled={loading}
-            className="p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-300 transition-colors"
+            className="p-2.5 border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-indigo-600 text-slate-600 dark:text-slate-300 transition-colors"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -160,9 +160,9 @@ export const OverdueBooks = () => {
       {loading ? (
         <SkeletonTable rows={8} columns={6} />
       ) : overdueList.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-12 text-center space-y-3">
           <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 rounded-full w-12 h-12 flex items-center justify-center mx-auto">
-            <span className="text-xl font-bold">✓</span>
+            <span className="text-xl font-bold">âœ“</span>
           </div>
           <h3 className="text-sm font-bold text-slate-700 dark:text-slate-200">No Overdue Books</h3>
           <p className="text-xs text-slate-400 max-w-sm mx-auto">
@@ -170,7 +170,7 @@ export const OverdueBooks = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-3xl p-6">
           <DataTable
             columns={columns}
             data={overdueList}
@@ -184,3 +184,4 @@ export const OverdueBooks = () => {
   );
 };
 export default OverdueBooks;
+

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
 import { DataTable } from '../../components/ui/DataTable';
@@ -33,7 +33,7 @@ function splitDateTime(iso) {
   return { date: local.slice(0, 10), time: local.slice(11, 16) };
 }
 function fmt(iso) {
-  if (!iso) return '—';
+  if (!iso) return 'â€”';
   return new Date(iso).toLocaleString('en-IN', {
     day: '2-digit',
     month: 'short',
@@ -207,7 +207,7 @@ export const Meetings = () => {
       { key: 'type', title: 'Type', render: (v) => <Badge variant="info">{TYPE_LABEL[v] || v}</Badge> },
       { key: 'scheduledAt', title: 'Scheduled', sortable: true, render: (v) => fmt(v) },
       { key: 'durationMin', title: 'Duration', render: (v) => `${v} min` },
-      { key: 'participantsLabel', title: 'Participants', render: (v) => v || '—' },
+      { key: 'participantsLabel', title: 'Participants', render: (v) => v || 'â€”' },
       { key: 'status', title: 'Status', render: (v) => <Badge variant={STATUS_VARIANT[v] || 'default'}>{v}</Badge> },
       {
         key: '_actions',
@@ -220,7 +220,7 @@ export const Meetings = () => {
                 <button
                   type="button"
                   onClick={() => startEdit(row)}
-                  className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800"
+                  className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-indigo-600"
                   title="Edit"
                 >
                   <Pencil size={15} />
@@ -275,7 +275,7 @@ export const Meetings = () => {
           { label: 'Completed', value: stats.COMPLETED },
           { label: 'Cancelled', value: stats.CANCELLED },
         ].map((c) => (
-          <div key={c.label} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div key={c.label} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
             <div className="text-[10px] font-black uppercase tracking-wider text-slate-400">{c.label}</div>
             <div className="mt-0.5 text-xl font-extrabold text-slate-900 dark:text-white">{c.value ?? 0}</div>
           </div>
@@ -320,7 +320,7 @@ export const Meetings = () => {
       {activeTab === 'schedule' && (
         <form
           onSubmit={handleSubmit}
-          className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 text-xs font-semibold shadow-sm dark:border-slate-800 dark:bg-slate-900"
+          className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 text-xs font-semibold shadow-sm dark:border-slate-800 dark:bg-indigo-600"
         >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-1">
@@ -391,7 +391,7 @@ export const Meetings = () => {
             </div>
             <div className="space-y-1">
               <label className="block text-[11px] font-bold text-slate-400">Meeting Link (if online)</label>
-              <input value={form.meetingLink} onChange={(e) => setForm({ ...form, meetingLink: e.target.value })} className={inputCls} placeholder="https://…" />
+              <input value={form.meetingLink} onChange={(e) => setForm({ ...form, meetingLink: e.target.value })} className={inputCls} placeholder="https://â€¦" />
             </div>
           </div>
 
@@ -419,13 +419,13 @@ export const Meetings = () => {
               className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 font-bold text-white shadow-sm transition-all hover:bg-emerald-700 disabled:opacity-60"
             >
               <PlusCircle className="h-3.5 w-3.5" />
-              <span>{saving ? 'Saving…' : editing ? 'Update Session' : 'Schedule Session'}</span>
+              <span>{saving ? 'Savingâ€¦' : editing ? 'Update Session' : 'Schedule Session'}</span>
             </button>
           </div>
         </form>
       )}
 
-      <Modal isOpen={Boolean(minutesTarget)} onClose={() => setMinutesTarget(null)} title="Complete Meeting — Minutes">
+      <Modal isOpen={Boolean(minutesTarget)} onClose={() => setMinutesTarget(null)} title="Complete Meeting â€” Minutes">
         <div className="space-y-4">
           <p className="text-xs font-semibold text-slate-500">
             Record minutes / outcome for <strong>{minutesTarget?.title}</strong> (optional).
@@ -467,3 +467,4 @@ export const Meetings = () => {
 };
 
 export default Meetings;
+

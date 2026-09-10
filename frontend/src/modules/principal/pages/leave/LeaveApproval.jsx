@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Modal } from '../../components/ui/Modal';
@@ -217,7 +217,7 @@ export const LeaveApproval = () => {
             <button
               onClick={fetchData}
               disabled={loading}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-indigo-600 transition-colors cursor-pointer"
               title="Refresh"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -239,7 +239,7 @@ export const LeaveApproval = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Applications</span>
             <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">{stats.TOTAL || leaves.length}</div>
@@ -250,7 +250,7 @@ export const LeaveApproval = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-amber-500 uppercase tracking-wider">Pending Action</span>
             <div className="text-2xl font-black text-amber-500 mt-1">{stats.PENDING || 0}</div>
@@ -261,7 +261,7 @@ export const LeaveApproval = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Approved Petitions</span>
             <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{stats.APPROVED || 0}</div>
@@ -272,7 +272,7 @@ export const LeaveApproval = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
             <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">Declined / Closed</span>
             <div className="text-2xl font-black text-rose-600 dark:text-rose-400 mt-1">{(stats.REJECTED || 0) + (stats.CANCELLED || 0)}</div>
@@ -285,7 +285,7 @@ export const LeaveApproval = () => {
       </div>
 
       {/* Filter Tabs & Search Bar */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs space-y-3">
+      <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-4 shadow-xs space-y-3">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* Status Tabs */}
           <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
@@ -347,13 +347,13 @@ export const LeaveApproval = () => {
       {loading ? (
         <SkeletonTable rows={7} columns={7} />
       ) : filteredLeaves.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-3 shadow-xs">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-16 text-center text-slate-400 space-y-3 shadow-xs">
           <CalendarRange className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-700" />
           <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">No leave petitions found</h4>
           <p className="text-xs max-w-sm mx-auto">No leave requests match your active filter settings.</p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 dark:bg-slate-950/80 border-b border-slate-200/80 dark:border-slate-800 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
@@ -379,7 +379,7 @@ export const LeaveApproval = () => {
                           </div>
                           <div>
                             <p className="font-bold text-slate-900 dark:text-white leading-tight">{l.employeeName}</p>
-                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">{l.employeeId} • {l.department || 'General'}</p>
+                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">{l.employeeId} â€¢ {l.department || 'General'}</p>
                           </div>
                         </div>
                       </td>
@@ -418,7 +418,7 @@ export const LeaveApproval = () => {
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => setApproveLeaveId(l.id)}
-                              className="px-2.5 py-1 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all cursor-pointer shadow-2xs"
+                              className="px-2.5 py-1 text-[11px] font-bold bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg transition-all cursor-pointer shadow-2xs"
                             >
                               Approve
                             </button>
@@ -468,7 +468,7 @@ export const LeaveApproval = () => {
             >
               {employees.map((e) => (
                 <option key={e.id} value={e.id}>
-                  {e.name} ({e.employeeId || 'EMP'}) — {e.department || 'General'}
+                  {e.name} ({e.employeeId || 'EMP'}) â€” {e.department || 'General'}
                 </option>
               ))}
             </select>
@@ -598,7 +598,7 @@ export const LeaveApproval = () => {
             </button>
             <button
               onClick={handleReject}
-              className="px-4 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold shadow-sm cursor-pointer"
+              className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-sm cursor-pointer"
             >
               Confirm Rejection
             </button>
@@ -612,3 +612,5 @@ export const LeaveApproval = () => {
 };
 
 export default LeaveApproval;
+
+

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { AreaChart } from '../../components/ui/Charts/AreaChart';
 import { BarChart } from '../../components/ui/Charts/BarChart';
@@ -91,7 +91,7 @@ export const FinancialReports = () => {
   const columns = rows.length ? Object.keys(rows[0]) : [];
 
   const fmtCell = (key, val) => {
-    if (val === null || val === undefined || val === '') return '—';
+    if (val === null || val === undefined || val === '') return 'â€”';
     if (CURRENCY_KEYS.has(key) && typeof val === 'number') return formatCurrency(val);
     if (/date/i.test(key) && (typeof val === 'string' || val instanceof Date)) {
       const d = new Date(val);
@@ -128,7 +128,7 @@ export const FinancialReports = () => {
     <div className="space-y-6">
       <PageHeader
         title="Reports"
-        subtitle="Every accountant report — generated from live backend data, exportable to CSV / Excel."
+        subtitle="Every accountant report â€” generated from live backend data, exportable to CSV / Excel."
       />
 
       <div className="flex flex-wrap gap-2">
@@ -139,7 +139,7 @@ export const FinancialReports = () => {
             className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-all ${
               category === r.id
                 ? 'bg-violet-600 text-white border-violet-600'
-                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-violet-400'
+                : 'bg-white dark:bg-indigo-600 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-violet-400'
             }`}
           >
             {r.label}
@@ -147,14 +147,14 @@ export const FinancialReports = () => {
         ))}
       </div>
 
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-wrap items-end gap-3">
+      <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-wrap items-end gap-3">
         <label className="text-[11px] font-bold text-slate-500">
           From
           <input
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            className="mt-1 block h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs"
+            className="mt-1 block h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs"
           />
         </label>
         <label className="text-[11px] font-bold text-slate-500">
@@ -163,7 +163,7 @@ export const FinancialReports = () => {
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
-            className="mt-1 block h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs"
+            className="mt-1 block h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs"
           />
         </label>
         <button
@@ -205,7 +205,7 @@ export const FinancialReports = () => {
       {summary && (
         <div className="flex flex-wrap gap-3">
           {Object.entries(summary).map(([k, v]) => (
-            <div key={k} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 shadow-sm">
+            <div key={k} className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 shadow-sm">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{k}</p>
               <p className="text-sm font-black text-slate-900 dark:text-white mt-0.5">
                 {typeof v === 'number' && CURRENCY_KEYS.has(k) ? formatCurrency(v) : String(v)}
@@ -216,10 +216,10 @@ export const FinancialReports = () => {
       )}
 
       {chart && rows.length > 0 && (
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">{chart}</div>
+        <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">{chart}</div>
       )}
 
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-indigo-600 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           {loading ? (
             <div className="py-16 text-center text-slate-400">
@@ -262,3 +262,4 @@ export const FinancialReports = () => {
 };
 
 export default FinancialReports;
+

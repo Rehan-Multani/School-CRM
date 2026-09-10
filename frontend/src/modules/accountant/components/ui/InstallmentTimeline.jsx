@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { CheckCircle2, AlertTriangle, Clock } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 
@@ -33,7 +33,7 @@ export const InstallmentTimeline = ({ plan }) => {
                     <CheckCircle2 className="w-3.5 h-3.5" />
                   </div>
                 ) : isOverdue ? (
-                  <div className="bg-rose-500 text-white rounded-full p-0.5 border-4 border-white dark:border-slate-900 shadow-sm animate-pulse">
+                  <div className="bg-indigo-600 text-white rounded-full p-0.5 border-4 border-white dark:border-slate-900 shadow-sm animate-pulse">
                     <AlertTriangle className="w-3.5 h-3.5" />
                   </div>
                 ) : (
@@ -44,7 +44,7 @@ export const InstallmentTimeline = ({ plan }) => {
               </div>
 
               {/* Installment Info */}
-              <div className="bg-white dark:bg-slate-900 border rounded-2xl p-4 shadow-sm flex items-center justify-between">
+              <div className="bg-white dark:bg-indigo-600 border rounded-2xl p-4 shadow-sm flex items-center justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-slate-900 dark:text-white text-xs">Installment #{inst.seq}</span>
@@ -75,3 +75,4 @@ export const InstallmentTimeline = ({ plan }) => {
   );
 };
 export default InstallmentTimeline;
+

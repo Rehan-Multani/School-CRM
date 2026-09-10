@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParentAuth } from '../context/ParentAuthContext';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
@@ -67,7 +67,7 @@ export const ParentHostel = () => {
                   <p className="text-xl font-black text-emerald-600 dark:text-emerald-400">{hostel.attendance.present}</p>
                   <p className="text-[10px] text-slate-500 font-semibold mt-1">Nights Present</p>
                 </div>
-                <div className="p-4 bg-rose-500/10 rounded-2xl border border-rose-200 dark:border-rose-800">
+                <div className="p-4 bg-indigo-600/10 rounded-2xl border border-rose-200 dark:border-rose-800">
                   <p className="text-xl font-black text-rose-600 dark:text-rose-400">{hostel.attendance.absent}</p>
                   <p className="text-[10px] text-slate-500 font-semibold mt-1">Nights Absent (Leave/Outing)</p>
                 </div>
@@ -77,7 +77,7 @@ export const ParentHostel = () => {
         </div>
       ) : (
         <Card className="py-16 text-center flex flex-col items-center justify-center border-dashed border-2">
-          <div className="p-4 bg-slate-100 dark:bg-slate-900 rounded-full text-slate-400 mb-4">
+          <div className="p-4 bg-slate-100 dark:bg-indigo-600 rounded-full text-slate-400 mb-4">
             <Home className="w-8 h-8" />
           </div>
           <h4 className="text-xs font-bold text-foreground">Day Scholar Profile</h4>
@@ -89,3 +89,4 @@ export const ParentHostel = () => {
     </div>
   );
 };
+

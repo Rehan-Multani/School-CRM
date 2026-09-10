@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 
@@ -33,7 +33,7 @@ export function CountCards({ items = [] }) {
       {items.map((item) => (
         <div
           key={item.label}
-          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+          className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-indigo-600"
         >
           <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{item.label}</p>
           <p className="mt-1 text-2xl font-extrabold text-slate-900 dark:text-white">{item.value ?? 0}</p>
@@ -52,3 +52,4 @@ export function EmptyState({ title, description, action }) {
     </div>
   );
 }
+

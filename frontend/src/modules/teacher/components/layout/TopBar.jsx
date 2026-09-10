@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Bell, MessageSquare } from 'lucide-react';
 import { useTeacherNotifications } from '../../context/TeacherNotificationContext';
@@ -28,7 +28,7 @@ export const TopBar = () => {
         {!isDashboard ? (
           <button
             onClick={() => navigate(-1)}
-            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl text-slate-600 dark:text-slate-400 transition-colors"
+            className="p-1.5 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-xl text-slate-600 dark:text-slate-400 transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -52,7 +52,7 @@ export const TopBar = () => {
         {/* Messages icon */}
         <button
           onClick={() => navigate('/teacher/messages')}
-          className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl text-slate-500 dark:text-slate-400 relative transition-colors"
+          className="p-2 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-xl text-slate-500 dark:text-slate-400 relative transition-colors"
         >
           <MessageSquare className="w-5 h-5" />
           {unreadMsgCount > 0 && (
@@ -65,11 +65,11 @@ export const TopBar = () => {
         {/* Notifications icon */}
         <button
           onClick={() => navigate('/teacher/notifications')}
-          className="p-2 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl text-slate-500 dark:text-slate-400 relative transition-colors"
+          className="p-2 hover:bg-slate-100 dark:hover:bg-indigo-600 rounded-xl text-slate-500 dark:text-slate-400 relative transition-colors"
         >
           <Bell className="w-5 h-5" />
           {unreadNotifCount > 0 && (
-            <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-rose-500 text-white rounded-full flex items-center justify-center text-[8px] font-bold">
+            <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[8px] font-bold">
               {unreadNotifCount}
             </span>
           )}
@@ -78,3 +78,4 @@ export const TopBar = () => {
     </header>
   );
 };
+

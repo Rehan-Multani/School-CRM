@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { ServerTable } from '../../components/ui/ServerTable';
 import { Badge } from '../../components/ui/Badge';
@@ -68,8 +68,8 @@ export const FeeStructure = () => {
       { key: 'name', title: 'Structure', render: (r) => (
         <span className="font-bold text-slate-900 dark:text-white">{r.name}</span>
       ) },
-      { key: 'academicYear', title: 'Academic Year', render: (r) => r.academicYear?.name || '—' },
-      { key: 'class', title: 'Class', render: (r) => r.class?.name || '—' },
+      { key: 'academicYear', title: 'Academic Year', render: (r) => r.academicYear?.name || 'â€”' },
+      { key: 'class', title: 'Class', render: (r) => r.class?.name || 'â€”' },
       { key: 'itemsCount', title: 'Fee Heads', render: (r) => `${r.itemsCount ?? 0}` },
       { key: 'status', title: 'Status', render: (r) => (
         <Badge variant={r.status === 'ACTIVE' ? 'success' : 'warning'}>{r.status}</Badge>
@@ -80,7 +80,7 @@ export const FeeStructure = () => {
             e.stopPropagation();
             openDetail(r);
           }}
-          className="flex items-center gap-1 px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300"
+          className="flex items-center gap-1 px-2 py-1 bg-slate-50 dark:bg-indigo-600 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300"
         >
           <Eye className="w-3 h-3" /> View
         </button>
@@ -112,7 +112,7 @@ export const FeeStructure = () => {
               );
               showToast('Exported to CSV', 'success');
             }}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-bold text-xs"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs"
           >
             <Download className="w-3.5 h-3.5" /> Export
           </button>
@@ -134,7 +134,7 @@ export const FeeStructure = () => {
         <select
           value={filters.academicYearId}
           onChange={(e) => set({ academicYearId: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
         >
           <option value="">All Academic Years</option>
           {years.map((y) => (
@@ -146,7 +146,7 @@ export const FeeStructure = () => {
         <select
           value={filters.classId}
           onChange={(e) => set({ classId: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
         >
           <option value="">All Classes</option>
           {classes.map((c) => (
@@ -158,7 +158,7 @@ export const FeeStructure = () => {
         <select
           value={filters.status}
           onChange={(e) => set({ status: e.target.value })}
-          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-indigo-600 text-xs font-semibold"
         >
           <option value="">All Statuses</option>
           <option value="ACTIVE">Active</option>
@@ -178,9 +178,9 @@ export const FeeStructure = () => {
       />
 
       {detail && (
-        <Modal isOpen onClose={() => setDetail(null)} title={`Fee Structure — ${detail.name || ''}`} size="lg">
+        <Modal isOpen onClose={() => setDetail(null)} title={`Fee Structure â€” ${detail.name || ''}`} size="lg">
           {loadingDetail ? (
-            <p className="py-8 text-center text-slate-400 text-sm">Loading…</p>
+            <p className="py-8 text-center text-slate-400 text-sm">Loadingâ€¦</p>
           ) : (
             <div className="space-y-4 text-xs">
               <div className="grid grid-cols-3 gap-3">
@@ -201,10 +201,10 @@ export const FeeStructure = () => {
                   {(detail.items || []).map((it) => (
                     <tr key={it.id}>
                       <td className="py-2 font-semibold text-slate-700 dark:text-slate-300">
-                        {it.feeHead?.name || it.feeHeadName || '—'}
+                        {it.feeHead?.name || it.feeHeadName || 'â€”'}
                       </td>
-                      <td className="py-2 text-slate-400">{it.frequency || '—'}</td>
-                      <td className="py-2 text-right">{it.installments ?? '—'}</td>
+                      <td className="py-2 text-slate-400">{it.frequency || 'â€”'}</td>
+                      <td className="py-2 text-right">{it.installments ?? 'â€”'}</td>
                       <td className="py-2 text-right font-bold">{formatCurrency(it.amount || 0)}</td>
                     </tr>
                   ))}
@@ -238,8 +238,10 @@ export const FeeStructure = () => {
 const Info = ({ label, value }) => (
   <div>
     <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</span>
-    <span className="font-bold text-slate-800 dark:text-slate-200">{value ?? '—'}</span>
+    <span className="font-bold text-slate-800 dark:text-slate-200">{value ?? 'â€”'}</span>
   </div>
 );
 
 export default FeeStructure;
+
+

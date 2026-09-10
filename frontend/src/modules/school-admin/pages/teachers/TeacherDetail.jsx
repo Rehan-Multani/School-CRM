@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
@@ -35,15 +35,15 @@ function buildFileUrl(path) {
 }
 
 function formatDate(value) {
-  if (!value) return '—';
+  if (!value) return 'â€”';
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '—';
+  if (Number.isNaN(date.getTime())) return 'â€”';
   return date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function DetailCard({ title, children }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-indigo-600">
       <h3 className="mb-4 text-sm font-extrabold text-slate-900 dark:text-white">{title}</h3>
       {children}
     </div>
@@ -54,7 +54,7 @@ function Field({ label, value }) {
   return (
     <div>
       <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
-      <p className="mt-1 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">{value || '—'}</p>
+      <p className="mt-1 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">{value || 'â€”'}</p>
     </div>
   );
 }
@@ -151,14 +151,14 @@ export const TeacherDetail = () => {
           teacher.address?.pincode,
         ]
           .filter(Boolean)
-          .join(', ') || '—';
+          .join(', ') || 'â€”';
 
   const qualificationText = Array.isArray(teacher.qualifications)
     ? teacher.qualifications
         .map((item) => (typeof item === 'string' ? item : item?.degree))
         .filter(Boolean)
         .join(', ')
-    : teacher.qualification || '—';
+    : teacher.qualification || 'â€”';
 
   return (
     <div className="space-y-6">
@@ -201,7 +201,7 @@ export const TeacherDetail = () => {
         }
       />
 
-      <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center dark:border-slate-800 dark:bg-indigo-600">
         {photoUrl ? (
           <img src={photoUrl} alt={teacher.name} className="h-24 w-24 shrink-0 rounded-2xl object-cover" />
         ) : (
@@ -218,7 +218,7 @@ export const TeacherDetail = () => {
             Joined {formatDate(teacher.joiningDate)}
           </p>
           <p className="text-xs text-slate-500">
-            {teacher.phone || teacher.mobileNumber || 'No phone'} · {teacher.email || 'No email'}
+            {teacher.phone || teacher.mobileNumber || 'No phone'} Â· {teacher.email || 'No email'}
           </p>
         </div>
       </div>
@@ -277,7 +277,7 @@ export const TeacherDetail = () => {
                           href={buildFileUrl(path)}
                           target="_blank"
                           rel="noreferrer"
-                          className="group relative block overflow-hidden rounded-2xl border border-slate-200 bg-white hover:border-primary dark:border-slate-800 dark:bg-slate-900"
+                          className="group relative block overflow-hidden rounded-2xl border border-slate-200 bg-white hover:border-primary dark:border-slate-800 dark:bg-indigo-600"
                         >
                           <img
                             src={buildFileUrl(path)}
@@ -309,7 +309,7 @@ export const TeacherDetail = () => {
         onClose={() => setConfirmDelete(false)}
         onConfirm={handleDelete}
         title="Delete Teacher"
-        message={`"${teacher.name}" will be permanently removed. Teachers with class or subject assignments cannot be deleted — deactivate them instead.`}
+        message={`"${teacher.name}" will be permanently removed. Teachers with class or subject assignments cannot be deleted â€” deactivate them instead.`}
         confirmText="Delete Teacher"
         variant="danger"
       />
@@ -320,3 +320,4 @@ export const TeacherDetail = () => {
 };
 
 export default TeacherDetail;
+
