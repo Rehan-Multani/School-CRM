@@ -52,11 +52,15 @@ export const FeeCollection = () => {
       accountantApi
         .searchStudents({ search: query.trim() })
         .then((res) => setResults(res?.data || []))
-        .catch(() => setResults([]))
+        .catch((err) => {
+          console.error('Search error:', err);
+          showToast(err?.response?.data?.message || 'Search failed', 'error');
+          setResults([]);
+        })
         .finally(() => setSearching(false));
     }, 350);
     return () => clearTimeout(t);
-  }, [query]);
+  }, [query, showToast]);
 
   const loadProfile = (student) => {
     setSelected(student);
@@ -173,7 +177,7 @@ export const FeeCollection = () => {
 
           {searching && (
             <p className="text-xs text-slate-400 flex items-center gap-2">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Searchingâ€¦
+              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Searching...
             </p>
           )}
 
@@ -188,13 +192,18 @@ export const FeeCollection = () => {
                   <p className="text-sm font-bold text-slate-900 dark:text-white">{s.name}</p>
                   <p className="text-[11px] text-slate-400">
                     {s.admissionNumber}
-                    {s.enrollment?.class ? ` â€¢ ${s.enrollment.class.name}` : ''}
+                    {s.enrollment?.class ? ` • ${s.enrollment.class.name}` : ''}
                     {s.enrollment?.section ? ` - ${s.enrollment.section.name}` : ''}
                   </p>
                 </div>
                 <ArrowLeft className="w-4 h-4 rotate-180 text-slate-300" />
               </button>
             ))}
+            {!searching && query.trim().length < 2 && results.length === 0 && (
+              <p className="py-6 text-center text-xs font-semibold text-slate-400">
+                Type at least 2 characters to search for a student
+              </p>
+            )}
             {!searching && query.trim().length >= 2 && results.length === 0 && (
               <p className="py-6 text-center text-xs font-semibold text-slate-400">No students found.</p>
             )}
