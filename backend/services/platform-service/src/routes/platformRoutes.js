@@ -5,7 +5,7 @@ import { validateObjectId } from '../middleware/validateObjectId.js';
 import teacherApkRoutes from './teacher.routes.js';
 import studentApkRoutes from './student.routes.js';
 import parentApkRoutes from './parent.routes.js';
-import transportApkRoutes from './transportApp.routes.js';
+import driverRoutes from './driver.routes.js';
 import {
   getSafePickupSettings,
   updateSafePickupClass,
@@ -278,62 +278,66 @@ import {
   updateScheduleEntry,
 } from '../controllers/exam.controller.js';
 import {
-  allocateStudent,
-  checkoutStudent,
-  createComplaint,
-  createHostel,
-  createOuting,
-  createRoom,
-  deleteHostel,
-  deleteRoom,
-  getBedVisualizer,
-  getEligibleHostelEntities,
-  getHostel,
-  getHostelAttendance,
-  getHostelDashboard,
-  getRoom,
-  listAllocations,
-  listBeds,
-  listComplaints,
   listHostels,
-  listOutings,
-  listRooms,
-  saveHostelAttendance,
-  seedDemoHostelData,
-  transferStudent,
-  updateComplaint,
+  getHostel,
+  createHostel,
   updateHostel,
-  updateOutingStatus,
+  deleteHostel,
+  listRooms,
+  getRoom,
+  createRoom,
   updateRoom,
+  deleteRoom,
+  listBeds,
+  listWardens,
+  getWarden,
+  createWarden,
+  updateWarden,
+  assignWardenToHostel,
+  unassignWardenFromHostel,
+  deleteWarden,
+  listAllocations,
+  allocateStudent,
+  updateAllocation,
+  vacateAllocation,
+  listHostelFees,
+  setHostelFee,
+  deleteHostelFee,
+  getHostelLookups,
 } from '../controllers/hostel.controller.js';
 import {
-  assignTransportStudent,
-  createMaintenance,
-  createRoute,
-  createStop,
-  createTransportIncident,
-  createVehicle,
-  deleteRoute,
-  deleteStop,
-  deleteVehicle,
-  discontinueTransportAssignment,
-  getEligibleTransportEntities,
-  getRoute,
-  getTransportAttendance,
-  getTransportDashboard,
-  getVehicle,
-  listMaintenance,
-  listRoutes,
-  listStops,
-  listTransportAssignments,
-  listTransportIncidents,
   listVehicles,
-  saveTransportAttendance,
-  seedDemoTransportData,
-  updateRoute,
-  updateStop,
-  updateTransportIncident,
+  getVehicle,
+  createVehicle,
   updateVehicle,
+  deleteVehicle,
+  listDrivers,
+  getDriver,
+  createDriver,
+  updateDriver,
+  assignVehicleToDriver,
+  unassignVehicleFromDriver,
+  deleteDriver,
+  listRoutes,
+  getRoute,
+  createRoute,
+  updateRoute,
+  assignRouteResources,
+  unassignRouteResources,
+  deleteRoute,
+  listStops,
+  createStop,
+  updateStop,
+  deleteStop,
+  reorderStops,
+  listAssignments,
+  assignStudent,
+  updateAssignment,
+  removeAssignment,
+  getTransportLookups,
+  listTransportFees,
+  setTransportFee,
+  deleteTransportFee,
 } from '../controllers/transport.controller.js';
 import { getSchoolAdminDashboardSummary } from '../controllers/schoolDashboard.controller.js';
 import { getSchoolReportsSummary, getCategoryReportData } from '../controllers/schoolReports.controller.js';
@@ -536,6 +540,7 @@ import { assertSchoolAccess } from '../middleware/assertSchoolAccess.js';
 import { uploadStudentFiles, convertStudentImages } from '../middleware/uploadStudentPhoto.js';
 import { convertTeacherImages, uploadTeacherFiles } from '../middleware/uploadTeacherPhoto.js';
 import { convertSchoolUserImages, uploadSchoolUserFiles } from '../middleware/uploadSchoolUser.js';
+import { uploadDriverFiles, convertDriverImages } from '../middleware/uploadDriverFiles.js';
 
 const router = Router();
 
@@ -709,33 +714,20 @@ router.delete('/school-portal/users/:id', requirePrincipal, deleteUser);
 // Fee Management Routes
 router.get('/school-portal/fees/heads', requireSchoolAdmin, listFeeHeads);
 router.post('/school-portal/fees/heads', requireSchoolAdmin, createFeeHead);
-router.post('/school-portal/fees/heads/seed', requireSchoolAdmin, seedDefaultFeeHeads);
-router.get('/school-portal/fees/heads/:id', requireSchoolAdmin, getFeeHead);
-router.patch('/school-portal/fees/heads/:id', requireSchoolAdmin, updateFeeHead);
-router.delete('/school-portal/fees/heads/:id', requireSchoolAdmin, deleteFeeHead);
 
 router.get('/school-portal/fees/structures', requireSchoolAdmin, listFeeStructures);
 router.post('/school-portal/fees/structures', requireSchoolAdmin, createFeeStructure);
-router.get('/school-portal/fees/structures/:id', requireSchoolAdmin, getFeeStructure);
-router.patch('/school-portal/fees/structures/:id', requireSchoolAdmin, updateFeeStructure);
-router.delete('/school-portal/fees/structures/:id', requireSchoolAdmin, deleteFeeStructure);
 
-router.get('/school-portal/fees/structures/:structureId/items', requireSchoolAdmin, listStructureItems);
-router.post('/school-portal/fees/structures/:structureId/items', requireSchoolAdmin, addStructureItem);
-router.patch('/school-portal/fees/items/:id', requireSchoolAdmin, updateStructureItem);
-router.delete('/school-portal/fees/items/:id', requireSchoolAdmin, deleteStructureItem);
+router.get('/school-portal/fees/assignments', requireSchoolAdmin, listStudentFeeAssignments);
+router.post('/school-portal/fees/assignments', requireSchoolAdmin, createStudentFeeAssignment);
 
-router.get('/school-portal/fees/students/:studentId/assignments', requireSchoolAdmin, listStudentAssignments);
-router.post('/school-portal/fees/students/:studentId/auto-assign', requireSchoolAdmin, autoAssignStudentFees);
-router.patch('/school-portal/fees/assignments/:id', requireSchoolAdmin, updateStudentAssignment);
-
-router.get('/school-portal/fees/invoices', requireSchoolAdmin, listFeeInvoices);
-router.post('/school-portal/fees/invoices/generate', requireSchoolAdmin, generateFeeInvoice);
-router.get('/school-portal/fees/invoices/:id', requireSchoolAdmin, getFeeInvoice);
-router.post('/school-portal/fees/invoices/:invoiceId/pay', requireSchoolAdmin, payFeeInvoice);
-
+router.post('/school-portal/fees/collect', requireSchoolAdmin, collectFeePayment);
 router.get('/school-portal/fees/payments', requireSchoolAdmin, listFeePayments);
-router.get('/school-portal/fees/payments/:id', requireSchoolAdmin, getFeePayment);
+
+// Finance Routes
+router.get('/school-portal/finance/transactions', requireSchoolAdmin, listFinanceTransactions);
+router.get('/school-portal/finance/summary', requireSchoolAdmin, getFinanceSummary);
+router.post('/school-portal/finance/expenses', requireSchoolAdmin, recordExpense);
 
 // Payroll & HR Endpoints
 router.get('/school-portal/payroll/employees', requireSchoolAdmin, getEligibleEmployees);
@@ -825,77 +817,94 @@ router.post('/school-portal/exams/:examId/results/calculate', requirePrincipal, 
 router.get('/school-portal/exams/:examId/results', requirePrincipal, listResults);
 router.get('/school-portal/exams/:examId/results/:studentId', requirePrincipal, getStudentReportCard);
 
-// Hostel Management Endpoints
-router.get('/school-portal/hostel/dashboard', requireSchoolAdmin, getHostelDashboard);
-router.post('/school-portal/hostel/seed-demo', requireSchoolAdmin, seedDemoHostelData);
-router.get('/school-portal/hostel/eligible-entities', requireSchoolAdmin, getEligibleHostelEntities);
+// ==========================================
+// Hostel Management Endpoints (School Admin)
+// ==========================================
+router.get('/school-portal/hostel/lookups', requireSchoolAdmin, getHostelLookups);
 
+// 1 · Hostels
 router.get('/school-portal/hostel/hostels', requireSchoolAdmin, listHostels);
 router.post('/school-portal/hostel/hostels', requireSchoolAdmin, createHostel);
 router.get('/school-portal/hostel/hostels/:id', requireSchoolAdmin, getHostel);
 router.patch('/school-portal/hostel/hostels/:id', requireSchoolAdmin, updateHostel);
 router.delete('/school-portal/hostel/hostels/:id', requireSchoolAdmin, deleteHostel);
 
+// 2 + 3 · Rooms & Beds
 router.get('/school-portal/hostel/rooms', requireSchoolAdmin, listRooms);
 router.post('/school-portal/hostel/rooms', requireSchoolAdmin, createRoom);
 router.get('/school-portal/hostel/rooms/:id', requireSchoolAdmin, getRoom);
 router.patch('/school-portal/hostel/rooms/:id', requireSchoolAdmin, updateRoom);
 router.delete('/school-portal/hostel/rooms/:id', requireSchoolAdmin, deleteRoom);
-
 router.get('/school-portal/hostel/beds', requireSchoolAdmin, listBeds);
-router.get('/school-portal/hostel/beds/visualizer', requireSchoolAdmin, getBedVisualizer);
 
+// 4 · Wardens
+router.get('/school-portal/hostel/wardens', requireSchoolAdmin, listWardens);
+router.post('/school-portal/hostel/wardens', requireSchoolAdmin, createWarden);
+router.get('/school-portal/hostel/wardens/:id', requireSchoolAdmin, getWarden);
+router.patch('/school-portal/hostel/wardens/:id', requireSchoolAdmin, updateWarden);
+router.delete('/school-portal/hostel/wardens/:id', requireSchoolAdmin, deleteWarden);
+router.post('/school-portal/hostel/wardens/:id/hostel', requireSchoolAdmin, assignWardenToHostel);
+router.delete('/school-portal/hostel/wardens/:id/hostel', requireSchoolAdmin, unassignWardenFromHostel);
+
+// 5 · Student Allocations
 router.get('/school-portal/hostel/allocations', requireSchoolAdmin, listAllocations);
 router.post('/school-portal/hostel/allocations', requireSchoolAdmin, allocateStudent);
-router.post('/school-portal/hostel/allocations/:id/transfer', requireSchoolAdmin, transferStudent);
-router.post('/school-portal/hostel/allocations/:id/checkout', requireSchoolAdmin, checkoutStudent);
+router.patch('/school-portal/hostel/allocations/:id', requireSchoolAdmin, updateAllocation);
+router.delete('/school-portal/hostel/allocations/:id', requireSchoolAdmin, vacateAllocation);
 
-router.get('/school-portal/hostel/attendance/:hostelId', requireSchoolAdmin, getHostelAttendance);
-router.post('/school-portal/hostel/attendance/:hostelId', requireSchoolAdmin, saveHostelAttendance);
+// 6 · Yearly Hostel Fee
+router.get('/school-portal/hostel/fees', requireSchoolAdmin, listHostelFees);
+router.put('/school-portal/hostel/fees/:academicYearId', requireSchoolAdmin, setHostelFee);
+router.delete('/school-portal/hostel/fees/:academicYearId', requireSchoolAdmin, deleteHostelFee);
 
-router.get('/school-portal/hostel/outings', requireSchoolAdmin, listOutings);
-router.post('/school-portal/hostel/outings', requireSchoolAdmin, createOuting);
-router.patch('/school-portal/hostel/outings/:id/status', requireSchoolAdmin, updateOutingStatus);
+// ==========================================
+// Transport Management Endpoints (School Admin)
+// ==========================================
+router.get('/school-portal/transport/lookups', requireSchoolAdmin, getTransportLookups);
 
-router.get('/school-portal/hostel/complaints', requireSchoolAdmin, listComplaints);
-router.post('/school-portal/hostel/complaints', requireSchoolAdmin, createComplaint);
-router.patch('/school-portal/hostel/complaints/:id', requireSchoolAdmin, updateComplaint);
-
-// Transport Management Endpoints
-router.get('/school-portal/transport/dashboard', requireSchoolAdmin, getTransportDashboard);
-router.post('/school-portal/transport/seed-demo', requireSchoolAdmin, seedDemoTransportData);
-router.get('/school-portal/transport/eligible-entities', requireSchoolAdmin, getEligibleTransportEntities);
-
+// 1 · Vehicles
 router.get('/school-portal/transport/vehicles', requireSchoolAdmin, listVehicles);
 router.post('/school-portal/transport/vehicles', requireSchoolAdmin, createVehicle);
 router.get('/school-portal/transport/vehicles/:id', requireSchoolAdmin, getVehicle);
 router.patch('/school-portal/transport/vehicles/:id', requireSchoolAdmin, updateVehicle);
 router.delete('/school-portal/transport/vehicles/:id', requireSchoolAdmin, deleteVehicle);
 
+// 2 · Drivers
+router.get('/school-portal/transport/drivers', requireSchoolAdmin, listDrivers);
+router.post('/school-portal/transport/drivers', requireSchoolAdmin, uploadDriverFiles, convertDriverImages, createDriver);
+router.get('/school-portal/transport/drivers/:id', requireSchoolAdmin, getDriver);
+router.patch('/school-portal/transport/drivers/:id', requireSchoolAdmin, uploadDriverFiles, convertDriverImages, updateDriver);
+router.post('/school-portal/transport/drivers/:id/vehicle', requireSchoolAdmin, assignVehicleToDriver);
+router.delete('/school-portal/transport/drivers/:id/vehicle', requireSchoolAdmin, unassignVehicleFromDriver);
+router.delete('/school-portal/transport/drivers/:id', requireSchoolAdmin, deleteDriver);
+
+// 3 + 4 · Routes & Resources
 router.get('/school-portal/transport/routes', requireSchoolAdmin, listRoutes);
 router.post('/school-portal/transport/routes', requireSchoolAdmin, createRoute);
 router.get('/school-portal/transport/routes/:id', requireSchoolAdmin, getRoute);
 router.patch('/school-portal/transport/routes/:id', requireSchoolAdmin, updateRoute);
+router.post('/school-portal/transport/routes/:id/assign', requireSchoolAdmin, assignRouteResources);
+router.delete('/school-portal/transport/routes/:id/assign', requireSchoolAdmin, unassignRouteResources);
+router.post('/school-portal/transport/routes/:id/unassign', requireSchoolAdmin, unassignRouteResources);
 router.delete('/school-portal/transport/routes/:id', requireSchoolAdmin, deleteRoute);
 
+// 3 · Route Stops
 router.get('/school-portal/transport/routes/:routeId/stops', requireSchoolAdmin, listStops);
 router.post('/school-portal/transport/routes/:routeId/stops', requireSchoolAdmin, createStop);
+router.patch('/school-portal/transport/routes/:routeId/stops/reorder', requireSchoolAdmin, reorderStops);
 router.patch('/school-portal/transport/stops/:id', requireSchoolAdmin, updateStop);
 router.delete('/school-portal/transport/stops/:id', requireSchoolAdmin, deleteStop);
 
-router.get('/school-portal/transport/assignments', requireSchoolAdmin, listTransportAssignments);
-router.post('/school-portal/transport/assignments', requireSchoolAdmin, assignTransportStudent);
-router.post('/school-portal/transport/assignments/:id/discontinue', requireSchoolAdmin, discontinueTransportAssignment);
+// 5 · Student Assignments
+router.get('/school-portal/transport/assignments', requireSchoolAdmin, listAssignments);
+router.post('/school-portal/transport/assignments', requireSchoolAdmin, assignStudent);
+router.patch('/school-portal/transport/assignments/:id', requireSchoolAdmin, updateAssignment);
+router.delete('/school-portal/transport/assignments/:id', requireSchoolAdmin, removeAssignment);
 
-router.get('/school-portal/transport/attendance/:routeId', requireSchoolAdmin, getTransportAttendance);
-router.post('/school-portal/transport/attendance/:routeId', requireSchoolAdmin, saveTransportAttendance);
-
-router.get('/school-portal/transport/maintenance', requireSchoolAdmin, listMaintenance);
-router.post('/school-portal/transport/maintenance', requireSchoolAdmin, createMaintenance);
-
-router.get('/school-portal/transport/incidents', requireSchoolAdmin, listTransportIncidents);
-router.post('/school-portal/transport/incidents', requireSchoolAdmin, createTransportIncident);
-router.patch('/school-portal/transport/incidents/:id', requireSchoolAdmin, updateTransportIncident);
+// 6 · Yearly Transport Fee
+router.get('/school-portal/transport/fees', requireSchoolAdmin, listTransportFees);
+router.put('/school-portal/transport/fees/:academicYearId', requireSchoolAdmin, setTransportFee);
+router.delete('/school-portal/transport/fees/:academicYearId', requireSchoolAdmin, deleteTransportFee);
 
 // ==========================================
 // HR Management Endpoints (accessible by School Admin & HR)
@@ -1154,8 +1163,8 @@ router.use(studentApkRoutes);
 // ===================== Parent APK (see parent.routes.js) =====================
 router.use(parentApkRoutes);
 
-// ===================== Transport APK (see transportApp.routes.js) =====================
-router.use(transportApkRoutes);
+// ===================== Driver Portal (see driver.routes.js) =====================
+router.use(driverRoutes);
 
 router.get('/', getServiceInfo);
 router.use(notFound);
