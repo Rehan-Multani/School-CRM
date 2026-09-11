@@ -668,7 +668,7 @@ router.get('/school-portal/pickups/history', requireSchoolAdmin, requirePermissi
 // ---- Safe Pickup (Admin & Principal) — For marking students as safely picked up ----
 const requireAdminOrPrincipal = (req, res, next) => {
   const role = req.user?.role;
-  if (role !== 'SCHOOL_ADMIN' && role !== 'PRINCIPAL') {
+  if (role !== 'SchoolAdmin' && role !== 'Principal') {
     return res.status(403).json({ success: false, message: 'Unauthorized' });
   }
   next();
