@@ -64,6 +64,8 @@ export const NAVIGATION_ITEMS = [
   // ADMINISTRATION
   { name: 'Transport', path: '/school-admin/transport', icon: Bus, category: 'Administration' },
   { name: 'Hostel', path: '/school-admin/hostel', icon: Home, category: 'Administration' },
+  { name: 'Safe Pickup', path: '/school-admin/safe-pickup', icon: Shield, category: 'Administration' },
+  { name: 'Safe Pickup History', path: '/school-admin/safe-pickup/history', icon: History, category: 'Administration' },
   { name: 'Inventory', path: '/school-admin/inventory', icon: Package, category: 'Administration' },
   { name: 'Events', path: '/school-admin/events', icon: Calendar, category: 'Administration' },
 

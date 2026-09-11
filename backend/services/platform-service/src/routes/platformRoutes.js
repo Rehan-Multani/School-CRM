@@ -12,6 +12,12 @@ import {
   getSafePickupHistory,
 } from '../controllers/safePickupSettings.controller.js';
 import {
+  listSafePickupStudents,
+  sendSafePickupOtp,
+  verifySafePickupOtp,
+  getSafePickupHistory as getAdminSafePickupHistory,
+} from '../controllers/adminSafePickup.controller.js';
+import {
   getServiceInfo,
   healthCheck,
   notFound,
@@ -658,6 +664,24 @@ router.patch('/school-portal/settings/email', requireSchoolAdmin, schoolPortalUp
 router.get('/school-portal/settings/safe-pickup', requireSchoolAdmin, requirePermission('pickup.settings'), getSafePickupSettings);
 router.patch('/school-portal/academic/classes/:classId/pickup', requireSchoolAdmin, requirePermission('pickup.settings'), validateObjectId('classId'), updateSafePickupClass);
 router.get('/school-portal/pickups/history', requireSchoolAdmin, requirePermission('pickup.history'), getSafePickupHistory);
+
+// ---- Safe Pickup (Admin & Principal) — For marking students as safely picked up ----
+const requireAdminOrPrincipal = (req, res, next) => {
+  const role = req.user?.role;
+  if (role !== 'SCHOOL_ADMIN' && role !== 'PRINCIPAL') {
+    return res.status(403).json({ success: false, message: 'Unauthorized' });
+  }
+  next();
+};
+
+router.get('/school-portal/safe-pickup/students', requireSchoolAdmin, requireAdminOrPrincipal, listSafePickupStudents);
+router.get('/school-portal/principal/safe-pickup/students', requirePrincipal, requireAdminOrPrincipal, listSafePickupStudents);
+router.post('/school-portal/safe-pickup/send-otp', requireSchoolAdmin, requireAdminOrPrincipal, sendSafePickupOtp);
+router.post('/school-portal/principal/safe-pickup/send-otp', requirePrincipal, requireAdminOrPrincipal, sendSafePickupOtp);
+router.post('/school-portal/safe-pickup/verify-otp', requireSchoolAdmin, requireAdminOrPrincipal, verifySafePickupOtp);
+router.post('/school-portal/principal/safe-pickup/verify-otp', requirePrincipal, requireAdminOrPrincipal, verifySafePickupOtp);
+router.get('/school-portal/safe-pickup/history', requireSchoolAdmin, requireAdminOrPrincipal, getAdminSafePickupHistory);
+router.get('/school-portal/principal/safe-pickup/history', requirePrincipal, requireAdminOrPrincipal, getAdminSafePickupHistory);
 router.get('/school-portal/notifications', requirePrincipal, listSchoolNotifications);
 router.post('/school-portal/notifications', requirePrincipal, sendSchoolNotification);
 router.get('/school-portal/academic/years', requirePrincipal, listAcademicYears);

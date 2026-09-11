@@ -47,6 +47,8 @@ import { Support } from '../pages/support/Support';
 import { Settings } from '../pages/settings/Settings';
 import { SafePickup } from '../pages/settings/SafePickup';
 import { SafePickupHistory } from '../pages/settings/SafePickupHistory';
+import { SafePickup as SafePickupOperations } from '../pages/safe-pickup/SafePickup';
+import { SafePickupHistory as SafePickupOperationsHistory } from '../pages/safe-pickup/SafePickupHistory';
 import SubscriptionPlans from '../pages/plans/SubscriptionPlans';
 
 export const SchoolAdminRoutes = () => {
@@ -102,6 +104,8 @@ export const SchoolAdminRoutes = () => {
       <Route path="settings" element={<Settings />} />
       <Route path="settings/safe-pickup" element={<SafePickup />} />
       <Route path="settings/safe-pickup/history" element={<SafePickupHistory />} />
+      <Route path="safe-pickup" element={<SafePickupOperations />} />
+      <Route path="safe-pickup/history" element={<SafePickupOperationsHistory />} />
       <Route path="*" element={<Navigate to="dashboard" replace />} />
     </Routes>
   );

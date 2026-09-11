@@ -13,7 +13,9 @@ import {
   Video,
   BarChart3,
   Bell,
-  Settings
+  Settings,
+  Shield,
+  History
 } from 'lucide-react';
 
 export const NAVIGATION_ITEMS = [
@@ -40,6 +42,8 @@ export const NAVIGATION_ITEMS = [
   
   // MANAGEMENT
   { name: 'Leave Approval', path: '/principal/leave', icon: CheckSquare, category: 'Management' },
+  { name: 'Safe Pickup', path: '/principal/safe-pickup', icon: Shield, category: 'Management' },
+  { name: 'Safe Pickup History', path: '/principal/safe-pickup/history', icon: History, category: 'Management' },
 
   // SYSTEM
   { name: 'Reports', path: '/principal/reports', icon: BarChart3, category: 'System' },

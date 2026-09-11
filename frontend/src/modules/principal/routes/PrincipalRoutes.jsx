@@ -26,6 +26,8 @@ import { Events } from '../pages/events/Events';
 import { Reports } from '../pages/reports/Reports';
 import { Notifications } from '../pages/notifications/Notifications';
 import { Settings } from '../pages/settings/Settings';
+import { SafePickup } from '../pages/safe-pickup/SafePickup';
+import { SafePickupHistory } from '../pages/safe-pickup/SafePickupHistory';
 
 export const PrincipalRoutes = () => {
   return (
@@ -59,6 +61,8 @@ export const PrincipalRoutes = () => {
       <Route path="reports" element={<Reports />} />
       <Route path="notifications" element={<Notifications />} />
       <Route path="settings" element={<Settings />} />
+      <Route path="safe-pickup" element={<SafePickup />} />
+      <Route path="safe-pickup/history" element={<SafePickupHistory />} />
       <Route path="*" element={<Navigate to="dashboard" replace />} />
     </Routes>
   );
