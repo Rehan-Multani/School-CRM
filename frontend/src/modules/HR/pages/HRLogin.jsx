@@ -117,7 +117,7 @@ export const HRLogin = () => {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-slate-800 border-t-2 border-t-blue-500 bg-indigo-600/75 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl space-y-4">
+          <div className="rounded-2xl border border-slate-800 border-t-2 border-t-blue-500 dark:bg-slate-900 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl space-y-4">
             {error && (
               <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/20 bg-indigo-600/10 px-3.5 py-3 text-sm text-rose-300">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />

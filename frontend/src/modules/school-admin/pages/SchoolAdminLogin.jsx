@@ -150,7 +150,7 @@ export const SchoolAdminLogin = () => {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-slate-800 border-t-2 border-t-blue-500 bg-indigo-600/75 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
+          <div className="rounded-2xl border border-slate-800 border-t-2 border-t-blue-500 dark:bg-slate-900 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
             {error && (
               <div
                 role="alert"
