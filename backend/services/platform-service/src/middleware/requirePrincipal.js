@@ -13,12 +13,12 @@ export function requirePrincipal(req, res, next) {
     }
 
     const payload = verifyToken(token, env.jwtSecret);
-    const role = (payload.role || '').toUpperCase();
-    if (role !== 'PRINCIPAL' && role !== 'SCHOOLADMIN') {
-      throw new AppError('Access denied: Principal or School Admin privileges required', 403);
+    if (payload.role !== 'Principal') {
+      throw new AppError('Access denied: Principal privileges required', 403);
     }
 
     req.user = payload;
+    req.schoolId = payload.schoolId || payload.sub;
     enforceSubscriptionAccess(req, res, next);
   } catch (error) {
     if (error instanceof AppError) {

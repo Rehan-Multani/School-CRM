@@ -18,6 +18,7 @@ export function requireSchoolAdmin(req, res, next) {
     }
 
     req.user = payload;
+    req.schoolId = payload.sub || payload.schoolId;
     enforceSubscriptionAccess(req, res, next);
   } catch (error) {
     if (error instanceof AppError) {
