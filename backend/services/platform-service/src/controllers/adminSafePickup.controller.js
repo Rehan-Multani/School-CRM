@@ -74,6 +74,7 @@ export async function listSafePickupStudents(req, res, next) {
       if (!mongoose.isValidObjectId(String(req.query.academicYearId))) {
         throw new AppError('Invalid academicYearId', 400, E.VALIDATION);
       }
+      filter.academicYearId = oid(req.query.academicYearId);
     }
 
     // Get enrollments

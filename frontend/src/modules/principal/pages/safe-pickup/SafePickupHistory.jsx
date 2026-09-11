@@ -31,9 +31,10 @@ export const SafePickupHistory = () => {
 
   const loadFilters = async () => {
     try {
-      const response = await schoolPortalApi.safePickupSettings();
-      if (response?.classes) {
-        setClasses(response.classes);
+      const response = await schoolPortalApi.principalSafePickupSettings();
+      const settings = response?.data || response;
+      if (settings?.classes) {
+        setClasses(settings.classes);
       }
     } catch (err) {
       console.error('Failed to load filters:', err);
@@ -182,8 +183,8 @@ export const SafePickupHistory = () => {
                 >
                   <option value="">All Sections</option>
                   {sections.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
+                    <option key={s.id} value={s.id}>
+                      {s.name}
                     </option>
                   ))}
                 </select>

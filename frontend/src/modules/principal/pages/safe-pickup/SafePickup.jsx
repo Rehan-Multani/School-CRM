@@ -1,6 +1,17 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { schoolPortalApi } from '../../../../shared/api/client';
-import { Plus, Search, Filter, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import {
+  Plus,
+  Search,
+  Filter,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  CalendarRange,
+  GraduationCap,
+  Layers,
+  X,
+} from 'lucide-react';
 import OtpVerificationModal from './OtpVerificationModal';
 
 export const SafePickup = () => {
@@ -9,11 +20,11 @@ export const SafePickup = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Filters
+  // Filters — cascade left to right: Academic Year -> Class -> Section
+  const [academicYearId, setAcademicYearId] = useState('');
   const [classId, setClassId] = useState('');
   const [sectionId, setSectionId] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [academicYearId, setAcademicYearId] = useState('');
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -25,10 +36,10 @@ export const SafePickup = () => {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [otpSessionId, setOtpSessionId] = useState(null);
 
-  // Classes and sections for filters
+  // Reference data for filters
   const [classes, setClasses] = useState([]);
-  const [sections, setSections] = useState([]);
-  const [classesLoading, setClassesLoading] = useState(true);
+  const [academicYears, setAcademicYears] = useState([]);
+  const [filtersLoading, setFiltersLoading] = useState(true);
 
   useEffect(() => {
     loadFilters();
@@ -37,16 +48,30 @@ export const SafePickup = () => {
 
   const loadFilters = async () => {
     try {
-      const response = await schoolPortalApi.safePickupSettings();
-      if (response?.classes) {
-        setClasses(response.classes);
-      }
+      const response = await schoolPortalApi.principalSafePickupSettings();
+      const settings = response?.data || response;
+      if (settings?.classes) setClasses(settings.classes);
+      if (settings?.academicYears) setAcademicYears(settings.academicYears);
     } catch (err) {
       console.error('Failed to load filters:', err);
     } finally {
-      setClassesLoading(false);
+      setFiltersLoading(false);
     }
   };
+
+  // Classes narrow to the selected academic year (via each class's academicYearIds).
+  const visibleClasses = useMemo(() => {
+    if (!academicYearId) return classes;
+    return classes.filter((c) => (c.academicYearIds || []).includes(academicYearId));
+  }, [classes, academicYearId]);
+
+  // Sections narrow to the selected class; otherwise show every section across
+  // the currently visible (academic-year-filtered) classes.
+  const visibleSections = useMemo(() => {
+    const pool = classId ? visibleClasses.filter((c) => c.id === classId) : visibleClasses;
+    const all = pool.flatMap((c) => c.sections || []);
+    return [...new Map(all.map((s) => [s.id, s])).values()].sort((a, b) => a.name.localeCompare(b.name));
+  }, [visibleClasses, classId]);
 
   const loadStudents = useCallback(async () => {
     setLoading(true);
@@ -112,25 +137,28 @@ export const SafePickup = () => {
     }, 2000);
   };
 
-  const handleClassChange = (e) => {
-    const newClassId = e.target.value;
-    setClassId(newClassId);
+  const handleAcademicYearChange = (e) => {
+    setAcademicYearId(e.target.value);
+    setClassId('');
     setSectionId('');
-
-    if (newClassId) {
-      const selectedClass = classes.find((c) => c.id === newClassId);
-      setSections(selectedClass?.sections || []);
-    } else {
-      setSections([]);
-    }
   };
 
-  const handleSectionChange = (e) => {
-    setSectionId(e.target.value);
+  const handleClassChange = (e) => {
+    setClassId(e.target.value);
+    setSectionId('');
   };
 
-  const handleSearch = (e) => {
-    setSearchQuery(e.target.value);
+  const handleSectionChange = (e) => setSectionId(e.target.value);
+  const handleSearch = (e) => setSearchQuery(e.target.value);
+
+  const activeFilterCount = [academicYearId, classId, sectionId, searchQuery].filter(Boolean).length;
+
+  const clearFilters = () => {
+    setAcademicYearId('');
+    setClassId('');
+    setSectionId('');
+    setSearchQuery('');
+    setPage(1);
   };
 
   return (
@@ -163,9 +191,25 @@ export const SafePickup = () => {
 
         {/* Filters Card */}
         <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-slate-600 dark:text-slate-400" />
-            <h2 className="font-semibold text-slate-900 dark:text-white">Filters</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+              <h2 className="font-semibold text-slate-900 dark:text-white">Filters</h2>
+              {activeFilterCount > 0 && (
+                <span className="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 text-xs font-semibold text-white bg-blue-600 rounded-full">
+                  {activeFilterCount}
+                </span>
+              )}
+            </div>
+            {activeFilterCount > 0 && (
+              <button
+                onClick={clearFilters}
+                className="inline-flex items-center gap-1 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition"
+              >
+                <X className="w-4 h-4" />
+                Clear all
+              </button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -186,64 +230,75 @@ export const SafePickup = () => {
               </div>
             </div>
 
+            {/* Academic Year Filter */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Academic Year
+              </label>
+              <div className="relative">
+                <CalendarRange className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                <select
+                  value={academicYearId}
+                  onChange={handleAcademicYearChange}
+                  disabled={filtersLoading || academicYears.length === 0}
+                  className="w-full pl-10 pr-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="">All Years</option>
+                  {academicYears.map((y) => (
+                    <option key={y.id} value={y.id}>
+                      {y.name}
+                      {y.isCurrent ? ' (Current)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             {/* Class Filter */}
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                 Class
               </label>
-              <select
-                value={classId}
-                onChange={handleClassChange}
-                disabled={classesLoading}
-                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">All Classes</option>
-                {classes.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Section Filter */}
-            {sections.length > 0 && (
-              <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                  Section
-                </label>
+              <div className="relative">
+                <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                 <select
-                  value={sectionId}
-                  onChange={handleSectionChange}
-                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={classId}
+                  onChange={handleClassChange}
+                  disabled={filtersLoading || visibleClasses.length === 0}
+                  className="w-full pl-10 pr-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <option value="">All Sections</option>
-                  {sections.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
+                  <option value="">All Classes</option>
+                  {visibleClasses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
                     </option>
                   ))}
                 </select>
               </div>
-            )}
+            </div>
 
-            {/* Clear Filters */}
-            {(classId || sectionId || searchQuery) && (
-              <div className="flex items-end">
-                <button
-                  onClick={() => {
-                    setClassId('');
-                    setSectionId('');
-                    setSearchQuery('');
-                    setAcademicYearId('');
-                    setPage(1);
-                  }}
-                  className="w-full px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition"
+            {/* Section Filter */}
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Section
+              </label>
+              <div className="relative">
+                <Layers className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                <select
+                  value={sectionId}
+                  onChange={handleSectionChange}
+                  disabled={filtersLoading || visibleSections.length === 0}
+                  className="w-full pl-10 pr-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Clear Filters
-                </button>
+                  <option value="">All Sections</option>
+                  {visibleSections.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
               </div>
-            )}
+            </div>
           </div>
         </div>
 
