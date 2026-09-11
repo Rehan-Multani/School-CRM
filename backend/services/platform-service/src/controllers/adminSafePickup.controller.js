@@ -175,7 +175,7 @@ export async function listSafePickupStudents(req, res, next) {
 export async function sendSafePickupOtp(req, res, next) {
   try {
     const schoolId = req.schoolId || req.user?.schoolId;
-    const userId = req.user?.id;
+    const userId = req.user?.userId || req.user?.sub;
     const userRole = req.user?.role;
 
     if (!schoolId || !mongoose.isValidObjectId(String(schoolId))) {
@@ -328,7 +328,7 @@ export async function sendSafePickupOtp(req, res, next) {
 export async function verifySafePickupOtp(req, res, next) {
   try {
     const schoolId = req.schoolId || req.user?.schoolId;
-    const userId = req.user?.id;
+    const userId = req.user?.userId || req.user?.sub;
 
     if (!schoolId || !mongoose.isValidObjectId(String(schoolId))) {
       throw new AppError('Invalid school context', 400, E.VALIDATION);
