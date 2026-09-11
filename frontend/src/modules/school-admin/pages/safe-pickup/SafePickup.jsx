@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { schoolAdminAuthApi } from '../../../../shared/api/client';
+import { schoolPortalApi } from '../../../../shared/api/client';
 import { Plus, Search, Filter, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import OtpVerificationModal from './OtpVerificationModal';
 
@@ -40,9 +40,9 @@ export const SafePickup = () => {
 
   const loadFilters = async () => {
     try {
-      const response = await schoolAdminAuthApi.get('/school-portal/settings/safe-pickup');
-      if (response.data?.success && response.data?.data?.classes) {
-        setClasses(response.data.data.classes);
+      const response = await schoolPortalApi.safePickupSettings();
+      if (response?.classes) {
+        setClasses(response.classes);
       }
     } catch (err) {
       console.error('Failed to load filters:', err);
@@ -55,19 +55,20 @@ export const SafePickup = () => {
     setLoading(true);
     setError('');
     try {
-      const params = new URLSearchParams();
-      params.append('page', page);
-      params.append('limit', limit);
-      if (classId) params.append('classId', classId);
-      if (sectionId) params.append('sectionId', sectionId);
-      if (searchQuery) params.append('q', searchQuery);
-      if (academicYearId) params.append('academicYearId', academicYearId);
+      const params = {
+        page,
+        limit,
+        ...(classId && { classId }),
+        ...(sectionId && { sectionId }),
+        ...(searchQuery && { q: searchQuery }),
+        ...(academicYearId && { academicYearId }),
+      };
 
-      const response = await schoolAdminAuthApi.get(`/school-portal/safe-pickup/students?${params}`);
+      const response = await schoolPortalApi.safePickupStudents(params);
 
-      if (response.data?.success) {
-        setStudents(response.data.data || []);
-        setTotalPages(response.data.pagination?.totalPages || 1);
+      if (response?.data) {
+        setStudents(response.data || []);
+        setTotalPages(response.pagination?.totalPages || 1);
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load students');
@@ -91,12 +92,12 @@ export const SafePickup = () => {
     setSelectedStudent(student);
 
     try {
-      const response = await schoolAdminAuthApi.post('/school-portal/safe-pickup/send-otp', {
+      const response = await schoolPortalApi.sendSafePickupOtp({
         studentId: student.id,
       });
 
-      if (response.data?.success) {
-        setOtpSessionId(response.data.data?.id);
+      if (response?.data) {
+        setOtpSessionId(response.data?.id);
         setShowOtpModal(true);
         setSuccess('OTP sent to registered guardian');
       }

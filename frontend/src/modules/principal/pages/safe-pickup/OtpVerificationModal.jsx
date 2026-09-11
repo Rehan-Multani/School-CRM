@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
-import { schoolAdminAuthApi } from '../../../../shared/api/client';
+import { schoolPortalApi } from '../../../../shared/api/client';
 
 export const OtpVerificationModal = ({ student, sessionId, isPrincipal, onVerified, onClose }) => {
   const [otp, setOtp] = useState('');
@@ -19,13 +19,11 @@ export const OtpVerificationModal = ({ student, sessionId, isPrincipal, onVerifi
     setLoading(true);
 
     try {
-      const endpoint = isPrincipal ? '/school-portal/principal/safe-pickup/verify-otp' : '/school-portal/safe-pickup/verify-otp';
-      const response = await schoolAdminAuthApi.post(endpoint, {
-        sessionId,
-        otp,
-      });
+      const response = isPrincipal
+        ? await schoolPortalApi.principalVerifySafePickupOtp({ sessionId, otp })
+        : await schoolPortalApi.verifySafePickupOtp({ sessionId, otp });
 
-      if (response.data?.success) {
+      if (response?.success) {
         setSuccess(true);
         setTimeout(() => {
           onVerified();

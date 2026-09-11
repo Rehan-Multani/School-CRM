@@ -278,6 +278,18 @@ export const schoolPortalApi = {
   updateStudentStatus: (id, status) =>
     schoolAdminClient.patch(`/platform/school-portal/students/${id}/status`, { status }).then((res) => res.data),
   deleteStudent: (id) => schoolAdminClient.delete(`/platform/school-portal/students/${id}`).then((res) => res.data),
+  // Safe Pickup APIs
+  safePickupSettings: () => schoolAdminClient.get('/platform/school-portal/settings/safe-pickup').then((res) => res.data),
+  updateSafePickupClass: (classId, safePickupEnabled) =>
+    schoolAdminClient.patch(`/platform/school-portal/academic/classes/${classId}/pickup`, { safePickupEnabled }).then((res) => res.data),
+  safePickupStudents: (params) => schoolAdminClient.get('/platform/school-portal/safe-pickup/students', { params }).then((res) => res.data),
+  sendSafePickupOtp: (payload) => schoolAdminClient.post('/platform/school-portal/safe-pickup/send-otp', payload).then((res) => res.data),
+  verifySafePickupOtp: (payload) => schoolAdminClient.post('/platform/school-portal/safe-pickup/verify-otp', payload).then((res) => res.data),
+  safePickupHistory: (params) => schoolAdminClient.get('/platform/school-portal/safe-pickup/history', { params }).then((res) => res.data),
+  principalSafePickupStudents: (params) => schoolAdminClient.get('/platform/school-portal/principal/safe-pickup/students', { params }).then((res) => res.data),
+  principalSendSafePickupOtp: (payload) => schoolAdminClient.post('/platform/school-portal/principal/safe-pickup/send-otp', payload).then((res) => res.data),
+  principalVerifySafePickupOtp: (payload) => schoolAdminClient.post('/platform/school-portal/principal/safe-pickup/verify-otp', payload).then((res) => res.data),
+  principalSafePickupHistory: (params) => schoolAdminClient.get('/platform/school-portal/principal/safe-pickup/history', { params }).then((res) => res.data),
 };
 
 export const schoolUserApi = {

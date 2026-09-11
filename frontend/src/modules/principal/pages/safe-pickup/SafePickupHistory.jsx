@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { schoolAdminAuthApi } from '../../../../shared/api/client';
+import { schoolPortalApi } from '../../../../shared/api/client';
 import { Calendar, Search, Filter, Loader2, AlertCircle, Clock, User } from 'lucide-react';
 
 export const SafePickupHistory = () => {
@@ -31,9 +31,9 @@ export const SafePickupHistory = () => {
 
   const loadFilters = async () => {
     try {
-      const response = await schoolAdminAuthApi.get('/school-portal/settings/safe-pickup');
-      if (response.data?.success && response.data?.data?.classes) {
-        setClasses(response.data.data.classes);
+      const response = await schoolPortalApi.safePickupSettings();
+      if (response?.classes) {
+        setClasses(response.classes);
       }
     } catch (err) {
       console.error('Failed to load filters:', err);
@@ -46,20 +46,21 @@ export const SafePickupHistory = () => {
     setLoading(true);
     setError('');
     try {
-      const params = new URLSearchParams();
-      params.append('page', page);
-      params.append('limit', limit);
-      if (classId) params.append('classId', classId);
-      if (sectionId) params.append('sectionId', sectionId);
-      if (searchQuery) params.append('q', searchQuery);
-      if (fromDate) params.append('from', fromDate);
-      if (toDate) params.append('to', toDate);
+      const params = {
+        page,
+        limit,
+        ...(classId && { classId }),
+        ...(sectionId && { sectionId }),
+        ...(searchQuery && { q: searchQuery }),
+        ...(fromDate && { from: fromDate }),
+        ...(toDate && { to: toDate }),
+      };
 
-      const response = await schoolAdminAuthApi.get(`/school-portal/principal/safe-pickup/history?${params}`);
+      const response = await schoolPortalApi.principalSafePickupHistory(params);
 
-      if (response.data?.success) {
-        setHistory(response.data.data || []);
-        setTotalPages(response.data.pagination?.totalPages || 1);
+      if (response?.data) {
+        setHistory(response.data || []);
+        setTotalPages(response.pagination?.totalPages || 1);
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load history');
