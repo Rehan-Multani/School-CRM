@@ -3,6 +3,8 @@ import { StudentPickupSession, ACTIVE_PICKUP_STATUSES } from '../models/StudentP
 import { SchoolClass } from '../models/SchoolClass.js';
 import { Section } from '../models/Section.js';
 import { School } from '../models/School.js';
+import { AcademicYear } from '../models/AcademicYear.js';
+import { AcademicYearClass } from '../models/AcademicYearClass.js';
 import { sanitizePagination } from '../../../shared/sanitize.js';
 
 const oid = (v) => new mongoose.Types.ObjectId(String(v));
@@ -30,6 +32,19 @@ class SafePickupRepository {
 
   sectionsForSchool(schoolId) {
     return Section.find({ schoolId: oid(schoolId) }).select('name classId status').lean();
+  }
+
+  academicYearsForSchool(schoolId) {
+    return AcademicYear.find({ schoolId: oid(schoolId) })
+      .select('name code status isCurrent')
+      .sort({ isCurrent: -1, name: -1 })
+      .lean();
+  }
+
+  yearClassLinksForSchool(schoolId) {
+    return AcademicYearClass.find({ schoolId: oid(schoolId), status: 'ACTIVE' })
+      .select('academicYearId classId')
+      .lean();
   }
 
   classById(schoolId, classId) {

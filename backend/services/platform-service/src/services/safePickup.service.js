@@ -59,16 +59,24 @@ function audit(req, action, session, extra = {}) {
 class SafePickupService {
   /* ============================ SETTINGS ============================ */
   async getSettings(schoolId) {
-    const [school, classes, sections] = await Promise.all([
+    const [school, classes, sections, academicYears, yearClassLinks] = await Promise.all([
       safePickupRepository.schoolFlag(schoolId),
       safePickupRepository.classesWithFlag(schoolId),
       safePickupRepository.sectionsForSchool(schoolId),
+      safePickupRepository.academicYearsForSchool(schoolId),
+      safePickupRepository.yearClassLinksForSchool(schoolId),
     ]);
     const secByClass = new Map();
     for (const s of sections) {
       const k = String(s.classId);
       if (!secByClass.has(k)) secByClass.set(k, []);
-      secByClass.get(k).push(s.name);
+      secByClass.get(k).push({ id: String(s._id), name: s.name });
+    }
+    const yearsByClass = new Map();
+    for (const link of yearClassLinks) {
+      const k = String(link.classId);
+      if (!yearsByClass.has(k)) yearsByClass.set(k, []);
+      yearsByClass.get(k).push(String(link.academicYearId));
     }
     return {
       schoolEnabled: Boolean(school?.settings?.safePickupEnabled),
@@ -78,8 +86,18 @@ class SafePickupService {
         code: c.code,
         numericOrder: c.numericOrder ?? 0,
         status: c.status,
-        sections: (secByClass.get(String(c._id)) || []).sort(),
+        sections: (secByClass.get(String(c._id)) || []).sort((a, b) => a.name.localeCompare(b.name)),
         safePickupEnabled: Boolean(c.safePickupEnabled),
+        // Academic years this class is linked to, via AcademicYearClass — lets the
+        // frontend cascade Academic Year -> Class without an extra round trip.
+        academicYearIds: yearsByClass.get(String(c._id)) || [],
+      })),
+      academicYears: academicYears.map((y) => ({
+        id: String(y._id),
+        name: y.name,
+        code: y.code,
+        status: y.status,
+        isCurrent: Boolean(y.isCurrent),
       })),
     };
   }

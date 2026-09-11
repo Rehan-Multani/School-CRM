@@ -286,10 +286,11 @@ export const schoolPortalApi = {
   sendSafePickupOtp: (payload) => schoolAdminClient.post('/platform/school-portal/safe-pickup/send-otp', payload).then((res) => res.data),
   verifySafePickupOtp: (payload) => schoolAdminClient.post('/platform/school-portal/safe-pickup/verify-otp', payload).then((res) => res.data),
   safePickupHistory: (params) => schoolAdminClient.get('/platform/school-portal/safe-pickup/history', { params }).then((res) => res.data),
-  principalSafePickupStudents: (params) => schoolAdminClient.get('/platform/school-portal/principal/safe-pickup/students', { params }).then((res) => res.data),
-  principalSendSafePickupOtp: (payload) => schoolAdminClient.post('/platform/school-portal/principal/safe-pickup/send-otp', payload).then((res) => res.data),
-  principalVerifySafePickupOtp: (payload) => schoolAdminClient.post('/platform/school-portal/principal/safe-pickup/verify-otp', payload).then((res) => res.data),
-  principalSafePickupHistory: (params) => schoolAdminClient.get('/platform/school-portal/principal/safe-pickup/history', { params }).then((res) => res.data),
+  principalSafePickupSettings: () => principalClient.get('/platform/school-portal/principal/safe-pickup/settings').then((res) => res.data),
+  principalSafePickupStudents: (params) => principalClient.get('/platform/school-portal/principal/safe-pickup/students', { params }).then((res) => res.data),
+  principalSendSafePickupOtp: (payload) => principalClient.post('/platform/school-portal/principal/safe-pickup/send-otp', payload).then((res) => res.data),
+  principalVerifySafePickupOtp: (payload) => principalClient.post('/platform/school-portal/principal/safe-pickup/verify-otp', payload).then((res) => res.data),
+  principalSafePickupHistory: (params) => principalClient.get('/platform/school-portal/principal/safe-pickup/history', { params }).then((res) => res.data),
 };
 
 export const schoolUserApi = {
