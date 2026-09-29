@@ -1,0 +1,4434 @@
+{
+  "info": {
+    "name": "Teacher App (Flutter) — localhost",
+    "description": "Teacher APK API. Every URL is a full localhost URL (API gateway on port 5000). There is no baseUrl variable.\n\nHOW TO USE\n1. Start the backend (api-gateway :5000, auth-service :5001, platform-service :5002).\n2. Run \"01 Auth → Login\". The token is saved to the collection variable {{token}} automatically.\n3. Run the folders top to bottom. List requests save the first id they find (classId, sectionId, studentId, homeworkId …) so the detail requests after them work without copy-paste.\n\nEnvelope: success → {success:true, data, …}; error → {success:false, message, code} + HTTP status. 402 = school subscription expired (show a blocking screen).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Keeps {{today}} and {{month}} current so date-based requests always work.",
+          "const d = new Date();",
+          "const pad = (n) => String(n).padStart(2, '0');",
+          "const today = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;",
+          "pm.collectionVariables.set('today', today);",
+          "pm.collectionVariables.set('month', today.slice(0, 7));"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "token",
+      "value": "",
+      "description": "Auto-filled by the Login request."
+    },
+    {
+      "key": "today",
+      "value": "",
+      "description": "Auto-filled (YYYY-MM-DD) before every request."
+    },
+    {
+      "key": "month",
+      "value": "",
+      "description": "Auto-filled (YYYY-MM) before every request."
+    },
+    {
+      "key": "schoolPrimaryColor",
+      "value": "",
+      "description": "Auto-filled from login → school.primaryColor."
+    },
+    {
+      "key": "classId",
+      "value": "",
+      "description": "From GET classes"
+    },
+    {
+      "key": "sectionId",
+      "value": "",
+      "description": "From GET class sections"
+    },
+    {
+      "key": "subjectId",
+      "value": "",
+      "description": "From GET exam subjects"
+    },
+    {
+      "key": "studentId",
+      "value": "",
+      "description": "From GET section students"
+    },
+    {
+      "key": "scheduleId",
+      "value": "",
+      "description": "From GET today-schedule"
+    },
+    {
+      "key": "attendanceId",
+      "value": "",
+      "description": "From POST attendance / GET attendance today"
+    },
+    {
+      "key": "homeworkId",
+      "value": "",
+      "description": "From homework list/create"
+    },
+    {
+      "key": "assignmentId",
+      "value": "",
+      "description": "From assignments list/create"
+    },
+    {
+      "key": "submissionId",
+      "value": "",
+      "description": "From assignment submissions"
+    },
+    {
+      "key": "materialId",
+      "value": "",
+      "description": "From materials list/create"
+    },
+    {
+      "key": "examId",
+      "value": "",
+      "description": "From exams list"
+    },
+    {
+      "key": "markId",
+      "value": "",
+      "description": "From exam marks sheet"
+    },
+    {
+      "key": "leaveId",
+      "value": "",
+      "description": "From leaves list/apply"
+    },
+    {
+      "key": "noticeId",
+      "value": "",
+      "description": "From notices list"
+    },
+    {
+      "key": "eventId",
+      "value": "",
+      "description": "From events list"
+    },
+    {
+      "key": "notificationId",
+      "value": "",
+      "description": "From notifications list"
+    },
+    {
+      "key": "pickupStudentId",
+      "value": "",
+      "description": "From pickups eligible-students"
+    },
+    {
+      "key": "pickupSessionId",
+      "value": "",
+      "description": "From pickups initiate"
+    },
+    {
+      "key": "conversationId",
+      "value": "",
+      "description": "From conversations list"
+    },
+    {
+      "key": "messageId",
+      "value": "",
+      "description": "From conversation messages"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Auth",
+      "description": "Login screen + session.",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/auth/teacher-login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "auth",
+                "teacher-login"
+              ]
+            },
+            "description": "identifier = email or username. Response: { success, token, teacher, user, school{ id, name, academicSession, theme, primaryColor, branding{logo,favicon} } }. Rate limited: 20 tries / 15 min per IP.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"teacher@school.com\",\n  \"password\": \"Password@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login OK', () => pm.expect(pm.response.code).to.eql(200));",
+                  "const j = pm.response.json();",
+                  "// student / parent / teacher return token at top level; driver returns it inside data",
+                  "const token = j.token || (j.data && j.data.token);",
+                  "if (token) { pm.collectionVariables.set('token', token); console.log('token saved'); }",
+                  "const school = j.school || (j.data && j.data.school);",
+                  "if (school) { pm.collectionVariables.set('schoolPrimaryColor', school.primaryColor || ''); }",
+                  "const kids = j.children || (j.data && j.data.children);",
+                  "if (Array.isArray(kids) && kids[0]) { pm.collectionVariables.set('childId', String(kids[0].childId || kids[0].studentId || kids[0].id)); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Me (session restore on app start)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/me",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "me"
+              ]
+            },
+            "description": "Call on splash. 401 → go to login. Returns teacher profile (incl. isClassTeacher) + school."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/change-password",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "change-password"
+              ]
+            },
+            "description": "newPassword min 8 chars.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Password@123\",\n  \"newPassword\": \"NewPassword@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/auth/logout",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Then delete token from secure storage."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 Home / Dashboard",
+      "description": "Home tab.",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/dashboard",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "dashboard"
+              ]
+            },
+            "description": "Cards: today classes, pending attendance, counts."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Today's schedule",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/today-schedule",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "today-schedule"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\",\"scheduleId\"]); if (v) { pm.collectionVariables.set('scheduleId', String(v)); console.log('scheduleId =', v); } }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 Classes & Students",
+      "description": "Only classes/sections/subjects assigned to this teacher are returned.",
+      "item": [
+        {
+          "name": "My classes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/classes",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "classes"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\",\"classId\"]); if (v) { pm.collectionVariables.set('classId', String(v)); console.log('classId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Class detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/classes/{{classId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "classes",
+                "{{classId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Class sections",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/classes/{{classId}}/sections",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "classes",
+                "{{classId}}",
+                "sections"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\",\"sectionId\"]); if (v) { pm.collectionVariables.set('sectionId', String(v)); console.log('sectionId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Section students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/sections/{{sectionId}}/students?page=1&limit=50&sort=rollNumber",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "sections",
+                "{{sectionId}}",
+                "students"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "disabled": false
+                },
+                {
+                  "key": "sort",
+                  "value": "rollNumber",
+                  "description": "rollNumber | name",
+                  "disabled": false
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "search by name / roll no",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\",\"studentId\"]); if (v) { pm.collectionVariables.set('studentId', String(v)); console.log('studentId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Student detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/students/{{studentId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "students",
+                "{{studentId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 Attendance",
+      "description": "Mark → (edit) → finalize. After finalize the day is locked (409 ATTENDANCE_FINALIZED). Status: PRESENT | ABSENT | LATE | HALF_DAY | LEAVE.",
+      "item": [
+        {
+          "name": "Attendance sheet for today",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/attendance/today?sectionId={{sectionId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "attendance",
+                "today"
+              ],
+              "query": [
+                {
+                  "key": "sectionId",
+                  "value": "{{sectionId}}",
+                  "disabled": false
+                },
+                {
+                  "key": "date",
+                  "value": "{{today}}",
+                  "description": "optional, YYYY-MM-DD",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickObj(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('attendanceId', String(v)); console.log('attendanceId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Submit attendance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "Unique per user action; a retry with the same key replays the first response."
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/attendance",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "attendance"
+              ]
+            },
+            "description": "Students not in records[] default to PRESENT. Same section+date again = update (upsert).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sectionId\": \"{{sectionId}}\",\n  \"date\": \"{{today}}\",\n  \"records\": [\n    {\n      \"studentId\": \"{{studentId}}\",\n      \"status\": \"PRESENT\",\n      \"note\": \"\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickObj(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('attendanceId', String(v)); console.log('attendanceId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Edit attendance",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/attendance/{{attendanceId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "attendance",
+                "{{attendanceId}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"records\": [\n    {\n      \"studentId\": \"{{studentId}}\",\n      \"status\": \"LATE\",\n      \"note\": \"Came 10 min late\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Finalize (lock) attendance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/attendance/{{attendanceId}}/finalize",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "attendance",
+                "{{attendanceId}}",
+                "finalize"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Attendance history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/attendance/history?sectionId={{sectionId}}&page=1&limit=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "attendance",
+                "history"
+              ],
+              "query": [
+                {
+                  "key": "sectionId",
+                  "value": "{{sectionId}}",
+                  "disabled": false
+                },
+                {
+                  "key": "from",
+                  "value": "",
+                  "description": "YYYY-MM-DD",
+                  "disabled": true
+                },
+                {
+                  "key": "to",
+                  "value": "",
+                  "description": "YYYY-MM-DD",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Section attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/attendance/section/{{sectionId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "attendance",
+                "section",
+                "{{sectionId}}"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "",
+                  "description": "YYYY-MM-DD",
+                  "disabled": true
+                },
+                {
+                  "key": "to",
+                  "value": "",
+                  "description": "YYYY-MM-DD",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Student attendance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/attendance/student/{{studentId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "attendance",
+                "student",
+                "{{studentId}}"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "",
+                  "description": "YYYY-MM-DD",
+                  "disabled": true
+                },
+                {
+                  "key": "to",
+                  "value": "",
+                  "description": "YYYY-MM-DD",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Monthly summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/attendance/summary?sectionId={{sectionId}}&month={{month}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "attendance",
+                "summary"
+              ],
+              "query": [
+                {
+                  "key": "sectionId",
+                  "value": "{{sectionId}}",
+                  "disabled": false
+                },
+                {
+                  "key": "month",
+                  "value": "{{month}}",
+                  "description": "YYYY-MM",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 Timetable",
+      "description": "Day codes: MON TUE WED THU FRI SAT.",
+      "item": [
+        {
+          "name": "Week timetable",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/timetable",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "timetable"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Day timetable",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/timetable/day/MON",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "timetable",
+                "day",
+                "MON"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Schedule entry",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/schedule/{{scheduleId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "schedule",
+                "{{scheduleId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 Homework",
+      "description": "",
+      "item": [
+        {
+          "name": "List homework",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/homework?page=1&limit=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "homework"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": false
+                },
+                {
+                  "key": "status",
+                  "value": "ALL",
+                  "description": "ALL | DRAFT | PUBLISHED …",
+                  "disabled": true
+                },
+                {
+                  "key": "sectionId",
+                  "value": "{{sectionId}}",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "subjectId",
+                  "value": "{{subjectId}}",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('homeworkId', String(v)); console.log('homeworkId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create homework",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/homework",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "homework"
+              ]
+            },
+            "description": "subjectId must be a subject this teacher teaches in that section. dueDate ≥ assignedDate.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Chapter 3 exercise\",\n  \"description\": \"Solve Q1–Q10\",\n  \"sectionId\": \"{{sectionId}}\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"assignedDate\": \"{{today}}\",\n  \"dueDate\": \"{{today}}\",\n  \"attachments\": [\n    {\n      \"name\": \"worksheet.pdf\",\n      \"url\": \"https://example.com/worksheet.pdf\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickObj(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('homeworkId', String(v)); console.log('homeworkId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Homework detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/homework/{{homeworkId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "homework",
+                "{{homeworkId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update homework",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/homework/{{homeworkId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "homework",
+                "{{homeworkId}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Chapter 3 exercise (updated)\",\n  \"dueDate\": \"{{today}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Homework submissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/homework/{{homeworkId}}/submissions",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "homework",
+                "{{homeworkId}}",
+                "submissions"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete homework",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/homework/{{homeworkId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "homework",
+                "{{homeworkId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07 Assignments",
+      "description": "Like homework but graded (maxMarks).",
+      "item": [
+        {
+          "name": "List assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/assignments?page=1&limit=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "assignments"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('assignmentId', String(v)); console.log('assignmentId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create assignment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/assignments",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "assignments"
+              ]
+            },
+            "description": "status: DRAFT | PUBLISHED | CLOSED.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Science project\",\n  \"description\": \"Model of the solar system\",\n  \"instructions\": \"Submit photos of your model\",\n  \"sectionId\": \"{{sectionId}}\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"assignedDate\": \"{{today}}\",\n  \"dueDate\": \"{{today}}\",\n  \"maxMarks\": 20,\n  \"status\": \"PUBLISHED\",\n  \"attachments\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickObj(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('assignmentId', String(v)); console.log('assignmentId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Assignment detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/assignments/{{assignmentId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "assignments",
+                "{{assignmentId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update assignment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/assignments/{{assignmentId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "assignments",
+                "{{assignmentId}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"maxMarks\": 25\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Assignment submissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/assignments/{{assignmentId}}/submissions",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "assignments",
+                "{{assignmentId}}",
+                "submissions"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\",\"submissionId\"]); if (v) { pm.collectionVariables.set('submissionId', String(v)); console.log('submissionId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Grade submission",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/assignments/{{assignmentId}}/submissions/{{submissionId}}/grade",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "assignments",
+                "{{assignmentId}}",
+                "submissions",
+                "{{submissionId}}",
+                "grade"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marksObtained\": 18,\n  \"feedback\": \"Good work\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete assignment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/assignments/{{assignmentId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "assignments",
+                "{{assignmentId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08 Study Material",
+      "description": "Upload is multipart/form-data with field \"file\".",
+      "item": [
+        {
+          "name": "List materials",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/materials?page=1&limit=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "materials"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('materialId', String(v)); console.log('materialId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Upload material",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/materials",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "materials"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "PDF / image / doc — pick a file in Postman"
+                },
+                {
+                  "key": "title",
+                  "value": "Chapter 3 notes",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Revision notes",
+                  "type": "text"
+                },
+                {
+                  "key": "sectionId",
+                  "value": "{{sectionId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "subjectId",
+                  "value": "{{subjectId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "visibility",
+                  "value": "SECTION",
+                  "type": "text",
+                  "description": "SECTION | CLASS"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickObj(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('materialId', String(v)); console.log('materialId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Material detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/materials/{{materialId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "materials",
+                "{{materialId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update material",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/materials/{{materialId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "materials",
+                "{{materialId}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Chapter 3 notes (v2)",
+                  "type": "text"
+                },
+                {
+                  "key": "status",
+                  "value": "ACTIVE",
+                  "type": "text",
+                  "description": "ACTIVE | ARCHIVED"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete material",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/materials/{{materialId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "materials",
+                "{{materialId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "09 Exams & Marks",
+      "description": "Pick exam → subject → section → enter marks. attendanceStatus: PRESENT | ABSENT | MEDICAL | EXEMPTED.",
+      "item": [
+        {
+          "name": "List exams",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/exams",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "exams"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "optional",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('examId', String(v)); console.log('examId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Exam detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/exams/{{examId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "exams",
+                "{{examId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Exam schedule",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/exams/{{examId}}/schedule",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "exams",
+                "{{examId}}",
+                "schedule"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Exam subjects (mine)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/exams/{{examId}}/subjects",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "exams",
+                "{{examId}}",
+                "subjects"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"subjectId\"]); if (v) { pm.collectionVariables.set('subjectId', String(v)); console.log('subjectId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Marks sheet",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/exams/{{examId}}/marks?classId={{classId}}&sectionId={{sectionId}}&subjectId={{subjectId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "exams",
+                "{{examId}}",
+                "marks"
+              ],
+              "query": [
+                {
+                  "key": "classId",
+                  "value": "{{classId}}",
+                  "disabled": false
+                },
+                {
+                  "key": "sectionId",
+                  "value": "{{sectionId}}",
+                  "disabled": false
+                },
+                {
+                  "key": "subjectId",
+                  "value": "{{subjectId}}",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\",\"markId\"]); if (v) { pm.collectionVariables.set('markId', String(v)); console.log('markId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Save marks (bulk)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "Unique per user action; a retry with the same key replays the first response."
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/exams/{{examId}}/marks",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "exams",
+                "{{examId}}",
+                "marks"
+              ]
+            },
+            "description": "Fails with EXAM_FINALIZED once the exam is locked.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"classId\": \"{{classId}}\",\n  \"sectionId\": \"{{sectionId}}\",\n  \"subjectId\": \"{{subjectId}}\",\n  \"marksList\": [\n    {\n      \"studentId\": \"{{studentId}}\",\n      \"marksObtained\": 78,\n      \"attendanceStatus\": \"PRESENT\",\n      \"remarks\": \"\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Edit one mark",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/exams/{{examId}}/marks/{{markId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "exams",
+                "{{examId}}",
+                "marks",
+                "{{markId}}"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marksObtained\": 80,\n  \"remarks\": \"Rechecked\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10 Leave",
+      "description": "leaveType: CASUAL | MEDICAL | PAID | UNPAID | MATERNITY | PATERNITY | OTHER.",
+      "item": [
+        {
+          "name": "My leaves",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/leaves?page=1&limit=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "leaves"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "PENDING | APPROVED | REJECTED | CANCELLED",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('leaveId', String(v)); console.log('leaveId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Apply leave",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/leaves",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "leaves"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveType\": \"CASUAL\",\n  \"startDate\": \"{{today}}\",\n  \"endDate\": \"{{today}}\",\n  \"reason\": \"Personal work\",\n  \"documentUrl\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickObj(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('leaveId', String(v)); console.log('leaveId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Leave detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/leaves/{{leaveId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "leaves",
+                "{{leaveId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel leave",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/leaves/{{leaveId}}/cancel",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "leaves",
+                "{{leaveId}}",
+                "cancel"
+              ]
+            },
+            "description": "Same as DELETE /leaves/:id. Only PENDING leaves can be cancelled."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "11 Notices & Events",
+      "description": "notices = alias of announcements (same rows). Use notices in the app.",
+      "item": [
+        {
+          "name": "Notices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/notices?page=1&limit=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "notices"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('noticeId', String(v)); console.log('noticeId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Notice detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/notices/{{noticeId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "notices",
+                "{{noticeId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark notice read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/notices/{{noticeId}}/read",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "notices",
+                "{{noticeId}}",
+                "read"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark all notices read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/notices/read-all",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "notices",
+                "read-all"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Announcements (legacy alias)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/announcements",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "announcements"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/events?scope=upcoming",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "events"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "upcoming",
+                  "description": "upcoming | past",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('eventId', String(v)); console.log('eventId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Event detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/events/{{eventId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "events",
+                "{{eventId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "12 Notifications",
+      "description": "🔔 bell + push.",
+      "item": [
+        {
+          "name": "Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/notifications?page=1&limit=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('notificationId', String(v)); console.log('notificationId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unread count (badge)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/notifications/unread-count",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "notifications",
+                "unread-count"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark one read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/notifications/{{notificationId}}/read",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "notifications",
+                "{{notificationId}}",
+                "read"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark all read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/notifications/read-all",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "notifications",
+                "read-all"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register FCM device token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/device-tokens",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "device-tokens"
+              ]
+            },
+            "description": "Call after login and on FirebaseMessaging.onTokenRefresh.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"FCM_DEVICE_TOKEN_HERE\",\n  \"platform\": \"android\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "13 Messages",
+      "description": "Teacher ↔ parent conversations.",
+      "item": [
+        {
+          "name": "Conversations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/conversations",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "conversations"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\",\"conversationId\"]); if (v) { pm.collectionVariables.set('conversationId', String(v)); console.log('conversationId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Messages in conversation",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/conversations/{{conversationId}}/messages?page=1&limit=30",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "conversations",
+                "{{conversationId}}",
+                "messages"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "30",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('messageId', String(v)); console.log('messageId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Send message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/conversations/{{conversationId}}/messages",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "conversations",
+                "{{conversationId}}",
+                "messages"
+              ]
+            },
+            "description": "Max 4000 chars.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Please check the homework diary today.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark message read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/messages/{{messageId}}/read",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "messages",
+                "{{messageId}}",
+                "read"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "14 Profile & Settings",
+      "description": "",
+      "item": [
+        {
+          "name": "Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/profile",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "profile"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update profile (JSON)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/profile",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "profile"
+              ]
+            },
+            "description": "Only these fields are editable: firstName, middleName, lastName, phone, mobileNumber, alternateMobile, bloodGroup, maritalStatus, nationality, emergencyContact*, address{}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"9876543210\",\n  \"alternateMobile\": \"\",\n  \"bloodGroup\": \"B+\",\n  \"emergencyContactName\": \"Ramesh\",\n  \"emergencyContactNumber\": \"9876500000\",\n  \"emergencyContactRelationship\": \"Brother\",\n  \"address\": {\n    \"line1\": \"12 MG Road\",\n    \"city\": \"Pune\",\n    \"state\": \"MH\",\n    \"pincode\": \"411001\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update profile photo (form-data)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/profile",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "profile"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "photo",
+                  "type": "file",
+                  "src": [],
+                  "description": "jpg/png — converted to webp on server"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/documents",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "documents"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/settings",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "settings"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update settings",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/settings",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "settings"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notificationPrefs\": {\n    \"push\": true,\n    \"homework\": true,\n    \"notices\": true,\n    \"events\": true\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "15 Safe Pickup (only if school has it enabled)",
+      "description": "eligible → initiate (OTP to parent) → verify OTP → complete handover. Cancel any time before complete. Rate limited.",
+      "item": [
+        {
+          "name": "Eligible students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/pickups/eligible-students?page=1&limit=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "pickups",
+                "eligible-students"
+              ],
+              "query": [
+                {
+                  "key": "sectionId",
+                  "value": "{{sectionId}}",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "classId",
+                  "value": "{{classId}}",
+                  "description": "",
+                  "disabled": true
+                },
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "search",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"studentId\",\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('pickupStudentId', String(v)); console.log('pickupStudentId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Initiate pickup (sends OTP)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "Unique per user action; a retry with the same key replays the first response."
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/pickups/initiate",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "pickups",
+                "initiate"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": \"{{pickupStudentId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickObj(j, [\"id\",\"_id\",\"pickupSessionId\"]); if (v) { pm.collectionVariables.set('pickupSessionId', String(v)); console.log('pickupSessionId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pickup session",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/pickups/{{pickupSessionId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "pickups",
+                "{{pickupSessionId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/pickups/{{pickupSessionId}}/verify",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "pickups",
+                "{{pickupSessionId}}",
+                "verify"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otp\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Resend OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/pickups/{{pickupSessionId}}/resend-otp",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "pickups",
+                "{{pickupSessionId}}",
+                "resend-otp"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Complete handover",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/pickups/{{pickupSessionId}}/complete",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "pickups",
+                "{{pickupSessionId}}",
+                "complete"
+              ]
+            },
+            "description": "Requires VERIFIED session. pickupPersonRelationship: Parent | Guardian | Relative | Family Friend | Authorized Person | Other.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"handoverConfirmed\": true,\n  \"pickupPersonName\": \"Sunita Sharma\",\n  \"pickupPersonRelationship\": \"Parent\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cancel pickup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/teacher/pickups/{{pickupSessionId}}/cancel",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "teacher",
+                "pickups",
+                "{{pickupSessionId}}",
+                "cancel"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

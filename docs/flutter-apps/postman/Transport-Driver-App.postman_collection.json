@@ -1,0 +1,505 @@
+{
+  "info": {
+    "name": "Transport Driver App (Flutter) — localhost",
+    "description": "Transport / Driver APK API. Full localhost URLs (API gateway :5000), no baseUrl variable.\nDeliberately minimal: login → my route → my students → mark Picked Up → mark Dropped. No GPS, trips, SOS, notifications or profile edit.\nLogin is MOBILE + password (driver is created by School Admin → Transport → Drivers). Token comes back inside data.token (saved automatically).\nRules enforced by backend: only students on the driver's own route; only today or earlier dates; drop requires pickup first (409 TRANSPORT_NOT_PICKED_UP). Marking twice is safe (idempotent).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Keeps {{today}} and {{month}} current so date-based requests always work.",
+          "const d = new Date();",
+          "const pad = (n) => String(n).padStart(2, '0');",
+          "const today = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;",
+          "pm.collectionVariables.set('today', today);",
+          "pm.collectionVariables.set('month', today.slice(0, 7));"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "token",
+      "value": "",
+      "description": "Auto-filled by the Login request."
+    },
+    {
+      "key": "today",
+      "value": "",
+      "description": "Auto-filled (YYYY-MM-DD) before every request."
+    },
+    {
+      "key": "month",
+      "value": "",
+      "description": "Auto-filled (YYYY-MM) before every request."
+    },
+    {
+      "key": "schoolPrimaryColor",
+      "value": "",
+      "description": "Auto-filled from login → school.primaryColor."
+    },
+    {
+      "key": "studentId",
+      "value": "",
+      "description": "From GET students (first rider)"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Auth",
+      "description": "",
+      "item": [
+        {
+          "name": "Login (mobile + password)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/auth/driver-login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "auth",
+                "driver-login"
+              ]
+            },
+            "description": "+91, spaces and dashes are stripped. Response: { success, message, data: { token, driver, user, school } }.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"mobile\": \"9876543210\",\n  \"password\": \"Password@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login OK', () => pm.expect(pm.response.code).to.eql(200));",
+                  "const j = pm.response.json();",
+                  "// student / parent / teacher return token at top level; driver returns it inside data",
+                  "const token = j.token || (j.data && j.data.token);",
+                  "if (token) { pm.collectionVariables.set('token', token); console.log('token saved'); }",
+                  "const school = j.school || (j.data && j.data.school);",
+                  "if (school) { pm.collectionVariables.set('schoolPrimaryColor', school.primaryColor || ''); }",
+                  "const kids = j.children || (j.data && j.data.children);",
+                  "if (Array.isArray(kids) && kids[0]) { pm.collectionVariables.set('childId', String(kids[0].childId || kids[0].studentId || kids[0].id)); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Me (session restore)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/driver/me",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "driver",
+                "me"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/driver/change-password",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "driver",
+                "change-password"
+              ]
+            },
+            "description": "min 8 chars.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Password@123\",\n  \"newPassword\": \"NewPassword@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 My Route",
+      "description": "Route + vehicle + ordered stops with pickup/drop times.",
+      "item": [
+        {
+          "name": "My route",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/driver/route",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "driver",
+                "route"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 My Students (daily list)",
+      "description": "Ordered by stop sequence. Each row: studentId, name, admissionNumber, rollNumber, className, stop{id,stopName,sequenceOrder}, pickupTime, dropTime, pickupStatus (PENDING|PICKED_UP), pickedUpAt, dropStatus (PENDING|DROPPED), droppedAt.",
+      "item": [
+        {
+          "name": "Today's students",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/driver/students",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "driver",
+                "students"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"studentId\"]); if (v) { pm.collectionVariables.set('studentId', String(v)); console.log('studentId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Students for a date",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/driver/students?date={{today}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "driver",
+                "students"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "{{today}}",
+                  "description": "YYYY-MM-DD",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 Mark Pickup / Drop",
+      "description": "body.date optional (defaults to today; future dates rejected).",
+      "item": [
+        {
+          "name": "Mark picked up",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/driver/students/{{studentId}}/pickup",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "driver",
+                "students",
+                "{{studentId}}",
+                "pickup"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"{{today}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark dropped",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/driver/students/{{studentId}}/drop",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "driver",
+                "students",
+                "{{studentId}}",
+                "drop"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"{{today}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

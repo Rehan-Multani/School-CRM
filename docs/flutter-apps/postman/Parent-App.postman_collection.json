@@ -1,0 +1,2977 @@
+{
+  "info": {
+    "name": "Parent App (Flutter) — localhost",
+    "description": "Parent APK API. Full localhost URLs (API gateway :5000), no baseUrl variable.\nRun \"01 Auth → Login\" first — {{token}} AND {{childId}} (first child) are saved automatically.\nEverything about a child is under /children/{{childId}}/… — switching child in the app = changing this id.\nBottom nav: HOME · ACADEMICS · ATTENDANCE · NOTICES · PROFILE (+ 🔔). Fees / Receipts / Pickup / Settings open from Profile.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Keeps {{today}} and {{month}} current so date-based requests always work.",
+          "const d = new Date();",
+          "const pad = (n) => String(n).padStart(2, '0');",
+          "const today = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;",
+          "pm.collectionVariables.set('today', today);",
+          "pm.collectionVariables.set('month', today.slice(0, 7));"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "token",
+      "value": "",
+      "description": "Auto-filled by the Login request."
+    },
+    {
+      "key": "today",
+      "value": "",
+      "description": "Auto-filled (YYYY-MM-DD) before every request."
+    },
+    {
+      "key": "month",
+      "value": "",
+      "description": "Auto-filled (YYYY-MM) before every request."
+    },
+    {
+      "key": "schoolPrimaryColor",
+      "value": "",
+      "description": "Auto-filled from login → school.primaryColor."
+    },
+    {
+      "key": "childId",
+      "value": "",
+      "description": "Auto-filled from login children[0]"
+    },
+    {
+      "key": "homeworkId",
+      "value": "",
+      "description": ""
+    },
+    {
+      "key": "classworkId",
+      "value": "",
+      "description": ""
+    },
+    {
+      "key": "materialId",
+      "value": "",
+      "description": ""
+    },
+    {
+      "key": "examId",
+      "value": "",
+      "description": ""
+    },
+    {
+      "key": "invoiceId",
+      "value": "",
+      "description": "From fee invoices list"
+    },
+    {
+      "key": "razorpayOrderId",
+      "value": "",
+      "description": "From pay-order"
+    },
+    {
+      "key": "paymentId",
+      "value": "",
+      "description": "From receipts list"
+    },
+    {
+      "key": "pickupSessionId",
+      "value": "",
+      "description": "From pickup list"
+    },
+    {
+      "key": "noticeId",
+      "value": "",
+      "description": ""
+    },
+    {
+      "key": "eventId",
+      "value": "",
+      "description": ""
+    },
+    {
+      "key": "notificationId",
+      "value": "",
+      "description": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Auth",
+      "description": "",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/auth/parent-login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "auth",
+                "parent-login"
+              ]
+            },
+            "description": "identifier = phone or email. Response adds children[] — if more than one, show a child switcher.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"9876543210\",\n  \"password\": \"Password@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login OK', () => pm.expect(pm.response.code).to.eql(200));",
+                  "const j = pm.response.json();",
+                  "// student / parent / teacher return token at top level; driver returns it inside data",
+                  "const token = j.token || (j.data && j.data.token);",
+                  "if (token) { pm.collectionVariables.set('token', token); console.log('token saved'); }",
+                  "const school = j.school || (j.data && j.data.school);",
+                  "if (school) { pm.collectionVariables.set('schoolPrimaryColor', school.primaryColor || ''); }",
+                  "const kids = j.children || (j.data && j.data.children);",
+                  "if (Array.isArray(kids) && kids[0]) { pm.collectionVariables.set('childId', String(kids[0].childId || kids[0].studentId || kids[0].id)); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Me (session restore)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/me",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "me"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Change password",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/change-password",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "change-password"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"Password@123\",\n  \"newPassword\": \"NewPassword@123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/auth/logout",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "auth",
+                "logout"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 Children",
+      "description": "",
+      "item": [
+        {
+          "name": "My children",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"childId\",\"studentId\",\"id\"]); if (v) { pm.collectionVariables.set('childId', String(v)); console.log('childId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Child profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 Home",
+      "description": "",
+      "item": [
+        {
+          "name": "Overview (all children)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/dashboard/overview",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "dashboard",
+                "overview"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dashboard (one child)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/dashboard?childId={{childId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "dashboard"
+              ],
+              "query": [
+                {
+                  "key": "childId",
+                  "value": "{{childId}}",
+                  "description": "default = first child",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 Academics (child)",
+      "description": "",
+      "item": [
+        {
+          "name": "Homework",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/homework?status=all&page=1&limit=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "homework"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "all",
+                  "description": "all | pending | completed | overdue",
+                  "disabled": false
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('homeworkId', String(v)); console.log('homeworkId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Homework detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/homework/{{homeworkId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "homework",
+                "{{homeworkId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Classwork",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/classwork",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "classwork"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('classworkId', String(v)); console.log('classworkId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Classwork detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/classwork/{{classworkId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "classwork",
+                "{{classworkId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Materials",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/materials",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "materials"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('materialId', String(v)); console.log('materialId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Material detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/materials/{{materialId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "materials",
+                "{{materialId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Material download URL",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/materials/{{materialId}}/download-url",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "materials",
+                "{{materialId}}",
+                "download-url"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Week timetable",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/timetable",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "timetable"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Today timetable",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/timetable/today",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "timetable",
+                "today"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Day timetable",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/timetable/day/MON",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "timetable",
+                "day",
+                "MON"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 Exams & Results (child)",
+      "description": "",
+      "item": [
+        {
+          "name": "Exams",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/exams?status=all",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "exams"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "all",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\",\"examId\"]); if (v) { pm.collectionVariables.set('examId', String(v)); console.log('examId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Upcoming exams",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/exams/upcoming",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "exams",
+                "upcoming"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Exam detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/exams/{{examId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "exams",
+                "{{examId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Exam schedule",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/exams/{{examId}}/schedule",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "exams",
+                "{{examId}}",
+                "schedule"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Results",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/results",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "results"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Result of exam",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/results/{{examId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "results",
+                "{{examId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Subject-wise result",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/results/{{examId}}/subjects",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "results",
+                "{{examId}}",
+                "subjects"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Report card",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/report-card",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "report-card"
+              ],
+              "query": [
+                {
+                  "key": "yearId",
+                  "value": "",
+                  "description": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 Attendance (child)",
+      "description": "",
+      "item": [
+        {
+          "name": "Summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/attendance/summary",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "attendance",
+                "summary"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Daily",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/attendance/daily",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "attendance",
+                "daily"
+              ],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "",
+                  "description": "YYYY-MM-DD",
+                  "disabled": true
+                },
+                {
+                  "key": "to",
+                  "value": "",
+                  "description": "YYYY-MM-DD",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Monthly (calendar)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/attendance/monthly?month={{month}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "attendance",
+                "monthly"
+              ],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "{{month}}",
+                  "description": "YYYY-MM (required)",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "07 Fees & Online Payment (child)",
+      "description": "Pay flow: pay-order → open Razorpay checkout (razorpay_flutter) with keyId+orderId+amount → on success call verify → refresh invoice. The webhook is the final truth; verify is advisory.",
+      "item": [
+        {
+          "name": "Fee summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/fees/summary",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "fees",
+                "summary"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pending fees",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/fees/pending",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "fees",
+                "pending"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invoices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/fees/invoices?page=1&limit=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "fees",
+                "invoices"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "description": "PENDING | PARTIALLY_PAID | PAID | OVERDUE",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('invoiceId', String(v)); console.log('invoiceId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Invoice detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/fees/invoices/{{invoiceId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "fees",
+                "invoices",
+                "{{invoiceId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create pay order (Pay Now)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "Unique per user action; a retry with the same key replays the first response."
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/fees/invoices/{{invoiceId}}/pay-order",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "fees",
+                "invoices",
+                "{{invoiceId}}",
+                "pay-order"
+              ]
+            },
+            "description": "amount optional (partial payment, ₹) — omit to pay full balance. Response: { keyId, orderId, amount (paise), currency, invoiceNumber, studentName }.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickObj(j, [\"orderId\"]); if (v) { pm.collectionVariables.set('razorpayOrderId', String(v)); console.log('razorpayOrderId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Verify payment (after Razorpay success)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/fees/payments/verify",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "fees",
+                "payments",
+                "verify"
+              ]
+            },
+            "description": "Pass the 3 values from the Razorpay success callback exactly.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"razorpay_order_id\": \"{{razorpayOrderId}}\",\n  \"razorpay_payment_id\": \"pay_XXXXXXXX\",\n  \"razorpay_signature\": \"SIGNATURE_FROM_RAZORPAY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Payment history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/fees/history",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "fees",
+                "history"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Receipts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/fees/receipts?page=1&limit=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "fees",
+                "receipts"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"paymentId\",\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('paymentId', String(v)); console.log('paymentId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Receipt detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/fees/receipts/{{paymentId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "fees",
+                "receipts",
+                "{{paymentId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "08 Safe Pickup history (child, read-only)",
+      "description": "Shows pickups done by teachers. The OTP itself arrives by SMS/push to the parent.",
+      "item": [
+        {
+          "name": "Pickup history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/pickup?page=1&limit=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "pickup"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('pickupSessionId', String(v)); console.log('pickupSessionId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pickup detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/children/{{childId}}/pickup/{{pickupSessionId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "children",
+                "{{childId}}",
+                "pickup",
+                "{{pickupSessionId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "09 Notices & Events",
+      "description": "",
+      "item": [
+        {
+          "name": "Notices",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/notices?page=1&limit=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "notices"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('noticeId', String(v)); console.log('noticeId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Notice detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/notices/{{noticeId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "notices",
+                "{{noticeId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark notice read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/notices/{{noticeId}}/read",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "notices",
+                "{{noticeId}}",
+                "read"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark all notices read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/notices/read-all",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "notices",
+                "read-all"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/events?scope=upcoming",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "events"
+              ],
+              "query": [
+                {
+                  "key": "scope",
+                  "value": "upcoming",
+                  "description": "upcoming | past",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('eventId', String(v)); console.log('eventId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Event detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/events/{{eventId}}",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "events",
+                "{{eventId}}"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10 Notifications",
+      "description": "",
+      "item": [
+        {
+          "name": "Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/notifications?page=1&limit=20",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "notifications"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": false
+                },
+                {
+                  "key": "limit",
+                  "value": "20",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+                  "function pickFirst(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  let arr = Array.isArray(d) ? d : null;\n  if (!arr && d && typeof d === 'object') {\n    for (const k of ['items', 'data', 'students', 'children', 'rows', 'list', 'sections', 'entries', 'notifications']) {\n      if (Array.isArray(d[k])) { arr = d[k]; break; }\n    }\n    if (!arr) arr = Object.values(d).find(Array.isArray) || null;\n  }\n  const x = arr ? arr[0] : null;\n  if (!x) return null;\n  for (const k of keys) if (x[k]) return typeof x[k] === 'object' ? (x[k].id || x[k]._id) : x[k];\n  return null;\n}\nfunction pickObj(j, keys) {\n  const d = j && j.data !== undefined ? j.data : j;\n  if (!d || typeof d !== 'object') return null;\n  for (const k of keys) if (d[k]) return d[k];\n  return null;\n}",
+                  "{ const v = pickFirst(j, [\"id\",\"_id\"]); if (v) { pm.collectionVariables.set('notificationId', String(v)); console.log('notificationId =', v); } }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unread count (badge)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/notifications/unread-count",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "notifications",
+                "unread-count"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark one read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/notifications/{{notificationId}}/read",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "notifications",
+                "{{notificationId}}",
+                "read"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mark all read",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/notifications/read-all",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "notifications",
+                "read-all"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register FCM device token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/device-tokens",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "device-tokens"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"FCM_DEVICE_TOKEN_HERE\",\n  \"platform\": \"android\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "11 Profile & Settings",
+      "description": "",
+      "item": [
+        {
+          "name": "Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/profile",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "profile"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update profile (JSON)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/profile",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "profile"
+              ]
+            },
+            "description": "Editable: firstName, lastName, phone, email, address.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Sunita\",\n  \"lastName\": \"Sharma\",\n  \"phone\": \"9876543210\",\n  \"email\": \"sunita@example.com\",\n  \"address\": \"12 MG Road, Pune\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update profile photo (form-data)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/profile",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "profile"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "photo",
+                  "type": "file",
+                  "src": [],
+                  "description": "jpg/png"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/settings",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "settings"
+              ]
+            },
+            "description": ""
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update settings",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/v1/platform/school-portal/parent/settings",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "5000",
+              "path": [
+                "api",
+                "v1",
+                "platform",
+                "school-portal",
+                "parent",
+                "settings"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notificationPrefs\": {\n    \"push\": true,\n    \"fees\": true,\n    \"attendance\": true,\n    \"notices\": true\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+                  "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+                  "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
