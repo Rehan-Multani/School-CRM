@@ -12,6 +12,7 @@
  * academic seeder skips this school (see constants/demoSchool.js).
  *
  * Logins (all password `Demo@12345`):
+ *   admin@app-demo.example.com Demo Admin  — school admin web panel (/school-admin)
  *   teacher.demo@example.com  Meera Kapoor — class teacher 10-A, Maths in 9-A/9-B/10-A/10-B
  *   student.demo@example.com  Aarav Mehta  — Class 10-A, roll 1
  *   parent.demo@example.com   Rajiv Mehta  — Aarav's father
@@ -133,6 +134,20 @@ const WORK = {
   COMP: ['HTML page with a table and form', 'Python: loops practice programs', 'Cyber safety poster', 'Spreadsheet: marks analysis with formulas', 'Python: lists and dictionaries'],
 };
 
+async function demoPlan(M) {
+  const plan =
+    (await M.SubscriptionPlan.findOne({ name: 'Growth Plan' }).lean()) ||
+    (await M.SubscriptionPlan.findOne({}).sort({ price: -1 }).lean());
+  if (!plan) return {};
+  return {
+    subscriptionPlan: plan.name,
+    subscription: {
+      planId: plan._id, planType: plan.planType || 'Yearly', startedAt: daysFromToday(-30),
+      endsAt: daysFromToday(335), status: 'Active',
+    },
+  };
+}
+
 // ---------------------------------------------------------------- seed
 async function seed(M) {
   ensureUploadDirs();
@@ -148,9 +163,14 @@ async function seed(M) {
     contact: { email: 'office@app-demo.example.com', phone: '+910000000000' },
     address: { line1: '12 Demo Lane', city: 'Sampleville', state: 'Demo State', country: 'India', pincode: '000000' },
     academic: { session: '2026-27', classFrom: '8', classTo: '10', medium: 'English', workingDays: ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] },
-    admin: { name: 'Demo Admin', email: 'admin@app-demo.example.com', mobile: '+910000000000' },
+    // Admin panel login too (same password), so the school's web side can be checked.
+    admin: { name: 'Demo Admin', email: 'admin@app-demo.example.com', mobile: '+910000000000', passwordHash: hash, hasLogin: true },
     status: 'Active',
-    settings: { primaryColor: '#0F766E', theme: 'light', safePickupEnabled: false },
+    // Recommended platform palette: Indigo 600 primary.
+    settings: { primaryColor: '#4F46E5', theme: 'light', safePickupEnabled: false },
+    // A plan without Razorpay (no SchoolSubscription row, so no billing cron
+    // touches it) — otherwise the admin panel only shows "choose a plan".
+    ...(await demoPlan(M)),
   });
   const S = school._id;
 
@@ -702,7 +722,7 @@ async function main() {
     const started = Date.now();
     const stats = await seed(M);
     console.log(`Demo school created in ${((Date.now() - started) / 1000).toFixed(1)}s`, stats);
-    console.log(`Logins (password ${PASSWORD}): teacher.demo@example.com, student.demo@example.com, parent.demo@example.com, teacher.empty@example.com, student.empty@example.com`);
+    console.log(`Logins (password ${PASSWORD}): admin@app-demo.example.com (admin panel), teacher.demo@example.com, student.demo@example.com, parent.demo@example.com, teacher.empty@example.com, student.empty@example.com`);
   } finally {
     await mongoose.disconnect();
   }
