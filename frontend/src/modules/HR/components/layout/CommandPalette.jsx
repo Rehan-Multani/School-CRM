@@ -166,7 +166,7 @@ export const CommandPalette = ({ isOpen, onClose }) => {
 
         {/* Footer */}
         <div className="px-4 py-2 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-          <span>Navigate with Ã¢â â and Ã¢â â</span>
+          <span>Navigate with ↑ and ↓</span>
           <span>Press Enter to select</span>
         </div>
       </div>

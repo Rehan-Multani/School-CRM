@@ -47,7 +47,7 @@ export const ChildrenManagement = () => {
                 <div>
                   <h3 className="text-sm font-extrabold text-foreground">{c.name}</h3>
                   <p className="text-xs text-slate-400 font-medium mt-0.5">{c.class} - Section {c.section}</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">Roll No: {c.rollNo} â¢ ID: {c.id}</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">Roll No: {c.rollNo} • ID: {c.id}</p>
                 </div>
               </div>
 

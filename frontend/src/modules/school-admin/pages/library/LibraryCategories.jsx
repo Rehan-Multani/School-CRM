@@ -179,7 +179,7 @@ export const LibraryCategories = () => {
           <div className="flex justify-end gap-2.5 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setFormModalOpen(false)} className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 dark:border-slate-800 dark:text-slate-300">Cancel</button>
             <button type="submit" disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-primary/90 disabled:opacity-60">
-              {saving ? 'Savingâ¦' : editing ? 'Save Changes' : 'Add Category'}
+              {saving ? 'Saving…' : editing ? 'Save Changes' : 'Add Category'}
             </button>
           </div>
         </form>

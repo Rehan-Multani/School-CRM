@@ -689,7 +689,7 @@ export const EmployeeFormModal = ({
                       type={showPassword ? 'text' : 'password'}
                       value={form.password}
                       onChange={(e) => updateField('password', e.target.value)}
-                      placeholder={editingEmployee ? 'â¢â¢â¢â¢â¢â¢â¢â¢' : 'Min 6 characters'}
+                      placeholder={editingEmployee ? '••••••••' : 'Min 6 characters'}
                       required={!editingEmployee}
                       minLength={6}
                       className={`${inputClass} pr-10`}

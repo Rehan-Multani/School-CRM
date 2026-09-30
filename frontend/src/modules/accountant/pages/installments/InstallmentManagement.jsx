@@ -89,7 +89,7 @@ export const InstallmentManagement = () => {
           <input
             value={filters.search}
             onChange={(e) => set({ search: e.target.value })}
-            placeholder="Search student, admission no, invoiceâ¦"
+            placeholder="Search student, admission no, invoice…"
             className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold outline-none focus:border-violet-500"
           />
         </div>

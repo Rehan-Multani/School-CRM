@@ -430,7 +430,7 @@ export const PayrollManagement = () => {
                           </div>
                           <div>
                             <p className="font-bold text-slate-900 dark:text-white leading-tight">{p.employeeName}</p>
-                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">{p.employeeId} â¢ {p.department || 'General'}</p>
+                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">{p.employeeId} • {p.department || 'General'}</p>
                           </div>
                         </div>
                       </td>

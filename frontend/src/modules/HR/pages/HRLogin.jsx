@@ -160,7 +160,7 @@ export const HRLogin = () => {
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
+                      placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -264,12 +264,12 @@ export const HRLogin = () => {
 
           <div className="mt-4 flex flex-col items-center gap-1.5 text-center">
             <p className="text-[11px] tracking-wide text-slate-500">
-              Authorized HR personnel only ÃÂ· Secure JWT-isolated access
+              Authorized HR personnel only · Secure JWT-isolated access
             </p>
             <div className="flex items-center gap-1.5 text-xs text-slate-400">
               <span>Looking for another panel?</span>
               <Link to="/login" className="inline-flex items-center gap-1 font-semibold text-blue-400 hover:text-blue-300 hover:underline">
-                <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals Ã¢â â
+                <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals →
               </Link>
             </div>
           </div>

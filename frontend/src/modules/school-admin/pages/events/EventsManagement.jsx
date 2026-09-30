@@ -442,7 +442,7 @@ export const EventsManagement = () => {
               disabled={saving}
               className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60"
             >
-              {saving ? 'Savingâ¦' : editing ? 'Update Event' : 'Schedule Event'}
+              {saving ? 'Saving…' : editing ? 'Update Event' : 'Schedule Event'}
             </button>
           </div>
         </form>

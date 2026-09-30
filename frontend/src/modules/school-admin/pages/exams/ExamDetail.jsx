@@ -491,17 +491,17 @@ export const ExamDetail = () => {
               <span className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-2 py-0.5 font-bold text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
                 <CalendarDays className="h-3 w-3" /> {exam.session}
               </span>
-              <span>â¢</span>
+              <span>•</span>
               <span className="font-bold text-slate-700 dark:text-slate-300">
                 Type: {exam.examType.replace('_', ' ')}
               </span>
-              <span>â¢</span>
+              <span>•</span>
               <span>
                 {new Date(exam.startDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}{' '}
                 –{' '}
                 {new Date(exam.endDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
               </span>
-              <span>â¢</span>
+              <span>•</span>
               <span className="inline-flex items-center gap-1">
                 <GraduationCap className="h-3.5 w-3.5" />
                 {exam.classes?.map((c) => c.name).join(', ') || 'All Classes'}
@@ -1360,7 +1360,7 @@ export const ExamDetail = () => {
                 </p>
                 <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-800 dark:bg-slate-800 dark:text-white">
                   <span>{reportCardData.exam.name}</span>
-                  <span>â¢</span>
+                  <span>•</span>
                   <span>Session {reportCardData.exam.session}</span>
                 </div>
               </div>

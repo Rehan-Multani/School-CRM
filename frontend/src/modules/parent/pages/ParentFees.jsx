@@ -92,7 +92,7 @@ export const ParentFees = () => {
                     {inst.status}
                   </Badge>
                 </div>
-                <span className="text-[10px] text-slate-400 font-semibold mt-0.5 block">Due Date: {inst.dueDate} {inst.receiptNo && `â¢ Receipt ${inst.receiptNo}`}</span>
+                <span className="text-[10px] text-slate-400 font-semibold mt-0.5 block">Due Date: {inst.dueDate} {inst.receiptNo && `• Receipt ${inst.receiptNo}`}</span>
               </div>
 
               <div className="flex items-center gap-3">

@@ -109,7 +109,7 @@ export const TeacherHomework = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between items-start">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded">
-                      {hw.subject} â¢ Class {hw.class}-{hw.section || 'A'}
+                      {hw.subject} • Class {hw.class}-{hw.section || 'A'}
                     </span>
                     <button
                       onClick={() => handleDeleteHw(hw.id)}
@@ -159,7 +159,7 @@ export const TeacherHomework = () => {
                         </Badge>
                       </div>
                       <p className="text-xs text-slate-500 mt-1">Assignment: <strong>{hw.title}</strong> ({hw.subject})</p>
-                      <span className="text-[10px] text-indigo-600 font-semibold">Attached: {sub.fileName || 'Assignment.pdf'} â¢ Submitted: {sub.submittedAt}</span>
+                      <span className="text-[10px] text-indigo-600 font-semibold">Attached: {sub.fileName || 'Assignment.pdf'} • Submitted: {sub.submittedAt}</span>
                     </div>
 
                     <button

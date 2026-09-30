@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { cn } from '../lib/cn';
 
-// Canonical merged Avatar Ã¢â¬â superset of teacher (hashed color background
+// Canonical merged Avatar — superset of teacher (hashed color background
 // per name, sizes sm/md/lg/xl) and parent (div-wrapped image with an `xs`
 // size and a flat primary-tinted fallback). Uses parent's more robust
 // "always wrap in a sized div" structure (avoids a broken-image icon

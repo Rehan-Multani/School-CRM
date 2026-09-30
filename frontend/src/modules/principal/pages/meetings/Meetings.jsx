@@ -391,7 +391,7 @@ export const Meetings = () => {
             </div>
             <div className="space-y-1">
               <label className="block text-[11px] font-bold text-slate-400">Meeting Link (if online)</label>
-              <input value={form.meetingLink} onChange={(e) => setForm({ ...form, meetingLink: e.target.value })} className={inputCls} placeholder="https://â¦" />
+              <input value={form.meetingLink} onChange={(e) => setForm({ ...form, meetingLink: e.target.value })} className={inputCls} placeholder="https://…" />
             </div>
           </div>
 
@@ -419,7 +419,7 @@ export const Meetings = () => {
               className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 font-bold text-white shadow-sm transition-all hover:bg-emerald-700 disabled:opacity-60"
             >
               <PlusCircle className="h-3.5 w-3.5" />
-              <span>{saving ? 'Savingâ¦' : editing ? 'Update Session' : 'Schedule Session'}</span>
+              <span>{saving ? 'Saving…' : editing ? 'Update Session' : 'Schedule Session'}</span>
             </button>
           </div>
         </form>

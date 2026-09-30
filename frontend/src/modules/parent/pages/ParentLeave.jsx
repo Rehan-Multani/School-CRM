@@ -184,7 +184,7 @@ export const ParentLeave = () => {
                   </div>
                   <div className="flex items-center gap-2 text-[10px] text-slate-500 mb-2">
                     <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{lv.startDate} Ã¢â â {lv.endDate}</span>
+                    <span>{lv.startDate} → {lv.endDate}</span>
                   </div>
                   <p className="text-xs text-slate-600 dark:text-slate-400 italic">" {lv.reason} "</p>
                   {lv.comments && (

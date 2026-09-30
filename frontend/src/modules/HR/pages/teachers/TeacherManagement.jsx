@@ -80,7 +80,7 @@ export const TeacherManagement = () => {
       setTeachers((prev) =>
         prev.map((t) => (t.id === teacher.id ? { ...t, status: 'ACTIVE' } : t))
       );
-      showToast(`Ã¢Åâ Teacher ${teacher.name} approved & activated!`, 'success');
+      showToast(`✓ Teacher ${teacher.name} approved & activated!`, 'success');
     } catch (err) {
       showToast(err.response?.data?.message || err.message || 'Failed to approve teacher', 'error');
     }
@@ -116,7 +116,7 @@ export const TeacherManagement = () => {
   }, [teachers]);
 
   const handleModalSuccess = () => {
-    showToast(`Ã¢Åâ Teacher submitted for Admin Approval successfully!`, 'success');
+    showToast(`✓ Teacher submitted for Admin Approval successfully!`, 'success');
     fetchTeachers();
   };
 

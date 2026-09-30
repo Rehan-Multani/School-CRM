@@ -3,7 +3,7 @@ import { Modal } from './Modal';
 import { AlertTriangle } from 'lucide-react';
 import { cn } from '../lib/cn';
 
-// Canonical merged ConfirmDialog Ã¢â¬â superset of gen-2 (HR/accountant/
+// Canonical merged ConfirmDialog — superset of gen-2 (HR/accountant/
 // librarian/principal/school-admin/transport, prop names onClose/
 // confirmText/cancelText) and gen-1 (teacher/parent, prop names
 // onCancel/confirmLabel/cancelLabel). Both naming conventions are

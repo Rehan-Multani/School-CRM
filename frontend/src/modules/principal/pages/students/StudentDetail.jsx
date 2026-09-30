@@ -213,10 +213,10 @@ export const StudentDetail = () => {
             <Badge variant={STATUS_VARIANT[student.status] || 'default'}>{student.status}</Badge>
           </div>
           <p className="text-xs font-semibold text-slate-500">
-            Class: {student.enrollment?.class?.name || '–'} ÃÂ· Section: {student.enrollment?.section?.name || '–'}
+            Class: {student.enrollment?.class?.name || '–'} · Section: {student.enrollment?.section?.name || '–'}
           </p>
           <p className="text-xs text-slate-500">
-            Roll No: {student.enrollment?.rollNumber || '–'} ÃÂ· Parent: {student.parentName || '–'} ({student.parentPhone || '–'})
+            Roll No: {student.enrollment?.rollNumber || '–'} · Parent: {student.parentName || '–'} ({student.parentPhone || '–'})
           </p>
         </div>
       </div>

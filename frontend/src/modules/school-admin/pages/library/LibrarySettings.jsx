@@ -110,7 +110,7 @@ export const LibrarySettings = () => {
         <div>
           <p className="font-bold text-sky-800 dark:text-sky-300">{user?.schoolName || 'This school'}'s Library</p>
           <p className="mt-0.5 text-slate-600 dark:text-slate-400">
-            {stats?.totalTitles || 0} titles ÃÂ· {stats?.totalCopies || 0} physical copies ÃÂ· {stats?.activeIssued || 0} currently on loan.
+            {stats?.totalTitles || 0} titles · {stats?.totalCopies || 0} physical copies · {stats?.activeIssued || 0} currently on loan.
             Borrowing limits and fine amounts are configured on the <strong>Rules</strong> page.
           </p>
         </div>
@@ -139,7 +139,7 @@ export const LibrarySettings = () => {
 
         <div className="flex justify-end">
           <button type="submit" disabled={saving} className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-primary/90 disabled:opacity-60">
-            <Save className="h-3.5 w-3.5" /> {saving ? 'Savingâ¦' : 'Save Settings'}
+            <Save className="h-3.5 w-3.5" /> {saving ? 'Saving…' : 'Save Settings'}
           </button>
         </div>
       </form>

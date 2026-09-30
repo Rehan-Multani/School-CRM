@@ -443,10 +443,10 @@ export const AddEditEmployee = () => {
 
       if (isEdit) {
         await hrApi.updateEmployee(id, payload);
-        showToast('Ã¢Åâ Employee profile updated successfully!', 'success');
+        showToast('✓ Employee profile updated successfully!', 'success');
       } else {
         await hrApi.createEmployee(payload);
-        showToast(`Ã¢Åâ ${isTeacher ? 'Teacher' : 'Staff Member'} registered for Admin Approval!`, 'success');
+        showToast(`✓ ${isTeacher ? 'Teacher' : 'Staff Member'} registered for Admin Approval!`, 'success');
       }
 
       navigate('/hr/employees');
@@ -716,7 +716,7 @@ export const AddEditEmployee = () => {
                       type={showPassword ? 'text' : 'password'}
                       value={form.password}
                       onChange={(e) => updateField('password', e.target.value)}
-                      placeholder={isEdit ? 'â¢â¢â¢â¢â¢â¢â¢â¢' : 'Min 6 characters'}
+                      placeholder={isEdit ? '••••••••' : 'Min 6 characters'}
                       required={!isEdit}
                       minLength={6}
                       className={`${inputClass} pr-10`}

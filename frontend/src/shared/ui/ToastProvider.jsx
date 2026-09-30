@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-react';
 import { cn } from '../lib/cn';
 
-// Canonical "global provider" Toast Ã¢â¬â Pattern B.
+// Canonical "global provider" Toast — Pattern B.
 // Used by librarian, transport, teacher and parent: mount <ToastProvider>
 // once near the app root, then call `const toast = useToast()` anywhere
 // beneath it and use `toast.success(msg)` / `.error()` / `.warning()` / `.info()`.

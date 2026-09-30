@@ -110,7 +110,7 @@ export const FeeCollection = () => {
       })
       .then((res) => {
         const data = res?.data;
-        showToast(`Payment recorded â receipt ${data?.receiptNumber}`, 'success');
+        showToast(`Payment recorded — receipt ${data?.receiptNumber}`, 'success');
         setReceipt({
           ...data,
           studentName: profile?.student?.name,
@@ -130,7 +130,7 @@ export const FeeCollection = () => {
     e.preventDefault();
     const enrollment = selected?.enrollment;
     if (!enrollment?.id || !enrollment?.academicYearId) {
-      return showToast('Student has no active enrollment â cannot generate an invoice', 'error');
+      return showToast('Student has no active enrollment — cannot generate an invoice', 'error');
     }
     if (!genForm.periodLabel.trim()) return showToast('Enter a period label (e.g. "Term 2 2026-27")', 'error');
 
@@ -275,7 +275,7 @@ export const FeeCollection = () => {
                               <Badge variant={invoiceBadge(inv.status)}>{inv.status}</Badge>
                             </div>
                             <p className="text-[10px] text-slate-400 mt-0.5">
-                              {inv.periodLabel} â¢ due {formatDate(inv.dueDate)}
+                              {inv.periodLabel} • due {formatDate(inv.dueDate)}
                             </p>
                           </div>
                           <div className="text-right">
@@ -394,7 +394,7 @@ export const FeeCollection = () => {
                         disabled={submitting}
                         className="flex-1 h-9 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold disabled:opacity-50"
                       >
-                        {submitting ? 'Processingâ¦' : `Collect ${formatCurrency(Number(form.amount) || 0)}`}
+                        {submitting ? 'Processing…' : `Collect ${formatCurrency(Number(form.amount) || 0)}`}
                       </button>
                       <button
                         type="button"
@@ -441,7 +441,7 @@ export const FeeCollection = () => {
                     disabled={generating}
                     className="w-full h-9 rounded-lg border border-violet-300 dark:border-violet-900/50 text-violet-600 dark:text-violet-400 text-xs font-bold disabled:opacity-50 hover:bg-violet-50 dark:hover:bg-violet-950/30"
                   >
-                    {generating ? 'Generatingâ¦' : 'Generate from active fee assignments'}
+                    {generating ? 'Generating…' : 'Generate from active fee assignments'}
                   </button>
                 </form>
               </div>
@@ -454,7 +454,7 @@ export const FeeCollection = () => {
         <PrintReportModal
           isOpen={!!receipt}
           onClose={() => setReceipt(null)}
-          title={`Official Fee Receipt â ${receipt.receiptNumber}`}
+          title={`Official Fee Receipt — ${receipt.receiptNumber}`}
           documentType="Official Fee Receipt"
         >
           <div className="space-y-6">

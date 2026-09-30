@@ -443,7 +443,7 @@ export const ClassTeachers = () => {
           </button>
         </div>
       ) : viewMode === 'grid' ? (
-        /* Ã¢ââ¬Ã¢ââ¬ GRID CARDS VIEW Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬ */
+        /* ── GRID CARDS VIEW ───────────────────────────────────────────── */
         <div className="space-y-8">
           {classes
             .filter((c) => groupedSectionsByClass[c.id]?.length > 0)
@@ -537,7 +537,7 @@ export const ClassTeachers = () => {
                                     {assignedTeacher.name}
                                   </p>
                                   <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
-                                    {assignedTeacher.department || 'Faculty'} â¢ {assignedTeacher.email || 'Mentor'}
+                                    {assignedTeacher.department || 'Faculty'} • {assignedTeacher.email || 'Mentor'}
                                   </p>
                                 </div>
                               </div>
@@ -593,7 +593,7 @@ export const ClassTeachers = () => {
             })}
         </div>
       ) : (
-        /* Ã¢ââ¬Ã¢ââ¬ TABLE VIEW Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬ */
+        /* ── TABLE VIEW ────────────────────────────────────────────────── */
         <div className="space-y-4">
           <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
             <table className="w-full text-left text-xs">
@@ -634,7 +634,7 @@ export const ClassTeachers = () => {
                           </span>
                         </td>
                         <td className="px-3.5 py-3 whitespace-nowrap text-slate-600 dark:text-slate-400">
-                          Room {sec.roomNumber || '–'} â¢ {sec.capacity || 40} Students
+                          Room {sec.roomNumber || '–'} • {sec.capacity || 40} Students
                         </td>
                         <td className="px-3.5 py-3 whitespace-nowrap">
                           <div className="flex items-center gap-2">
@@ -704,7 +704,7 @@ export const ClassTeachers = () => {
           {/* Super Admin Style Pagination Bar */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-1">
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Showing {(page - 1) * PAGE_SIZE + 1}Ã¢â¬â
+              Showing {(page - 1) * PAGE_SIZE + 1}–
               {Math.min(page * PAGE_SIZE, filteredSections.length)} of {filteredSections.length} sections
             </p>
             {Math.ceil(filteredSections.length / PAGE_SIZE) > 1 && (

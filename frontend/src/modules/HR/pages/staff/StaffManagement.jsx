@@ -81,7 +81,7 @@ export const StaffManagement = () => {
       setStaffList((prev) =>
         prev.map((s) => (s.id === staff.id ? { ...s, status: 'ACTIVE' } : s))
       );
-      showToast(`Ã¢Åâ Staff member ${staff.name} approved & activated!`, 'success');
+      showToast(`✓ Staff member ${staff.name} approved & activated!`, 'success');
     } catch (err) {
       showToast(err.response?.data?.message || err.message || 'Failed to approve staff member', 'error');
     }
@@ -117,7 +117,7 @@ export const StaffManagement = () => {
   }, [staffList]);
 
   const handleModalSuccess = () => {
-    showToast(`Ã¢Åâ Staff member submitted for Admin Approval successfully!`, 'success');
+    showToast(`✓ Staff member submitted for Admin Approval successfully!`, 'success');
     fetchStaff();
   };
 

@@ -165,7 +165,7 @@ export const RolesAndPermissions = () => {
         </div>
       ) : loading ? (
         <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-slate-900">
-          Loadingâ¦
+          Loading…
         </div>
       ) : tab === 'roles' ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -330,7 +330,7 @@ export const RolesAndPermissions = () => {
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setModal(false)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>
             <button type="submit" disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
-              {saving ? 'Savingâ¦' : editing ? 'Save Matrix' : 'Create Role'}
+              {saving ? 'Saving…' : editing ? 'Save Matrix' : 'Create Role'}
             </button>
           </div>
         </form>

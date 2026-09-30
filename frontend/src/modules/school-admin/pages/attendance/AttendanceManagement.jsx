@@ -1024,7 +1024,7 @@ export const AttendanceManagement = () => {
           {!loading && attendanceList.length > 0 && (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-1">
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Showing {(dailyPage - 1) * PAGE_SIZE + 1}Ã¢â¬â
+                Showing {(dailyPage - 1) * PAGE_SIZE + 1}–
                 {Math.min(dailyPage * PAGE_SIZE, attendanceList.length)} of {attendanceList.length} staff members
               </p>
 
@@ -1167,7 +1167,7 @@ export const AttendanceManagement = () => {
           {!rangeLoading && rangeRecords.length > 0 && (
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-1">
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Showing {(rangePage - 1) * PAGE_SIZE + 1}Ã¢â¬â
+                Showing {(rangePage - 1) * PAGE_SIZE + 1}–
                 {Math.min(rangePage * PAGE_SIZE, rangeRecords.length)} of {rangeRecords.length} logs
               </p>
 
@@ -1225,7 +1225,7 @@ export const AttendanceManagement = () => {
               {targetEmployee?.employeeName} ({targetEmployee?.employeeId})
             </p>
             <p className="mt-0.5 text-slate-500 dark:text-slate-400">
-              Role: <strong>{targetEmployee?.employeeRole}</strong> â¢ Date:{' '}
+              Role: <strong>{targetEmployee?.employeeRole}</strong> • Date:{' '}
               <strong>{formatDisplayDate(date)}</strong>
             </p>
           </div>

@@ -229,7 +229,7 @@ export const DashboardPreviewSection = () => {
                     <Sparkles className="h-4 w-4 text-indigo-500 dark:text-indigo-400" />
                     Automated anomaly detection: Attendance within 99.1% of target.
                   </span>
-                  <span className="font-bold text-indigo-600 dark:text-indigo-400">Full Audit Log Ã¢â â</span>
+                  <span className="font-bold text-indigo-600 dark:text-indigo-400">Full Audit Log →</span>
                 </div>
               </div>
 

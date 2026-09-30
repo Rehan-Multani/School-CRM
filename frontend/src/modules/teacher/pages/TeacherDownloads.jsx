@@ -99,7 +99,7 @@ export const TeacherDownloads = () => {
                   </div>
                   <h4 className="text-xs font-bold text-foreground truncate">{dl.title}</h4>
                   <p className="text-[10px] text-slate-400 font-medium mt-1">
-                    Size: {dl.size} â¢ Created: {dl.date}
+                    Size: {dl.size} • Created: {dl.date}
                   </p>
                 </div>
                 <button

@@ -5,7 +5,7 @@ import { teacherPickupApi } from '../../../shared/api/client';
 /**
  * STAGING DEMO – drives the real Student Safe Pickup API from the mock teacher
  * web panel. Logs in for real (its own token), lists eligible students, and runs
- * initiate Ã¢â â OTP Ã¢â â verify Ã¢â â handover Ã¢â â complete. Production teacher UI is the
+ * initiate → OTP → verify → handover → complete. Production teacher UI is the
  * Flutter APK; this page just proves the end-to-end flow.
  */
 function msg(e, fb) {
@@ -273,7 +273,7 @@ export function TeacherPickupDemo() {
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold text-slate-700 dark:text-slate-100">{s.name}</p>
                   <p className="text-xs text-slate-400">
-                    {[s.className, s.sectionName].filter(Boolean).join(' ')} ÃÂ· Roll {s.rollNumber || '–'} ÃÂ·{' '}
+                    {[s.className, s.sectionName].filter(Boolean).join(' ')} · Roll {s.rollNumber || '–'} ·{' '}
                     {s.attendanceStatus}
                   </p>
                 </div>

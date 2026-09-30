@@ -74,7 +74,7 @@ export const DuesPendingFees = () => {
       { key: 'studentName', title: 'Student', render: (r) => (
         <div>
           <p className="font-bold text-slate-900 dark:text-white">{r.studentName}</p>
-          <p className="text-[10px] text-slate-400">{r.invoiceNumber} â¢ {r.periodLabel}</p>
+          <p className="text-[10px] text-slate-400">{r.invoiceNumber} • {r.periodLabel}</p>
         </div>
       ) },
       { key: 'className', title: 'Class', render: (r) => [r.className, r.sectionName].filter(Boolean).join(' - ') || '–' },
@@ -139,7 +139,7 @@ export const DuesPendingFees = () => {
           <input
             value={filters.search}
             onChange={(e) => set({ search: e.target.value })}
-            placeholder="Search student / invoiceâ¦"
+            placeholder="Search student / invoice…"
             className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold outline-none focus:border-violet-500"
           />
         </div>

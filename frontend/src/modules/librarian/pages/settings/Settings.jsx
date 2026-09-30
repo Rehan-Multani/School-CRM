@@ -203,7 +203,7 @@ export const Settings = () => {
               />
               <div>
                 <h3 className="text-base font-bold text-slate-900 dark:text-white">{user?.name || 'Librarian'}</h3>
-                <p className="text-xs text-slate-500">{user?.role || 'Head Librarian'} â¢ {profile.email}</p>
+                <p className="text-xs text-slate-500">{user?.role || 'Head Librarian'} • {profile.email}</p>
                 <span className="inline-block mt-1 px-2.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-3xs font-bold rounded-full">
                   Active Librarian Session
                 </span>

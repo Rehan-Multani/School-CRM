@@ -257,7 +257,7 @@ export const AcademicYearDetail = () => {
       {/* Page Header */}
       <PageHeader
         title={year.name}
-        subtitle={`${formatDate(year.startDate)} - ${formatDate(year.endDate)} ÃÂ· Code: ${year.code || '–'}`}
+        subtitle={`${formatDate(year.startDate)} - ${formatDate(year.endDate)} · Code: ${year.code || '–'}`}
         badge={
           <Badge variant={YEAR_STATUS_VARIANT[year.status] || 'default'}>
             {year.isCurrent ? 'Current Session' : year.status}
@@ -388,7 +388,7 @@ export const AcademicYearDetail = () => {
                 <div>
                   <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">{item.class?.name}</h4>
                   <p className="mt-1 text-xs text-slate-500">
-                    {item.counts?.sections ?? 0} sections ÃÂ· {item.counts?.students ?? 0} students ÃÂ·{' '}
+                    {item.counts?.sections ?? 0} sections · {item.counts?.students ?? 0} students ·{' '}
                     {item.counts?.subjectAssignments ?? 0} subject assignments
                   </p>
                 </div>

@@ -821,7 +821,7 @@ export const SubjectAssignments = () => {
               <option value="ALL">All Teachers</option>
               <option value="ASSIGNED">Assigned Only</option>
               <option value="VACANT">Vacant / Unassigned</option>
-              <option disabled>Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬Ã¢ââ¬</option>
+              <option disabled>──────────</option>
               {teachers.map((t) => (
                 <option key={t.id} value={t.id}>
                   {t.name} ({t.department || 'Faculty'})
@@ -1100,7 +1100,7 @@ export const SubjectAssignments = () => {
           {/* Super Admin Style Pagination Bar */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-1">
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Showing {(page - 1) * PAGE_SIZE + 1}Ã¢â¬â
+              Showing {(page - 1) * PAGE_SIZE + 1}–
               {Math.min(page * PAGE_SIZE, filteredAssignments.length)} of {filteredAssignments.length} subject assignments
             </p>
             {Math.ceil(filteredAssignments.length / PAGE_SIZE) > 1 && (

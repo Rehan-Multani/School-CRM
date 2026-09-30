@@ -299,7 +299,7 @@ export const UniversalLogin = () => {
         <div className="mt-8 pt-5 border-t border-slate-800 space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-              <span>Ã¢Å¡Â¡</span> Quick Demo Accounts (1-Click Switch)
+              <span>⚡</span> Quick Demo Accounts (1-Click Switch)
             </span>
             <span className="text-[10px] text-slate-400 font-semibold bg-indigo-600/80 px-2 py-0.5 rounded-full border border-slate-700/60">
               Web & App Split
@@ -498,7 +498,7 @@ export const UniversalLogin = () => {
         </div>
       </div>
 
-      {/* Forgot Password OTP Modal (FRD ÃÂ§6.2) */}
+      {/* Forgot Password OTP Modal (FRD §6.2) */}
       {forgotModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-indigo-600 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl">
@@ -511,7 +511,7 @@ export const UniversalLogin = () => {
                 onClick={() => setForgotModalOpen(false)}
                 className="text-slate-500 hover:text-slate-300 text-xs font-bold"
               >
-                Ã¢Åâ¢
+                ✕
               </button>
             </div>
 

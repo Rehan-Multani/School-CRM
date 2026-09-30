@@ -72,7 +72,7 @@ export const ParentLogin = () => {
 
         {/* Bottom tagline */}
         <div className="relative">
-          <p className="text-white/50 text-[11px] font-medium">ÃÂ© 2025 School Management. All rights reserved.</p>
+          <p className="text-white/50 text-[11px] font-medium">© 2025 School Management. All rights reserved.</p>
         </div>
       </div>
 
@@ -133,7 +133,7 @@ export const ParentLogin = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
+                  placeholder="••••••••"
                   className="w-full px-4 py-3 pr-11 rounded-2xl border border-border bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
                   id="parent-login-password"
                 />
@@ -176,14 +176,14 @@ export const ParentLogin = () => {
             className="w-full border-2 border-primary/30 text-primary dark:border-primary/40 py-3 rounded-2xl text-sm font-bold transition-all duration-150 active:scale-95 select-none hover:bg-primary/5"
             id="parent-quick-login"
           >
-            Ã°Å¸Å¡â¬ Demo Parent Account Sign In
+            🚀 Demo Parent Account Sign In
           </button>
 
           <div className="mt-6 flex flex-col items-center gap-1.5 text-center">
             <div className="flex items-center gap-1.5 text-xs text-slate-400">
               <span>Looking for another panel?</span>
               <Link to="/login" className="inline-flex items-center gap-1 font-semibold text-primary hover:underline">
-                <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals Ã¢â â
+                <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals →
               </Link>
             </div>
           </div>

@@ -180,7 +180,7 @@ export const FeeStructure = () => {
       {detail && (
         <Modal isOpen onClose={() => setDetail(null)} title={`Fee Structure – ${detail.name || ''}`} size="lg">
           {loadingDetail ? (
-            <p className="py-8 text-center text-slate-400 text-sm">Loadingâ¦</p>
+            <p className="py-8 text-center text-slate-400 text-sm">Loading…</p>
           ) : (
             <div className="space-y-4 text-xs">
               <div className="grid grid-cols-3 gap-3">

@@ -460,7 +460,7 @@ export const HomeworkMonitor = () => {
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setModalOpen(false)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>
             <button type="submit" disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
-              {saving ? 'Savingâ¦' : editing ? 'Update Homework' : 'Add Homework'}
+              {saving ? 'Saving…' : editing ? 'Update Homework' : 'Add Homework'}
             </button>
           </div>
         </form>

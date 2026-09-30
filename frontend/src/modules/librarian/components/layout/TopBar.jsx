@@ -146,7 +146,7 @@ export const TopBar = ({ toggleSidebar, onSearchTrigger }) => {
                   }}
                   className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
                 >
-                  View All Alerts Ã¢â â
+                  View All Alerts →
                 </button>
               </div>
             </div>

@@ -187,7 +187,7 @@ function ActivePlanCard({
                     className="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60"
                   >
                     {cancelling ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-                    <span>{cancelling ? 'Cancellingâ¦' : 'Yes, Cancel Subscription'}</span>
+                    <span>{cancelling ? 'Cancelling…' : 'Yes, Cancel Subscription'}</span>
                   </button>
                 </div>
               </div>
@@ -321,7 +321,7 @@ function InitialPricingCard({ plan, onSelect, selectingId, confirming }) {
           {isSelectingThis ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>{confirming ? 'Confirming with Razorpayâ¦' : 'Opening Checkoutâ¦'}</span>
+              <span>{confirming ? 'Confirming with Razorpay…' : 'Opening Checkout…'}</span>
             </>
           ) : (
             <>
@@ -570,7 +570,7 @@ export default function SubscriptionPlans() {
       {confirming && (
         <div className="flex items-center gap-3 rounded-2xl border border-indigo-200 bg-indigo-50/90 p-4 text-sm font-semibold text-indigo-800 shadow-sm dark:border-indigo-500/30 dark:bg-indigo-950/30 dark:text-indigo-300">
           <Loader2 className="h-5 w-5 animate-spin text-indigo-600" />
-          <span>Confirming your payment with Razorpay – unlocking your portal nowâ¦</span>
+          <span>Confirming your payment with Razorpay – unlocking your portal now…</span>
         </div>
       )}
 

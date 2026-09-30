@@ -134,7 +134,7 @@ export const Transactions = () => {
           <input
             value={filters.search}
             onChange={(e) => set({ search: e.target.value })}
-            placeholder="Search ref, party, noteâ¦"
+            placeholder="Search ref, party, note…"
             className="w-full h-10 pl-9 pr-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold outline-none focus:border-violet-500"
           />
         </div>
@@ -201,7 +201,7 @@ export const Transactions = () => {
                     <li key={i} className="flex justify-between">
                       <span className="font-semibold text-slate-600 dark:text-slate-300">{t.label}</span>
                       <span className="text-slate-400">
-                        {formatDate(t.at)} {t.by ? `â¢ ${t.by}` : ''}
+                        {formatDate(t.at)} {t.by ? `• ${t.by}` : ''}
                       </span>
                     </li>
                   ))}

@@ -78,7 +78,7 @@ export const Notifications = () => {
 
             {filtered.length === 0 && (
               <p className="text-center py-12 text-slate-450">
-                {loading ? 'Loading notificationsâ¦' : 'No notifications found in this alert filter category.'}
+                {loading ? 'Loading notifications…' : 'No notifications found in this alert filter category.'}
               </p>
             )}
           </div>

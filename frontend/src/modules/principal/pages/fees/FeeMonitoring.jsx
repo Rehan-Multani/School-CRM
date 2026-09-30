@@ -157,7 +157,7 @@ export const FeeMonitoring = () => {
               </div>
               <div>
                 <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">Total Fee Collected</span>
-                <span className="mt-1 block text-xl font-extrabold text-emerald-600">{loading ? 'â¦' : inr(totalCollected)}</span>
+                <span className="mt-1 block text-xl font-extrabold text-emerald-600">{loading ? '…' : inr(totalCollected)}</span>
               </div>
             </div>
             <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -166,7 +166,7 @@ export const FeeMonitoring = () => {
               </div>
               <div>
                 <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">Outstanding Deficit</span>
-                <span className="mt-1 block text-xl font-extrabold text-rose-600">{loading ? 'â¦' : inr(totalOutstanding)}</span>
+                <span className="mt-1 block text-xl font-extrabold text-rose-600">{loading ? '…' : inr(totalOutstanding)}</span>
               </div>
             </div>
             <div className="flex items-center gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -175,7 +175,7 @@ export const FeeMonitoring = () => {
               </div>
               <div>
                 <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">Collection Rate</span>
-                <span className="mt-1 block text-xl font-extrabold text-indigo-600">{loading ? 'â¦' : `${collectionRate}%`}</span>
+                <span className="mt-1 block text-xl font-extrabold text-indigo-600">{loading ? '…' : `${collectionRate}%`}</span>
               </div>
             </div>
           </div>
@@ -191,7 +191,7 @@ export const FeeMonitoring = () => {
                   <AreaChart data={monthlyCollections} dataKey="amount" xKey="name" height={220} color="#10b981" />
                 ) : (
                   <div className="flex h-full items-center justify-center text-xs font-semibold text-slate-400">
-                    {loading ? 'Loadingâ¦' : 'No payments recorded yet.'}
+                    {loading ? 'Loading…' : 'No payments recorded yet.'}
                   </div>
                 )}
               </div>
@@ -206,7 +206,7 @@ export const FeeMonitoring = () => {
                   <BarChart data={duesByClass} dataKey="dues" xKey="name" height={220} color="#f43f5e" />
                 ) : (
                   <div className="flex h-full items-center justify-center text-xs font-semibold text-slate-400">
-                    {loading ? 'Loadingâ¦' : 'No outstanding dues.'}
+                    {loading ? 'Loading…' : 'No outstanding dues.'}
                   </div>
                 )}
               </div>

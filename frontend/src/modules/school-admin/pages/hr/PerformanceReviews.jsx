@@ -431,7 +431,7 @@ export const PerformanceReviews = () => {
             onChange={(e) => setSelectedRating(e.target.value)}
             className="h-9.5 rounded-xl border border-slate-200 bg-slate-50/80 px-3 text-xs font-semibold outline-none focus:border-indigo-500 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
           >
-            <option value="ALL">All Ratings (1-5Ã¢Ëâ¦)</option>
+            <option value="ALL">All Ratings (1-5★)</option>
             <option value="5">5 Stars – Outstanding</option>
             <option value="4">4 Stars – Exceeds</option>
             <option value="3">3 Stars – Meets</option>
@@ -510,7 +510,7 @@ export const PerformanceReviews = () => {
                         <div>
                           <p className="font-bold text-slate-900 dark:text-white">{r.employeeName}</p>
                           <p className="text-[11px] text-slate-400">
-                            {r.employeeId} â¢ {r.designation || r.department || 'Faculty'}
+                            {r.employeeId} • {r.designation || r.department || 'Faculty'}
                           </p>
                         </div>
                       </div>
@@ -705,7 +705,7 @@ export const PerformanceReviews = () => {
                   }`}
                 >
                   <Star className={`w-4 h-4 ${formData.rating >= starVal ? 'fill-amber-400' : ''}`} />
-                  <span className="text-xs font-bold">{starVal}Ã¢Ëâ¦</span>
+                  <span className="text-xs font-bold">{starVal}★</span>
                 </button>
               ))}
             </div>
@@ -811,7 +811,7 @@ export const PerformanceReviews = () => {
                 <div>
                   <h3 className="font-bold text-base text-slate-900 dark:text-white">{viewingReview.employeeName}</h3>
                   <p className="text-xs text-slate-400">
-                    ID: {viewingReview.employeeId} â¢ {viewingReview.designation || 'Faculty Member'} â¢ Department of {viewingReview.department || 'Academics'}
+                    ID: {viewingReview.employeeId} • {viewingReview.designation || 'Faculty Member'} • Department of {viewingReview.department || 'Academics'}
                   </p>
                 </div>
               </div>
@@ -868,7 +868,7 @@ export const PerformanceReviews = () => {
             <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-400">
               <div>
                 <span>Evaluator: <strong>{viewingReview.reviewerName || 'HR Administration'}</strong></span>
-                <span className="mx-2">â¢</span>
+                <span className="mx-2">•</span>
                 <span>Date: {viewingReview.reviewDate ? new Date(viewingReview.reviewDate).toLocaleDateString() : 'Today'}</span>
               </div>
 

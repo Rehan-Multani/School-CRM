@@ -223,7 +223,7 @@ export const PerformanceManagement = () => {
 
         <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Top 5Ã¢Ëâ¦ Performers</span>
+            <span className="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Top 5★ Performers</span>
             <div className="text-2xl font-black text-emerald-600 mt-1">
               {reviews.filter((r) => Number(r.rating) === 5).length}
             </div>
@@ -337,7 +337,7 @@ export const PerformanceManagement = () => {
                           {rev.employeeName}
                         </h4>
                         <p className="text-[10px] text-slate-400 font-mono mt-0.5">
-                          {rev.employeeId} â¢ {rev.department || 'General'}
+                          {rev.employeeId} • {rev.department || 'General'}
                         </p>
                       </div>
                     </div>
@@ -535,7 +535,7 @@ export const PerformanceManagement = () => {
               <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                 <div>
                   <h3 className="text-base font-black text-slate-900 dark:text-white">{selectedScorecard.employeeName}</h3>
-                  <p className="text-xs text-slate-400">{selectedScorecard.employeeId} â¢ {selectedScorecard.department}</p>
+                  <p className="text-xs text-slate-400">{selectedScorecard.employeeId} • {selectedScorecard.department}</p>
                 </div>
                 <div className="flex items-center gap-1 px-3 py-1 bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 font-black rounded-xl text-sm">
                   <Star className="w-4 h-4 fill-amber-400 text-amber-400" />

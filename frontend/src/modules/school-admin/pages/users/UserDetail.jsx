@@ -266,11 +266,11 @@ export const UserDetail = () => {
                 <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
                   EMP ID: {user.employeeId}
                 </span>
-                <span>â¢</span>
+                <span>•</span>
                 <span>{user.email}</span>
                 {user.phone && (
                   <>
-                    <span>â¢</span>
+                    <span>•</span>
                     <span>{user.phone}</span>
                   </>
                 )}

@@ -2,7 +2,7 @@ import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '../lib/cn';
 
-// Canonical Pagination Ã¢â¬â only teacher had this component, moved as-is.
+// Canonical Pagination — only teacher had this component, moved as-is.
 export const Pagination = ({ page, totalPages, onPageChange, className }) => {
   if (totalPages <= 1) return null;
 

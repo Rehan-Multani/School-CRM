@@ -94,7 +94,7 @@ export const ParentLibrary = () => {
               <div>
                 <h4 className="text-xs font-bold text-foreground">{book.title}</h4>
                 <p className="text-[10px] text-slate-400 mt-0.5">Author: {book.author}</p>
-                <p className="text-[9px] text-slate-500 mt-1.5">Issued: {book.issueDate} â¢ Returned: {book.returnDate}</p>
+                <p className="text-[9px] text-slate-500 mt-1.5">Issued: {book.issueDate} • Returned: {book.returnDate}</p>
               </div>
               <Badge variant="success">{book.status}</Badge>
             </Card>

@@ -888,7 +888,7 @@ export const HRAndPayroll = () => {
             </div>
             <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
               <span>Gross: <strong className="text-slate-800 dark:text-slate-200">{formatCurrency(calculation.gross)}</strong></span>
-              <span>â¢</span>
+              <span>•</span>
               <span>Deductions: <strong className="text-rose-500">-{formatCurrency(calculation.deductions)}</strong></span>
             </div>
           </div>

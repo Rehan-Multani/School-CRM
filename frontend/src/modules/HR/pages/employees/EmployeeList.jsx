@@ -115,7 +115,7 @@ export const EmployeeList = () => {
   };
 
   const handleModalSuccess = (typeLabel) => {
-    showToast(`Ã¢Åâ ${typeLabel} submitted for Admin Approval successfully!`, 'success');
+    showToast(`✓ ${typeLabel} submitted for Admin Approval successfully!`, 'success');
     fetchInitialData();
   };
 
@@ -138,7 +138,7 @@ export const EmployeeList = () => {
       setEmployees((prev) =>
         prev.map((e) => (e.id === emp.id ? { ...e, status: 'ACTIVE' } : e))
       );
-      showToast(`Ã¢Åâ ${emp.employeeType === 'TEACHER' ? 'Faculty' : 'Staff'} member ${emp.name} approved & activated!`, 'success');
+      showToast(`✓ ${emp.employeeType === 'TEACHER' ? 'Faculty' : 'Staff'} member ${emp.name} approved & activated!`, 'success');
     } catch (err) {
       showToast(err.response?.data?.message || err.message || 'Failed to approve employee', 'error');
     }

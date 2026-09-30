@@ -334,7 +334,7 @@ export const AdmissionManagement = () => {
 
             {selectedAdm.admissionNo && (
               <div className="rounded-xl bg-emerald-50 p-3 text-xs font-bold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
-                Enrolled – Admission No {selectedAdm.admissionNo} ÃÂ· Student ID {selectedAdm.studentId}
+                Enrolled – Admission No {selectedAdm.admissionNo} · Student ID {selectedAdm.studentId}
               </div>
             )}
 
@@ -363,7 +363,7 @@ export const AdmissionManagement = () => {
                     title={!selectedAdm.appliedClassId ? 'Assign a class first (edit application)' : ''}
                     className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-md transition-all disabled:opacity-50"
                   >
-                    {busyId === selectedAdm.id ? 'Processingâ¦' : 'Approve & Create Student'}
+                    {busyId === selectedAdm.id ? 'Processing…' : 'Approve & Create Student'}
                   </button>
                 </div>
               </div>
@@ -393,7 +393,7 @@ export const AdmissionManagement = () => {
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-500">Class *</label>
               <select className={inputCls} value={offlineForm.appliedClassId} onChange={(e) => setOfflineForm({ ...offlineForm, appliedClassId: e.target.value })}>
-                <option value="">Select classâ¦</option>
+                <option value="">Select class…</option>
                 {classes.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
@@ -448,7 +448,7 @@ export const AdmissionManagement = () => {
             With a class selected, the applicant is enrolled immediately and added to the Student roster.
           </p>
           <button type="submit" disabled={offlineSaving} className="w-full rounded-xl bg-primary py-2.5 text-xs font-bold text-white shadow-md disabled:opacity-60">
-            {offlineSaving ? 'Processingâ¦' : 'Admit Student & Generate Credentials'}
+            {offlineSaving ? 'Processing…' : 'Admit Student & Generate Credentials'}
           </button>
         </form>
       </Modal>

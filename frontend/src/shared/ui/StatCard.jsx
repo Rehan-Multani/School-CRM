@@ -2,7 +2,7 @@ import React from 'react';
 import { cn } from '../lib/cn';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
-// Canonical merged StatCard Ã¢â¬â superset of gen-2 (HR/accountant/librarian/
+// Canonical merged StatCard — superset of gen-2 (HR/accountant/librarian/
 // principal/school-admin/transport, prop names `subtitle`/`trend` as a
 // signed string e.g. "+12%") and gen-1 (student/teacher/parent, prop names
 // `subtext`/`colorClass`/`onClick`, no trend). Both `subtitle`/`subtext`

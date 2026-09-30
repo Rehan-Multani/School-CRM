@@ -151,8 +151,8 @@ export const CommandPalette = ({ isOpen, onClose }) => {
                 <span>Tip: Use arrow keys to navigate routes</span>
               </div>
               <div className="flex items-center gap-3">
-                <span>Ã¢â âÃ¢â â Navigate</span>
-                <span>Ã¢â Âµ Enter</span>
+                <span>↑↓ Navigate</span>
+                <span>↵ Enter</span>
               </div>
             </div>
           </motion.div>

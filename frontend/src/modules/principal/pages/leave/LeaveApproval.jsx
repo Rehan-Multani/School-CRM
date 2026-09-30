@@ -379,7 +379,7 @@ export const LeaveApproval = () => {
                           </div>
                           <div>
                             <p className="font-bold text-slate-900 dark:text-white leading-tight">{l.employeeName}</p>
-                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">{l.employeeId} â¢ {l.department || 'General'}</p>
+                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">{l.employeeId} • {l.department || 'General'}</p>
                           </div>
                         </div>
                       </td>

@@ -133,7 +133,7 @@ export const Events = () => {
         />
       ) : loading ? (
         <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-slate-900">
-          Loading eventsâ¦
+          Loading events…
         </div>
       ) : upcoming.length === 0 ? (
         <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-xs font-semibold text-slate-400 dark:border-slate-800 dark:bg-slate-900">

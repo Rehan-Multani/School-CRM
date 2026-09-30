@@ -148,7 +148,7 @@ export const TeacherAcademics = () => {
                     </div>
                     <h4 className="text-xs font-bold text-foreground truncate">{mat.title}</h4>
                     <p className="text-[10px] text-slate-400 mt-0.5">
-                      {mat.size ? mat.size + ' â¢ ' : ''}{mat.uploadedAt}
+                      {mat.size ? mat.size + ' • ' : ''}{mat.uploadedAt}
                     </p>
                   </div>
                   <div className="flex gap-2 shrink-0">
@@ -173,10 +173,10 @@ export const TeacherAcademics = () => {
       {tab === 'lesson' && (
         <div className="space-y-4">
           {[
-            { week: 'Week 1 (July 1Ã¢â¬â5)', topic: 'Coordinate Geometry Basics', objectives: 'Understand Cartesian plane, quadrants, plotting points', resources: 'NCERT Ch.4, Worksheet #12' },
-            { week: 'Week 2 (July 7Ã¢â¬â11)', topic: 'Quadratic Equations – Introduction', objectives: 'Define quadratic equations, standard form, roots', resources: 'NCERT Ch.5, Video Lecture' },
-            { week: 'Week 3 (July 14Ã¢â¬â18)', topic: 'Factorization Method', objectives: 'Solve quadratic equations by factorization', resources: 'Practice Sheet #8, Reference PDF' },
-            { week: 'Week 4 (July 21Ã¢â¬â25)', topic: 'Quadratic Formula', objectives: 'Apply Sridharacharya formula for discriminant analysis', resources: 'NCERT Exercise 5.3, Self-assessment' },
+            { week: 'Week 1 (July 1–5)', topic: 'Coordinate Geometry Basics', objectives: 'Understand Cartesian plane, quadrants, plotting points', resources: 'NCERT Ch.4, Worksheet #12' },
+            { week: 'Week 2 (July 7–11)', topic: 'Quadratic Equations – Introduction', objectives: 'Define quadratic equations, standard form, roots', resources: 'NCERT Ch.5, Video Lecture' },
+            { week: 'Week 3 (July 14–18)', topic: 'Factorization Method', objectives: 'Solve quadratic equations by factorization', resources: 'Practice Sheet #8, Reference PDF' },
+            { week: 'Week 4 (July 21–25)', topic: 'Quadratic Formula', objectives: 'Apply Sridharacharya formula for discriminant analysis', resources: 'NCERT Exercise 5.3, Self-assessment' },
           ].map((lesson, i) => (
             <Card key={i}>
               <div className="flex items-start gap-4">

@@ -276,7 +276,7 @@ export const BookIssue = () => {
                       </span>
                       <div className="flex items-center gap-1.5 text-3xs text-slate-400 mt-0.5">
                         <Badge variant="neutral">{member.type}</Badge>
-                        <span>â¢</span>
+                        <span>•</span>
                         <span>{member.code || 'ID: STU'}</span>
                       </div>
                     </div>

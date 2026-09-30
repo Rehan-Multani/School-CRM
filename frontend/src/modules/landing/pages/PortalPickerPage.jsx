@@ -100,7 +100,7 @@ const PortalPicker = () => {
 
       <footer className="border-t border-slate-200 dark:border-slate-800">
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-slate-500 sm:flex-row sm:px-6">
-          <p>ÃÂ© {new Date().getFullYear()} {PRODUCT.name}</p>
+          <p>© {new Date().getFullYear()} {PRODUCT.name}</p>
           <p className="flex items-center gap-4">
             <Link to="/privacy" className="hover:text-slate-800 dark:hover:text-slate-300">Privacy</Link>
             <Link to="/terms" className="hover:text-slate-800 dark:hover:text-slate-300">Terms</Link>

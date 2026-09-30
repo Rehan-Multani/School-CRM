@@ -678,10 +678,10 @@ export const ReportsHub = () => {
           <div className="space-y-6 text-slate-900">
             <div className="text-center pb-4 border-b-2 border-slate-900 space-y-1">
               <h2 className="text-2xl font-black uppercase tracking-wider">{schoolName}</h2>
-              <p className="text-xs text-slate-600">Affiliated to CBSE / State Board â¢ Session 2026-2027</p>
+              <p className="text-xs text-slate-600">Affiliated to CBSE / State Board • Session 2026-2027</p>
               <h3 className="text-sm font-bold text-indigo-900 mt-2">{selectedCategory.label}</h3>
               <p className="text-[10px] text-slate-400">
-                Generated on: {new Date().toLocaleString()} â¢ Authorized Institutional Document
+                Generated on: {new Date().toLocaleString()} • Authorized Institutional Document
               </p>
             </div>
 

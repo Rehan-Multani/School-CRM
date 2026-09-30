@@ -218,7 +218,7 @@ export const Categories = () => {
     <div className="space-y-6">
       <PageHeader
         title="Book Categories"
-        subtitle={`Manage library departments and classifications ÃÂ· ${activeCount} active of ${categories.length} total.`}
+        subtitle={`Manage library departments and classifications · ${activeCount} active of ${categories.length} total.`}
         actions={
           <div className="flex items-center gap-2">
             <button

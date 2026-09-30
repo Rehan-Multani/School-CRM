@@ -571,7 +571,7 @@ export const InventoryManagement = () => {
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setAssetModal(false)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>
             <button type="submit" disabled={savingAsset} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
-              {savingAsset ? 'Savingâ¦' : editingAsset ? 'Update Asset' : 'Add Asset'}
+              {savingAsset ? 'Saving…' : editingAsset ? 'Update Asset' : 'Add Asset'}
             </button>
           </div>
         </form>
@@ -581,7 +581,7 @@ export const InventoryManagement = () => {
       <Modal isOpen={Boolean(moveModal)} onClose={() => setMoveModal(null)} title={`Stock Movement – ${moveModal?.name || ''}`}>
         <form onSubmit={submitMove} className="space-y-4">
           <p className="text-xs font-semibold text-slate-500">
-            Available: <strong>{moveModal?.availableQuantity}</strong> ÃÂ· Issued: <strong>{moveModal?.issuedQuantity}</strong> ÃÂ· Total:{' '}
+            Available: <strong>{moveModal?.availableQuantity}</strong> · Issued: <strong>{moveModal?.issuedQuantity}</strong> · Total:{' '}
             <strong>{moveModal?.quantity}</strong> {moveModal?.unit}
           </p>
           <div className="grid grid-cols-2 gap-4">
@@ -616,7 +616,7 @@ export const InventoryManagement = () => {
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setMoveModal(null)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>
             <button type="submit" disabled={savingMove} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
-              {savingMove ? 'Savingâ¦' : 'Record Movement'}
+              {savingMove ? 'Saving…' : 'Record Movement'}
             </button>
           </div>
         </form>
@@ -640,7 +640,7 @@ export const InventoryManagement = () => {
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-4 dark:border-slate-800">
             <button type="button" onClick={() => setCatModal(false)} className="rounded-xl px-4 py-2 text-xs font-semibold">Cancel</button>
             <button type="submit" disabled={savingCat} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
-              {savingCat ? 'Savingâ¦' : editingCat ? 'Update' : 'Create'}
+              {savingCat ? 'Saving…' : editingCat ? 'Update' : 'Create'}
             </button>
           </div>
         </form>

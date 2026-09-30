@@ -530,7 +530,7 @@ export const SubjectsIndex = () => {
           {/* Super Admin Style Pagination Bar */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-1">
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Showing {(page - 1) * PAGE_SIZE + 1}Ã¢â¬â
+              Showing {(page - 1) * PAGE_SIZE + 1}–
               {Math.min(page * PAGE_SIZE, filteredSubjects.length)} of {filteredSubjects.length} subjects
             </p>
             {Math.ceil(filteredSubjects.length / PAGE_SIZE) > 1 && (
@@ -649,7 +649,7 @@ export const SubjectsIndex = () => {
                       );
                     })
                   )}
-                  <span className="ml-auto text-slate-400 text-[10px] select-none">Ã¢âÂ¼</span>
+                  <span className="ml-auto text-slate-400 text-[10px] select-none">▼</span>
                 </div>
 
                 {dropdownOpen && (
@@ -672,7 +672,7 @@ export const SubjectsIndex = () => {
                             }`}
                           >
                             <span>{c.name}</span>
-                            {isChecked && <span className="text-primary font-extrabold text-sm">Ã¢Åâ</span>}
+                            {isChecked && <span className="text-primary font-extrabold text-sm">✓</span>}
                           </button>
                         );
                       })}

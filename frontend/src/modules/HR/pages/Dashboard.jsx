@@ -87,7 +87,7 @@ export const Dashboard = () => {
             </div>
             <h2 className="text-lg md:text-xl font-black mt-0.5 text-white">Welcome, {user?.name || 'HR Manager'}</h2>
             <p className="text-xs text-indigo-100/80 dark:text-slate-400 mt-1 font-semibold">
-              Employee ID: {user?.employeeId || 'HR-201'} â¢ {user?.department || 'Human Resources & Admin'} â¢ {user?.schoolName || 'Greenfield Public School'}
+              Employee ID: {user?.employeeId || 'HR-201'} • {user?.department || 'Human Resources & Admin'} • {user?.schoolName || 'Greenfield Public School'}
             </p>
           </div>
         </div>
@@ -191,7 +191,7 @@ export const Dashboard = () => {
               <div className="text-2xl font-black text-slate-900 dark:text-white">{summary.totalEmployees}</div>
               <div className="flex items-center gap-1.5 mt-1.5 text-[11px] font-semibold text-slate-400">
                 <span className="text-indigo-600 dark:text-indigo-400 font-bold">{summary.activeEmployees} Active</span>
-                <span>â¢</span>
+                <span>•</span>
                 <span>{summary.teachingStaff} Teachers / {summary.nonTeachingStaff} Staff</span>
               </div>
             </div>

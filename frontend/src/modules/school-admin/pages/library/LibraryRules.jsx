@@ -132,7 +132,7 @@ export const LibraryRules = () => {
 
         <div className="flex justify-end">
           <button type="submit" disabled={saving} className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-primary/90 disabled:opacity-60">
-            <Save className="h-3.5 w-3.5" /> {saving ? 'Savingâ¦' : 'Save Rules'}
+            <Save className="h-3.5 w-3.5" /> {saving ? 'Saving…' : 'Save Rules'}
           </button>
         </div>
       </form>

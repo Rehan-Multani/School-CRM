@@ -919,7 +919,7 @@ export const StaffManagement = () => {
                     type={showFormPassword ? 'text' : 'password'}
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    placeholder={editingUser ? 'â¢â¢â¢â¢â¢â¢â¢â¢' : 'Min 6 characters'}
+                    placeholder={editingUser ? '••••••••' : 'Min 6 characters'}
                     required={!editingUser}
                     minLength={6}
                     className={`${inputClass} pr-10`}

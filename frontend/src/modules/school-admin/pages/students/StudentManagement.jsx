@@ -1021,7 +1021,7 @@ export const StudentManagement = () => {
                         <span className="text-slate-600 dark:text-slate-300">
                           {item.feeHead?.name || 'Fee'}
                           {item.isOptional && <span className="ml-1 font-semibold text-amber-600 dark:text-amber-400">(Optional)</span>}
-                          <span className="ml-1 text-slate-400">ââÂ· {item.frequency}</span>
+                          <span className="ml-1 text-slate-400">——· {item.frequency}</span>
                         </span>
                         <span className="shrink-0 font-bold text-slate-800 dark:text-white">
                           {formatCurrency(yearlyAmount(item))}/yr

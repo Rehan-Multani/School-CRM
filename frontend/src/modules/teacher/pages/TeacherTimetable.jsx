@@ -64,7 +64,7 @@ export const TeacherTimetable = () => {
             </div>
             <div>
               <p className="text-xs font-bold text-foreground">{todayClasses.length} Classes Today</p>
-              <p className="text-[10px] text-slate-500 capitalize">{todayKey} ÃÂ· {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+              <p className="text-[10px] text-slate-500 capitalize">{todayKey} · {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
             </div>
           </div>
 

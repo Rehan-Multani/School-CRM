@@ -218,7 +218,7 @@ export const TeacherDetail = () => {
             Joined {formatDate(teacher.joiningDate)}
           </p>
           <p className="text-xs text-slate-500">
-            {teacher.phone || teacher.mobileNumber || 'No phone'} ÃÂ· {teacher.email || 'No email'}
+            {teacher.phone || teacher.mobileNumber || 'No phone'} · {teacher.email || 'No email'}
           </p>
         </div>
       </div>

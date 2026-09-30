@@ -197,7 +197,7 @@ export const AuditLogs = () => {
 
           <div className="flex items-center justify-between border-t border-slate-100 px-6 py-3 dark:border-slate-800">
             <p className="text-xs font-medium text-slate-500">
-              {pagination.total} entr{pagination.total === 1 ? 'y' : 'ies'} ÃÂ· page {pagination.page} / {pagination.totalPages}
+              {pagination.total} entr{pagination.total === 1 ? 'y' : 'ies'} · page {pagination.page} / {pagination.totalPages}
             </p>
             <div className="flex gap-1.5">
               <button

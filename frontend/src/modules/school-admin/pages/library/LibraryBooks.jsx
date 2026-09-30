@@ -402,7 +402,7 @@ export const LibraryBooks = () => {
           {/* Server-side pagination */}
           <div className="flex flex-col items-center justify-between gap-3 border-t border-slate-100 px-5 py-3.5 dark:border-slate-800 sm:flex-row">
             <span className="text-[11px] font-bold text-slate-400">
-              Showing {(pagination.page - 1) * pagination.limit + 1}Ã¢â¬â{Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} books
+              Showing {(pagination.page - 1) * pagination.limit + 1}–{Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} books
             </span>
             <div className="flex items-center gap-1">
               <button
@@ -682,7 +682,7 @@ export const LibraryBooks = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {loadingCopies ? (
-                    <tr><td colSpan={4} className="py-8 text-center text-slate-400">Loading copiesâ¦</td></tr>
+                    <tr><td colSpan={4} className="py-8 text-center text-slate-400">Loading copies…</td></tr>
                   ) : copies.length === 0 ? (
                     <tr><td colSpan={4} className="py-8 text-center text-slate-400">No physical copies registered yet.</td></tr>
                   ) : (

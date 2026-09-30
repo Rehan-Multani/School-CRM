@@ -151,7 +151,7 @@ export const AttendanceMonitoring = () => {
               <AreaChart data={trend} dataKey="attendance" xKey="date" height={245} color="#059669" />
             ) : (
               <div className="py-16 text-center text-xs font-semibold text-slate-400">
-                {loading ? 'Loadingâ¦' : 'No attendance history yet.'}
+                {loading ? 'Loading…' : 'No attendance history yet.'}
               </div>
             )}
           </div>

@@ -48,7 +48,7 @@ export const EmployeeCard = ({ employee, onViewProfile, onEdit, onToggleStatus, 
               {employee.name}
             </h4>
             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium truncate">
-              {employee.designation || 'Staff'} â¢ {employee.department || 'General'}
+              {employee.designation || 'Staff'} • {employee.department || 'General'}
             </p>
           </div>
         </div>

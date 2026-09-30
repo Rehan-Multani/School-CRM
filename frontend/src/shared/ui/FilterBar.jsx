@@ -1,7 +1,7 @@
 import React from 'react';
 import { cn } from '../lib/cn';
 
-// Canonical FilterBar â byte-identical between teacher and parent.
+// Canonical FilterBar — byte-identical between teacher and parent.
 export const FilterBar = ({ filters, active, onChange, className }) => {
   return (
     <div className={cn("flex items-center gap-2 overflow-x-auto no-scrollbar pb-1", className)}>

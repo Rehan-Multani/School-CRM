@@ -118,7 +118,7 @@ export const SectionDetail = () => {
 
       <PageHeader
         title={`${classLabel} – ${sectionLabel}`}
-        subtitle={`${yearLabel} ÃÂ· Room ${section.roomNumber || '–'} ÃÂ· Capacity ${section.capacity}`}
+        subtitle={`${yearLabel} · Room ${section.roomNumber || '–'} · Capacity ${section.capacity}`}
         action={<Badge variant={ENTITY_STATUS_VARIANT[section.status] || 'default'}>{section.status}</Badge>}
       />
 

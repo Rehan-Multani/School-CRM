@@ -50,7 +50,7 @@ export const ParentDownloads = () => {
                 <Badge variant="default" className="text-[8px]">{dl.format}</Badge>
               </div>
               <h4 className="text-xs font-bold text-foreground truncate">{dl.title}</h4>
-              <p className="text-[10px] text-slate-400 mt-0.5">Size: {dl.size} Â· Created: {dl.date}</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Size: {dl.size} · Created: {dl.date}</p>
             </div>
             <button
               onClick={() => handleDownload(dl.title)}

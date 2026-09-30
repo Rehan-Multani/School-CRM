@@ -215,7 +215,7 @@ export const Support = () => {
                     </div>
                   </div>
                   <p className="text-[11px] font-medium text-slate-400">
-                    {ticket.category} ÃÂ· {relativeTime(ticket.createdAt)}
+                    {ticket.category} · {relativeTime(ticket.createdAt)}
                   </p>
                 </button>
               ))}
@@ -253,7 +253,7 @@ export const Support = () => {
                         }`}
                       >
                         <p className={`mb-1 text-[10px] font-bold ${mine ? 'text-indigo-100' : 'text-slate-400'}`}>
-                          {mine ? 'You' : 'Super Admin'} ÃÂ· {relativeTime(message.createdAt)}
+                          {mine ? 'You' : 'Super Admin'} · {relativeTime(message.createdAt)}
                         </p>
                         {message.body}
                       </div>

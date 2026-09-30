@@ -91,7 +91,7 @@ export const EmployeeDetail = () => {
     setProcessing(true);
     try {
       await hrApi.approveEmployee(id);
-      showToast(`Ã¢Åâ ${employee.employeeType === 'TEACHER' ? 'Teacher' : 'Staff'} ${employee.name} approved & activated!`, 'success');
+      showToast(`✓ ${employee.employeeType === 'TEACHER' ? 'Teacher' : 'Staff'} ${employee.name} approved & activated!`, 'success');
       setEmployee((prev) => ({ ...prev, status: 'ACTIVE' }));
     } catch (err) {
       showToast(err.response?.data?.message || err.message || 'Failed to approve employee', 'error');
@@ -136,7 +136,7 @@ export const EmployeeDetail = () => {
           onClick={() => navigate('/hr/employees')}
           className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
         >
-          Ã¢â Â Back to Employee Directory
+          ← Back to Employee Directory
         </button>
       </div>
     );
@@ -240,7 +240,7 @@ export const EmployeeDetail = () => {
               {employee.name}
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-semibold">
-              {employee.designation || 'Staff'} â¢ {employee.department || 'General'} â¢ {isTeacher ? 'Teaching Faculty' : 'Non-Teaching Staff'}
+              {employee.designation || 'Staff'} • {employee.department || 'General'} • {isTeacher ? 'Teaching Faculty' : 'Non-Teaching Staff'}
             </p>
           </div>
         </div>

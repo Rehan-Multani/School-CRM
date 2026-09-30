@@ -44,8 +44,8 @@ import {
 /**
  * Transport – the whole module, in the order it must be set up:
  *
- *   1 Vehicle  Ã¢â â  2 Driver + Vehicle  Ã¢â â  3 Route + Stops (with times)
- *   Ã¢â â  4 Route + Vehicle + Driver  Ã¢â â  5 Student + Route + Stop
+ *   1 Vehicle  →  2 Driver + Vehicle  →  3 Route + Stops (with times)
+ *   →  4 Route + Vehicle + Driver  →  5 Student + Route + Stop
  *
  * Step 6 (daily pickup / drop) is the driver's own API and is not managed here.
  * Every action on this page calls the real backend; there is no local fixture.
@@ -121,7 +121,7 @@ const apiError = (error, fallback) =>
 const vehicleTypeLabel = (id) => VEHICLE_TYPES.find((t) => t.id === id)?.label || id;
 const fuelTypeLabel = (id) => FUEL_TYPES.find((f) => f.id === id)?.label || id;
 
-/** "07:30 AM" Ã¢â â "07:30" for an <input type="time">; passes 24h through. */
+/** "07:30 AM" → "07:30" for an <input type="time">; passes 24h through. */
 function toTimeInput(display) {
   const match = String(display || '').match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
   if (!match) return String(display || '');
@@ -152,7 +152,7 @@ export const TransportManagement = () => {
   const [vehicleModal, setVehicleModal] = useState(null); // null | { editing, form }
   const [driverModal, setDriverModal] = useState(null);
   const [routeModal, setRouteModal] = useState(null);
-  const [assignModal, setAssignModal] = useState(null); // route Ã¢â â vehicle + driver
+  const [assignModal, setAssignModal] = useState(null); // route → vehicle + driver
   const [stopModal, setStopModal] = useState(null);
   const [riderModal, setRiderModal] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
@@ -334,7 +334,7 @@ export const TransportManagement = () => {
 
       <PageHeader
         title="Transport"
-        subtitle="Vehicle Ã¢â â Driver Ã¢â â Route Ã¢â â Stops & times Ã¢â â Student assignment"
+        subtitle="Vehicle → Driver → Route → Stops & times → Student assignment"
         actions={
           <button className={ghostBtn} onClick={() => loadAll()} disabled={loading}>
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -364,7 +364,7 @@ export const TransportManagement = () => {
                 </span>
                 {step.label}
               </div>
-              {index < flow.length - 1 && <span className="text-slate-300 dark:text-slate-700">Ã¢â¬Âº</span>}
+              {index < flow.length - 1 && <span className="text-slate-300 dark:text-slate-700">›</span>}
             </React.Fragment>
           ))}
         </div>
@@ -419,7 +419,7 @@ export const TransportManagement = () => {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={`Search ${activeTab}â¦`}
+              placeholder={`Search ${activeTab}…`}
               className={`${inputClass} pl-9`}
             />
           </div>
@@ -428,7 +428,7 @@ export const TransportManagement = () => {
 
       {loading && <SkeletonTable rows={6} columns={5} />}
 
-      {/* ============================ 1 ÃÂ· VEHICLES =========================== */}
+      {/* ============================ 1 · VEHICLES =========================== */}
       {!loading && activeTab === 'vehicles' && (
         <div className={`${cardClass} overflow-hidden`}>
           <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
@@ -528,7 +528,7 @@ export const TransportManagement = () => {
         </div>
       )}
 
-      {/* ============================ 2 ÃÂ· DRIVERS ============================ */}
+      {/* ============================ 2 · DRIVERS ============================ */}
       {!loading && activeTab === 'drivers' && (
         <div className={`${cardClass} overflow-hidden`}>
           <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
@@ -694,7 +694,7 @@ export const TransportManagement = () => {
         </div>
       )}
 
-      {/* ======================= 3 + 4 ÃÂ· ROUTES & STOPS ====================== */}
+      {/* ======================= 3 + 4 · ROUTES & STOPS ====================== */}
       {!loading && activeTab === 'routes' && (
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-5">
           {/* Routes list */}
@@ -969,7 +969,7 @@ export const TransportManagement = () => {
         </div>
       )}
 
-      {/* ========================= 5 ÃÂ· STUDENT RIDERS ======================== */}
+      {/* ========================= 5 · STUDENT RIDERS ======================== */}
       {!loading && activeTab === 'assignments' && (
         <div className={`${cardClass} overflow-hidden`}>
           <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-slate-800">
@@ -999,7 +999,7 @@ export const TransportManagement = () => {
               message={
                 routes.some((r) => r.vehicle && r.driver && r.totalStops > 0)
                   ? 'No students on transport yet.'
-                  : 'Finish steps 1Ã¢â¬â4 first: a route with stops, a bus and a driver.'
+                  : 'Finish steps 1–4 first: a route with stops, a bus and a driver.'
               }
             />
           ) : (
@@ -1085,7 +1085,7 @@ export const TransportManagement = () => {
         </div>
       )}
 
-      {/* =========================== 6 ÃÂ· YEARLY FEE ========================== */}
+      {/* =========================== 6 · YEARLY FEE ========================== */}
       {!loading && activeTab === 'fees' && (
         <div className={`${cardClass} overflow-hidden`}>
           <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
@@ -1240,7 +1240,7 @@ export const TransportManagement = () => {
                 ))}
               </select>
             </Field>
-            <Field label="Capacity" required hint="1Ã¢â¬â100 seats">
+            <Field label="Capacity" required hint="1–100 seats">
               <input
                 placeholder="e.g. 40"
                 type="number"
@@ -1615,7 +1615,7 @@ export const TransportManagement = () => {
                     })
                     .map((v) => (
                       <option key={v.id} value={v.id}>
-                        {v.vehicleNumber} ÃÂ· {v.capacity} seats
+                        {v.vehicleNumber} · {v.capacity} seats
                       </option>
                     ))}
                 </select>
@@ -1682,7 +1682,7 @@ export const TransportManagement = () => {
         )}
       </Modal>
 
-      {/* Route Ã¢â â vehicle + driver */}
+      {/* Route → vehicle + driver */}
       <Modal
         isOpen={Boolean(assignModal)}
         onClose={() => setAssignModal(null)}
@@ -1726,8 +1726,8 @@ export const TransportManagement = () => {
                   )
                   .map((d) => (
                     <option key={d.id} value={d.id}>
-                      {d.name} ÃÂ· {d.mobile}
-                      {d.vehicle ? ` ÃÂ· ${d.vehicle.vehicleNumber}` : ''}
+                      {d.name} · {d.mobile}
+                      {d.vehicle ? ` · ${d.vehicle.vehicleNumber}` : ''}
                     </option>
                   ))}
               </select>
@@ -1747,7 +1747,7 @@ export const TransportManagement = () => {
                   )
                   .map((v) => (
                     <option key={v.id} value={v.id}>
-                      {v.vehicleNumber} ÃÂ· {v.capacity} seats
+                      {v.vehicleNumber} · {v.capacity} seats
                     </option>
                   ))}
               </select>
@@ -1856,8 +1856,8 @@ export const TransportManagement = () => {
                   .map((s) => (
                     <option key={s.id} value={s.id}>
                       {s.name}
-                      {s.className ? ` ÃÂ· ${s.className}` : ''}
-                      {s.admissionNumber ? ` ÃÂ· ${s.admissionNumber}` : ''}
+                      {s.className ? ` · ${s.className}` : ''}
+                      {s.admissionNumber ? ` · ${s.admissionNumber}` : ''}
                     </option>
                   ))}
               </select>
@@ -1876,7 +1876,7 @@ export const TransportManagement = () => {
                   .filter((r) => r.vehicle && r.driver && r.stops.length > 0)
                   .map((r) => (
                     <option key={r.id} value={r.id}>
-                      {r.routeName} ÃÂ· {r.vehicle.vehicleNumber}
+                      {r.routeName} · {r.vehicle.vehicleNumber}
                     </option>
                   ))}
               </select>

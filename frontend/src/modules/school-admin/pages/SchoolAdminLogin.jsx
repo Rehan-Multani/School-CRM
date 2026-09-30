@@ -357,12 +357,12 @@ export const SchoolAdminLogin = () => {
 
           <div className="mt-4 flex flex-col items-center gap-1.5 text-center">
             <p className="text-[11px] tracking-wide text-slate-500">
-              Authorized school administrators only ÃÂ· Encrypted sign-in
+              Authorized school administrators only · Encrypted sign-in
             </p>
             <div className="flex items-center gap-1.5 text-xs text-slate-400">
               <span>Looking for another panel?</span>
               <Link to="/login" className="inline-flex items-center gap-1 font-semibold text-blue-400 hover:text-blue-300 hover:underline">
-                <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals Ã¢â â
+                <LayoutGrid className="w-3 h-3" /> All 6+ Web Panels & Portals →
               </Link>
             </div>
           </div>

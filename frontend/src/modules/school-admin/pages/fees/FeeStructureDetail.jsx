@@ -260,7 +260,7 @@ export const FeeStructureDetail = () => {
 
       <PageHeader
         title={structure.name}
-        subtitle={`${structure.class?.name || 'Class'} â¢ ${structure.academicYear?.name || 'Academic Session'} â¢ Status: ${structure.status}`}
+        subtitle={`${structure.class?.name || 'Class'} • ${structure.academicYear?.name || 'Academic Session'} • Status: ${structure.status}`}
         actions={
           <button
             type="button"

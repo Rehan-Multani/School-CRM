@@ -346,7 +346,7 @@ export default function RecurringSubscriptionSection({ schoolName }) {
                   disabled={actionBusy}
                   className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-60"
                 >
-                  {actionBusy ? 'Cancellingâ¦' : 'Confirm Cancellation'}
+                  {actionBusy ? 'Cancelling…' : 'Confirm Cancellation'}
                 </button>
               </div>
             </div>

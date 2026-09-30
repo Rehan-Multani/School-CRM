@@ -197,7 +197,7 @@ export const TeacherSettings = () => {
                   value={field.value}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, [field.id]: e.target.value }))}
                   className="w-full px-4 py-3 pr-11 rounded-2xl border border-border bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm transition-all"
-                  placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
+                  placeholder="••••••••"
                   id={`settings-pw-${field.id}`}
                 />
                 <button

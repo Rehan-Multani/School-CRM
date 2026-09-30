@@ -33,7 +33,7 @@ function deliveryLabel(item) {
   if (!item.delivery?.firebaseConfigured) {
     return {
       tone: 'amber',
-      text: 'Saved only ÃÂ· Firebase not configured',
+      text: 'Saved only · Firebase not configured',
     };
   }
   if (item.delivery?.skippedReason) {

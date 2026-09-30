@@ -26,7 +26,7 @@ export function SchoolAdminBrandingEffect() {
 
   useEffect(() => {
     if (!user) {
-      // Not logged in â keep / restore the static default
+      // Not logged in — keep / restore the static default
       setFavicon(DEFAULT_FAVICON);
       return;
     }

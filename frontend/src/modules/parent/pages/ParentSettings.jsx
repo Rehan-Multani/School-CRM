@@ -191,7 +191,7 @@ export const ParentSettings = () => {
                   value={field.value}
                   onChange={(e) => setPasswordForm(prev => ({ ...prev, [field.id]: e.target.value }))}
                   className="w-full px-4 py-3 pr-11 rounded-2xl border border-border bg-white dark:bg-slate-900 text-sm focus:outline-none"
-                  placeholder="â¢â¢â¢â¢â¢â¢â¢â¢"
+                  placeholder="••••••••"
                   id={`parent-settings-pw-${field.id}`}
                 />
                 <button

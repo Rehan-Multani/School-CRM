@@ -234,7 +234,7 @@ export const Announcements = () => {
                     <span className="px-2 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                       Audience: {Array.isArray(n.audiences) ? n.audiences.join(', ') : 'All Personnel'}
                     </span>
-                    <span>â¢</span>
+                    <span>•</span>
                     <span>Broadcast by HR Desk</span>
                   </div>
                 </div>

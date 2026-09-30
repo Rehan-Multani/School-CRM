@@ -76,7 +76,7 @@ export const ParentDashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Ã¢ââ¬Ã¢ââ¬ Hero Profile Section Ã¢ââ¬Ã¢ââ¬ */}
+      {/* ── Hero Profile Section ── */}
       <Card className="bg-gradient-to-br from-primary via-indigo-600 to-accent text-white border-none p-6 shadow-premium relative overflow-hidden">
         <div className="absolute right-0 top-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16" />
         <div className="absolute left-1/3 bottom-0 w-36 h-36 bg-secondary/20 rounded-full blur-2xl -mb-10" />
@@ -93,7 +93,7 @@ export const ParentDashboard = () => {
               <Sparkles className="w-3.5 h-3.5 text-yellow-300 animate-pulse" />
             </div>
             <h1 className="text-lg sm:text-xl font-black mt-0 mb-0 tracking-tight text-white">{user?.name}</h1>
-            <p className="text-[11px] text-white/70 mt-1">{user?.occupation} â¢ Linked Sibling Count: {user?.childrenCount || 0}</p>
+            <p className="text-[11px] text-white/70 mt-1">{user?.occupation} • Linked Sibling Count: {user?.childrenCount || 0}</p>
             
             {activeChildInfo && (
               <span className="inline-flex items-center gap-1.5 mt-3 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-[9px] font-black text-white uppercase tracking-wider">
@@ -104,7 +104,7 @@ export const ParentDashboard = () => {
         </div>
       </Card>
 
-      {/* Ã¢ââ¬Ã¢ââ¬ Sibling Stats Dashboard Row Ã¢ââ¬Ã¢ââ¬ */}
+      {/* ── Sibling Stats Dashboard Row ── */}
       {activeChildInfo && (
         <div>
           <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
@@ -147,7 +147,7 @@ export const ParentDashboard = () => {
         </div>
       )}
 
-      {/* Ã¢ââ¬Ã¢ââ¬ Quick Actions Ã¢ââ¬Ã¢ââ¬ */}
+      {/* ── Quick Actions ── */}
       <div>
         <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Quick Actions</h3>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
@@ -172,7 +172,7 @@ export const ParentDashboard = () => {
         </div>
       </div>
 
-      {/* Ã¢ââ¬Ã¢ââ¬ Split Timetable & Circulars Info Ã¢ââ¬Ã¢ââ¬ */}
+      {/* ── Split Timetable & Circulars Info ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Today's Timetable */}
         <Card className="flex flex-col">
@@ -191,7 +191,7 @@ export const ParentDashboard = () => {
                 <div key={i} className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-slate-50/50 dark:bg-slate-900/50">
                   <div>
                     <h4 className="text-xs font-bold text-foreground leading-tight">{cl.subject}</h4>
-                    <span className="text-[10px] text-slate-400 mt-0.5 block">{cl.teacher} ÃÂ· Room {cl.room}</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">{cl.teacher} · Room {cl.room}</span>
                   </div>
                   <div className="text-right">
                     <Badge variant="info" className="text-[9px]">{cl.time}</Badge>
@@ -238,7 +238,7 @@ export const ParentDashboard = () => {
                     <img src={c.photo} alt={c.name} className="w-10 h-10 rounded-xl object-cover" />
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-foreground">{c.name}</p>
-                      <p className="text-[10px] text-slate-400 font-medium">{c.class} - {c.section} â¢ Roll #{c.rollNo}</p>
+                      <p className="text-[10px] text-slate-400 font-medium">{c.class} - {c.section} • Roll #{c.rollNo}</p>
                     </div>
                   </button>
                 );

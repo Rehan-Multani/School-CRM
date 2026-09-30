@@ -230,7 +230,7 @@ export const StudentDashboard = () => {
                 <div key={i} className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-slate-50/50 dark:bg-slate-900/50">
                   <div>
                     <h4 className="text-xs font-bold text-foreground leading-tight">{cl.subject}</h4>
-                    <span className="text-[10px] text-slate-400 mt-0.5 block">{cl.teacher} â¢ Room {cl.room}</span>
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">{cl.teacher} • Room {cl.room}</span>
                   </div>
                   <div className="text-right">
                     <Badge variant="info" className="text-[9px]">{cl.time}</Badge>
