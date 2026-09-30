@@ -26,6 +26,7 @@ export async function parentLogin(req, res, next) {
 
 export async function parentLogout(req, res, next) {
   try {
+    await parentAuthService.logout(schoolId(req), parentId(req));
     auditLogService.record(req, { module: 'AUTH', action: 'LOGOUT', entityType: 'Parent', entityId: parentId(req), summary: 'Parent logged out' });
     res.json({ success: true, message: 'Logged out' });
   } catch (error) {
@@ -46,7 +47,7 @@ export async function parentChangePassword(req, res, next) {
   try {
     const data = await parentAuthService.changePassword(schoolId(req), parentId(req), req.body || {});
     auditLogService.record(req, { module: 'AUTH', action: 'PASSWORD_CHANGE', entityType: 'Parent', entityId: parentId(req), summary: 'Parent changed password' });
-    res.json({ success: true, message: data.message });
+    res.json({ success: true, message: data.message, data: { token: data.token } });
   } catch (error) {
     next(error);
   }

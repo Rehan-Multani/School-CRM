@@ -1,4 +1,5 @@
 import { schoolSubscriptionRepository } from '../repositories/schoolSubscription.repository.js';
+import { cachedSubscription } from '../utils/entitlementCache.js';
 
 export const ACCESS_STATES = ['none', 'trial', 'active', 'grace_period', 'past_due', 'cancelled_pending', 'expired'];
 
@@ -33,7 +34,21 @@ class SubscriptionAccessService {
    * out a school that was never put on a recurring plan.
    */
   async getEntitlement(schoolId) {
-    const sub = await schoolSubscriptionRepository.findForSchool(schoolId);
+    return this.#fromSubscription(await schoolSubscriptionRepository.findForSchool(schoolId));
+  }
+
+  /**
+   * Same result as getEntitlement, for the per-request subscription gate: the
+   * subscription row is cached for a few seconds (see utils/entitlementCache.js)
+   * and the state is still derived fresh, so this saves the gate's DB
+   * round-trips on every API call without delaying expiry.
+   */
+  async getGateEntitlement(schoolId) {
+    const sub = await cachedSubscription(schoolId, () => schoolSubscriptionRepository.findForSchool(schoolId).lean());
+    return this.#fromSubscription(sub);
+  }
+
+  #fromSubscription(sub) {
     if (!sub) {
       return { state: 'none', hasFullAccess: true, features: null, plan: null, subscription: null };
     }

@@ -111,6 +111,12 @@ const teacherSchema = new mongoose.Schema(
     passwordHash: { type: String, default: '', select: false },
     lastLoginAt: { type: Date, default: null },
     mustResetPassword: { type: Boolean, default: false },
+    // Bumped on password change / reset / logout. Teacher JWTs carry it as `tv`;
+    // requireTeacher rejects a token whose `tv` no longer matches (revocation).
+    tokenVersion: { type: Number, default: 0 },
+    // Set when the teacher deleted their APP account (login removed). School
+    // records (attendance marked, marks, HR/payroll) are retained.
+    appAccountDeletedAt: { type: Date, default: null },
     // ---- Teacher APK per-channel push preferences (mirrors Student/Parent) ----
     notificationPrefs: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
   },
@@ -120,6 +126,16 @@ const teacherSchema = new mongoose.Schema(
 teacherSchema.index({ schoolId: 1, email: 1 });
 teacherSchema.index({ schoolId: 1, name: 1 });
 teacherSchema.index({ schoolId: 1, 'account.loginEmail': 1 });
+
+// Any password write (self change, OTP reset, admin reset) kills every
+// outstanding teacher token.
+teacherSchema.pre('save', function bumpTokenVersionOnPasswordChange() {
+  if (!this.isNew && this.isModified('passwordHash')) {
+    this.tokenVersion = (this.tokenVersion || 0) + 1;
+    // A fresh password (admin re-issue / reset) re-opens a deleted app account.
+    if (this.passwordHash) this.appAccountDeletedAt = null;
+  }
+});
 
 teacherSchema.methods.toPublicJSON = function toPublicJSON() {
   const firstName = this.firstName || this.name?.split(' ')[0] || '';

@@ -25,6 +25,13 @@ const parentSchema = new mongoose.Schema(
     passwordHash: { type: String, default: '', select: false },
     mustResetPassword: { type: Boolean, default: false },
     lastLoginAt: { type: Date, default: null },
+    // Bumped on password change / reset / logout / account delete. Parent JWTs
+    // carry it as `tv`; requireParent rejects a stale one (revocation).
+    tokenVersion: { type: Number, default: 0 },
+    // Set when the user deleted their APP account (login removed). The
+    // school's records about them are retained. Cleared when a new password
+    // is issued.
+    appAccountDeletedAt: { type: Date, default: null },
     notificationPrefs: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
   },
   { timestamps: true }
@@ -35,6 +42,14 @@ const parentSchema = new mongoose.Schema(
 parentSchema.index({ schoolId: 1, 'account.loginEmail': 1 });
 parentSchema.index({ schoolId: 1, phone: 1 });
 parentSchema.index({ schoolId: 1, email: 1 });
+
+parentSchema.pre('save', function bumpTokenVersionOnPasswordChange() {
+  if (!this.isNew && this.isModified('passwordHash')) {
+    this.tokenVersion = (this.tokenVersion || 0) + 1;
+    // A fresh password (admin re-issue / reset) re-opens a deleted app account.
+    if (this.passwordHash) this.appAccountDeletedAt = null;
+  }
+});
 
 parentSchema.methods.toPublicJSON = function toPublicJSON() {
   const fullName = [this.firstName, this.lastName].filter(Boolean).join(' ').trim();

@@ -29,7 +29,7 @@ const VARIANTS = {
     duration: 5000,
   },
   info: {
-    title: 'Notice',
+    title: 'Info',
     Icon: Info,
     accent: 'bg-indigo-500',
     chip: 'bg-indigo-50 text-indigo-600 ring-indigo-500/15 dark:bg-indigo-500/10 dark:text-indigo-400 dark:ring-indigo-400/20',
@@ -122,7 +122,7 @@ export const showToast = (type, message, title) => {
 
 export const AppToaster = () => (
   <Toaster
-    position="top-right"
+    position="top-center"
     gutter={10}
     containerStyle={{ top: 76, right: 20, bottom: 20, left: 20 }}
   />

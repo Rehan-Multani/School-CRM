@@ -27,13 +27,10 @@ const oid = (v) => new mongoose.Types.ObjectId(String(v));
 class TeacherAccessService {
   async buildContext(schoolId, teacherId) {
     const school = oid(schoolId);
-    const teacher = await Teacher.findOne({ _id: teacherId, schoolId: school }).lean();
-    if (!teacher) throw new AppError('Teacher not found', 404, TEACHER_ERR.TEACHER_NOT_FOUND);
-    if (teacher.status !== 'ACTIVE') {
-      throw new AppError('Teacher account is not active', 403, TEACHER_ERR.TEACHER_INACTIVE);
-    }
-
-    const [currentYear, classTeacherSections, taught] = await Promise.all([
+    // One round-trip: the assignment-graph reads don't depend on the teacher
+    // row, so they run alongside it; the checks below still gate the result.
+    const [teacher, currentYear, classTeacherSections, taught] = await Promise.all([
+      Teacher.findOne({ _id: teacherId, schoolId: school }).lean(),
       AcademicYear.findOne({ schoolId: school, isCurrent: true }).select('_id').lean(),
       Section.find({ schoolId: school, classTeacherId: oid(teacherId), status: 'ACTIVE' })
         .select('_id classId')
@@ -42,21 +39,30 @@ class TeacherAccessService {
         .select('sectionId classId subjectId')
         .lean(),
     ]);
+    if (!teacher) throw new AppError('Teacher not found', 404, TEACHER_ERR.TEACHER_NOT_FOUND);
+    if (teacher.status !== 'ACTIVE') {
+      throw new AppError('Teacher account is not active', 403, TEACHER_ERR.TEACHER_INACTIVE);
+    }
 
     const sectionIds = new Set();
     const classIds = new Set();
     const classTeacherSectionIds = new Set();
     const sectionSubjectPairs = new Set();
     const classSubjectPairs = new Set();
+    const sectionClassIds = new Map(); // sectionId -> classId
 
     for (const s of classTeacherSections) {
       sectionIds.add(String(s._id));
       classTeacherSectionIds.add(String(s._id));
-      if (s.classId) classIds.add(String(s.classId));
+      if (s.classId) {
+        classIds.add(String(s.classId));
+        sectionClassIds.set(String(s._id), String(s.classId));
+      }
     }
     for (const ss of taught) {
       if (ss.sectionId) sectionIds.add(String(ss.sectionId));
       if (ss.classId) classIds.add(String(ss.classId));
+      if (ss.sectionId && ss.classId) sectionClassIds.set(String(ss.sectionId), String(ss.classId));
       if (ss.sectionId && ss.subjectId) sectionSubjectPairs.add(`${ss.sectionId}:${ss.subjectId}`);
       if (ss.classId && ss.subjectId) classSubjectPairs.add(`${ss.classId}:${ss.subjectId}`);
     }
@@ -71,6 +77,7 @@ class TeacherAccessService {
       classTeacherSectionIds,
       sectionSubjectPairs,
       classSubjectPairs,
+      sectionClassIds,
     };
   }
 

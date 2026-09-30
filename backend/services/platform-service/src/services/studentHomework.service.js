@@ -19,7 +19,10 @@ function derivedStatus(hw, sub) {
 class StudentHomeworkService {
   /** All homework for the student's section, merged with the student's own submission row. */
   async #merged(ctx) {
+    // List-card fields only (homeworkLite + derivedStatus): the description can
+    // be long and a section accumulates a whole year of homework.
     const rows = await Homework.find({ schoolId: oid(ctx.schoolId), sectionId: oid(ctx.sectionId) })
+      .select('title subjectId subjectName teacherName assignedDate dueDate status attachments')
       .sort({ dueDate: -1, assignedDate: -1 })
       .lean();
     const ids = rows.map((r) => r._id);
@@ -28,7 +31,9 @@ class StudentHomeworkService {
           schoolId: oid(ctx.schoolId),
           studentId: oid(ctx.studentId),
           homeworkId: { $in: ids },
-        }).lean()
+        })
+          .select('homeworkId status submittedAt marksObtained')
+          .lean()
       : [];
     const subByHw = new Map(subs.map((s) => [String(s.homeworkId), s]));
     return rows.map((hw) => ({ hw, sub: subByHw.get(String(hw._id)) || null }));

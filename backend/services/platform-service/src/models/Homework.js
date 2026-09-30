@@ -41,6 +41,8 @@ const homeworkSchema = new mongoose.Schema(
 );
 
 homeworkSchema.index({ schoolId: 1, assignedDate: -1 });
+homeworkSchema.index({ schoolId: 1, teacherId: 1, assignedDate: -1 }); // teacher list + dashboard count
+homeworkSchema.index({ schoolId: 1, sectionId: 1, dueDate: -1 }); // student list
 
 function pct(part, whole) {
   if (!whole || whole <= 0) return null;

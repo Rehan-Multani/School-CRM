@@ -41,7 +41,7 @@ export const ToastProvider = ({ children }) => {
   return (
     <ToastContext.Provider value={toast}>
       {children}
-      <div className="fixed top-4 right-4 z-[200] flex flex-col gap-2 max-w-sm w-full px-4 md:px-0 pointer-events-none">
+      <div className="fixed top-4 inset-x-0 z-[9999] flex flex-col items-center gap-2 max-w-md mx-auto px-4 pointer-events-none">
         <AnimatedToastList toasts={toasts} onRemove={removeToast} />
       </div>
     </ToastContext.Provider>
@@ -73,7 +73,7 @@ const ToastItem = ({ toast, onRemove }) => {
 
   return (
     <div className={cn(
-      "pointer-events-auto flex items-center gap-3 bg-white dark:bg-slate-900 border shadow-xl rounded-2xl px-4 py-3 animate-in slide-in-from-right-4 fade-in duration-300",
+      "pointer-events-auto flex items-center gap-3 bg-white dark:bg-slate-900 border shadow-xl rounded-2xl px-4 py-3 animate-in slide-in-from-top-4 fade-in duration-300 w-full sm:w-auto min-w-[280px] max-w-md",
       styles[toast.type] || styles.info
     )}>
       {icons[toast.type] || icons.info}

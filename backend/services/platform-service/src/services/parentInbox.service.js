@@ -5,7 +5,7 @@ import { Announcement } from '../models/Communication.js';
 import { Event } from '../models/Event.js';
 import { PlatformNotification } from '../models/PlatformNotification.js';
 import { ReadReceipt } from '../models/ReadReceipt.js';
-import { School } from '../models/School.js';
+import { schoolSlugOf } from '../utils/schoolSlug.js';
 import { notificationRepository } from '../repositories/notification.repository.js';
 import { noticeLite, eventLite, notificationLite } from '../serializers/student.serializers.js';
 import { PARENT_ERR } from '../constants/parentErrorCodes.js';
@@ -14,7 +14,7 @@ const oid = (v) => new mongoose.Types.ObjectId(String(v));
 const PARENT_AUDIENCES = ['ALL', 'PARENTS'];
 
 async function schoolSlugVariants(schoolId) {
-  const school = await School.findById(schoolId).select('schoolId').lean();
+  const school = { schoolId: await schoolSlugOf(schoolId) };
   const slug = school?.schoolId || '';
   return { slug, variants: [slug].filter(Boolean) };
 }
@@ -137,7 +137,7 @@ class ParentInboxService {
 
   async unreadCount(ctx) {
     const { variants } = await schoolSlugVariants(ctx.schoolId);
-    const rows = await notificationRepository.inbox({ role: 'parent', schoolIds: variants, userId: ctx.parentId });
+    const rows = await notificationRepository.inboxIds({ role: 'parent', schoolIds: variants, userId: ctx.parentId });
     const readSet = await this.#readSet(ctx.parentId, 'NOTIFICATION', rows.map((r) => String(r._id)));
     return { unread: rows.filter((r) => !readSet.has(String(r._id))).length };
   }
@@ -151,7 +151,7 @@ class ParentInboxService {
 
   async markAllNotificationsRead(ctx) {
     const { variants } = await schoolSlugVariants(ctx.schoolId);
-    const rows = await notificationRepository.inbox({ role: 'parent', schoolIds: variants, userId: ctx.parentId });
+    const rows = await notificationRepository.inboxIds({ role: 'parent', schoolIds: variants, userId: ctx.parentId });
     if (!rows.length) return { marked: 0 };
     const ops = rows.map((r) => ({
       updateOne: {

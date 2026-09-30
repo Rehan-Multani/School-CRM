@@ -1,3 +1,4 @@
+import './config/timezone.js';
 import express from 'express';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';

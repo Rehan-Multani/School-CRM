@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { invalidateEntitlementOnWrite } from '../utils/entitlementCache.js';
 
 const PLAN_TYPES = ['Weekly', 'Monthly', 'Yearly'];
 
@@ -78,6 +79,9 @@ subscriptionPlanSchema.methods.toPublicJSON = function toPublicJSON() {
     updatedAt: this.updatedAt,
   };
 };
+
+// The subscription gate caches this collection briefly; any write clears it.
+invalidateEntitlementOnWrite(subscriptionPlanSchema);
 
 export const SubscriptionPlan = mongoose.model('SubscriptionPlan', subscriptionPlanSchema);
 export { PLAN_TYPES };

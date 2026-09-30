@@ -37,15 +37,15 @@ export const Toast = ({ message, type = 'success', onClose, duration = 3000 }) =
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 pointer-events-none">
+    <div className="fixed top-6 inset-x-0 z-[9999] pointer-events-none flex flex-col items-center px-4">
       <AnimatePresence>
         {message && (
           <motion.div
-            initial={{ opacity: 0, y: 15, scale: 0.95 }}
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            exit={{ opacity: 0, y: -15, scale: 0.95 }}
             className={cn(
-              "pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-lg backdrop-blur-md max-w-sm",
+              "pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-xl backdrop-blur-md max-w-sm",
               styles[type] || styles.success
             )}
           >
@@ -68,26 +68,35 @@ export const Toast = ({ message, type = 'success', onClose, duration = 3000 }) =
 
 // Local hook creator â avoids a context/provider entirely.
 export const useToast = () => {
-  const [toast, setToast] = React.useState(null);
+  const [toastState, setToastState] = React.useState(null);
 
   const showToast = React.useCallback((message, type = 'success', duration = 3000) => {
-    setToast({ message, type, duration, id: Date.now() });
+    setToastState({ message, type, duration, id: Date.now() });
   }, []);
 
   const hideToast = React.useCallback(() => {
-    setToast(null);
+    setToastState(null);
   }, []);
 
   const ToastComponent = () => (
     <Toast
-      message={toast?.message}
-      type={toast?.type}
-      duration={toast?.duration ?? 3000}
+      message={toastState?.message}
+      type={toastState?.type}
+      duration={toastState?.duration ?? 3000}
       onClose={hideToast}
     />
   );
 
-  return { showToast, ToastComponent };
+  const toast = React.useMemo(() => ({
+    show: showToast,
+    success: (msg, dur) => showToast(msg, 'success', dur),
+    error: (msg, dur) => showToast(msg, 'error', dur),
+    info: (msg, dur) => showToast(msg, 'info', dur),
+    warning: (msg, dur) => showToast(msg, 'warning', dur),
+    hide: hideToast,
+  }), [showToast, hideToast]);
+
+  return { showToast, hideToast, ToastComponent, toast };
 };
 
 export default useToast;

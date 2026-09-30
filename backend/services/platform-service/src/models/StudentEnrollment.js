@@ -18,6 +18,8 @@ const studentEnrollmentSchema = new mongoose.Schema(
 
 studentEnrollmentSchema.index({ schoolId: 1, studentId: 1, academicYearId: 1 }, { unique: true });
 studentEnrollmentSchema.index({ schoolId: 1, academicYearId: 1, sectionId: 1 });
+// Rosters/counts by section without a year filter (teacher dashboard, class lists).
+studentEnrollmentSchema.index({ schoolId: 1, sectionId: 1, status: 1 });
 
 studentEnrollmentSchema.methods.toPublicJSON = function toPublicJSON() {
   return {

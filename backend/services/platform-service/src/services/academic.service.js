@@ -1098,6 +1098,7 @@ export class AcademicService {
     if (email) teacher.account.loginEmail = email;
     else if (!teacher.account.loginEmail) teacher.account.loginEmail = teacher.email || '';
     teacher.account.accountStatus = 'ACTIVE';
+    teacher.appAccountDeletedAt = null; // admin re-issued a login after an app-account deletion
     teacher.markModified('account');
     await teacher.save();
     return { message: 'Teacher login password set', loginEmail: teacher.account.loginEmail };

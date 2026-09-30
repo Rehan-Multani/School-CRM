@@ -16,6 +16,8 @@ const sectionSchema = new mongoose.Schema(
 );
 
 sectionSchema.index({ schoolId: 1, academicYearId: 1, classId: 1, name: 1 }, { unique: true });
+// Teacher APK: "which sections am I class teacher of" — on every teacher request.
+sectionSchema.index({ schoolId: 1, classTeacherId: 1, status: 1 });
 
 sectionSchema.methods.toPublicJSON = function toPublicJSON() {
   return {

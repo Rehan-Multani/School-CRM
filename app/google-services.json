@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "823529600333",
+    "project_id": "school-crm-99cc8",
+    "storage_bucket": "school-crm-99cc8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:823529600333:android:f61529770c88bd85f0f304",
+        "android_client_info": {
+          "package_name": "com.schoolcrm.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCisysDjkgP812Xpr8YUtyP6R5PjLFtSFU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -5,7 +5,7 @@ import { Announcement } from '../models/Communication.js';
 import { Event } from '../models/Event.js';
 import { PlatformNotification } from '../models/PlatformNotification.js';
 import { ReadReceipt } from '../models/ReadReceipt.js';
-import { School } from '../models/School.js';
+import { schoolSlugOf } from '../utils/schoolSlug.js';
 import { notificationRepository } from '../repositories/notification.repository.js';
 import { notificationLite, announcementLite } from '../serializers/teacher.serializers.js';
 import { eventLite } from '../serializers/student.serializers.js';
@@ -20,7 +20,7 @@ const SCHOOL_ID_ALIASES = {
 };
 
 async function schoolSlugVariants(schoolId) {
-  const school = await School.findById(schoolId).select('schoolId').lean();
+  const school = { schoolId: await schoolSlugOf(schoolId) };
   const slug = school?.schoolId || '';
   const out = [slug].filter(Boolean);
   if (SCHOOL_ID_ALIASES[slug]) out.push(SCHOOL_ID_ALIASES[slug]);
@@ -64,7 +64,14 @@ class TeacherInboxService {
   }
 
   async markAnnouncementRead(ctx, id) {
-    const row = await Announcement.findOne({ schoolId: oid(ctx.schoolId), _id: oid(id) }).select('_id').lean();
+    const row = await Announcement.findOne({
+      schoolId: oid(ctx.schoolId),
+      _id: oid(id),
+      status: 'PUBLISHED',
+      audiences: { $in: TEACHER_AUDIENCES },
+    })
+      .select('_id')
+      .lean();
     if (!row) throw new AppError('Announcement not found', 404, TEACHER_ERR.NOT_FOUND);
     await this.#markRead(ctx, 'ANNOUNCEMENT', id);
     return { message: 'Marked as read' };
@@ -135,22 +142,26 @@ class TeacherInboxService {
 
   async unreadCount(ctx) {
     const { variants } = await schoolSlugVariants(ctx.schoolId);
-    const rows = await notificationRepository.inbox({ role: 'teacher', schoolIds: variants, userId: ctx.teacherId });
+    const rows = await notificationRepository.inboxIds({ role: 'teacher', schoolIds: variants, userId: ctx.teacherId });
     const readSet = await this.#readSet(ctx.teacherId, 'NOTIFICATION', rows.map((r) => String(r._id)));
     const unread = rows.filter((r) => !readSet.has(String(r._id))).length;
     return { unread };
   }
 
   async markNotificationRead(ctx, id) {
-    const row = await PlatformNotification.findById(oid(id)).select('_id').lean();
-    if (!row) throw new AppError('Notification not found', 404, TEACHER_ERR.NOT_FOUND);
+    // Only a notification that is actually in THIS teacher's inbox.
+    const { variants } = await schoolSlugVariants(ctx.schoolId);
+    const rows = await notificationRepository.inboxIds({ role: 'teacher', schoolIds: variants, userId: ctx.teacherId });
+    if (!rows.some((r) => String(r._id) === String(id))) {
+      throw new AppError('Notification not found', 404, TEACHER_ERR.NOT_FOUND);
+    }
     await this.#markRead(ctx, 'NOTIFICATION', id);
     return { message: 'Marked as read' };
   }
 
   async markAllNotificationsRead(ctx) {
     const { variants } = await schoolSlugVariants(ctx.schoolId);
-    const rows = await notificationRepository.inbox({ role: 'teacher', schoolIds: variants, userId: ctx.teacherId });
+    const rows = await notificationRepository.inboxIds({ role: 'teacher', schoolIds: variants, userId: ctx.teacherId });
     if (!rows.length) return { marked: 0 };
     const ops = rows.map((r) => ({
       updateOne: {

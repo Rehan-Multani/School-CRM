@@ -10,10 +10,19 @@ export function errorHandler(err, req, res, next) {
     return;
   }
 
-  const statusCode = err.statusCode || 500;
-  const isProd = env.nodeEnv === 'production';
-  const message = err.isOperational ? err.message : isProd ? 'Internal server error' : (err.message || 'Internal server error');
-  const code = err.code || (statusCode === 404 ? 'NOT_FOUND' : statusCode === 401 ? 'UNAUTHORIZED' : statusCode === 403 ? 'FORBIDDEN' : 'SERVER_ERROR');
+  // Mongoose/Mongo internals must never reach a client (they name collections,
+  // fields and index keys). Map the two a client can cause to clean 4xx; every
+  // other non-operational error is a generic 500 — the detail stays in the log.
+  const known = err?.name === 'CastError' || err?.name === 'BSONError'
+    ? { statusCode: 400, message: 'Invalid identifier in request', code: 'INVALID_ID' }
+    : err?.code === 11000
+      ? { statusCode: 409, message: 'This record already exists', code: 'DUPLICATE' }
+      : null;
+  const statusCode = known?.statusCode || err.statusCode || 500;
+  // `expose` = http-errors' own "safe for clients" flag (body-parser 400/413).
+  const safe = err.isOperational || (err.expose === true && statusCode < 500);
+  const message = known?.message || (safe ? err.message : 'Internal server error');
+  const code = known?.code || (typeof err.code === 'string' ? err.code : null) || (statusCode === 404 ? 'NOT_FOUND' : statusCode === 401 ? 'UNAUTHORIZED' : statusCode === 403 ? 'FORBIDDEN' : 'SERVER_ERROR');
 
   if (env.nodeEnv !== 'test') {
     // Log a string only (no full error object / stack) + correlation id.

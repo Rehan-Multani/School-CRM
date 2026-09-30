@@ -35,7 +35,9 @@ const PROTECTED = new Set([
   'id',
 ]);
 
-const str = (v) => (typeof v === 'string' ? v.trim() : '');
+const str = (v, max = 100) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+const PHONE_KEYS = new Set(['phone', 'mobileNumber', 'alternateMobile', 'emergencyContactNumber']);
+const PHONE_RE = /^\+?[0-9\s-]{7,15}$/;
 
 class TeacherProfileService {
   async getProfile(schoolId, teacherId) {
@@ -64,11 +66,27 @@ class TeacherProfileService {
 
     for (const key of Object.keys(body)) {
       if (!EDITABLE.has(key)) continue;
-      teacher[key] = str(body[key]);
+      const value = str(body[key]);
+      if (PHONE_KEYS.has(key) && value && !PHONE_RE.test(value)) {
+        throw new AppError(`${key} is not a valid phone number`, 400, TEACHER_ERR.VALIDATION_ERROR);
+      }
+      if ((key === 'phone' || key === 'mobileNumber') && !value) {
+        throw new AppError('Mobile number cannot be empty', 400, TEACHER_ERR.VALIDATION_ERROR);
+      }
+      teacher[key] = value;
     }
-    if (body.address && typeof body.address === 'object') {
+    // multipart sends nested objects as a JSON string
+    let address = body.address;
+    if (typeof address === 'string') {
+      try {
+        address = JSON.parse(address);
+      } catch {
+        address = null;
+      }
+    }
+    if (address && typeof address === 'object') {
       for (const k of ['addressLine', 'city', 'state', 'country', 'pincode']) {
-        if (body.address[k] !== undefined) teacher.address[k] = str(body.address[k]);
+        if (address[k] !== undefined) teacher.address[k] = str(address[k], k === 'addressLine' ? 300 : 100);
       }
     }
     if (body.firstName !== undefined || body.lastName !== undefined || body.middleName !== undefined) {

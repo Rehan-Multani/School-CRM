@@ -17,6 +17,8 @@ const sectionSubjectSchema = new mongoose.Schema(
 );
 
 sectionSubjectSchema.index({ schoolId: 1, academicYearId: 1, sectionId: 1, subjectId: 1 }, { unique: true });
+// Teacher APK: every request builds the teacher's assignment graph from this.
+sectionSubjectSchema.index({ schoolId: 1, teacherId: 1, status: 1 });
 
 sectionSubjectSchema.methods.toPublicJSON = function toPublicJSON() {
   return {

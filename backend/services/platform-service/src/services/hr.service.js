@@ -13,6 +13,7 @@ import { EmployeeDocument } from '../models/EmployeeDocument.js';
 import { LeaveRequest } from '../models/LeaveRequest.js';
 import { PerformanceReview } from '../models/PerformanceReview.js';
 import { deleteUploadedFile } from '../utils/upload.utils.js';
+import { pushEvents } from './pushEvents.service.js';
 
 function normalizeTeacher(teacher) {
   const firstName = teacher.firstName || teacher.name?.split(' ')[0] || '';
@@ -811,7 +812,9 @@ class HRService {
       approvedAt: new Date(),
     });
     if (!leave) throw new AppError('Leave request not found', 404);
-    return leave.toPublicJSON();
+    const json = leave.toPublicJSON();
+    pushEvents.leaveDecided(schoolId, json).catch(() => {});
+    return json;
   }
 
   async rejectLeave(schoolId, id, reason = '', rejectorName = 'HR Manager') {
@@ -822,7 +825,9 @@ class HRService {
       rejectionReason: reason,
     });
     if (!leave) throw new AppError('Leave request not found', 404);
-    return leave.toPublicJSON();
+    const json = leave.toPublicJSON();
+    pushEvents.leaveDecided(schoolId, json).catch(() => {});
+    return json;
   }
 
   async cancelLeave(schoolId, id) {

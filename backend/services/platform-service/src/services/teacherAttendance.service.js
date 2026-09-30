@@ -6,6 +6,7 @@ import { studentAttendanceRepository } from '../repositories/studentAttendance.r
 import { studentAttendanceService, validDate, todayStr } from './studentAttendance.service.js';
 import { teacherAccessService } from './teacherAccess.service.js';
 import { TEACHER_ERR } from '../constants/teacherErrorCodes.js';
+import { pushEvents } from './pushEvents.service.js';
 
 const oid = (v) => new mongoose.Types.ObjectId(String(v));
 const oids = (arr) => [...arr].map(oid);
@@ -24,13 +25,26 @@ function pickStatus(v) {
 
 class TeacherAttendanceService {
   async today(ctx, sectionId) {
-    teacherAccessService.assertSection(ctx, sectionId);
-    return studentAttendanceService.getDay(ctx.schoolId, sectionId, todayStr());
+    return this.forDate(ctx, sectionId, todayStr());
   }
 
+  /**
+   * The mark sheet + the stored day's id/lock state — the app needs
+   * `attendanceId` to PATCH/finalize and `locked` to render read-only.
+   */
   async forDate(ctx, sectionId, date) {
     teacherAccessService.assertSection(ctx, sectionId);
-    return studentAttendanceService.getDay(ctx.schoolId, sectionId, validDate(date));
+    const day = validDate(date);
+    const [sheet, existing] = await Promise.all([
+      studentAttendanceService.getDay(ctx.schoolId, sectionId, day),
+      studentAttendanceRepository.findDay(ctx.schoolId, sectionId, day),
+    ]);
+    return {
+      ...sheet,
+      attendanceId: existing ? String(existing._id) : null,
+      locked: Boolean(existing?.locked),
+      isClassTeacher: teacherAccessService.isClassTeacherOf(ctx, sectionId),
+    };
   }
 
   /**
@@ -102,6 +116,10 @@ class TeacherAttendanceService {
       markedByName: actorName,
       markedById: oid(ctx.teacherId),
     });
+    const flagged = entries.filter(
+      (e) => ['ABSENT', 'LATE'].includes(e.status) && prev.get(String(e.studentId))?.status !== e.status
+    );
+    if (flagged.length) pushEvents.attendanceFlagged(ctx.schoolId, day, flagged).catch(() => {});
     return doc.toPublicJSON();
   }
 
@@ -115,16 +133,20 @@ class TeacherAttendanceService {
     const records = Array.isArray(payload.records) ? payload.records : [];
     if (!records.length) throw new AppError('records[] is required', 400, TEACHER_ERR.VALIDATION_ERROR);
     const byId = new Map(doc.entries.map((e) => [String(e.studentId), e]));
+    const flagged = [];
     for (const rec of records) {
       const sid = String(rec?.studentId || '');
       const entry = byId.get(sid);
       if (!entry) throw new AppError('One or more students are not in this attendance sheet', 403, TEACHER_ERR.STUDENT_ACCESS_DENIED);
-      entry.status = pickStatus(rec.status);
+      const nextStatus = pickStatus(rec.status);
+      if (['ABSENT', 'LATE'].includes(nextStatus) && entry.status !== nextStatus) flagged.push({ studentId: sid, status: nextStatus });
+      entry.status = nextStatus;
       if (rec.note !== undefined) entry.note = String(rec.note || '').trim();
     }
     doc.markedByName = actorName || doc.markedByName;
     doc.markedById = oid(ctx.teacherId);
     await doc.save();
+    if (flagged.length) pushEvents.attendanceFlagged(ctx.schoolId, doc.date, flagged).catch(() => {});
     return doc.toPublicJSON();
   }
 

@@ -10,11 +10,12 @@
  * Bottom nav: HOME · ACADEMICS · ATTENDANCE · NOTIFICATIONS · PROFILE.
  */
 import { Router } from 'express';
-import { loginRateLimiter } from '../middleware/loginRateLimiter.js';
+import { loginRateLimiter, changePasswordRateLimiter } from '../middleware/loginRateLimiter.js';
+import { studentDeleteAccount } from '../controllers/appAccount.controller.js';
 import { validateObjectId } from '../middleware/validateObjectId.js';
 import { requireStudent } from '../middleware/requireStudent.js';
 import { withIdempotency } from '../middleware/idempotency.js';
-import { uploadStudentFiles, convertStudentImages } from '../middleware/uploadStudentPhoto.js';
+import { uploadStudentSelfPhoto, convertStudentImages } from '../middleware/uploadStudentPhoto.js';
 import { uploadMaterialFile, verifyMaterialFile } from '../middleware/uploadTeacherResource.js';
 
 import {
@@ -106,7 +107,8 @@ router.post('/school-portal/auth/student-login', loginRateLimiter, studentLogin)
 router.post('/school-auth/student-login', loginRateLimiter, studentLogin);
 router.post(`${S}/auth/logout`, requireStudent, studentLogout);
 router.get(`${S}/me`, requireStudent, studentMe);
-router.patch(`${S}/change-password`, requireStudent, studentChangePassword);
+router.patch(`${S}/change-password`, requireStudent, changePasswordRateLimiter, studentChangePassword);
+router.post(`${S}/account/delete`, requireStudent, changePasswordRateLimiter, studentDeleteAccount);
 
 // ============================ 02 · HOME ============================
 router.get(`${S}/dashboard`, requireStudent, getStudentDashboard);
@@ -115,7 +117,7 @@ router.get(`${S}/upcoming`, requireStudent, getStudentUpcoming);
 
 // ============================ 03 · PROFILE ============================
 router.get(`${S}/profile`, requireStudent, getStudentProfile);
-router.patch(`${S}/profile`, requireStudent, uploadStudentFiles, convertStudentImages, updateStudentProfile);
+router.patch(`${S}/profile`, requireStudent, uploadStudentSelfPhoto, convertStudentImages, updateStudentProfile);
 router.get(`${S}/academic-info`, requireStudent, getStudentAcademicInfo);
 router.get(`${S}/guardians`, requireStudent, getStudentGuardians);
 

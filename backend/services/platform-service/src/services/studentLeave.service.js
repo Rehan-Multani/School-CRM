@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { AppError } from '../../../shared/AppError.js';
-import { sanitizePagination } from '../../../shared/sanitize.js';
+import { sanitizePagination, safeLinkUrl } from '../../../shared/sanitize.js';
 import { LeaveRequest } from '../models/LeaveRequest.js';
 import { leaveLite } from '../serializers/student.serializers.js';
 import { STUDENT_ERR } from '../constants/studentErrorCodes.js';
@@ -8,6 +8,7 @@ import { STUDENT_ERR } from '../constants/studentErrorCodes.js';
 const oid = (v) => new mongoose.Types.ObjectId(String(v));
 const LEAVE_TYPES = ['CASUAL', 'MEDICAL', 'PAID', 'UNPAID', 'OTHER'];
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const MAX_LEAVE_DAYS = 366;
 
 function dayCount(start, end) {
   const s = new Date(`${start}T00:00:00Z`);
@@ -28,9 +29,13 @@ function validatePayload(payload) {
   if (endDate < startDate) {
     throw new AppError('endDate cannot be before startDate', 400, STUDENT_ERR.VALIDATION_ERROR);
   }
+  const totalDays = dayCount(startDate, endDate);
+  if (!Number.isFinite(totalDays) || totalDays > MAX_LEAVE_DAYS) {
+    throw new AppError(`A single leave request can cover at most ${MAX_LEAVE_DAYS} days`, 400, STUDENT_ERR.VALIDATION_ERROR);
+  }
   const reason = String(payload.reason || '').trim();
   if (!reason) throw new AppError('reason is required', 400, STUDENT_ERR.VALIDATION_ERROR);
-  return { leaveType, startDate, endDate, reason: reason.slice(0, 1000), totalDays: dayCount(startDate, endDate) };
+  return { leaveType, startDate, endDate, reason: reason.slice(0, 1000), totalDays };
 }
 
 class StudentLeaveService {
@@ -38,8 +43,23 @@ class StudentLeaveService {
     return { schoolId: oid(ctx.schoolId), employeeType: 'STUDENT', employeeRefId: oid(ctx.studentId) };
   }
 
+  /** A pending/approved leave of mine that shares at least one day with [start,end]. */
+  async #assertNoOverlap(ctx, { startDate, endDate }, exceptId = null) {
+    const filter = {
+      ...this.#ownFilter(ctx),
+      status: { $in: ['PENDING', 'APPROVED'] },
+      startDate: { $lte: endDate },
+      endDate: { $gte: startDate },
+    };
+    if (exceptId) filter._id = { $ne: oid(exceptId) };
+    if (await LeaveRequest.exists(filter)) {
+      throw new AppError('You already have a pending or approved leave for these dates', 409, STUDENT_ERR.LEAVE_OVERLAP);
+    }
+  }
+
   async apply(ctx, payload = {}) {
     const v = validatePayload(payload);
+    await this.#assertNoOverlap(ctx, v);
     const name = [ctx.student?.firstName, ctx.student?.lastName].filter(Boolean).join(' ').trim() || 'Student';
     const leave = await LeaveRequest.create({
       schoolId: oid(ctx.schoolId),
@@ -59,14 +79,14 @@ class StudentLeaveService {
       totalDays: v.totalDays,
       reason: v.reason,
       status: 'PENDING',
-      documentUrl: String(payload.documentUrl || '').trim(),
+      documentUrl: safeLinkUrl(payload.documentUrl),
     });
     return leaveLite(leave.toPublicJSON());
   }
 
   async list(ctx, query = {}) {
     const filter = this.#ownFilter(ctx);
-    if (query.status) filter.status = String(query.status).toUpperCase();
+    if (query.status) filter.status = String(query.status).toUpperCase().slice(0, 20);
     const { page, limit, skip } = sanitizePagination({ page: query.page, limit: query.limit, defaultLimit: 20, maxLimit: 50 });
     const [rows, total] = await Promise.all([
       LeaveRequest.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
@@ -96,12 +116,13 @@ class StudentLeaveService {
       endDate: payload.endDate ?? leave.endDate,
       reason: payload.reason ?? leave.reason,
     });
+    await this.#assertNoOverlap(ctx, v, leave._id);
     leave.leaveType = v.leaveType;
     leave.startDate = v.startDate;
     leave.endDate = v.endDate;
     leave.totalDays = v.totalDays;
     leave.reason = v.reason;
-    if (payload.documentUrl !== undefined) leave.documentUrl = String(payload.documentUrl || '').trim();
+    if (payload.documentUrl !== undefined) leave.documentUrl = safeLinkUrl(payload.documentUrl);
     await leave.save();
     return leaveLite(leave.toPublicJSON());
   }

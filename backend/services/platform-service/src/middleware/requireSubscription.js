@@ -36,21 +36,26 @@ const EXEMPT_PATHS = [
   '/school-portal/teacher/me',
   '/school-portal/teacher/profile',
   '/school-portal/teacher/change-password',
+  '/school-portal/teacher/account/delete', // deleting your account must never be paywalled
   // Student APK self-service — same rationale as the teacher paths above.
   '/school-portal/student/auth',
   '/school-portal/student/me',
   '/school-portal/student/profile',
   '/school-portal/student/change-password',
+  '/school-portal/student/account/delete',
   // Parent APK self-service — same rationale.
   '/school-portal/parent/auth',
   '/school-portal/parent/me',
   '/school-portal/parent/profile',
   '/school-portal/parent/change-password',
+  '/school-portal/parent/account/delete',
   // Driver API self-service — same rationale as the teacher paths above: a
   // driver at an expired school must still be able to sign in and be told why.
   '/school-portal/auth/driver-login',
   '/school-portal/driver/me',
   '/school-portal/driver/change-password',
+  '/school-portal/driver/auth/logout',
+  '/school-portal/driver/account/delete',
 ];
 
 function isExemptPath(path) {
@@ -64,13 +69,16 @@ function isExemptPath(path) {
  * school's subscription has moved past its grace period into `expired` (or
  * its cancelled period has fully ended). Schools with no SchoolSubscription
  * record at all are never blocked — see subscriptionAccess.service.js for why.
+ *
+ * `prefetched` is the promise from prefetchSubscriptionAccess(), so a guard can
+ * run this lookup in parallel with its own account lookup instead of after it.
  */
-export async function enforceSubscriptionAccess(req, res, next) {
+export async function enforceSubscriptionAccess(req, res, next, prefetched = null) {
   try {
     if (isExemptPath(req.path)) return next();
     const schoolId = resolveSchoolId(req);
     if (!schoolId) return next(); // no tenant context on this route — nothing to gate
-    const entitlement = await subscriptionAccessService.getEntitlement(schoolId);
+    const entitlement = await (prefetched || subscriptionAccessService.getGateEntitlement(schoolId));
     if (!entitlement.hasFullAccess) {
       throw new AppError('Your school’s subscription has expired. Please renew to continue.', 402);
     }
@@ -80,6 +88,21 @@ export async function enforceSubscriptionAccess(req, res, next) {
     if (error instanceof AppError) return next(error);
     next(new AppError('Unable to verify subscription status', 500));
   }
+}
+
+/**
+ * Starts the gate's lookup from a verified token payload before req.user is
+ * set. Returns null when the path is exempt or has no tenant. The guard must
+ * still pass the promise to enforceSubscriptionAccess — its own 401/403 checks
+ * always win because they are evaluated first.
+ */
+export function prefetchSubscriptionAccess(req, payload) {
+  if (isExemptPath(req.path)) return null;
+  const schoolId = resolveSchoolId({ user: payload });
+  if (!schoolId) return null;
+  const promise = subscriptionAccessService.getGateEntitlement(schoolId);
+  promise.catch(() => {}); // the guard may reject first; never leave this unhandled
+  return promise;
 }
 
 /**

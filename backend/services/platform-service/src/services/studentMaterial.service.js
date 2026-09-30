@@ -6,6 +6,7 @@ import { materialLite } from '../serializers/student.serializers.js';
 import { STUDENT_ERR } from '../constants/studentErrorCodes.js';
 
 const oid = (v) => new mongoose.Types.ObjectId(String(v));
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 class StudentMaterialService {
   /** ACTIVE material visible to the student: their section, or their whole class. */
@@ -21,10 +22,12 @@ class StudentMaterialService {
       filter.subjectId = oid(query.subjectId);
     }
     if (query.type) filter.fileType = String(query.type).toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 12);
-    if (query.from || query.to) {
+    const from = ISO_DATE.test(String(query.from || '')) ? query.from : '';
+    const to = ISO_DATE.test(String(query.to || '')) ? query.to : '';
+    if (from || to) {
       filter.createdAt = {};
-      if (query.from) filter.createdAt.$gte = new Date(`${query.from}T00:00:00.000Z`);
-      if (query.to) filter.createdAt.$lte = new Date(`${query.to}T23:59:59.999Z`);
+      if (from) filter.createdAt.$gte = new Date(`${from}T00:00:00.000Z`);
+      if (to) filter.createdAt.$lte = new Date(`${to}T23:59:59.999Z`);
     }
     const { page, limit, skip } = sanitizePagination({ page: query.page, limit: query.limit, defaultLimit: 20, maxLimit: 50 });
     const [rows, total] = await Promise.all([

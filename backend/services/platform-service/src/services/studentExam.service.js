@@ -102,17 +102,19 @@ class StudentExamService {
     const exam = await Exam.findOne({ schoolId: oid(ctx.schoolId), _id: oid(examId) })
       .select('name examType startDate endDate status classIds')
       .lean();
-    if (!exam || !(exam.classIds || []).some((c) => String(c) === ctx.classId)) {
-      throw new AppError('Result not found', 404, STUDENT_ERR.NOT_FOUND);
-    }
-    if (exam.status !== 'PUBLISHED') {
-      throw new AppError('This result has not been published yet', 403, STUDENT_ERR.RESULT_NOT_PUBLISHED);
-    }
+    if (!exam) throw new AppError('Result not found', 404, STUDENT_ERR.NOT_FOUND);
+    // The student's OWN result row is the access check — so a published result
+    // from an earlier year (different class) listed by /results still opens.
     const result = await ExamResult.findOne({
       schoolId: oid(ctx.schoolId),
       examId: exam._id,
       studentId: oid(ctx.studentId),
     }).lean();
+    const inMyClass = (exam.classIds || []).some((c) => String(c) === ctx.classId);
+    if (!result && !inMyClass) throw new AppError('Result not found', 404, STUDENT_ERR.NOT_FOUND);
+    if (exam.status !== 'PUBLISHED') {
+      throw new AppError('This result has not been published yet', 403, STUDENT_ERR.RESULT_NOT_PUBLISHED);
+    }
     if (!result) throw new AppError('Result not found', 404, STUDENT_ERR.NOT_FOUND);
     return resultDetail(result, exam);
   }

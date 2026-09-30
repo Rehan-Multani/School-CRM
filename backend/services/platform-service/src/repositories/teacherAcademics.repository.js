@@ -35,6 +35,13 @@ class TeacherAcademicsRepository {
     return sections.map((s) => ({ ...s, className: classMap.get(String(s.classId)) || '' }));
   }
 
+  subjectsByIds(schoolId, subjectIds) {
+    if (!subjectIds.length) return Promise.resolve([]);
+    return Subject.find({ schoolId: oid(schoolId), _id: { $in: oids(subjectIds) } })
+      .select('name code')
+      .lean();
+  }
+
   sectionById(schoolId, sectionId) {
     return Section.findOne({ schoolId: oid(schoolId), _id: oid(sectionId) })
       .select('name classId roomNumber classTeacherId academicYearId')

@@ -46,7 +46,7 @@ class StudentFeeService {
 
   async listInvoices(ctx, query = {}) {
     const filter = this.#scope(ctx);
-    if (query.status) filter.status = String(query.status).toUpperCase();
+    if (query.status) filter.status = String(query.status).toUpperCase().slice(0, 20);
     const { page, limit, skip } = sanitizePagination({ page: query.page, limit: query.limit, defaultLimit: 20, maxLimit: 50 });
     const [rows, total] = await Promise.all([
       FeeInvoice.find(filter).sort({ dueDate: -1, createdAt: -1 }).skip(skip).limit(limit).lean(),

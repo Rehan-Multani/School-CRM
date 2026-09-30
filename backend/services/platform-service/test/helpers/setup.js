@@ -159,7 +159,7 @@ async function buildSchool(models, name, slug) {
   });
 
   const studentToken = signAccessToken(
-    { sub: student._id.toString(), userId: student._id.toString(), studentId: student._id.toString(), schoolId: school._id.toString(), role: 'STUDENT', name: 'Sam Student', admissionNumber: student.admissionNumber },
+    { sub: student._id.toString(), userId: student._id.toString(), studentId: student._id.toString(), schoolId: school._id.toString(), role: 'STUDENT', name: 'Sam Student', admissionNumber: student.admissionNumber, tv: student.tokenVersion || 0 },
     { secret: env.jwtSecret, expiresIn: '1h' }
   );
 

@@ -7,16 +7,17 @@
  * still one Express Router, same conventions (static paths before `:param`).
  */
 import { Router } from 'express';
-import { loginRateLimiter } from '../middleware/loginRateLimiter.js';
+import { loginRateLimiter, changePasswordRateLimiter } from '../middleware/loginRateLimiter.js';
 import { validateObjectId } from '../middleware/validateObjectId.js';
 import { requireTeacher } from '../middleware/requireTeacher.js';
-import { uploadTeacherFiles, convertTeacherImages } from '../middleware/uploadTeacherPhoto.js';
+import { uploadTeacherSelfPhoto, convertTeacherImages } from '../middleware/uploadTeacherPhoto.js';
 
 import {
   teacherLogin,
   teacherLogout,
   teacherMe,
   teacherChangePassword,
+  teacherDeleteAccount,
   getTeacherProfile,
   updateTeacherProfile,
   getTeacherDocuments,
@@ -32,6 +33,7 @@ import {
 } from '../controllers/teacher/teacherHome.controller.js';
 import {
   listTeacherClasses,
+  listTeachingSlots,
   getTeacherClass,
   getTeacherClassSections,
   getTeacherSectionStudents,
@@ -121,14 +123,16 @@ router.post('/school-auth/teacher-login', loginRateLimiter, teacherLogin);
 router.post('/school-portal/auth/teacher-login', loginRateLimiter, teacherLogin);
 router.post('/school-portal/teacher/auth/logout', requireTeacher, teacherLogout);
 router.get('/school-portal/teacher/me', requireTeacher, teacherMe);
-router.patch('/school-portal/teacher/change-password', requireTeacher, teacherChangePassword);
+router.patch('/school-portal/teacher/change-password', requireTeacher, changePasswordRateLimiter, teacherChangePassword);
+// Self-service app-account deletion (password-confirmed, same attempt budget).
+router.post('/school-portal/teacher/account/delete', requireTeacher, changePasswordRateLimiter, teacherDeleteAccount);
 
 // ============================ 14 · PROFILE ============================
 router.get('/school-portal/teacher/profile', requireTeacher, getTeacherProfile);
 router.patch(
   '/school-portal/teacher/profile',
   requireTeacher,
-  uploadTeacherFiles,
+  uploadTeacherSelfPhoto,
   convertTeacherImages,
   updateTeacherProfile
 );
@@ -142,6 +146,7 @@ router.get('/school-portal/teacher/today-schedule', requireTeacher, getTeacherTo
 
 // ============================ 03 · CLASSES ============================
 router.get('/school-portal/teacher/classes', requireTeacher, listTeacherClasses);
+router.get('/school-portal/teacher/teaching-slots', requireTeacher, listTeachingSlots);
 router.get('/school-portal/teacher/classes/:classId', requireTeacher, oid('classId'), getTeacherClass);
 router.get('/school-portal/teacher/classes/:classId/sections', requireTeacher, oid('classId'), getTeacherClassSections);
 router.get('/school-portal/teacher/sections/:sectionId/students', requireTeacher, oid('sectionId'), getTeacherSectionStudents);

@@ -12,6 +12,11 @@ const platformNotificationSchema = new mongoose.Schema(
     schoolId: { type: String, default: '', trim: true },
     schoolName: { type: String, default: '', trim: true },
     createdBy: { type: String, default: null },
+    // Deep link for the mobile apps: { type: 'homework'|'attendance'|'leave'|'result'|'notice'|'assignment', id }.
+    link: {
+      type: { type: String, default: '' },
+      id: { type: String, default: '' },
+    },
     delivery: {
       firebaseConfigured: { type: Boolean, default: false },
       attempted: { type: Number, default: 0 },
@@ -25,6 +30,9 @@ const platformNotificationSchema = new mongoose.Schema(
 
 platformNotificationSchema.index({ createdAt: -1 });
 platformNotificationSchema.index({ audiences: 1, createdAt: -1 });
+// APK inboxes filter by school first; without this the {audiences, createdAt}
+// index walks every school's notifications for the role.
+platformNotificationSchema.index({ schoolId: 1, audiences: 1, createdAt: -1 });
 
 platformNotificationSchema.methods.toPublicJSON = function toPublicJSON() {
   return {
@@ -36,6 +44,7 @@ platformNotificationSchema.methods.toPublicJSON = function toPublicJSON() {
     schoolId: this.schoolId || '',
     schoolName: this.schoolName || '',
     createdBy: this.createdBy,
+    link: { type: this.link?.type || '', id: this.link?.id || '' },
     delivery: {
       firebaseConfigured: Boolean(this.delivery?.firebaseConfigured),
       attempted: this.delivery?.attempted || 0,

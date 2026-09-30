@@ -36,6 +36,22 @@ async function driverSelf(schoolId, driver) {
   };
 }
 
+/** `tv` = Driver.tokenVersion at signing time — see requireDriver (revocation). */
+function signDriverToken(driver) {
+  return signAccessToken(
+    {
+      sub: driver._id.toString(),
+      driverId: driver._id.toString(),
+      schoolId: driver.schoolId.toString(),
+      role: 'DRIVER',
+      name: driver.name,
+      mobile: driver.mobile,
+      tv: driver.tokenVersion || 0,
+    },
+    { secret: env.jwtSecret, expiresIn: env.jwtExpiresIn || '7d' }
+  );
+}
+
 class DriverAuthService {
   /**
    * Mobile + password. Every failure path returns the SAME generic 401 so the
@@ -94,17 +110,7 @@ class DriverAuthService {
     const schoolId = driver.schoolId.toString();
     const school = await School.findById(driver.schoolId);
 
-    const token = signAccessToken(
-      {
-        sub: driver._id.toString(),
-        driverId: driver._id.toString(),
-        schoolId,
-        role: 'DRIVER',
-        name: driver.name,
-        mobile: driver.mobile,
-      },
-      { secret: env.jwtSecret, expiresIn: env.jwtExpiresIn || '7d' }
-    );
+    const token = signDriverToken(driver);
 
     Driver.updateOne({ _id: driver._id }, { $set: { lastLoginAt: new Date() } }).catch(() => {});
 
@@ -159,8 +165,8 @@ class DriverAuthService {
 
     driver.passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
     driver.loginEnabled = true;
-    await driver.save();
-    return { changed: true };
+    await driver.save(); // pre-save bumps tokenVersion → other sessions end
+    return { changed: true, token: signDriverToken(driver) };
   }
 }
 

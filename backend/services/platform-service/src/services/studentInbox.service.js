@@ -1,9 +1,8 @@
 import mongoose from 'mongoose';
 import { AppError } from '../../../shared/AppError.js';
 import { sanitizePagination } from '../../../shared/sanitize.js';
-import { PlatformNotification } from '../models/PlatformNotification.js';
 import { ReadReceipt } from '../models/ReadReceipt.js';
-import { School } from '../models/School.js';
+import { schoolSlugOf } from '../utils/schoolSlug.js';
 import { notificationRepository } from '../repositories/notification.repository.js';
 import { notificationLite } from '../serializers/student.serializers.js';
 import { STUDENT_ERR } from '../constants/studentErrorCodes.js';
@@ -11,7 +10,7 @@ import { STUDENT_ERR } from '../constants/studentErrorCodes.js';
 const oid = (v) => new mongoose.Types.ObjectId(String(v));
 
 async function schoolSlugVariants(schoolId) {
-  const school = await School.findById(schoolId).select('schoolId').lean();
+  const school = { schoolId: await schoolSlugOf(schoolId) };
   const slug = school?.schoolId || '';
   return { slug, variants: [slug].filter(Boolean) };
 }
@@ -31,14 +30,18 @@ class StudentInboxService {
 
   async unreadCount(ctx) {
     const { variants } = await schoolSlugVariants(ctx.schoolId);
-    const rows = await notificationRepository.inbox({ role: 'student', schoolIds: variants, userId: ctx.studentId });
+    const rows = await notificationRepository.inboxIds({ role: 'student', schoolIds: variants, userId: ctx.studentId });
     const readSet = await this.#readSet(ctx.studentId, rows.map((r) => String(r._id)));
     return { unread: rows.filter((r) => !readSet.has(String(r._id))).length };
   }
 
   async markRead(ctx, id) {
-    const row = await PlatformNotification.findById(oid(id)).select('_id').lean();
-    if (!row) throw new AppError('Notification not found', 404, STUDENT_ERR.NOT_FOUND);
+    // Only a notification that is actually in THIS student's inbox.
+    const { variants } = await schoolSlugVariants(ctx.schoolId);
+    const rows = await notificationRepository.inboxIds({ role: 'student', schoolIds: variants, userId: ctx.studentId });
+    if (!rows.some((r) => String(r._id) === String(id))) {
+      throw new AppError('Notification not found', 404, STUDENT_ERR.NOT_FOUND);
+    }
     await ReadReceipt.updateOne(
       { userId: String(ctx.studentId), refType: 'NOTIFICATION', refId: String(id) },
       { $setOnInsert: { schoolId: oid(ctx.schoolId), userType: 'STUDENT', readAt: new Date() } },
@@ -49,7 +52,7 @@ class StudentInboxService {
 
   async markAllRead(ctx) {
     const { variants } = await schoolSlugVariants(ctx.schoolId);
-    const rows = await notificationRepository.inbox({ role: 'student', schoolIds: variants, userId: ctx.studentId });
+    const rows = await notificationRepository.inboxIds({ role: 'student', schoolIds: variants, userId: ctx.studentId });
     if (!rows.length) return { marked: 0 };
     const ops = rows.map((r) => ({
       updateOne: {

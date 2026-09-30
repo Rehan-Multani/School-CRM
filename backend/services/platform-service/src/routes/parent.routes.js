@@ -11,7 +11,8 @@
  * Fees / Payments / Receipts / Pickup / Settings open from the Profile tab.
  */
 import { Router } from 'express';
-import { loginRateLimiter } from '../middleware/loginRateLimiter.js';
+import { loginRateLimiter, changePasswordRateLimiter } from '../middleware/loginRateLimiter.js';
+import { parentDeleteAccount } from '../controllers/appAccount.controller.js';
 import { validateObjectId } from '../middleware/validateObjectId.js';
 import { requireParent } from '../middleware/requireParent.js';
 import { withIdempotency } from '../middleware/idempotency.js';
@@ -88,7 +89,8 @@ router.post('/school-portal/auth/parent-login', loginRateLimiter, parentLogin);
 router.post('/school-auth/parent-login', loginRateLimiter, parentLogin);
 router.post(`${P}/auth/logout`, requireParent, parentLogout);
 router.get(`${P}/me`, requireParent, parentMe);
-router.patch(`${P}/change-password`, requireParent, parentChangePassword);
+router.patch(`${P}/change-password`, requireParent, changePasswordRateLimiter, parentChangePassword);
+router.post(`${P}/account/delete`, requireParent, changePasswordRateLimiter, parentDeleteAccount);
 
 // ============================ 02 · PROFILE + SETTINGS ============================
 router.get(`${P}/profile`, requireParent, getParentProfile);

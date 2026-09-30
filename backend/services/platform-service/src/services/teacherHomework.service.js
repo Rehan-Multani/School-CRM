@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { AppError } from '../../../shared/AppError.js';
+import { safeLinkUrl, scalarQuery } from '../../../shared/sanitize.js';
 import { homeworkRepository } from '../repositories/homework.repository.js';
 import { academicRepository } from '../repositories/academic.repository.js';
 import { HomeworkSubmission } from '../models/HomeworkSubmission.js';
@@ -7,6 +8,7 @@ import { StudentEnrollment } from '../models/StudentEnrollment.js';
 import { teacherAccessService } from './teacherAccess.service.js';
 import { homeworkLite } from '../serializers/teacher.serializers.js';
 import { TEACHER_ERR } from '../constants/teacherErrorCodes.js';
+import { pushEvents } from './pushEvents.service.js';
 
 const oid = (v) => new mongoose.Types.ObjectId(String(v));
 const TITLE_MAX = 200;
@@ -27,7 +29,7 @@ function cleanAttachments(v) {
   if (!Array.isArray(v)) throw new AppError('attachments must be an array', 400, TEACHER_ERR.VALIDATION_ERROR);
   if (v.length > ATTACH_MAX) throw new AppError(`At most ${ATTACH_MAX} attachments`, 400, TEACHER_ERR.VALIDATION_ERROR);
   return v
-    .map((a) => ({ name: String(a?.name || '').trim().slice(0, 200), url: String(a?.url || '').trim().slice(0, 1000) }))
+    .map((a) => ({ name: String(a?.name || '').trim().slice(0, 200), url: safeLinkUrl(a?.url) }))
     .filter((a) => a.url);
 }
 
@@ -48,7 +50,7 @@ async function resolveNames(schoolId, { sectionId, subjectId }) {
 class TeacherHomeworkService {
   async list(ctx, query = {}) {
     const { items, total, page, limit } = await homeworkRepository.list(ctx.schoolId, {
-      ...query,
+      ...scalarQuery(query),
       teacherId: ctx.teacherId,
       page: query.page,
       limit: query.limit || 20,
@@ -106,7 +108,9 @@ class TeacherHomeworkService {
       totalStudents,
       createdByName: actorName,
     });
-    return doc.toPublicJSON();
+    const json = doc.toPublicJSON();
+    pushEvents.homeworkAssigned(ctx.schoolId, json).catch(() => {});
+    return json;
   }
 
   async update(ctx, id, payload = {}) {

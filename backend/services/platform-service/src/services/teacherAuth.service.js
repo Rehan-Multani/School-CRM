@@ -33,6 +33,24 @@ function teacherAuthPayload(teacher) {
   };
 }
 
+/** `tv` = Teacher.tokenVersion at signing time — see requireTeacher (revocation). */
+function signTeacherToken(teacher) {
+  const id = teacher._id.toString();
+  return signAccessToken(
+    {
+      sub: id,
+      userId: id,
+      teacherId: id,
+      schoolId: teacher.schoolId ? teacher.schoolId.toString() : '',
+      role: 'TEACHER',
+      name: teacherAuthPayload(teacher).name,
+      email: teacher.email || teacher.account?.loginEmail || '',
+      tv: teacher.tokenVersion || 0,
+    },
+    { secret: env.jwtSecret, expiresIn: env.jwtExpiresIn || '7d' }
+  );
+}
+
 class TeacherAuthService {
   /**
    * @param {{ identifier?: string, email?: string, username?: string, password?: string }} body
@@ -90,18 +108,7 @@ class TeacherAuthService {
     const school = teacher.schoolId ? await School.findById(teacher.schoolId) : null;
     const schoolIdStr = teacher.schoolId ? teacher.schoolId.toString() : '';
 
-    const token = signAccessToken(
-      {
-        sub: teacher._id.toString(),
-        userId: teacher._id.toString(),
-        teacherId: teacher._id.toString(),
-        schoolId: schoolIdStr,
-        role: 'TEACHER',
-        name: teacherAuthPayload(teacher).name,
-        email: teacher.email || teacher.account?.loginEmail || '',
-      },
-      { secret: env.jwtSecret, expiresIn: env.jwtExpiresIn || '7d' }
-    );
+    const token = signTeacherToken(teacher);
 
     Teacher.updateOne({ _id: teacher._id }, { $set: { lastLoginAt: new Date() } }).catch(() => {});
 
@@ -116,6 +123,7 @@ class TeacherAuthService {
         name: school?.name || '',
         academicSession: school?.academic?.session || '',
         ...schoolThemeSnapshot(school),
+        features: { safePickup: Boolean(school?.settings?.safePickupEnabled) },
       },
     };
   }
@@ -137,6 +145,8 @@ class TeacherAuthService {
         name: school?.name || '',
         academicSession: school?.academic?.session || '',
         ...schoolThemeSnapshot(school),
+        // Super Admin–gated feature flags the app uses to show/hide entry points.
+        features: { safePickup: Boolean(school?.settings?.safePickupEnabled) },
       },
     };
   }
@@ -155,10 +165,20 @@ class TeacherAuthService {
     const ok = teacher.passwordHash ? await bcrypt.compare(currentPassword, teacher.passwordHash) : false;
     if (!ok) throw new AppError('Current password is incorrect', 401, TEACHER_ERR.CURRENT_PASSWORD_INVALID);
 
+    if (await bcrypt.compare(String(newPassword), teacher.passwordHash)) {
+      throw new AppError('New password must be different from the current one', 400, TEACHER_ERR.VALIDATION_ERROR);
+    }
+
     teacher.passwordHash = await bcrypt.hash(String(newPassword), BCRYPT_ROUNDS);
     teacher.mustResetPassword = false;
-    await teacher.save();
-    return { message: 'Password updated successfully' };
+    await teacher.save(); // pre-save bumps tokenVersion → every other session is revoked
+    // Hand this device a fresh token so only the OTHER sessions are logged out.
+    return { message: 'Password updated successfully', token: signTeacherToken(teacher) };
+  }
+
+  /** Logout revokes every outstanding token for this teacher (all devices). */
+  async logout(schoolId, teacherId) {
+    await Teacher.updateOne({ _id: teacherId, schoolId }, { $inc: { tokenVersion: 1 } });
   }
 }
 

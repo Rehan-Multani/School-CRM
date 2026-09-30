@@ -1,3 +1,4 @@
+import { deleteAppAccount } from '../../services/appAccount.service.js';
 import { teacherAuthService } from '../../services/teacherAuth.service.js';
 import { schoolId, teacherId } from '../../utils/tenant.js';
 import { auditLogService } from '../../services/auditLog.service.js';
@@ -25,7 +26,7 @@ export async function teacherLogin(req, res, next) {
 
 export async function teacherLogout(req, res, next) {
   try {
-    // Stateless JWT — nothing to revoke server-side; the client discards the token.
+    await teacherAuthService.logout(schoolId(req), teacherId(req));
     auditLogService.record(req, { module: 'AUTH', action: 'LOGOUT', entityType: 'Teacher', entityId: teacherId(req), summary: 'Teacher logged out' });
     res.json({ success: true, message: 'Logged out' });
   } catch (error) {
@@ -46,6 +47,22 @@ export async function teacherChangePassword(req, res, next) {
   try {
     const data = await teacherAuthService.changePassword(schoolId(req), teacherId(req), req.body || {});
     auditLogService.record(req, { module: 'AUTH', action: 'PASSWORD_CHANGE', entityType: 'Teacher', entityId: teacherId(req), summary: 'Teacher changed password' });
+    res.json({ success: true, message: data.message, data: { token: data.token } });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function teacherDeleteAccount(req, res, next) {
+  try {
+    const data = await deleteAppAccount('TEACHER', schoolId(req), teacherId(req), req.body || {});
+    auditLogService.record(req, {
+      module: 'AUTH',
+      action: 'ACCOUNT_DELETE',
+      entityType: 'Teacher',
+      entityId: teacherId(req),
+      summary: 'Teacher deleted their app account',
+    });
     res.json({ success: true, message: data.message });
   } catch (error) {
     next(error);

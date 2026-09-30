@@ -11,6 +11,7 @@ const oid = (v) => new mongoose.Types.ObjectId(String(v));
 // The only fields a student may self-edit — protected academic fields
 // (name, admissionNumber, class, DOB, gender…) are read-only from the APK.
 const EDITABLE = ['phone', 'address'];
+const PHONE_RE = /^\+?[0-9\s-]{7,15}$/;
 
 class StudentProfileService {
   async getProfile(ctx) {
@@ -24,7 +25,16 @@ class StudentProfileService {
     if (!student) throw new AppError('Student profile not found', 404, STUDENT_ERR.STUDENT_NOT_FOUND);
 
     for (const key of EDITABLE) {
-      if (body[key] !== undefined) student[key] = String(body[key]).trim().slice(0, 500);
+      if (body[key] === undefined) continue;
+      if (typeof body[key] !== 'string') {
+        throw new AppError(`${key} must be text`, 400, STUDENT_ERR.VALIDATION_ERROR);
+      }
+      const value = body[key].trim().slice(0, key === 'address' ? 300 : 20);
+      // Empty clears it (most students have no phone of their own).
+      if (key === 'phone' && value && !PHONE_RE.test(value)) {
+        throw new AppError('phone is not a valid phone number', 400, STUDENT_ERR.VALIDATION_ERROR);
+      }
+      student[key] = value;
     }
     if (files.photo) {
       const next = toStudentPhotoPublicPath(files.photo.filename);

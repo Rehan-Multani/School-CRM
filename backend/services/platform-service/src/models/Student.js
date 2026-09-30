@@ -29,6 +29,13 @@ const studentSchema = new mongoose.Schema(
     passwordHash: { type: String, default: '', select: false },
     mustResetPassword: { type: Boolean, default: false },
     lastLoginAt: { type: Date, default: null },
+    // Bumped on password change / reset / logout. Student JWTs carry it as `tv`;
+    // requireStudent rejects a token whose `tv` no longer matches (revocation).
+    tokenVersion: { type: Number, default: 0 },
+    // Set when the user deleted their APP account (login removed). The
+    // school's records about them are retained. Cleared when a new password
+    // is issued.
+    appAccountDeletedAt: { type: Date, default: null },
     // Free-form per-student notification preferences for the APK Settings screen.
     notificationPrefs: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
   },
@@ -42,6 +49,16 @@ studentSchema.index({ schoolId: 1, email: 1 });
 // a cross-school collision — a sparse-unique here has historically crash-looped boot.
 studentSchema.index({ schoolId: 1, 'account.loginEmail': 1 });
 studentSchema.index({ schoolId: 1, 'account.username': 1 });
+
+// Any password write (self change, OTP reset, admin set-password) kills every
+// outstanding student token.
+studentSchema.pre('save', function bumpTokenVersionOnPasswordChange() {
+  if (!this.isNew && this.isModified('passwordHash')) {
+    this.tokenVersion = (this.tokenVersion || 0) + 1;
+    // A fresh password (admin re-issue / reset) re-opens a deleted app account.
+    if (this.passwordHash) this.appAccountDeletedAt = null;
+  }
+});
 
 studentSchema.methods.toPublicJSON = function toPublicJSON() {
   const fullName = [this.firstName, this.lastName].filter(Boolean).join(' ').trim();

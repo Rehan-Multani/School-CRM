@@ -27,9 +27,10 @@ class StudentNoticeService {
 
   async notices(ctx, query = {}) {
     const filter = this.#noticeFilter(ctx);
-    if (query.category) {
-      filter.audiences = { $in: [String(query.category).toUpperCase(), ...STUDENT_AUDIENCES] };
-    }
+    // `category` can only NARROW to one of the student audiences — never widen
+    // the filter to e.g. TEACHERS/PARENTS-only notices.
+    const category = typeof query.category === 'string' ? query.category.toUpperCase() : '';
+    if (STUDENT_AUDIENCES.includes(category)) filter.audiences = { $in: [category] };
     const { page, limit, skip } = sanitizePagination({ page: query.page, limit: query.limit, defaultLimit: 20, maxLimit: 50 });
     const [rows, total] = await Promise.all([
       Announcement.find(filter).sort({ pinned: -1, createdAt: -1 }).skip(skip).limit(limit),
@@ -45,8 +46,8 @@ class StudentNoticeService {
   }
 
   async notice(ctx, id) {
-    const row = await Announcement.findOne({ schoolId: oid(ctx.schoolId), _id: oid(id), status: 'PUBLISHED' });
-    if (!row || !(row.audiences || []).some((a) => STUDENT_AUDIENCES.includes(a))) {
+    const row = await Announcement.findOne({ ...this.#noticeFilter(ctx), _id: oid(id) });
+    if (!row) {
       throw new AppError('Notice not found', 404, STUDENT_ERR.NOT_FOUND);
     }
     const readSet = await this.#readSet(ctx.studentId, 'ANNOUNCEMENT', [String(row._id)]);
@@ -54,8 +55,8 @@ class StudentNoticeService {
   }
 
   async markNoticeRead(ctx, id) {
-    const row = await Announcement.findOne({ schoolId: oid(ctx.schoolId), _id: oid(id) }).select('_id audiences').lean();
-    if (!row || !(row.audiences || []).some((a) => STUDENT_AUDIENCES.includes(a))) {
+    const row = await Announcement.findOne({ ...this.#noticeFilter(ctx), _id: oid(id) }).select('_id').lean();
+    if (!row) {
       throw new AppError('Notice not found', 404, STUDENT_ERR.NOT_FOUND);
     }
     await this.#markRead(ctx, 'ANNOUNCEMENT', id);

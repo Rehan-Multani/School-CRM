@@ -1,5 +1,14 @@
 import { Router } from 'express';
-import { loginRateLimiter, passwordResetRateLimiter } from '../middleware/loginRateLimiter.js';
+import {
+  loginRateLimiter,
+  passwordResetRateLimiter,
+  appPasswordResetRateLimiter,
+} from '../middleware/loginRateLimiter.js';
+import {
+  requestPasswordResetOtp,
+  verifyPasswordResetOtp,
+  resetPasswordWithOtpToken,
+} from '../controllers/passwordReset.controller.js';
 import { requirePlatformUser } from '../middleware/requirePlatformUser.js';
 import { validateObjectId } from '../middleware/validateObjectId.js';
 import teacherApkRoutes from './teacher.routes.js';
@@ -645,6 +654,10 @@ router.get('/school-portal/accountant/settings', requireAccountant, getAccountan
 router.patch('/school-portal/accountant/settings', requireAccountant, updateAccountantSettings);
 router.post('/school-auth/forgot-password', passwordResetRateLimiter, schoolAdminForgotPassword);
 router.post('/school-auth/reset-password', passwordResetRateLimiter, schoolAdminResetPassword);
+// Mobile-app roles (teacher / student / parent / driver): forgot password by SMS OTP.
+router.post('/school-portal/auth/forgot-password', appPasswordResetRateLimiter, requestPasswordResetOtp);
+router.post('/school-portal/auth/verify-reset-otp', appPasswordResetRateLimiter, verifyPasswordResetOtp);
+router.post('/school-portal/auth/reset-password', appPasswordResetRateLimiter, resetPasswordWithOtpToken);
 router.get('/school-portal/dashboard/summary', requirePrincipal, getSchoolAdminDashboardSummary);
 router.get('/school-portal/reports/summary', requirePrincipal, getSchoolReportsSummary);
 router.get('/school-portal/reports/data', requirePrincipal, getCategoryReportData);

@@ -14,7 +14,8 @@
  * pickup / drop status. There is deliberately no other verb here.
  */
 import { Router } from 'express';
-import { loginRateLimiter } from '../middleware/loginRateLimiter.js';
+import { loginRateLimiter, changePasswordRateLimiter } from '../middleware/loginRateLimiter.js';
+import { driverDeleteAccount, driverLogout } from '../controllers/appAccount.controller.js';
 import { validateObjectId } from '../middleware/validateObjectId.js';
 import { requireDriver } from '../middleware/requireDriver.js';
 
@@ -34,7 +35,9 @@ const D = '/school-portal/driver';
 // ============================ 01 · AUTH ============================
 router.post('/school-portal/auth/driver-login', loginRateLimiter, driverLogin);
 router.get(`${D}/me`, requireDriver, driverMe);
-router.patch(`${D}/change-password`, requireDriver, driverChangePassword);
+router.post(`${D}/auth/logout`, requireDriver, driverLogout);
+router.patch(`${D}/change-password`, requireDriver, changePasswordRateLimiter, driverChangePassword);
+router.post(`${D}/account/delete`, requireDriver, changePasswordRateLimiter, driverDeleteAccount);
 
 // ====================== 02 · ROUTE + STUDENTS ======================
 router.get(`${D}/route`, requireDriver, getMyRoute);

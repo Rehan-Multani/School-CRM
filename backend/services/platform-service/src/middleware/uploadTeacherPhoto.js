@@ -52,6 +52,10 @@ export const uploadTeacherFiles = upload.fields([
   { name: 'otherDocuments', maxCount: 2 },
 ]);
 
+// Teacher APK self-service: only a profile photo. PAN/Aadhaar/other documents
+// are admin/HR-managed and would otherwise be written to disk and orphaned.
+export const uploadTeacherSelfPhoto = upload.fields([{ name: 'photo', maxCount: 1 }]);
+
 export async function convertTeacherImages(req, _res, next) {
   try {
     const files = listMulterFiles(req.files);

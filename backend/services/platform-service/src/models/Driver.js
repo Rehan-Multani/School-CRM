@@ -60,9 +60,24 @@ const driverSchema = new mongoose.Schema(
     passwordHash: { type: String, default: '', select: false },
     loginEnabled: { type: Boolean, default: false },
     lastLoginAt: { type: Date, default: null },
+    // Bumped on password change / reset / logout / account delete. Driver JWTs
+    // carry it as `tv`; requireDriver rejects a stale one (revocation).
+    tokenVersion: { type: Number, default: 0 },
+    // Set when the user deleted their APP account (login removed). The
+    // school's records about them are retained. Cleared when a new password
+    // is issued.
+    appAccountDeletedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
+
+driverSchema.pre('save', function bumpTokenVersionOnPasswordChange() {
+  if (!this.isNew && this.isModified('passwordHash')) {
+    this.tokenVersion = (this.tokenVersion || 0) + 1;
+    // A fresh password (admin re-issue / reset) re-opens a deleted app account.
+    if (this.passwordHash) this.appAccountDeletedAt = null;
+  }
+});
 
 // Mobile doubles as the login id, so it must be unique per school.
 driverSchema.index({ schoolId: 1, mobile: 1 }, { unique: true });

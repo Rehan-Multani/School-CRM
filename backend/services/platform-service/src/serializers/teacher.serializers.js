@@ -138,6 +138,7 @@ export function notificationLite(n = {}, isRead = false) {
     body: x.body,
     type: (x.audiences && x.audiences[0]) || x.type || 'GENERAL',
     isRead: Boolean(isRead),
+    link: x.link?.type ? { type: x.link.type, id: x.link.id || '' } : null,
     createdAt: x.createdAt,
   };
 }

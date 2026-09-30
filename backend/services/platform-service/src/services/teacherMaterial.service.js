@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { AppError } from '../../../shared/AppError.js';
+import { scalarQuery } from '../../../shared/sanitize.js';
 import { studyMaterialRepository } from '../repositories/studyMaterial.repository.js';
 import { academicRepository } from '../repositories/academic.repository.js';
 import { teacherAccessService } from './teacherAccess.service.js';
@@ -13,7 +14,7 @@ const oid = (v) => new mongoose.Types.ObjectId(String(v));
 class TeacherMaterialService {
   async list(ctx, query = {}) {
     const { items, total, page, limit } = await studyMaterialRepository.list(ctx.schoolId, {
-      ...query,
+      ...scalarQuery(query),
       teacherId: ctx.teacherId,
     });
     return {

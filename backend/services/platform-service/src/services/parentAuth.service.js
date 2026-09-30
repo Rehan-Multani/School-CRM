@@ -13,6 +13,24 @@ import { PARENT_ERR } from '../constants/parentErrorCodes.js';
 const BCRYPT_ROUNDS = 10;
 const MIN_PASSWORD_LEN = 8;
 
+/** `tv` = Parent.tokenVersion at signing time — see requireParent (revocation). */
+function signParentToken(parent) {
+  const id = parent._id.toString();
+  return signAccessToken(
+    {
+      sub: id,
+      userId: id,
+      parentId: id,
+      schoolId: parent.schoolId ? parent.schoolId.toString() : '',
+      role: 'PARENT',
+      name: [parent.firstName, parent.lastName].filter(Boolean).join(' ').trim(),
+      phone: parent.phone || '',
+      tv: parent.tokenVersion || 0,
+    },
+    { secret: env.jwtSecret, expiresIn: env.jwtExpiresIn || '7d' }
+  );
+}
+
 class ParentAuthService {
   /**
    * identifier = phone | email | account.loginEmail. All failure paths return
@@ -68,18 +86,7 @@ class ParentAuthService {
       parentAccessService.buildContext(schoolIdStr, parent._id.toString()),
     ]);
 
-    const token = signAccessToken(
-      {
-        sub: parent._id.toString(),
-        userId: parent._id.toString(),
-        parentId: parent._id.toString(),
-        schoolId: schoolIdStr,
-        role: 'PARENT',
-        name: [parent.firstName, parent.lastName].filter(Boolean).join(' ').trim(),
-        phone: parent.phone || '',
-      },
-      { secret: env.jwtSecret, expiresIn: env.jwtExpiresIn || '7d' }
-    );
+    const token = signParentToken(parent);
 
     Parent.updateOne({ _id: parent._id }, { $set: { lastLoginAt: new Date() } }).catch(() => {});
 
@@ -133,8 +140,13 @@ class ParentAuthService {
     if (!ok) throw new AppError('Current password is incorrect', 401, PARENT_ERR.CURRENT_PASSWORD_INVALID);
     parent.passwordHash = await bcrypt.hash(String(newPassword), BCRYPT_ROUNDS);
     parent.mustResetPassword = false;
-    await parent.save();
-    return { message: 'Password updated successfully' };
+    await parent.save(); // pre-save bumps tokenVersion → other sessions end
+    return { message: 'Password updated successfully', token: signParentToken(parent) };
+  }
+
+  /** Logout ends every parent session (all devices). */
+  async logout(schoolId, parentId) {
+    await Parent.updateOne({ _id: parentId, schoolId }, { $inc: { tokenVersion: 1 } });
   }
 }
 

@@ -11,6 +11,16 @@ export async function listTeacherClasses(req, res, next) {
   }
 }
 
+export async function listTeachingSlots(req, res, next) {
+  try {
+    const ctx = await teacherAccessService.loadContext(req);
+    const data = await teacherAcademicsService.teachingSlots(ctx);
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function getTeacherClass(req, res, next) {
   try {
     const ctx = await teacherAccessService.loadContext(req);

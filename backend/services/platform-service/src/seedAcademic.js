@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { DEMO_SCHOOL_SLUG } from './constants/demoSchool.js';
 import { School } from './models/School.js';
 import { Teacher } from './models/Teacher.js';
 import { Subject } from './models/Subject.js';
@@ -54,7 +55,7 @@ function schoolLoginDomain(school) {
 }
 
 export async function seedAcademicTeachers() {
-  const schools = await School.find({}).select('_id name schoolId contact.email');
+  const schools = await School.find({ schoolId: { $ne: DEMO_SCHOOL_SLUG } }).select('_id name schoolId contact.email');
   let teachersCreated = 0;
   let subjectsCreated = 0;
 

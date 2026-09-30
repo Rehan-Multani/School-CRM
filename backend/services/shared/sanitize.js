@@ -33,3 +33,32 @@ export function sanitizePagination({ page = 1, limit = 50, maxLimit = 100, defau
     skip,
   };
 }
+
+/**
+ * A user-supplied link (homework attachment, leave document) that other apps
+ * will open. Only absolute http(s) URLs or our own `/uploads/...` paths pass;
+ * anything else (`javascript:`, `data:`, `file:`, `intent:` …) becomes ''.
+ */
+export function safeLinkUrl(value, maxLen = 1000) {
+  const url = String(value || '').trim().slice(0, maxLen);
+  if (/^https?:\/\/[^\s]+$/i.test(url)) return url;
+  if (/^\/uploads\/[^\s]*$/.test(url) && !url.includes('..')) return url;
+  return '';
+}
+
+/**
+ * Query-string hardening for list endpoints: keep only plain string/number
+ * values (drop arrays/objects from `?a=1&a=2` or bracket syntax) and cap
+ * their length, so a crafted query can't reach Mongo as an operator or crash
+ * a `.trim()`. Id-shaped keys must be 24-hex ObjectIds or they are dropped.
+ */
+export function scalarQuery(query = {}, idKeys = ['sectionId', 'classId', 'subjectId']) {
+  const out = {};
+  for (const [k, v] of Object.entries(query || {})) {
+    if (typeof v !== 'string' && typeof v !== 'number') continue;
+    const s = String(v).slice(0, 100);
+    if (idKeys.includes(k) && !/^[a-f0-9]{24}$/i.test(s)) continue;
+    out[k] = s;
+  }
+  return out;
+}

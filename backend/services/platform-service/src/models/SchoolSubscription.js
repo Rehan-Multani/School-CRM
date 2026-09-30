@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { invalidateEntitlementOnWrite } from '../utils/entitlementCache.js';
 
 // Razorpay subscription lifecycle states + two local-only states (EXPIRED for
 // grace-period-exhausted, FAILED as a terminal local marker when Razorpay
@@ -121,5 +122,8 @@ schoolSubscriptionSchema.methods.toPublicJSON = function toPublicJSON(extra = {}
     updatedAt: this.updatedAt,
   };
 };
+
+// The subscription gate caches this collection briefly; any write clears it.
+invalidateEntitlementOnWrite(schoolSubscriptionSchema);
 
 export const SchoolSubscription = mongoose.model('SchoolSubscription', schoolSubscriptionSchema);

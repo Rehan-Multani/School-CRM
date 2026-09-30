@@ -29,7 +29,7 @@ export async function studentLogin(req, res, next) {
 
 export async function studentLogout(req, res, next) {
   try {
-    // Stateless JWT — nothing to revoke server-side; the client discards the token.
+    await studentAuthService.logout(schoolId(req), studentId(req));
     auditLogService.record(req, { module: 'AUTH', action: 'LOGOUT', entityType: 'Student', entityId: studentId(req), summary: 'Student logged out' });
     res.json({ success: true, message: 'Logged out' });
   } catch (error) {
@@ -50,7 +50,7 @@ export async function studentChangePassword(req, res, next) {
   try {
     const data = await studentAuthService.changePassword(schoolId(req), studentId(req), req.body || {});
     auditLogService.record(req, { module: 'AUTH', action: 'PASSWORD_CHANGE', entityType: 'Student', entityId: studentId(req), summary: 'Student changed password' });
-    res.json({ success: true, message: data.message });
+    res.json({ success: true, message: data.message, data: { token: data.token } });
   } catch (error) {
     next(error);
   }

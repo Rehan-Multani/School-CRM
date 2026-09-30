@@ -1,4 +1,5 @@
 import { examRepository } from '../repositories/exam.repository.js';
+import { pushEvents } from './pushEvents.service.js';
 
 class ExamService {
   async getStats(schoolId) {
@@ -83,9 +84,14 @@ class ExamService {
   }
 
   async updateExam(schoolId, id, payload) {
+    const before = await examRepository.findExamById(schoolId, id).catch(() => null);
     const updated = await examRepository.updateExam(schoolId, id, payload);
     if (!updated) throw new Error('Exam not found');
-    return updated.toPublicJSON();
+    const json = updated.toPublicJSON();
+    if (json.status === 'PUBLISHED' && before?.status !== 'PUBLISHED') {
+      pushEvents.resultPublished(schoolId, { ...json, classIds: updated.classIds || json.classIds }).catch(() => {});
+    }
+    return json;
   }
 
   async deleteExam(schoolId, id) {

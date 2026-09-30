@@ -100,6 +100,8 @@ Splash → token? ─ no ─► Login
 Login → POST /school-portal/auth/student-login {identifier, password}
       → save token + school → POST /student/device-tokens {token: fcmToken} → Home
 ```
+**Session revocation (2026-09-30):** the token carries a version claim (`tv`). **Logout** revokes every token of the student (all devices), and so does any password change/reset or deactivation by the school — those requests then get **401** → Login. `PATCH /change-password` returns a fresh token in `data.token`; save it, or this device is logged out too. Change password is rate-limited (10 per 15 min → 429).
+
 The login screen hint should read **"Email / Username / Admission No."**, because students often only know their admission number.
 
 `ACCOUNT_NOT_PROVISIONED` → "Your app login has not been created yet. Please contact the school office."
@@ -184,6 +186,7 @@ BottomNav
 ### 6.8 Leave
 - Types: `CASUAL | MEDICAL | PAID | UNPAID | OTHER`. Form fields: from, to, reason.
 - Edit is allowed only while PENDING (otherwise `LEAVE_NOT_EDITABLE`). Cancel with `POST /leaves/:id/cancel` (otherwise `LEAVE_NOT_CANCELLABLE`).
+- A one-day leave has `startDate == endDate`. Max 366 days per request. A request overlapping another PENDING/APPROVED leave is refused with **409 `LEAVE_OVERLAP`**. `documentUrl` must be an `http(s)` or `/uploads/...` link (anything else is stored as empty).
 
 ### 6.9 Notifications / Notices / Events
 - Bell badge = `/notifications/unread-count`. Refresh it on resume and on each push.
@@ -191,7 +194,7 @@ BottomNav
 - FCM: after login and on token refresh, send `POST /device-tokens {token}` (the token must be ≥ 20 chars).
 
 ### 6.10 Profile
-- The student can edit **only phone and address**, plus the photo (multipart field `photo`, max 5 MB). Everything else is read-only, with the note "Contact the school office to change this".
+- The student can edit **only phone and address**, plus the photo (multipart field `photo`, max 5 MB — any other file field is refused). Phone must match `^\+?[0-9\s-]{7,15}$` or be empty. Everything else is read-only, with the note "Contact the school office to change this".
 
 ---
 
@@ -207,6 +210,7 @@ BottomNav
 | `SUBMISSION_WINDOW_CLOSED` / `HOMEWORK_NOT_SUBMITTABLE` / `ALREADY_SUBMITTED` | Disable the submit button with a reason |
 | `UPLOAD_REJECTED` | "This file type is not allowed" |
 | `LEAVE_NOT_EDITABLE` / `LEAVE_NOT_CANCELLABLE` | Hide the edit/cancel buttons |
+| `LEAVE_OVERLAP` | "You already have a leave on these dates" |
 | `DOCUMENT_PATH_INVALID` | "Document not available" |
 | HTTP 402 | Subscription-expired page |
 

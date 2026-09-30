@@ -5,7 +5,9 @@ import { ExamSubject } from '../models/ExamSubject.js';
 import { ExamSchedule } from '../models/ExamSchedule.js';
 import { ExamMarks } from '../models/ExamMarks.js';
 import { StudentEnrollment } from '../models/StudentEnrollment.js';
+import { Section } from '../models/Section.js';
 import { examRepository } from '../repositories/exam.repository.js';
+import { teacherAcademicsRepository } from '../repositories/teacherAcademics.repository.js';
 import { teacherAccessService } from './teacherAccess.service.js';
 import { examLite } from '../serializers/teacher.serializers.js';
 import { TEACHER_ERR } from '../constants/teacherErrorCodes.js';
@@ -20,6 +22,30 @@ function assertExamOpen(exam) {
   }
 }
 
+/**
+ * classId/sectionId/subjectId arrive from the client — they must describe ONE
+ * real slot: the class is part of this exam and the section belongs to that
+ * class (otherwise marks could be filed under the wrong class).
+ */
+async function assertSlot(ctx, exam, { classId, sectionId, subjectId }) {
+  if (!classId || !sectionId || !subjectId) {
+    throw new AppError('classId, sectionId and subjectId are required', 400, TEACHER_ERR.VALIDATION_ERROR);
+  }
+  for (const v of [classId, sectionId, subjectId]) {
+    if (!mongoose.isValidObjectId(String(v))) throw new AppError('Invalid id', 400, TEACHER_ERR.VALIDATION_ERROR);
+  }
+  teacherAccessService.assertClass(ctx, classId);
+  teacherAccessService.assertSection(ctx, sectionId);
+  teacherAccessService.assertSubjectInSection(ctx, String(sectionId), String(subjectId));
+  if (!(exam.classIds || []).some((c) => String(c) === String(classId))) {
+    throw new AppError('This class is not part of the exam', 400, TEACHER_ERR.VALIDATION_ERROR);
+  }
+  const section = await Section.findOne({ schoolId: oid(ctx.schoolId), _id: oid(sectionId) }).select('classId').lean();
+  if (!section || String(section.classId) !== String(classId)) {
+    throw new AppError('Section does not belong to this class', 400, TEACHER_ERR.VALIDATION_ERROR);
+  }
+}
+
 class TeacherExamService {
   /** Exams whose classIds intersect the teacher's classes. */
   async list(ctx, query = {}) {
@@ -27,7 +53,7 @@ class TeacherExamService {
     if (!classIds.length) return { data: [] };
     const filter = { schoolId: oid(ctx.schoolId), classIds: { $in: classIds } };
     if (ctx.currentYearId) filter.academicYearId = oid(ctx.currentYearId);
-    if (query.status) filter.status = String(query.status).toUpperCase();
+    if (query.status) filter.status = String(query.status).toUpperCase().slice(0, 20);
     const exams = await Exam.find(filter).sort({ startDate: -1 }).limit(50).lean();
     return { data: exams.map(examLite) };
   }
@@ -60,18 +86,27 @@ class TeacherExamService {
     await this.#loadExam(ctx, examId);
     const rows = await ExamSubject.find({ schoolId: oid(ctx.schoolId), examId: oid(examId) }).lean();
     const mine = rows.filter((r) => r.classId && r.subjectId && ctx.classSubjectPairs.has(`${r.classId}:${r.subjectId}`));
-    return mine.map((r) => new ExamSubject(r).toPublicJSON());
+    // For each subject, the sections of that class where THIS teacher teaches
+    // it — exactly the (section, subject) pairs saveMarks will accept.
+    const sections = await teacherAcademicsRepository.sectionsByIds(ctx.schoolId, [...ctx.sectionIds]);
+    return mine.map((r) => ({
+      ...new ExamSubject(r).toPublicJSON(),
+      className: sections.find((s) => String(s.classId) === String(r.classId))?.className || '',
+      sections: sections
+        .filter(
+          (s) =>
+            String(s.classId) === String(r.classId) && ctx.sectionSubjectPairs.has(`${s._id}:${r.subjectId}`)
+        )
+        .map((s) => ({ id: String(s._id), name: s.name || '' })),
+    }));
   }
 
   async marksSheet(ctx, examId, query = {}) {
-    await this.#loadExam(ctx, examId);
+    const exam = await this.#loadExam(ctx, examId);
     const { classId, sectionId, subjectId } = query;
-    if (!classId || !sectionId || !subjectId) {
-      throw new AppError('classId, sectionId and subjectId are required', 400, TEACHER_ERR.VALIDATION_ERROR);
-    }
-    teacherAccessService.assertSection(ctx, sectionId);
-    teacherAccessService.assertSubjectInSection(ctx, sectionId, subjectId);
-    return examRepository.listMarksSheet(ctx.schoolId, examId, { classId, sectionId, subjectId });
+    await assertSlot(ctx, exam, { classId, sectionId, subjectId });
+    const sheet = await examRepository.listMarksSheet(ctx.schoolId, examId, { classId, sectionId, subjectId });
+    return { ...sheet, examStatus: exam.status, locked: LOCKED_EXAM_STATUS.has(exam.status) };
   }
 
   async saveMarks(ctx, examId, payload = {}) {
@@ -79,12 +114,7 @@ class TeacherExamService {
     assertExamOpen(exam);
 
     const { classId, sectionId, subjectId } = payload;
-    if (!classId || !sectionId || !subjectId) {
-      throw new AppError('classId, sectionId and subjectId are required', 400, TEACHER_ERR.VALIDATION_ERROR);
-    }
-    teacherAccessService.assertClass(ctx, classId);
-    teacherAccessService.assertSection(ctx, sectionId);
-    teacherAccessService.assertSubjectInSection(ctx, sectionId, subjectId);
+    await assertSlot(ctx, exam, { classId, sectionId, subjectId });
 
     const marksList = Array.isArray(payload.marksList) ? payload.marksList : [];
     if (!marksList.length) throw new AppError('marksList[] is required', 400, TEACHER_ERR.VALIDATION_ERROR);

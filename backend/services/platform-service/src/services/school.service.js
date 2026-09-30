@@ -589,14 +589,20 @@ export class SchoolService {
   // Accepts a school slug, code, or Mongo _id.
   async getPublicTheme(idOrSlug) {
     const raw = String(idOrSlug || '').trim();
+    // Public + polled by every signed-in app: read only what the snapshot uses.
+    const find = (id) =>
+      schoolRepository
+        .findById(id)
+        ?.select('schoolId name logo settings.theme settings.primaryColor settings.portalBranding')
+        .lean();
     // `schoolId` is stored lowercase and `code` uppercase; try the value as
     // given, then normalized, so a caller's casing never misses.
-    let school = await schoolRepository.findById(raw);
+    let school = await find(raw);
     if (!school && raw && raw.toLowerCase() !== raw) {
-      school = await schoolRepository.findById(raw.toLowerCase());
+      school = await find(raw.toLowerCase());
     }
     if (!school && raw && raw.toUpperCase() !== raw) {
-      school = await schoolRepository.findById(raw.toUpperCase());
+      school = await find(raw.toUpperCase());
     }
     if (!school) {
       throw new AppError('School not found', 404);

@@ -26,35 +26,25 @@ const oid = (v) => new mongoose.Types.ObjectId(String(v));
 class StudentAccessService {
   async buildContext(schoolId, studentId) {
     const school = oid(schoolId);
-    const student = await Student.findOne({ _id: studentId, schoolId: school }).lean();
+    // One round-trip for the three independent reads. A student has only a
+    // handful of ACTIVE enrollments, so all are read and the right one is
+    // picked here: the current-year row, else the most recent (as before).
+    const [student, currentYear, activeEnrollments] = await Promise.all([
+      Student.findOne({ _id: studentId, schoolId: school }).lean(),
+      AcademicYear.findOne({ schoolId: school, isCurrent: true }).select('_id name').lean(),
+      StudentEnrollment.find({ schoolId: school, studentId: oid(studentId), status: 'ACTIVE' })
+        .sort({ enrollmentDate: -1, createdAt: -1 })
+        .lean(),
+    ]);
     if (!student) throw new AppError('Student not found', 404, STUDENT_ERR.STUDENT_NOT_FOUND);
     if (student.status && student.status !== 'ACTIVE') {
       throw new AppError('This student account is not active', 403, STUDENT_ERR.STUDENT_INACTIVE);
     }
 
-    const currentYear = await AcademicYear.findOne({ schoolId: school, isCurrent: true })
-      .select('_id name')
-      .lean();
-
-    let enrollment = null;
-    if (currentYear) {
-      enrollment = await StudentEnrollment.findOne({
-        schoolId: school,
-        studentId: oid(studentId),
-        academicYearId: currentYear._id,
-        status: 'ACTIVE',
-      }).lean();
-    }
-    // Fall back to the most recent active enrollment if no current-year one exists.
-    if (!enrollment) {
-      enrollment = await StudentEnrollment.findOne({
-        schoolId: school,
-        studentId: oid(studentId),
-        status: 'ACTIVE',
-      })
-        .sort({ enrollmentDate: -1, createdAt: -1 })
-        .lean();
-    }
+    const enrollment =
+      (currentYear && activeEnrollments.find((en) => String(en.academicYearId) === String(currentYear._id))) ||
+      activeEnrollments[0] ||
+      null;
 
     let className = '';
     let sectionName = '';

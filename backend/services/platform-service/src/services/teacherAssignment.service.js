@@ -1,11 +1,13 @@
 import mongoose from 'mongoose';
 import { AppError } from '../../../shared/AppError.js';
+import { safeLinkUrl, scalarQuery } from '../../../shared/sanitize.js';
 import { assignmentRepository } from '../repositories/assignment.repository.js';
 import { academicRepository } from '../repositories/academic.repository.js';
 import { StudentEnrollment } from '../models/StudentEnrollment.js';
 import { teacherAccessService } from './teacherAccess.service.js';
 import { assignmentLite } from '../serializers/teacher.serializers.js';
 import { TEACHER_ERR } from '../constants/teacherErrorCodes.js';
+import { pushEvents } from './pushEvents.service.js';
 
 const oid = (v) => new mongoose.Types.ObjectId(String(v));
 const TITLE_MAX = 200;
@@ -43,7 +45,7 @@ async function resolveNames(schoolId, { sectionId, subjectId }) {
 
 class TeacherAssignmentService {
   async list(ctx, query = {}) {
-    const { items, total, page, limit } = await assignmentRepository.list(ctx.schoolId, { ...query, teacherId: ctx.teacherId });
+    const { items, total, page, limit } = await assignmentRepository.list(ctx.schoolId, { ...scalarQuery(query), teacherId: ctx.teacherId });
     return {
       data: items.map((d) => assignmentLite(d.toPublicJSON())),
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) || 1 },
@@ -92,12 +94,14 @@ class TeacherAssignmentService {
       assignedDate,
       dueDate,
       attachments: Array.isArray(payload.attachments)
-        ? payload.attachments.map((a) => ({ name: String(a?.name || '').slice(0, 200), url: String(a?.url || '').slice(0, 1000) })).filter((a) => a.url).slice(0, 10)
+        ? payload.attachments.map((a) => ({ name: String(a?.name || '').slice(0, 200), url: safeLinkUrl(a?.url) })).filter((a) => a.url).slice(0, 10)
         : [],
       status,
       createdByName: actorName,
     });
-    return doc.toPublicJSON();
+    const json = doc.toPublicJSON();
+    if (status === 'PUBLISHED') pushEvents.assignmentPublished(ctx.schoolId, json).catch(() => {});
+    return json;
   }
 
   async update(ctx, id, payload = {}) {
@@ -127,7 +131,7 @@ class TeacherAssignmentService {
     if (payload.attachments !== undefined) {
       if (!Array.isArray(payload.attachments)) throw new AppError('attachments must be an array', 400, TEACHER_ERR.VALIDATION_ERROR);
       patch.attachments = payload.attachments
-        .map((a) => ({ name: String(a?.name || '').slice(0, 200), url: String(a?.url || '').slice(0, 1000) }))
+        .map((a) => ({ name: String(a?.name || '').slice(0, 200), url: safeLinkUrl(a?.url) }))
         .filter((a) => a.url)
         .slice(0, 10);
     }
@@ -149,7 +153,12 @@ class TeacherAssignmentService {
     }
 
     const doc = await assignmentRepository.update(ctx.schoolId, id, patch);
-    return doc.toPublicJSON();
+    const json = doc.toPublicJSON();
+    // DRAFT → PUBLISHED is when students first see it.
+    if (patch.status === 'PUBLISHED' && existing.status !== 'PUBLISHED') {
+      pushEvents.assignmentPublished(ctx.schoolId, json).catch(() => {});
+    }
+    return json;
   }
 
   async remove(ctx, id) {

@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { AppError } from '../../../shared/AppError.js';
-import { sanitizePagination } from '../../../shared/sanitize.js';
+import { sanitizePagination, safeLinkUrl } from '../../../shared/sanitize.js';
 import { LeaveRequest } from '../models/LeaveRequest.js';
 import { Teacher } from '../models/Teacher.js';
 import { leaveLite } from '../serializers/teacher.serializers.js';
@@ -9,6 +9,7 @@ import { TEACHER_ERR } from '../constants/teacherErrorCodes.js';
 const oid = (v) => new mongoose.Types.ObjectId(String(v));
 const LEAVE_TYPES = ['CASUAL', 'MEDICAL', 'PAID', 'UNPAID', 'MATERNITY', 'PATERNITY', 'OTHER'];
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const MAX_LEAVE_DAYS = 366;
 
 function dayCount(start, end) {
   const s = new Date(`${start}T00:00:00Z`);
@@ -32,6 +33,19 @@ class TeacherLeaveService {
     if (!reason) throw new AppError('reason is required', 400, TEACHER_ERR.VALIDATION_ERROR);
 
     const totalDays = dayCount(startDate, endDate);
+    if (!Number.isFinite(totalDays) || totalDays > MAX_LEAVE_DAYS) {
+      throw new AppError(`A single leave request can cover at most ${MAX_LEAVE_DAYS} days`, 400, TEACHER_ERR.VALIDATION_ERROR);
+    }
+    const overlap = await LeaveRequest.exists({
+      schoolId: oid(ctx.schoolId),
+      employeeRefId: oid(ctx.teacherId),
+      status: { $in: ['PENDING', 'APPROVED'] },
+      startDate: { $lte: endDate },
+      endDate: { $gte: startDate },
+    });
+    if (overlap) {
+      throw new AppError('You already have a pending or approved leave for these dates', 409, TEACHER_ERR.LEAVE_OVERLAP);
+    }
     const teacher = await Teacher.findOne({ _id: oid(ctx.teacherId), schoolId: oid(ctx.schoolId) }).lean();
     if (!teacher) throw new AppError('Teacher not found', 404, TEACHER_ERR.TEACHER_NOT_FOUND);
 
@@ -48,14 +62,14 @@ class TeacherLeaveService {
       totalDays,
       reason: reason.slice(0, 1000),
       status: 'PENDING',
-      documentUrl: String(payload.documentUrl || '').trim(),
+      documentUrl: safeLinkUrl(payload.documentUrl),
     });
     return leaveLite(leave.toPublicJSON());
   }
 
   async list(ctx, query = {}) {
     const filter = { schoolId: oid(ctx.schoolId), employeeRefId: oid(ctx.teacherId), employeeType: 'TEACHER' };
-    if (query.status) filter.status = String(query.status).toUpperCase();
+    if (query.status) filter.status = String(query.status).toUpperCase().slice(0, 20);
     const { page, limit, skip } = sanitizePagination({ page: query.page, limit: query.limit, defaultLimit: 20, maxLimit: 50 });
     const [rows, total] = await Promise.all([
       LeaveRequest.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),

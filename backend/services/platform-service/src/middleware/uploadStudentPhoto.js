@@ -51,6 +51,10 @@ export const uploadStudentFiles = upload.fields([
   { name: 'marksheetDocuments', maxCount: 2 },
 ]);
 
+// Student APK self-service: only a profile photo. Aadhaar/marksheet documents
+// are admin-managed and would otherwise be written to disk and orphaned.
+export const uploadStudentSelfPhoto = upload.fields([{ name: 'photo', maxCount: 1 }]);
+
 export async function convertStudentImages(req, _res, next) {
   try {
     const files = listMulterFiles(req.files);

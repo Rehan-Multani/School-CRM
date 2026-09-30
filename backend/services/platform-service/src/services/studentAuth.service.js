@@ -13,6 +13,24 @@ import { STUDENT_ERR } from '../constants/studentErrorCodes.js';
 const BCRYPT_ROUNDS = 10; // matches teacher/principal/HR login provisioning
 const MIN_PASSWORD_LEN = 8;
 
+/** `tv` = Student.tokenVersion at signing time — see requireStudent (revocation). */
+function signStudentToken(student) {
+  const id = student._id.toString();
+  return signAccessToken(
+    {
+      sub: id,
+      userId: id,
+      studentId: id,
+      schoolId: student.schoolId ? student.schoolId.toString() : '',
+      role: 'STUDENT',
+      name: [student.firstName, student.lastName].filter(Boolean).join(' ').trim(),
+      admissionNumber: student.admissionNumber || '',
+      tv: student.tokenVersion || 0,
+    },
+    { secret: env.jwtSecret, expiresIn: env.jwtExpiresIn || '7d' }
+  );
+}
+
 class StudentAuthService {
   /**
    * @param {{ identifier?: string, email?: string, username?: string, admissionNumber?: string, password?: string }} body
@@ -77,18 +95,7 @@ class StudentAuthService {
     const school = student.schoolId ? await School.findById(student.schoolId) : null;
     const ctx = await studentAccessService.buildContext(schoolIdStr, student._id.toString());
 
-    const token = signAccessToken(
-      {
-        sub: student._id.toString(),
-        userId: student._id.toString(),
-        studentId: student._id.toString(),
-        schoolId: schoolIdStr,
-        role: 'STUDENT',
-        name: [student.firstName, student.lastName].filter(Boolean).join(' ').trim(),
-        admissionNumber: student.admissionNumber || '',
-      },
-      { secret: env.jwtSecret, expiresIn: env.jwtExpiresIn || '7d' }
-    );
+    const token = signStudentToken(student);
 
     Student.updateOne({ _id: student._id }, { $set: { lastLoginAt: new Date() } }).catch(() => {});
 
@@ -141,10 +148,20 @@ class StudentAuthService {
     const ok = student.passwordHash ? await bcrypt.compare(currentPassword, student.passwordHash) : false;
     if (!ok) throw new AppError('Current password is incorrect', 401, STUDENT_ERR.CURRENT_PASSWORD_INVALID);
 
+    if (await bcrypt.compare(String(newPassword), student.passwordHash)) {
+      throw new AppError('New password must be different from the current one', 400, STUDENT_ERR.VALIDATION_ERROR);
+    }
+
     student.passwordHash = await bcrypt.hash(String(newPassword), BCRYPT_ROUNDS);
     student.mustResetPassword = false;
-    await student.save();
-    return { message: 'Password updated successfully' };
+    await student.save(); // pre-save bumps tokenVersion → every other session is revoked
+    // Hand this device a fresh token so only the OTHER sessions are logged out.
+    return { message: 'Password updated successfully', token: signStudentToken(student) };
+  }
+
+  /** Logout revokes every outstanding token for this student (all devices). */
+  async logout(schoolId, studentId) {
+    await Student.updateOne({ _id: studentId, schoolId }, { $inc: { tokenVersion: 1 } });
   }
 }
 

@@ -26,6 +26,42 @@ class TeacherAcademicsService {
     });
   }
 
+  /**
+   * Every (class, section, subject) this teacher teaches — the only combos the
+   * homework / assignment / material / marks endpoints accept. Drives the
+   * app's Section + Subject pickers so the user can't pick a forbidden pair.
+   */
+  async teachingSlots(ctx) {
+    const pairs = [...ctx.sectionSubjectPairs].map((p) => {
+      const [sectionId, subjectId] = p.split(':');
+      return { sectionId, subjectId };
+    });
+    if (!pairs.length) return [];
+    const [sections, subjects] = await Promise.all([
+      teacherAcademicsRepository.sectionsByIds(ctx.schoolId, [...new Set(pairs.map((p) => p.sectionId))]),
+      teacherAcademicsRepository.subjectsByIds(ctx.schoolId, [...new Set(pairs.map((p) => p.subjectId))]),
+    ]);
+    const secMap = new Map(sections.map((s) => [String(s._id), s]));
+    const subMap = new Map(subjects.map((s) => [String(s._id), s]));
+    return pairs
+      .filter((p) => secMap.has(p.sectionId) && subMap.has(p.subjectId))
+      .map((p) => {
+        const sec = secMap.get(p.sectionId);
+        return {
+          classId: sec.classId ? String(sec.classId) : null,
+          className: sec.className || '',
+          sectionId: p.sectionId,
+          sectionName: sec.name || '',
+          subjectId: p.subjectId,
+          subjectName: subMap.get(p.subjectId).name || '',
+          isClassTeacher: teacherAccessService.isClassTeacherOf(ctx, p.sectionId),
+        };
+      })
+      .sort((a, b) =>
+        `${a.className} ${a.sectionName} ${a.subjectName}`.localeCompare(`${b.className} ${b.sectionName} ${b.subjectName}`)
+      );
+  }
+
   async classDetail(ctx, classId) {
     teacherAccessService.assertClass(ctx, classId);
     const [classes, sections, counts] = await Promise.all([

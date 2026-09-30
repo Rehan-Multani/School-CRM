@@ -4,6 +4,7 @@ import { StudentEnrollment } from '../models/StudentEnrollment.js';
 import { Homework } from '../models/Homework.js';
 import { Exam } from '../models/Exam.js';
 import { ExamMarks } from '../models/ExamMarks.js';
+import { ExamSubject } from '../models/ExamSubject.js';
 import { periodLite } from '../serializers/teacher.serializers.js';
 import { todayDayCode } from './teacherTimetable.service.js';
 
@@ -28,7 +29,7 @@ class TeacherDashboardService {
     const sectionIds = oids(ctx.sectionIds);
     const classIds = oids(ctx.classIds);
 
-    const [classesToday, studentCount, pendingHomework, week] = await Promise.all([
+    const [classesToday, studentCount, pendingHomework, week, pendingMarks] = await Promise.all([
       dayCode
         ? TimetableEntry.countDocuments({ schoolId: school, teacherId: teacher, dayOfWeek: dayCode, status: 'ACTIVE' })
         : 0,
@@ -37,14 +38,9 @@ class TeacherDashboardService {
       TimetableEntry.find({ schoolId: school, teacherId: teacher, status: 'ACTIVE' })
         .sort({ dayOfWeek: 1, periodNumber: 1 })
         .lean(),
+      // A stat tile must never fail the whole dashboard.
+      this.#pendingMarks(school, ctx).catch(() => 0),
     ]);
-
-    let pendingMarks = 0;
-    try {
-      pendingMarks = await this.#pendingMarks(school, ctx);
-    } catch {
-      pendingMarks = 0;
-    }
 
     // nextClass: next period today after now, else first period of the next school day.
     let nextClass = null;
@@ -89,7 +85,12 @@ class TeacherDashboardService {
     return { day: dayCode, periods: rows.map(periodLite) };
   }
 
-  /** (exam × section × subject) tuples the teacher owns that have no marks entered yet. */
+  /**
+   * (exam × section × subject) slots this teacher must enter marks for that
+   * have no marks yet. A slot is what the marks screen offers: an ExamSubject
+   * (class + subject) the teacher teaches, in each section of that class where
+   * they teach it. Three queries total, however many exams/sections exist.
+   */
   async #pendingMarks(school, ctx) {
     if (!ctx.currentYearId || !ctx.sectionSubjectPairs.size) return 0;
     const exams = await Exam.find({
@@ -98,25 +99,27 @@ class TeacherDashboardService {
       status: { $in: ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED'] },
       classIds: { $in: oids(ctx.classIds) },
     })
-      .select('_id classIds')
+      .select('_id')
       .lean();
     if (!exams.length) return 0;
+    const examIds = exams.map((e) => e._id);
 
-    const pairs = [...ctx.sectionSubjectPairs].map((p) => {
-      const [sectionId, subjectId] = p.split(':');
-      return { sectionId, subjectId };
-    });
+    const [examSubjects, marked] = await Promise.all([
+      ExamSubject.find({ schoolId: school, examId: { $in: examIds } }).select('examId classId subjectId').lean(),
+      ExamMarks.aggregate([
+        { $match: { schoolId: school, examId: { $in: examIds }, sectionId: { $in: oids(ctx.sectionIds) } } },
+        { $group: { _id: { examId: '$examId', sectionId: '$sectionId', subjectId: '$subjectId' } } },
+      ]),
+    ]);
+    const done = new Set(marked.map(({ _id: k }) => `${k.examId}:${k.sectionId}:${k.subjectId}`));
 
     let pending = 0;
-    for (const exam of exams) {
-      for (const { sectionId, subjectId } of pairs) {
-        const has = await ExamMarks.exists({
-          schoolId: school,
-          examId: exam._id,
-          sectionId: oid(sectionId),
-          subjectId: oid(subjectId),
-        });
-        if (!has) pending += 1;
+    for (const es of examSubjects) {
+      if (!ctx.classSubjectPairs.has(`${es.classId}:${es.subjectId}`)) continue;
+      for (const pair of ctx.sectionSubjectPairs) {
+        const [sectionId, subjectId] = pair.split(':');
+        if (subjectId !== String(es.subjectId) || ctx.sectionClassIds.get(sectionId) !== String(es.classId)) continue;
+        if (!done.has(`${es.examId}:${sectionId}:${subjectId}`)) pending += 1;
       }
     }
     return pending;
