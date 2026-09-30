@@ -93,10 +93,14 @@ class TeacherDashboardService {
    */
   async #pendingMarks(school, ctx) {
     if (!ctx.currentYearId || !ctx.sectionSubjectPairs.size) return 0;
+    // Only exams the marks screen still accepts (teacherExam LOCKED_EXAM_STATUS
+    // rejects COMPLETED/PUBLISHED) and that have started — a future exam has
+    // no marks to enter yet.
     const exams = await Exam.find({
       schoolId: school,
       academicYearId: oid(ctx.currentYearId),
-      status: { $in: ['SCHEDULED', 'IN_PROGRESS', 'COMPLETED'] },
+      status: { $in: ['SCHEDULED', 'IN_PROGRESS'] },
+      startDate: { $lte: new Date() },
       classIds: { $in: oids(ctx.classIds) },
     })
       .select('_id')

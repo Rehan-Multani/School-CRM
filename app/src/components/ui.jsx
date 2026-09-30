@@ -1,4 +1,4 @@
-import { forwardRef, useState } from 'react';
+import { forwardRef, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStyles, useTheme } from '../context/ThemeContext';
@@ -20,6 +20,21 @@ export function Button({
   const theme = useTheme();
   const styles = useStyles(makeStyles);
   const off = disabled || loading;
+  // `loading` only disables the button after the next render, so two taps in
+  // the same frame could both submit. While an async onPress is running,
+  // further taps are ignored synchronously.
+  const inFlight = useRef(false);
+  const handlePress = (e) => {
+    if (inFlight.current || !onPress) return;
+    const out = onPress(e);
+    if (out && typeof out.then === 'function') {
+      inFlight.current = true;
+      const release = () => {
+        inFlight.current = false;
+      };
+      out.then(release, release);
+    }
+  };
 
   let btnStyle = styles.btnPrimary;
   let fg = theme.onPrimary;
@@ -40,9 +55,10 @@ export function Button({
 
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       disabled={off}
       accessibilityRole="button"
+      accessibilityState={{ disabled: Boolean(off), busy: Boolean(loading) }}
       style={({ pressed }) => [
         styles.btn,
         btnStyle,
