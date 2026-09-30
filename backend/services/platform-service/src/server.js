@@ -1,5 +1,6 @@
 import app from './app.js';
 import { connectDB } from '../../shared/connectDB.js';
+import { enableGracefulShutdown } from '../../shared/gracefulShutdown.js';
 import { env } from './config/env.js';
 import { seedSubscriptionPlans, clearUnselectedSchoolPlans } from './seedPlans.js';
 import { seedSchools } from './seedSchools.js';
@@ -66,9 +67,16 @@ async function start() {
     console.log(`Platform service running on http://127.0.0.1:${env.port}`);
     logIntegrationStatus();
   });
+  server.on('error', (error) => {
+    console.error('[platform-service] Could not listen on port ' + env.port + ':', error.message);
+    process.exit(1);
+  });
+  enableGracefulShutdown(server, 'platform-service');
 
-  // Run seeding asynchronously in the background so HTTP port is available immediately
-  runSeeds();
+  // Run seeding asynchronously in the background so HTTP port is available immediately.
+  // The dev supervisor sets SKIP_BOOT_SEEDS on file-change reloads: the seeders
+  // are idempotent and already ran on the first start.
+  if (process.env.SKIP_BOOT_SEEDS !== '1') runSeeds();
 
   startSubscriptionCronJobs();
 
@@ -87,9 +95,10 @@ process.on('unhandledRejection', (error) => {
   }
 });
 
+// Always exit: after an uncaught exception the process state is undefined, and
+// a process that is alive but no longer serving is worse than a quick restart
+// (the backend supervisor / hosting platform restarts it).
 process.on('uncaughtException', (error) => {
   console.error('[platform-service] Uncaught exception:', error?.stack || error);
-  if (env.nodeEnv === 'production') {
-    process.exit(1);
-  }
+  process.exit(1);
 });
