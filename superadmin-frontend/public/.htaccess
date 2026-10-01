@@ -2,10 +2,6 @@
   RewriteEngine On
   RewriteBase /
 
-  # Do NOT rewrite backend API requests (/api and /api/*)
-  RewriteCond %{REQUEST_URI} ^/api [NC]
-  RewriteRule ^ - [L]
-
   # Serve existing files and directories directly
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d

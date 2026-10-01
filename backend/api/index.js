@@ -31,6 +31,8 @@ app.use(cors({
     if (
       origin.startsWith('http://localhost:') || 
       origin.endsWith('.vercel.app') || 
+      origin.endsWith('.schoolsarthiapp.com') ||
+      origin === 'https://schoolsarthiapp.com' ||
       allowedOrigins.includes(origin)
     ) {
       return callback(null, true);
