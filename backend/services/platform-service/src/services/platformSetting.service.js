@@ -13,6 +13,34 @@ const URL_FIELDS = {
 };
 const MAX_URL = 2048;
 
+const VERSION_FIELDS = {
+  appLatestVersion: 'Latest version',
+  appMinVersion: 'Minimum version',
+};
+const MAX_UPDATE_MESSAGE = 300;
+
+// '1', '1.2', '1.2.3' — the same shape as `version` in the app's app.json.
+function normalizeVersion(value, label) {
+  if (value === undefined || value === null) return undefined;
+  const version = String(value).trim();
+  if (!version) return '';
+  if (!/^\d{1,4}(\.\d{1,4}){0,3}$/.test(version)) {
+    throw new AppError(`${label} must look like 1.2.0`, 400);
+  }
+  return version;
+}
+
+/** -1 / 0 / 1 for dotted versions; a missing part counts as 0 (1.2 == 1.2.0). */
+export function compareVersions(a, b) {
+  const pa = String(a || '').split('.').map(Number);
+  const pb = String(b || '').split('.').map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i += 1) {
+    const diff = (pa[i] || 0) - (pb[i] || 0);
+    if (diff) return diff < 0 ? -1 : 1;
+  }
+  return 0;
+}
+
 // undefined  -> field not supplied, leave unchanged
 // ''         -> explicit clear
 // 'https://…'-> validated value
@@ -47,6 +75,32 @@ export class PlatformSettingService {
       if (next !== undefined) {
         update[field] = next;
       }
+    }
+
+    for (const [field, label] of Object.entries(VERSION_FIELDS)) {
+      const next = normalizeVersion(patch?.[field], label);
+      if (next !== undefined) {
+        update[field] = next;
+      }
+    }
+    if (patch?.appUpdateMessage !== undefined && patch.appUpdateMessage !== null) {
+      const message = String(patch.appUpdateMessage).trim();
+      if (message.length > MAX_UPDATE_MESSAGE) {
+        throw new AppError(`Update message must be ${MAX_UPDATE_MESSAGE} characters or fewer`, 400);
+      }
+      update.appUpdateMessage = message;
+    }
+
+    // Forcing an update to a version newer than the one on offer would lock
+    // every user out with nothing to install.
+    const current = await platformSettingRepository.findPlatformSetting();
+    const latest = update.appLatestVersion ?? current?.appLatestVersion ?? '';
+    const min = update.appMinVersion ?? current?.appMinVersion ?? '';
+    if (min && !latest) {
+      throw new AppError('Set the latest version before setting a minimum version', 400);
+    }
+    if (min && compareVersions(min, latest) > 0) {
+      throw new AppError('Minimum version cannot be higher than the latest version', 400);
     }
 
     const document = await platformSettingRepository.upsertPlatformSetting(update);

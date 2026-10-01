@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStyles, useTheme } from '../../context/ThemeContext';
-import { studentApi } from '../../api/student';
+import { usePortal } from '../../context/PortalScope';
 import { useAsync } from '../../lib/useAsync';
 import { fmtDate } from '../../lib/format';
 import { Card } from '../../components/ui';
@@ -15,9 +15,10 @@ import { font, spacing } from '../../theme';
 // Doc §6.6 — every published exam with its subject-wise chart; tap an exam to
 // expand it. Aggregate % across all of them on top.
 export default function ReportCard() {
+  const { api, scopeKey } = usePortal();
   const theme = useTheme();
   const styles = useStyles(makeStyles);
-  const state = useAsync(() => studentApi.reportCard(), []);
+  const state = useAsync(() => api.reportCard(), [scopeKey]);
   const [open, setOpen] = useState(null);
 
   return (

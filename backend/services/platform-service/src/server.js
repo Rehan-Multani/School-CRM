@@ -15,6 +15,7 @@ import { seedRoles } from './seedRoles.js';
 import { isFirebaseConfigured } from './config/firebase.js';
 import { startSubscriptionCronJobs } from './cron/index.js';
 import { razorpaySubscriptionService } from './services/razorpaySubscription.service.js';
+import { dropLegacyTransportIndexes } from './utils/legacyTransportIndexes.js';
 
 function logIntegrationStatus() {
   const yes = 'CONFIGURED';
@@ -62,6 +63,9 @@ async function runSeeds() {
 
 async function start() {
   await connectDB(env.mongoUri);
+  await dropLegacyTransportIndexes().catch((error) => {
+    console.error('[platform-service] Legacy transport index cleanup failed (non-fatal):', error.message);
+  });
 
   const server = app.listen(env.port, '0.0.0.0', () => {
     console.log(`Platform service running on http://127.0.0.1:${env.port}`);

@@ -88,6 +88,13 @@ const schoolUserSchema = new mongoose.Schema(
       index: true,
     },
     lastLoginAt: { type: Date, default: null },
+    // Bumped on password change / reset / logout / account delete. Only the
+    // Transport Manager app token carries it (as `tv`) — requireTransportManager
+    // rejects a stale one. The web staff portals do not check it.
+    tokenVersion: { type: Number, default: 0 },
+    // Set when the user deleted their APP account (login removed). The school's
+    // staff record is retained. Cleared when a new password is issued.
+    appAccountDeletedAt: { type: Date, default: null },
     credentialsSentAt: { type: Date, default: null },
     preferences: { type: mongoose.Schema.Types.Mixed, default: () => ({}) },
     // Fine-grained RBAC (additive — empty means legacy role-based access only)
@@ -100,6 +107,14 @@ const schoolUserSchema = new mongoose.Schema(
 schoolUserSchema.index({ schoolId: 1, email: 1 }, { unique: true });
 schoolUserSchema.index({ schoolId: 1, employeeId: 1 }, { unique: true });
 schoolUserSchema.index({ schoolId: 1, role: 1 });
+
+schoolUserSchema.pre('save', function bumpTokenVersionOnPasswordChange() {
+  if (!this.isNew && this.isModified('passwordHash')) {
+    this.tokenVersion = (this.tokenVersion || 0) + 1;
+    // A fresh password (admin re-issue / reset) re-opens a deleted app account.
+    if (this.passwordHash) this.appAccountDeletedAt = null;
+  }
+});
 
 schoolUserSchema.methods.toPublicJSON = function toPublicJSON() {
   return {

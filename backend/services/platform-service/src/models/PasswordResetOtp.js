@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 
-export const PASSWORD_RESET_ROLES = ['TEACHER', 'STUDENT', 'PARENT', 'DRIVER'];
+export const PASSWORD_RESET_ROLES = ['TEACHER', 'STUDENT', 'PARENT', 'TRANSPORT', 'DRIVER'];
 
 /**
  * Forgot-password OTP for the mobile-app roles (teacher / student / parent /
- * driver). One document per request; only hashes are stored — the plaintext
+ * transport manager) and the driver API. One document per request; only hashes are stored — the plaintext
  * OTP goes out by SMS and the reset token back to the app, never to the DB.
  *
  * Lifecycle: OTP_SENT → (verify) VERIFIED → (reset) USED. Mongo's TTL index

@@ -54,6 +54,15 @@ export function normalizeIndianMobile(value, label = 'Mobile number', required =
   return digits ? `+91${digits}` : '';
 }
 
+/**
+ * Every shape the same 10-digit number may have been stored in before
+ * `normalizeMobile` was applied everywhere — for `$in` lookups by mobile.
+ */
+export function mobileVariants(value) {
+  const digits = toMobileDigits(value);
+  return digits ? [digits, `+91${digits}`, `91${digits}`, `0${digits}`] : [];
+}
+
 /** True/false form for callers that report their own errors. */
 export function isValidMobile(value) {
   return MOBILE_RE.test(toMobileDigits(value));

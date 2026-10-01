@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useStyles } from '../../../context/ThemeContext';
-import { studentApi } from '../../../api/student';
+import { usePortal } from '../../../context/PortalScope';
 import { useAsync } from '../../../lib/useAsync';
 import { fmtDate, fmtHM, withPrefix } from '../../../lib/format';
 import { Button, Card } from '../../../components/ui';
@@ -12,12 +12,13 @@ import RefreshableScroll from '../../../components/RefreshableScroll';
 import { font, radius, spacing } from '../../../theme';
 
 export default function ExamDetail() {
+  const { api, base, scopeKey } = usePortal();
   const { examId } = useLocalSearchParams();
   const styles = useStyles(makeStyles);
   const state = useAsync(async () => {
-    const [exam, schedule] = await Promise.all([studentApi.exam(examId), studentApi.examSchedule(examId)]);
+    const [exam, schedule] = await Promise.all([api.exam(examId), api.examSchedule(examId)]);
     return { exam, papers: schedule?.papers || [] };
-  }, [examId]);
+  }, [examId, scopeKey]);
 
   return (
     <RefreshableScroll onRefresh={() => state.reload({ silent: true })} contentContainerStyle={{ padding: spacing.lg, paddingBottom: 60, flexGrow: 1 }}>
@@ -39,7 +40,7 @@ export default function ExamDetail() {
               <Button
                 title="View my result"
                 icon="ribbon-outline"
-                onPress={() => router.push(`/student/results/${exam.id}`)}
+                onPress={() => router.push(`${base}/results/${exam.id}`)}
                 style={{ marginTop: spacing.lg }}
               />
             ) : null}

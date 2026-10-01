@@ -11,7 +11,7 @@ export async function setup() {
   if (process.env.MONGO_URI_TEST) return;
   try {
     const { MongoMemoryServer } = await import('mongodb-memory-server');
-    server = await MongoMemoryServer.create();
+    server = await MongoMemoryServer.create({ instance: { launchTimeout: 60000 } });
     process.env.MONGO_URI_TEST = server.getUri();
   } catch {
     throw new Error('Set MONGO_URI_TEST or install mongodb-memory-server (npm i -D mongodb-memory-server).');

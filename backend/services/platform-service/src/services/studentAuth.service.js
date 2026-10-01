@@ -9,6 +9,7 @@ import { schoolThemeSnapshot } from './school.service.js';
 import { studentAccessService } from './studentAccess.service.js';
 import { studentSelf } from '../serializers/student.serializers.js';
 import { STUDENT_ERR } from '../constants/studentErrorCodes.js';
+import { checkRoleMismatch } from './roleMismatch.service.js';
 
 const BCRYPT_ROUNDS = 10; // matches teacher/principal/HR login provisioning
 const MIN_PASSWORD_LEN = 8;
@@ -73,7 +74,10 @@ class StudentAuthService {
       );
     }
     const student = candidates[0];
-    if (!student || !student.passwordHash) throw invalid;
+    if (!student || !student.passwordHash) {
+      await checkRoleMismatch('STUDENT', identifier);
+      throw invalid;
+    }
 
     let ok = false;
     try {
@@ -91,6 +95,14 @@ class StudentAuthService {
       throw new AppError('This student login has been disabled. Contact your school office.', 403, STUDENT_ERR.STUDENT_INACTIVE);
     }
 
+    return this.sessionFor(student);
+  }
+
+  /**
+   * Token + login payload for a student whose identity is ALREADY proven
+   * (password above, or mobile OTP in otpLogin.service.js).
+   */
+  async sessionFor(student) {
     const schoolIdStr = student.schoolId ? student.schoolId.toString() : '';
     const school = student.schoolId ? await School.findById(student.schoolId) : null;
     const ctx = await studentAccessService.buildContext(schoolIdStr, student._id.toString());

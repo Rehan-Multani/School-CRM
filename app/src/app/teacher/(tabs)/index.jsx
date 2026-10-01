@@ -9,12 +9,9 @@ import { teacherApi } from '../../../api/teacher';
 import { useAsync } from '../../../lib/useAsync';
 import { fmtHM, withPrefix } from '../../../lib/format';
 import { Card } from '../../../components/ui';
-import { Badge, ErrorView, SectionTitle, Stat, StatCard } from '../../../components/kit';
+import { Badge, ErrorView, SectionTitle, StatCard } from '../../../components/kit';
 import SchoolHeader from '../../../components/SchoolHeader';
 import RefreshableScroll from '../../../components/RefreshableScroll';
-import TopInsetBackdrop from '../../../components/TopInsetBackdrop';
-import Bell from '../../../components/teacher/Bell';
-import HeaderActions from '../../../components/HeaderActions';
 import { alpha, font, radius, spacing } from '../../../theme';
 import { SkeletonHome } from '../../../components/Skeleton';
 
@@ -64,8 +61,8 @@ export default function TeacherHome() {
 
   return (
     <View style={{ flex: 1 }}>
-      <RefreshableScroll underStatusBar onRefresh={onRefresh} contentContainerStyle={{ paddingBottom: 120 }}>
-        <SchoolHeader right={<HeaderActions bell={<Bell />} />}>
+      <RefreshableScroll onRefresh={onRefresh} contentContainerStyle={{ paddingBottom: 120 }}>
+        <SchoolHeader>
           {ctSections.length ? (
             <View style={styles.chips}>
               {ctSections.map((s) => (
@@ -157,7 +154,7 @@ export default function TeacherHome() {
                       <Ionicons name="calendar-outline" size={22} color={theme.primary} />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.ctAttendTitle}>Today's Class Attendance</Text>
+                      <Text style={styles.ctAttendTitle}>{"Today's Class Attendance"}</Text>
                       <Text style={styles.muted}>
                         Section {ctSections[0].className}-{ctSections[0].sectionName}
                       </Text>
@@ -247,14 +244,13 @@ export default function TeacherHome() {
           </View>
         </View>
       </RefreshableScroll>
-      <TopInsetBackdrop color={theme.primary} light={theme.onPrimary === '#FFFFFF'} />
     </View>
   );
 }
 
 const makeStyles = (t) =>
   StyleSheet.create({
-    body: { paddingHorizontal: spacing.lg, marginTop: -spacing.xl },
+    body: { paddingHorizontal: spacing.lg, marginTop: spacing.md },
     chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md },
     ctChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill },
     ctText: { fontSize: font.sm, fontWeight: '700' },

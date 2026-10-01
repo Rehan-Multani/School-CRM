@@ -42,6 +42,10 @@ const transportDailyStatusSchema = new mongoose.Schema(
       ref: 'Driver',
       required: true,
     },
+    // Set when the Transport Manager (a SchoolUser) recorded or corrected the
+    // row from the app; null when the driver API did. `driverId` is always the
+    // route's driver — who drove the bus, not who tapped the button.
+    markedByUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'SchoolUser', default: null },
     pickupStatus: { type: String, enum: PICKUP_STATUSES, default: 'PENDING' },
     pickedUpAt: { type: Date, default: null },
     dropStatus: { type: String, enum: DROP_STATUSES, default: 'PENDING' },

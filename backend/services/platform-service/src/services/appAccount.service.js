@@ -4,6 +4,7 @@ import { Teacher } from '../models/Teacher.js';
 import { Student } from '../models/Student.js';
 import { Parent } from '../models/Parent.js';
 import { Driver } from '../models/Driver.js';
+import { SchoolUser } from '../models/SchoolUser.js';
 import { DeviceToken } from '../models/DeviceToken.js';
 
 /**
@@ -21,12 +22,15 @@ const ROLES = {
   STUDENT: { Model: Student, deviceRole: 'student', label: 'Student' },
   PARENT: { Model: Parent, deviceRole: 'parent', label: 'Parent' },
   DRIVER: { Model: Driver, deviceRole: 'transport', label: 'Driver' },
+  // The Transport Manager is staff (SchoolUser, role TRANSPORT): only the app
+  // login goes — the HR / payroll record and its status are the school's.
+  TRANSPORT: { Model: SchoolUser, deviceRole: 'transport', label: 'Transport manager', filter: { role: 'TRANSPORT' } },
 };
 
 export async function deleteAppAccount(role, schoolId, userId, { password } = {}) {
   const cfg = ROLES[role];
   if (!cfg) throw new AppError('Unsupported role', 400, 'VALIDATION_ERROR');
-  const doc = await cfg.Model.findOne({ _id: userId, schoolId }).select('+passwordHash');
+  const doc = await cfg.Model.findOne({ _id: userId, schoolId, ...cfg.filter }).select('+passwordHash');
   if (!doc) throw new AppError(`${cfg.label} not found`, 404, 'NOT_FOUND');
   // The signed-in session (live-checked token) is the proof of identity; the
   // app asks only for an on-screen confirmation. A password, if a client
@@ -39,6 +43,17 @@ export async function deleteAppAccount(role, schoolId, userId, { password } = {}
       ok = false;
     }
     if (!ok) throw new AppError('Password is incorrect', 401, 'CURRENT_PASSWORD_INVALID');
+  }
+
+  if (role === 'TRANSPORT') {
+    // updateOne, not save(): an older staff record may not pass today's
+    // validators, and deleting your account must not fail on that.
+    await SchoolUser.updateOne(
+      { _id: doc._id },
+      { $set: { passwordHash: '', appAccountDeletedAt: new Date() }, $inc: { tokenVersion: 1 } }
+    );
+    await DeviceToken.deleteMany({ role: cfg.deviceRole, userId: String(doc._id) });
+    return { message: 'Your app account has been deleted' };
   }
 
   doc.passwordHash = '';

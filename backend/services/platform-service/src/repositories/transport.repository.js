@@ -166,8 +166,9 @@ export const transportRepository = {
   },
 
   /* ----------------------------- daily status ---------------------------- */
-  listDailyStatus(schoolId, routeId, date) {
-    return TransportDailyStatus.find({ schoolId, routeId, date });
+  /** By rider, not by route: a child moved to another route mid-day keeps the morning's pickup. */
+  listDailyStatusForStudents(schoolId, studentIds, date) {
+    return TransportDailyStatus.find({ schoolId, studentId: { $in: studentIds }, date });
   },
   findDailyStatus(schoolId, studentId, date) {
     return TransportDailyStatus.findOne({ schoolId, studentId, date });
@@ -177,11 +178,21 @@ export const transportRepository = {
    * out of `$set` — naming a path in both halves of an upsert is a write
    * conflict, not a merge.
    */
-  upsertDailyStatus(schoolId, studentId, date, update) {
-    return TransportDailyStatus.findOneAndUpdate(
-      { schoolId, studentId, date },
-      { $set: update },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
+  async upsertDailyStatus(schoolId, studentId, date, update) {
+    const write = () =>
+      TransportDailyStatus.findOneAndUpdate(
+        { schoolId, studentId, date },
+        { $set: update },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      );
+    try {
+      return await write();
+    } catch (error) {
+      // Two first marks of the day racing (a double tap, two devices) both try
+      // to insert the row; the loser hits the unique index. The row exists now,
+      // so the same write goes through as an update.
+      if (error?.code !== 11000) throw error;
+      return write();
+    }
   },
 };

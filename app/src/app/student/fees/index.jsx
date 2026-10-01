@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
-import { studentApi } from '../../../api/student';
+import { usePortal } from '../../../context/PortalScope';
 import { useAsync } from '../../../lib/useAsync';
 import { fmtDate } from '../../../lib/format';
 import PagedList from '../../../components/PagedList';
@@ -13,9 +13,10 @@ import { INVOICE_TONE, money } from '../../../components/student/status';
 import { font, radius, spacing } from '../../../theme';
 
 function InvoiceCard({ item }) {
+  const { base } = usePortal();
   const styles = useStyles(makeStyles);
   return (
-    <Pressable onPress={() => router.push(`/student/fees/${item.id}`)} style={({ pressed }) => [styles.card, pressed && { opacity: 0.8 }]}>
+    <Pressable onPress={() => router.push(`${base}/fees/${item.id}`)} style={({ pressed }) => [styles.card, pressed && { opacity: 0.8 }]}>
       <View style={styles.row}>
         <Text style={styles.title}>{item.periodLabel || item.invoiceNumber}</Text>
         <Badge label={String(item.status).replace(/_/g, ' ')} tone={INVOICE_TONE[item.status] || 'muted'} />
@@ -71,23 +72,24 @@ function Header({ summary, tab, setTab }) {
 }
 
 export default function Fees() {
+  const { api, scopeKey } = usePortal();
   const styles = useStyles(makeStyles);
   const [tab, setTab] = useState('pending');
-  const summary = useAsync(() => studentApi.feeSummary(), [], { refetchOnFocus: true });
+  const summary = useAsync(() => api.feeSummary(), [scopeKey], { refetchOnFocus: true });
   const header = <Header summary={summary} tab={tab} setTab={setTab} />;
 
   // /fees/pending is a plain array; wrap it in the list envelope. A page-1
   // fetch is a (pull-to-)refresh, so the summary cards refresh with it.
   const fetchPage = (page) => {
     if (page === 1 && summary.data) summary.reload({ silent: true });
-    if (tab === 'pending') return studentApi.pendingFees().then((rows) => ({ data: rows || [], pagination: { page: 1, totalPages: 1 } }));
-    if (tab === 'invoices') return studentApi.invoices({ page, limit: 20 });
-    return studentApi.feeHistory({ page, limit: 20 });
+    if (tab === 'pending') return api.pendingFees().then((rows) => ({ data: rows || [], pagination: { page: 1, totalPages: 1 } }));
+    if (tab === 'invoices') return api.invoices({ page, limit: 20 });
+    return api.feeHistory({ page, limit: 20 });
   };
 
   return (
     <PagedList
-      deps={[tab]}
+      deps={[tab, scopeKey]}
       fetchPage={fetchPage}
       skeleton={<SkeletonCards padded={false} />}
       ListHeaderComponent={header}

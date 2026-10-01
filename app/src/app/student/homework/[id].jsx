@@ -4,7 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
 import { useLocalSearchParams } from 'expo-router';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
-import { newIdempotencyKey, studentApi } from '../../../api/student';
+import { newIdempotencyKey } from '../../../api/student';
+import { usePortal } from '../../../context/PortalScope';
 import { useAsync } from '../../../lib/useAsync';
 import { errorText, fmtBytes, fmtDate, fmtDateTime } from '../../../lib/format';
 import { openLink } from '../../../lib/links';
@@ -39,6 +40,7 @@ function blockedReason(hw) {
 }
 
 function SubmitBox({ hw, onDone }) {
+  const { api } = usePortal();
   const theme = useTheme();
   const styles = useStyles(makeStyles);
   const [file, setFile] = useState(null);
@@ -74,7 +76,7 @@ function SubmitBox({ hw, onDone }) {
     keyRef.current = keyRef.current || newIdempotencyKey();
     setProgress(0);
     try {
-      await studentApi.submitHomework(hw.id, fd, { key: keyRef.current, onProgress: setProgress });
+      await api.submitHomework(hw.id, fd, { key: keyRef.current, onProgress: setProgress });
       keyRef.current = null;
       setFile(null);
       setRemarks('');
@@ -134,10 +136,11 @@ function SubmitBox({ hw, onDone }) {
 }
 
 export default function HomeworkDetail() {
+  const { api, scopeKey, readOnly } = usePortal();
   const { id } = useLocalSearchParams();
   const theme = useTheme();
   const styles = useStyles(makeStyles);
-  const state = useAsync(() => studentApi.homework(id), [id]);
+  const state = useAsync(() => api.homework(id), [id, scopeKey]);
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -179,7 +182,7 @@ export default function HomeworkDetail() {
 
                 {sub ? (
                   <>
-                    <SectionTitle title="My submission" />
+                    <SectionTitle title={readOnly ? 'Submission' : 'My submission'} />
                     <Card>
                       <Text style={styles.muted}>
                         {String(sub.status).replace(/_/g, ' ')} · {fmtDateTime(sub.submittedAt)}
@@ -193,6 +196,15 @@ export default function HomeworkDetail() {
                   </>
                 ) : null}
 
+                {/* A parent can look but not submit (doc 03 §7.2). */}
+                {readOnly ? (
+                  sub ? null : (
+                    <Card style={[styles.row, { justifyContent: 'flex-start', marginTop: spacing.xl }]}>
+                      <Ionicons name="time-outline" size={18} color={theme.textMuted} />
+                      <Text style={[styles.muted, { flex: 1 }]}>Not submitted yet.</Text>
+                    </Card>
+                  )
+                ) : (
                 <View style={{ marginTop: spacing.xl }}>
                   {blocked ? (
                     <Card style={[styles.row, { justifyContent: 'flex-start' }]}>
@@ -203,6 +215,7 @@ export default function HomeworkDetail() {
                     <SubmitBox hw={hw} onDone={() => state.reload({ silent: true })} />
                   )}
                 </View>
+                )}
                 {state.error ? <Text style={[styles.muted, { color: theme.danger, marginTop: spacing.md }]}>{errorText(state.error)}</Text> : null}
               </>
             );

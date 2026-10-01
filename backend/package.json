@@ -3,10 +3,11 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "start": "node index.js",
+    "start": "node server.js",
+    "supervisor": "node index.js",
     "clean-ports": "node clean-ports.js",
     "seed": "npm run seed --prefix services/auth-service"
   },

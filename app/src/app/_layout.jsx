@@ -8,6 +8,8 @@ import { useEffect } from 'react';
 import AnimatedSplash, { SPLASH_MIN_MS } from '../components/AnimatedSplash';
 import OfflineBanner from '../components/OfflineBanner';
 import SubscriptionBlocked from '../components/SubscriptionBlocked';
+import ForcedLogoutNotice from '../components/ForcedLogoutNotice';
+import AppUpdateGate from '../components/AppUpdateGate';
 import ToastContainer from '../components/Toast';
 import ConfirmModalContainer from '../components/ConfirmModal';
 import { requestStartupPermissions } from '../lib/permissions';
@@ -38,8 +40,8 @@ function RootNavigator() {
         <Stack.Protected guard={role === 'PARENT'}>
           <Stack.Screen name="parent" />
         </Stack.Protected>
-        <Stack.Protected guard={role === 'DRIVER'}>
-          <Stack.Screen name="driver" />
+        <Stack.Protected guard={role === 'TRANSPORT'}>
+          <Stack.Screen name="transport" />
         </Stack.Protected>
       </Stack>
     </>
@@ -61,6 +63,8 @@ function Boot() {
     <AnimatedSplash ready={!booting}>
       <RootNavigator />
       <SubscriptionBlocked />
+      <ForcedLogoutNotice />
+      <AppUpdateGate />
       <OfflineBanner />
       <ToastContainer />
       <ConfirmModalContainer />

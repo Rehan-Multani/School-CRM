@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
-import { studentApi } from '../../../api/student';
+import { usePortal } from '../../../context/PortalScope';
 import PagedList from '../../../components/PagedList';
 import { Badge, EmptyState, ProgressBar } from '../../../components/kit';
 import { SkeletonCards } from '../../../components/Skeleton';
@@ -11,18 +11,20 @@ import { alpha } from '../../../theme/colors';
 
 // Doc §6.6 — only PUBLISHED results are listed by the backend.
 export default function ResultList() {
+  const { api, base, scopeKey } = usePortal();
   const theme = useTheme();
   const styles = useStyles(makeStyles);
 
   return (
     <PagedList
-      fetchPage={(page) => studentApi.results({ page, limit: 20 })}
+      deps={[scopeKey]}
+      fetchPage={(page) => api.results({ page, limit: 20 })}
       skeleton={<SkeletonCards padded={false} />}
       contentContainerStyle={{ paddingTop: spacing.md }}
       ListHeaderComponent={
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end', paddingBottom: spacing.sm }}>
           <Pressable
-            onPress={() => router.push('/student/report-card')}
+            onPress={() => router.push(`${base}/report-card`)}
             style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1, paddingVertical: 6, paddingHorizontal: 8 }]}
             hitSlop={8}
           >
@@ -47,7 +49,7 @@ export default function ResultList() {
 
         return (
           <Pressable
-            onPress={() => router.push(`/student/results/${item.examId}`)}
+            onPress={() => router.push(`${base}/results/${item.examId}`)}
             style={({ pressed }) => [
               styles.card,
               { backgroundColor: theme.surface, borderColor: theme.border },

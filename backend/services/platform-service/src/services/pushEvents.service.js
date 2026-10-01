@@ -48,7 +48,8 @@ function messagingClient() {
   return process.env.VITEST ? null : getFirebaseMessaging();
 }
 
-async function sendFcm(tokens, { title, body, data }) {
+/** Raw FCM fan-out to device tokens; prunes the dead ones. Also used by appSession.service.js. */
+export async function sendFcm(tokens, { title, body, data }) {
   const messaging = messagingClient();
   if (!messaging || !tokens.length) return { attempted: 0, success: 0, failed: 0, configured: Boolean(messaging) };
   let success = 0;

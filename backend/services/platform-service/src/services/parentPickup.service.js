@@ -9,17 +9,17 @@ const oid = (v) => new mongoose.Types.ObjectId(String(v));
 /**
  * Read-only pickup visibility for a parent's child. Pickup sessions are still
  * teacher-initiated (see StudentPickupSession + teacherPickup.controller) —
- * parent-initiated requests are deferred (docs/parent-apk-api.md). Mobile
- * numbers are masked by the model's toPublicJSON.
+ * parent-initiated requests are deferred (docs/parent-apk-api.md). The guardian
+ * mobile is selected only so toPublicJSON can return its MASKED form.
  */
 class ParentPickupService {
   async list(childCtx, query = {}) {
     const filter = { schoolId: oid(childCtx.schoolId), studentId: oid(childCtx.studentId) };
     const { page, limit, skip } = sanitizePagination({ page: query.page, limit: query.limit, defaultLimit: 20, maxLimit: 50 });
     const [rows, total, active] = await Promise.all([
-      StudentPickupSession.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      StudentPickupSession.find(filter).select('+guardianMobile').sort({ createdAt: -1 }).skip(skip).limit(limit),
       StudentPickupSession.countDocuments(filter),
-      StudentPickupSession.findOne({ ...filter, status: { $in: ACTIVE_PICKUP_STATUSES } }).sort({ createdAt: -1 }),
+      StudentPickupSession.findOne({ ...filter, status: { $in: ACTIVE_PICKUP_STATUSES } }).select('+guardianMobile').sort({ createdAt: -1 }),
     ]);
     return {
       data: rows.map((r) => r.toPublicJSON()),
@@ -33,7 +33,7 @@ class ParentPickupService {
       schoolId: oid(childCtx.schoolId),
       studentId: oid(childCtx.studentId),
       _id: oid(sessionId),
-    });
+    }).select('+guardianMobile'); // only ever leaves as maskedMobile (toPublicJSON)
     if (!row) throw new AppError('Pickup session not found', 404, PARENT_ERR.NOT_FOUND);
     return row.toPublicJSON();
   }

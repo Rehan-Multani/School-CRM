@@ -247,7 +247,14 @@ class UserService {
     if (!user) throw new AppError('User not found', 404);
 
     const passwordHash = await bcrypt.hash(password, 10);
-    await userRepository.updateUser(schoolId, id, { passwordHash });
+    // The repository writes with findOneAndUpdate, which skips the model's
+    // pre-save hook — so do what it would: end the app sessions signed under
+    // the old password and re-open a login the user had deleted.
+    await userRepository.updateUser(schoolId, id, {
+      passwordHash,
+      tokenVersion: (user.tokenVersion || 0) + 1,
+      appAccountDeletedAt: null,
+    });
 
     return { success: true, message: `Password updated successfully for ${user.name}` };
   }

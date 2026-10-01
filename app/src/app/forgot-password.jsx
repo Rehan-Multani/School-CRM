@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -7,7 +7,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { ROLE_LIST, ROLES } from '../api/roles';
 import { passwordResetApi } from '../api/passwordReset';
 import { Button, Input } from '../components/ui';
+import OtpBoxes from '../components/OtpBoxes';
 import TopInsetBackdrop from '../components/TopInsetBackdrop';
+import { useKeyboardScroll } from '../lib/useKeyboard';
 import { BRAND_HERO_COLORS as HERO_COLORS, brandTheme as t, font, radius, spacing } from '../theme';
 
 // Pre-auth like login, so it always uses the platform brand (not a school theme).
@@ -17,6 +19,12 @@ const MIN_PASSWORD_LEN = 8;
 export default function ForgotPassword() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
+  const {
+    scrollRef,
+    keyboardHeight,
+    keyboardVisible,
+    scrollToInput,
+  } = useKeyboardScroll({ defaultOffset: 180 });
   const [roleKey, setRoleKey] = useState(ROLES[params.role] ? params.role : 'TEACHER');
   const [identifier, setIdentifier] = useState(params.identifier || '');
   const [step, setStep] = useState(0); // 0 account · 1 otp · 2 password · 3 done
@@ -115,8 +123,15 @@ export default function ForgotPassword() {
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + spacing.xl }}
+        ref={scrollRef}
+        contentContainerStyle={{
+          paddingBottom: Math.max(
+            insets.bottom + spacing.xl,
+            keyboardVisible ? (keyboardHeight || 300) + spacing.xl + 60 : 0,
+          ),
+        }}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
       >
         <LinearGradient
@@ -170,9 +185,10 @@ export default function ForgotPassword() {
 
               <Input
                 label={role.identifierLabel}
-                icon={roleKey === 'DRIVER' ? 'call-outline' : 'person-outline'}
+                icon={role.identifierKeyboard === 'phone-pad' ? 'call-outline' : 'person-outline'}
                 value={identifier}
                 onChangeText={setIdentifier}
+                onFocus={() => scrollToInput(180)}
                 autoCapitalize="none"
                 autoCorrect={false}
                 keyboardType={role.identifierKeyboard}
@@ -180,9 +196,6 @@ export default function ForgotPassword() {
                 returnKeyType="send"
                 onSubmitEditing={sendOtp}
               />
-              {roleKey === 'STUDENT' ? (
-                <Hint text="If you don't have your own mobile, the OTP goes to your parent's mobile." />
-              ) : null}
               <ErrorBox message={error} />
               <Button title="Send OTP" icon="paper-plane-outline" onPress={sendOtp} loading={loading} loadingTitle="Sending OTP..." />
             </>
@@ -202,7 +215,13 @@ export default function ForgotPassword() {
                 </Pressable>
               </View>
 
-              <OtpBoxes value={otp} length={otpLength} onChange={setOtp} onDone={verifyOtp} />
+              <OtpBoxes
+                value={otp}
+                length={otpLength}
+                onChange={setOtp}
+                onDone={verifyOtp}
+                onFocus={() => scrollToInput(180)}
+              />
               <ErrorBox message={error} />
               <Button title="Verify OTP" icon="shield-checkmark-outline" onPress={verifyOtp} loading={loading} loadingTitle="Verifying OTP..." />
 
@@ -228,6 +247,7 @@ export default function ForgotPassword() {
                 icon="lock-closed-outline"
                 value={password}
                 onChangeText={setPassword}
+                onFocus={() => scrollToInput(180)}
                 secureTextEntry
                 autoCapitalize="none"
                 placeholder="Enter new password"
@@ -240,6 +260,7 @@ export default function ForgotPassword() {
                 icon="lock-closed-outline"
                 value={confirm}
                 onChangeText={setConfirm}
+                onFocus={() => scrollToInput(240)}
                 secureTextEntry
                 autoCapitalize="none"
                 placeholder="Re-enter new password"
@@ -296,65 +317,12 @@ function Stepper({ step }) {
   );
 }
 
-// One hidden TextInput behind N boxes — keeps paste + SMS autofill working.
-function OtpBoxes({ value, length, onChange, onDone }) {
-  const ref = useRef(null);
-  const [focused, setFocused] = useState(false);
-
-  useEffect(() => {
-    const id = setTimeout(() => ref.current?.focus(), 250);
-    return () => clearTimeout(id);
-  }, []);
-
-  const change = (text) => {
-    const digits = text.replace(/\D/g, '').slice(0, length);
-    onChange(digits);
-  };
-
-  return (
-    <Pressable onPress={() => ref.current?.focus()} style={styles.otpRow}>
-      {Array.from({ length }).map((_, i) => {
-        const char = value[i] || '';
-        const current = focused && i === Math.min(value.length, length - 1);
-        return (
-          <View key={i} style={[styles.otpBox, char && styles.otpBoxFilled, current && styles.otpBoxActive]}>
-            <Text style={styles.otpChar}>{char}</Text>
-          </View>
-        );
-      })}
-      <TextInput
-        ref={ref}
-        value={value}
-        onChangeText={change}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        onSubmitEditing={onDone}
-        keyboardType="number-pad"
-        textContentType="oneTimeCode"
-        autoComplete={Platform.OS === 'android' ? 'sms-otp' : 'one-time-code'}
-        maxLength={length}
-        caretHidden
-        style={styles.otpHidden}
-      />
-    </Pressable>
-  );
-}
-
 function ErrorBox({ message }) {
   if (!message) return null;
   return (
     <View style={styles.errorBox}>
       <Ionicons name="alert-circle-outline" size={18} color={t.danger} />
       <Text style={styles.errorText}>{message}</Text>
-    </View>
-  );
-}
-
-function Hint({ text }) {
-  return (
-    <View style={styles.hint}>
-      <Ionicons name="information-circle-outline" size={16} color={t.primary} />
-      <Text style={styles.hintText}>{text}</Text>
     </View>
   );
 }
@@ -459,36 +427,9 @@ const styles = StyleSheet.create({
   },
   idChipText: { flex: 1, color: t.text, fontSize: font.md, fontWeight: '600' },
 
-  otpRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: spacing.xl },
-  otpBox: {
-    width: 46,
-    height: 54,
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderColor: t.border,
-    backgroundColor: t.surfaceAlt,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  otpBoxFilled: { borderColor: t.primary, backgroundColor: t.surface },
-  otpBoxActive: { borderColor: t.primary, borderWidth: 2, backgroundColor: t.surface },
-  otpChar: { fontSize: 22, fontWeight: '800', color: t.text },
-  otpHidden: { position: 'absolute', width: 1, height: 1, opacity: 0 },
-
   resendRow: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: spacing.lg },
   muted: { color: t.textMuted, fontSize: font.md },
   link: { color: t.primary, fontSize: font.md, fontWeight: '700' },
-
-  hint: {
-    flexDirection: 'row',
-    gap: 6,
-    backgroundColor: '#EFF6FF',
-    borderRadius: radius.sm + 2,
-    padding: spacing.md,
-    marginTop: -spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  hintText: { flex: 1, color: t.textMuted, fontSize: font.sm, lineHeight: 18 },
 
   errorBox: {
     flexDirection: 'row',

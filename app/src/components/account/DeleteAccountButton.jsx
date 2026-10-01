@@ -18,24 +18,24 @@ const KEPT = {
   TEACHER: 'Attendance, marks and homework you recorded, and your HR record',
   STUDENT: 'Your enrolment, attendance, results and fee records',
   PARENT: "Your children's records and fee payments",
-  DRIVER: 'Your driver record and trip history with the school',
+  TRANSPORT: 'Your staff record, and the pickup and drop history you recorded',
 };
 
-function DangerButton({ title, icon, onPress, loading, disabled, style }) {
+function ModalDangerButton({ title, icon, onPress, loading, disabled, style }) {
   const theme = useTheme();
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
       style={({ pressed }) => [
-        styles.btn,
-        { backgroundColor: theme.danger, shadowColor: theme.danger, opacity: disabled || loading ? 0.6 : 1 },
+        styles.modalBtn,
+        { backgroundColor: theme.danger, opacity: disabled || loading ? 0.6 : 1 },
         pressed && { transform: [{ scale: 0.98 }] },
         style,
       ]}
     >
-      {loading ? null : <Ionicons name={icon} size={18} color="#FFFFFF" />}
-      <Text style={styles.btnText}>{loading ? 'Deleting account...' : title}</Text>
+      {loading ? null : <Ionicons name={icon} size={16} color="#FFFFFF" />}
+      <Text style={styles.modalBtnText}>{loading ? 'Deleting account...' : title}</Text>
     </Pressable>
   );
 }
@@ -73,45 +73,57 @@ export default function DeleteAccountButton({ style }) {
 
   return (
     <>
-      <DangerButton title="Delete account" icon="trash-outline" onPress={() => {
-        setError('');
-        setOpen(true);
-      }} style={style} />
+      <Pressable
+        onPress={() => {
+          setError('');
+          setOpen(true);
+        }}
+        accessibilityRole="button"
+        accessibilityLabel="Delete account"
+        style={({ pressed }) => [
+          s.triggerBtn,
+          pressed && { opacity: 0.6, transform: [{ scale: 0.98 }] },
+          style,
+        ]}
+      >
+        <Ionicons name="trash-outline" size={14} color={alpha(theme.danger, 0.75)} />
+        <Text style={s.triggerText}>Delete Account</Text>
+      </Pressable>
       <Modal visible={open} transparent animationType="fade" onRequestClose={close} statusBarTranslucent>
         <View style={s.overlay}>
           <Pressable style={StyleSheet.absoluteFill} onPress={close} />
           <View style={[s.sheet, { paddingBottom: insets.bottom + spacing.lg }]}>
             <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
               <View style={[s.icon, { backgroundColor: alpha(theme.danger, 0.12) }]}>
-                <Ionicons name="warning" size={32} color={theme.danger} />
+                <Ionicons name="warning" size={30} color={theme.danger} />
               </View>
               <Text style={s.title}>Delete your account?</Text>
               <Text style={s.sub}>This cannot be undone from the app.</Text>
 
-              <View style={[s.box, { borderColor: alpha(theme.danger, 0.35), backgroundColor: alpha(theme.danger, 0.06) }]}>
+              <View style={[s.box, { borderColor: alpha(theme.danger, 0.3), backgroundColor: alpha(theme.danger, 0.05) }]}>
                 {['Your app login and password', 'Sign-in on every phone', 'Push notifications and app settings'].map((t) => (
                   <View key={t} style={s.item}>
-                    <Ionicons name="close-circle" size={17} color={theme.danger} />
+                    <Ionicons name="close-circle" size={16} color={theme.danger} />
                     <Text style={s.itemText}>{t}</Text>
                   </View>
                 ))}
               </View>
               <View style={s.item}>
-                <Ionicons name="business-outline" size={17} color={theme.textMuted} />
+                <Ionicons name="business-outline" size={16} color={theme.textMuted} />
                 <Text style={[s.itemText, { color: theme.textMuted }]}>
                   Stays with the school: {KEPT[role]}. Ask the school office if you need a login again.
                 </Text>
               </View>
 
               {error ? (
-                <View style={[s.item, { marginTop: spacing.lg }]}>
-                  <Ionicons name="alert-circle" size={17} color={theme.danger} />
+                <View style={[s.item, { marginTop: spacing.md }]}>
+                  <Ionicons name="alert-circle" size={16} color={theme.danger} />
                   <Text style={[s.itemText, { color: theme.danger }]}>{error}</Text>
                 </View>
               ) : null}
-              <DangerButton title="Delete my account" icon="trash" onPress={submit} loading={busy} style={{ marginTop: spacing.xl }} />
+              <ModalDangerButton title="Delete my account" icon="trash" onPress={submit} loading={busy} style={{ marginTop: spacing.lg }} />
               <Pressable onPress={close} disabled={busy} style={s.cancel}>
-                <Text style={{ color: theme.text, fontWeight: '700', fontSize: font.lg }}>Cancel</Text>
+                <Text style={{ color: theme.text, fontWeight: '600', fontSize: font.md }}>Cancel</Text>
               </Pressable>
             </ScrollView>
           </View>
@@ -122,30 +134,41 @@ export default function DeleteAccountButton({ style }) {
 }
 
 const styles = StyleSheet.create({
-  btn: {
-    height: 52,
+  modalBtn: {
+    height: 46,
     borderRadius: radius.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
   },
-  btnText: { color: '#FFFFFF', fontSize: font.lg, fontWeight: '700' },
+  modalBtnText: { color: '#FFFFFF', fontSize: font.md, fontWeight: '700' },
 });
 
 const makeStyles = (t) =>
   StyleSheet.create({
+    triggerBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      paddingVertical: 8,
+      paddingHorizontal: 14,
+      borderRadius: radius.md,
+      alignSelf: 'center',
+    },
+    triggerText: {
+      fontSize: font.sm,
+      fontWeight: '600',
+      color: alpha(t.danger, 0.75),
+    },
     overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
     sheet: { backgroundColor: t.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, maxHeight: '90%' },
-    icon: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginBottom: spacing.md },
+    icon: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', alignSelf: 'center', marginBottom: spacing.md },
     title: { fontSize: font.xl, fontWeight: '800', color: t.text, textAlign: 'center' },
     sub: { fontSize: font.md, color: t.textMuted, textAlign: 'center', marginTop: 4, marginBottom: spacing.lg },
     box: { borderWidth: 1, borderRadius: radius.md, padding: spacing.md, gap: spacing.sm, marginBottom: spacing.md },
     item: { flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start' },
     itemText: { flex: 1, fontSize: font.md, color: t.text },
-    cancel: { alignItems: 'center', paddingVertical: spacing.lg },
+    cancel: { alignItems: 'center', paddingVertical: spacing.md, marginTop: spacing.xs },
   });

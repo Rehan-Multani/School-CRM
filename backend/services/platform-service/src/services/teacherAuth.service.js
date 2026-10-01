@@ -9,6 +9,7 @@ import { School } from '../models/School.js';
 import { schoolThemeSnapshot } from './school.service.js';
 import { teacherAccessService } from './teacherAccess.service.js';
 import { TEACHER_ERR } from '../constants/teacherErrorCodes.js';
+import { checkRoleMismatch } from './roleMismatch.service.js';
 
 const BCRYPT_ROUNDS = 10; // matches principal/HR/accountant login provisioning
 const MIN_PASSWORD_LEN = 8;
@@ -87,7 +88,10 @@ class TeacherAuthService {
       );
     }
     const teacher = candidates[0];
-    if (!teacher || !teacher.passwordHash) throw invalid;
+    if (!teacher || !teacher.passwordHash) {
+      await checkRoleMismatch('TEACHER', identifier);
+      throw invalid;
+    }
 
     let ok = false;
     try {

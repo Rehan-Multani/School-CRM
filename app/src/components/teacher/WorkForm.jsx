@@ -6,6 +6,7 @@ import { sectionOptions, subjectOptions, useTeacher } from '../../context/Teache
 import { teacherApi } from '../../api/teacher';
 import { parseYmd, ymd } from '../../lib/format';
 import { showError, toast } from '../../lib/notify';
+import { useKeyboard } from '../../lib/useKeyboard';
 import { Button, Card, Input } from '../ui';
 import { Chip, DateField, EmptyState, ErrorView, FieldLabel, Select, TextArea } from '../kit';
 import { spacing } from '../../theme';
@@ -21,6 +22,7 @@ const KINDS = {
 
 export default function WorkForm({ kind, initial, presetSectionId }) {
   const theme = useTheme();
+  const { keyboardHeight, keyboardVisible } = useKeyboard();
   const cfg = KINDS[kind];
   const isEdit = Boolean(initial?.id);
   const { slots, loadSlots } = useTeacher();
@@ -110,7 +112,15 @@ export default function WorkForm({ kind, initial, presetSectionId }) {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={{ padding: spacing.lg, paddingBottom: 80 }} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        style={{ backgroundColor: theme.bg }}
+        contentContainerStyle={{
+          padding: spacing.lg,
+          paddingBottom: Math.max(80, keyboardVisible ? keyboardHeight + 80 : 80),
+        }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         {/* Section 1: Basic Information */}
         <View style={{ marginBottom: spacing.lg }}>
           <Text style={{ fontSize: 13, fontWeight: '800', color: theme.primary, letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: spacing.xs }}>

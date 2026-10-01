@@ -5,6 +5,7 @@ import { useTheme } from '../../../context/ThemeContext';
 import { teacherApi } from '../../../api/teacher';
 import { parseYmd, ymd } from '../../../lib/format';
 import { showError, toast } from '../../../lib/notify';
+import { useKeyboard } from '../../../lib/useKeyboard';
 import { Button } from '../../../components/ui';
 import { DateField, Select, TextArea } from '../../../components/kit';
 import { spacing } from '../../../theme';
@@ -21,6 +22,7 @@ function days(a, b) {
 
 export default function ApplyLeave() {
   const theme = useTheme();
+  const { keyboardHeight, keyboardVisible } = useKeyboard();
   const [form, setForm] = useState({ leaveType: 'CASUAL', startDate: ymd(), endDate: ymd(), reason: '' });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -48,7 +50,15 @@ export default function ApplyLeave() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={{ padding: spacing.lg, paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        style={{ backgroundColor: theme.bg }}
+        contentContainerStyle={{
+          padding: spacing.lg,
+          paddingBottom: Math.max(60, keyboardVisible ? keyboardHeight + 80 : 60),
+        }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         <Select label="Leave type" value={form.leaveType} options={TYPES} onChange={set('leaveType')} />
         <DateField label="From" value={form.startDate} onChange={set('startDate')} />
         <DateField label="To" value={form.endDate} onChange={set('endDate')} minimumDate={parseYmd(form.startDate)} error={errors.endDate} />

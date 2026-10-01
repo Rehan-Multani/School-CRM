@@ -18,14 +18,20 @@ export function useAsync(fn, deps = [], { refetchOnFocus = false } = {}) {
     };
   }, []);
 
+  // Only the newest request may write state: when deps change quickly (stepping
+  // through days) an older response can land last and would show the wrong day.
+  const latest = useRef(0);
+
   const reload = useCallback(async ({ silent = false } = {}) => {
+    const id = ++latest.current;
+    const current = () => mounted.current && id === latest.current;
     if (!silent) setState((s) => ({ ...s, loading: true, error: null }));
     try {
       const data = await fnRef.current();
-      if (mounted.current) setState({ data, error: null, loading: false });
+      if (current()) setState({ data, error: null, loading: false });
       return data;
     } catch (error) {
-      if (mounted.current) setState((s) => ({ ...s, error, loading: false }));
+      if (current()) setState((s) => ({ ...s, error, loading: false }));
       return undefined;
     }
   }, []);

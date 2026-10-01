@@ -6,6 +6,7 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { SkeletonTable } from '../../components/ui/SkeletonLoader';
 import { transportPortalApi } from '../../../../shared/api/client';
+import { TransportDailyStatus } from './TransportDailyStatus';
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '');
 
@@ -20,6 +21,7 @@ import {
   ArrowDown,
   ArrowUp,
   Bus,
+  CalendarCheck,
   Camera,
   Check,
   Clock,
@@ -47,7 +49,9 @@ import {
  *   1 Vehicle  →  2 Driver + Vehicle  →  3 Route + Stops (with times)
  *   →  4 Route + Vehicle + Driver  →  5 Student + Route + Stop
  *
- * Step 6 (daily pickup / drop) is the driver's own API and is not managed here.
+ * Daily pickup / drop is recorded by the Transport Manager in the mobile app
+ * (a staff user with the Transport Manager role, created under Users); the
+ * Daily Status tab shows it here read-only.
  * Every action on this page calls the real backend; there is no local fixture.
  */
 
@@ -83,6 +87,7 @@ const TABS = [
   { id: 'routes', label: 'Routes & Stops', icon: RouteIcon },
   { id: 'assignments', label: 'Student Assignments', icon: Users },
   { id: 'fees', label: 'Yearly Fee', icon: IndianRupee },
+  { id: 'daily', label: 'Daily Status', icon: CalendarCheck },
 ];
 
 /** ₹60,000 – or an em dash when the school has not set an amount yet. */
@@ -381,7 +386,7 @@ export const TransportManagement = () => {
                 ? vehicles.length
                 : tab.id === 'drivers'
                   ? drivers.length
-                  : tab.id === 'routes'
+                  : tab.id === 'routes' || tab.id === 'daily'
                     ? routes.length
                     : tab.id === 'fees'
                       ? fees.filter((f) => f.yearlyAmount !== null).length
@@ -413,7 +418,7 @@ export const TransportManagement = () => {
           })}
         </div>
 
-        {activeTab !== 'routes' && activeTab !== 'fees' && (
+        {activeTab !== 'routes' && activeTab !== 'fees' && activeTab !== 'daily' && (
           <div className="relative shrink-0 lg:w-72">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
             <input
@@ -1084,6 +1089,9 @@ export const TransportManagement = () => {
           )}
         </div>
       )}
+
+      {/* ========================== 7 · DAILY STATUS ========================= */}
+      {!loading && activeTab === 'daily' && <TransportDailyStatus showToast={showToast} />}
 
       {/* =========================== 6 · YEARLY FEE ========================== */}
       {!loading && activeTab === 'fees' && (

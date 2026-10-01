@@ -92,6 +92,16 @@ const feePaymentSchema = new mongoose.Schema(
       ref: 'FinanceTransaction',
       default: null,
     },
+    // ---- Online payment (Parent app "Pay Now"); MANUAL = recorded by the accountant.
+    // parentFeePayment.service writes these from the Razorpay webhook, and
+    // gatewayPaymentId is how a re-delivered webhook is recognised: without
+    // these fields Mongoose drops the values and every replay credits the
+    // invoice again.
+    gateway: { type: String, enum: ['MANUAL', 'RAZORPAY'], default: 'MANUAL' },
+    gatewayOrderId: { type: String, default: '', trim: true },
+    gatewayPaymentId: { type: String, default: '', trim: true },
+    gatewaySignature: { type: String, default: '', trim: true, select: false },
+    paidByParentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Parent', default: null },
   },
   { timestamps: true }
 );
@@ -100,6 +110,12 @@ feePaymentSchema.index({ schoolId: 1, receiptNumber: 1 });
 feePaymentSchema.index({ schoolId: 1, invoiceId: 1 });
 feePaymentSchema.index({ schoolId: 1, studentId: 1 });
 feePaymentSchema.index({ schoolId: 1, paymentDate: -1 });
+// Webhook idempotency: at most ONE FeePayment per captured gateway payment,
+// even if two deliveries race. Manual payments ('' id) are not constrained.
+feePaymentSchema.index(
+  { gatewayPaymentId: 1 },
+  { unique: true, partialFilterExpression: { gatewayPaymentId: { $type: 'string', $gt: '' } } }
+);
 
 feePaymentSchema.methods.toPublicJSON = function toPublicJSON() {
   return {
@@ -129,6 +145,9 @@ feePaymentSchema.methods.toPublicJSON = function toPublicJSON() {
     collectedBy: this.collectedBy,
     receiptId: this.receiptId?.toString() || null,
     financeTransactionId: this.financeTransactionId?.toString() || null,
+    gateway: this.gateway || 'MANUAL',
+    gatewayOrderId: this.gatewayOrderId || '',
+    gatewayPaymentId: this.gatewayPaymentId || '',
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

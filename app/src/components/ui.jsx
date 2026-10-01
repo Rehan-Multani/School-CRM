@@ -103,6 +103,9 @@ export const Input = forwardRef(function Input(
           focused && { borderColor: theme.primary, backgroundColor: theme.surface },
           error && { borderColor: theme.danger },
         ]}
+        onTouchStart={() => {
+          props.onFocus?.();
+        }}
       >
         {icon ? <Ionicons name={icon} size={20} color={focused ? theme.primary : theme.textMuted} /> : null}
         <TextInput
@@ -110,9 +113,19 @@ export const Input = forwardRef(function Input(
           placeholderTextColor={theme.textMuted}
           style={styles.input}
           secureTextEntry={isPassword && hidden}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
           {...props}
+          onTouchStart={(e) => {
+            props.onFocus?.(e);
+            props.onTouchStart?.(e);
+          }}
+          onFocus={(e) => {
+            setFocused(true);
+            props.onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            props.onBlur?.(e);
+          }}
         />
         {isPassword ? (
           <Pressable onPress={() => setHidden((h) => !h)} hitSlop={10}>

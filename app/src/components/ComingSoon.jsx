@@ -4,14 +4,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { useStyles, useTheme } from '../context/ThemeContext';
-import { font, spacing } from '../theme';
+import { font, radius, spacing } from '../theme';
 import RefreshableScroll from './RefreshableScroll';
 import TopInsetBackdrop from './TopInsetBackdrop';
 import { Button, Card } from './ui';
 import SchoolHeader from './SchoolHeader';
 import DeleteAccountButton from './account/DeleteAccountButton';
 
-// Placeholder home for flows not built yet (student / parent / driver).
+// Placeholder home for a flow that is not built yet.
 // Already school-themed, so live theme changes can be checked on every role.
 export default function ComingSoon({ title }) {
   const { logout } = useAuth();
@@ -38,15 +38,16 @@ export default function ComingSoon({ title }) {
             <Text style={styles.sub}>We are building this section. Stay tuned!</Text>
           </Card>
           <Button
-            title="Logout"
+            title="Sign Out"
             icon="log-out-outline"
             variant="secondary"
             onPress={doLogout}
             loading={loggingOut}
             loadingTitle="Signing out..."
-            style={{ marginTop: spacing.xl }}
+            style={[styles.signOutBtn, { marginTop: spacing.xl }]}
+            textStyle={styles.signOutText}
           />
-          <DeleteAccountButton style={{ marginTop: spacing.md }} />
+          <DeleteAccountButton style={{ marginTop: spacing.sm }} />
         </View>
       </RefreshableScroll>
       <TopInsetBackdrop color={theme.primary} light={theme.onPrimary === '#FFFFFF'} />
@@ -59,4 +60,17 @@ const makeStyles = (t) =>
     root: { flex: 1, backgroundColor: t.bg },
     title: { fontSize: font.xl, fontWeight: '800', color: t.text, marginTop: spacing.md },
     sub: { fontSize: font.md, color: t.textMuted, marginTop: spacing.xs, textAlign: 'center' },
+    signOutBtn: {
+      height: 46,
+      minHeight: 46,
+      borderRadius: radius.md,
+      backgroundColor: t.surface,
+      borderWidth: 1,
+      borderColor: t.border,
+    },
+    signOutText: {
+      fontSize: font.md,
+      fontWeight: '600',
+      color: t.text,
+    },
   });

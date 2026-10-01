@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useStyles } from '../../../context/ThemeContext';
-import { studentApi } from '../../../api/student';
+import { usePortal } from '../../../context/PortalScope';
 import { useAsync } from '../../../lib/useAsync';
 import { fmtDate } from '../../../lib/format';
 import { openLink } from '../../../lib/links';
@@ -12,9 +12,10 @@ import RefreshableScroll from '../../../components/RefreshableScroll';
 import { font, spacing } from '../../../theme';
 
 export default function ClassworkDetail() {
+  const { api, scopeKey } = usePortal();
   const { id } = useLocalSearchParams();
   const styles = useStyles(makeStyles);
-  const state = useAsync(() => studentApi.classwork(id), [id]);
+  const state = useAsync(() => api.classwork(id), [id, scopeKey]);
   return (
     <RefreshableScroll onRefresh={() => state.reload({ silent: true })} contentContainerStyle={{ padding: spacing.lg, flexGrow: 1 }}>
       <AsyncView state={state} skeleton={<SkeletonDetail padded={false} />}>

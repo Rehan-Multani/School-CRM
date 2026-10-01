@@ -6,9 +6,10 @@ import { Teacher } from '../models/Teacher.js';
 import { Student } from '../models/Student.js';
 import { Parent } from '../models/Parent.js';
 import { Driver } from '../models/Driver.js';
+import { SchoolUser } from '../models/SchoolUser.js';
 import { PasswordResetOtp, PASSWORD_RESET_ROLES } from '../models/PasswordResetOtp.js';
 import { smsService } from './sms.service.js';
-import { toMobileDigits, isValidMobile } from '../utils/mobile.js';
+import { toMobileDigits, isValidMobile, mobileVariants } from '../utils/mobile.js';
 
 /**
  * Forgot-password for the mobile-app roles, by OTP to the registered mobile.
@@ -56,6 +57,9 @@ async function findOne(Model, primary, fallback) {
   return candidates.length === 1 ? candidates[0] : null;
 }
 
+/** Student / parent are found by the mobile they sign in with, however it was typed or stored. */
+const byMobile = (id) => (isValidMobile(id) ? [{ phone: { $in: mobileVariants(id) } }] : []);
+
 const RESOLVERS = {
   TEACHER: {
     Model: Teacher,
@@ -77,12 +81,14 @@ const RESOLVERS = {
       return findOne(
         Student,
         { $or: [{ 'account.loginEmail': id }, { email: id }] },
-        { $or: [{ 'account.username': rx }, { admissionNumber: rx }] }
+        { $or: [{ 'account.username': rx }, { admissionNumber: rx }, ...byMobile(id)] }
       );
     },
     // Most students have no phone of their own — the OTP then goes to the guardian.
     phone: (s) => (isValidMobile(s.phone) ? s.phone : s.parentPhone),
     canLogin: (s) => isActive(s),
+    // Signs in by mobile OTP, so there may be no password yet — the reset sets the first one.
+    passwordOptional: true,
   },
   PARENT: {
     Model: Parent,
@@ -91,11 +97,22 @@ const RESOLVERS = {
       return findOne(
         Parent,
         { $or: [{ 'account.loginEmail': id }, { email: id }] },
-        { $or: [{ phone: rx }, { 'account.username': rx }] }
+        { $or: [{ phone: rx }, { 'account.username': rx }, ...byMobile(id)] }
       );
     },
     phone: (p) => p.phone,
     canLogin: (p) => isActive(p),
+    passwordOptional: true,
+  },
+  // The Transport Manager app: a staff account (SchoolUser, role TRANSPORT).
+  TRANSPORT: {
+    Model: SchoolUser,
+    async find(id) {
+      const rx = new RegExp(`^${escapeRegex(id)}$`, 'i');
+      return findOne(SchoolUser, { role: 'TRANSPORT', email: id }, { role: 'TRANSPORT', employeeId: rx });
+    },
+    phone: (u) => u.phone,
+    canLogin: (u) => u.status === 'ACTIVE',
   },
   DRIVER: {
     Model: Driver,
@@ -126,7 +143,8 @@ function parseIdentifier(identifier) {
 async function resolveAccount(role, identifier) {
   const resolver = RESOLVERS[role];
   const account = await resolver.find(identifier);
-  if (!account || !account.passwordHash || !resolver.canLogin(account)) return null;
+  if (!account || !resolver.canLogin(account)) return null;
+  if (!account.passwordHash && !resolver.passwordOptional) return null;
   const phone = toMobileDigits(resolver.phone(account));
   if (!isValidMobile(phone)) return null;
   return { account, phone };

@@ -1,0 +1,1316 @@
+{
+ "info": {
+  "name": "Transport Manager App (Flutter) — localhost",
+  "description": "Transport Manager app API. Full localhost URLs (API gateway :5000), no baseUrl variable.\nThe manager is a staff account (role Transport Manager, created in School Admin -> Users) that signs in with EMAIL + password. They read every route, its students and the fleet, and write one thing: a student's daily Picked Up / Dropped (plus undoing a wrong tap).\nDemo login (npm run seed:app-demo): transport.demo@example.com / Demo@12345 - 2 routes, 16 riders, today half picked up.\nRules enforced by the backend: own school only; today or an earlier date; drop needs a pickup first; a pickup cannot be undone while the drop stands; the route must have a vehicle and a driver. Marking twice is safe (idempotent). No GPS, trips, SOS or notifications.",
+  "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+ },
+ "auth": {
+  "type": "bearer",
+  "bearer": [
+   {
+    "key": "token",
+    "value": "{{token}}",
+    "type": "string"
+   }
+  ]
+ },
+ "event": [
+  {
+   "listen": "prerequest",
+   "script": {
+    "type": "text/javascript",
+    "exec": [
+     "// Keeps {{today}} current so date-based requests always work.",
+     "const d = new Date();",
+     "const pad = (n) => String(n).padStart(2, '0');",
+     "pm.collectionVariables.set('today', `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);"
+    ]
+   }
+  }
+ ],
+ "variable": [
+  {
+   "key": "token",
+   "value": "",
+   "description": "Auto-filled by the Login request."
+  },
+  {
+   "key": "today",
+   "value": "",
+   "description": "Auto-filled (YYYY-MM-DD) before every request."
+  },
+  {
+   "key": "schoolPrimaryColor",
+   "value": "",
+   "description": "Auto-filled from login -> school.primaryColor."
+  },
+  {
+   "key": "routeId",
+   "value": "",
+   "description": "From Overview (first route)."
+  },
+  {
+   "key": "studentId",
+   "value": "",
+   "description": "From Route run (first rider still pending)."
+  },
+  {
+   "key": "resetToken",
+   "value": "",
+   "description": "From Forgot password 2."
+  }
+ ],
+ "item": [
+  {
+   "name": "01 Auth",
+   "description": "Email (or employee ID) + password. The account is a staff user with the Transport Manager role, created in School Admin -> Users.",
+   "item": [
+    {
+     "name": "Login (email + password)",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       },
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/auth/transport-login",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "auth",
+        "transport-login"
+       ]
+      },
+      "description": "Response: { success, message, token, manager, user, school }. `identifier` may also be the employee ID. 401 TRANSPORT_INVALID_CREDENTIALS for an unknown email and a wrong password alike; 403 TRANSPORT_MANAGER_INACTIVE; 409 when the login exists at more than one school; 429 after 20 attempts in 15 minutes.",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"identifier\": \"transport.demo@example.com\",\n  \"password\": \"Demo@12345\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      },
+      "auth": {
+       "type": "noauth"
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('Login OK', () => pm.expect(pm.response.code).to.eql(200));",
+         "const j = pm.response.json();",
+         "// Same shape as teacher / student / parent: token at the top level.",
+         "if (j.token) { pm.collectionVariables.set('token', j.token); console.log('token saved'); }",
+         "if (j.school) { pm.collectionVariables.set('schoolPrimaryColor', j.school.primaryColor || ''); }"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Me (session restore)",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/me",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "me"
+       ]
+      },
+      "description": "Call on app start. 401 -> go to Login. Reachable even when the school subscription has expired."
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Change password",
+     "request": {
+      "method": "PATCH",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       },
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/change-password",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "change-password"
+       ]
+      },
+      "description": "Min 8 characters. 401 CURRENT_PASSWORD_INVALID when the current password is wrong. Signs out every other device and returns a fresh token in data.token.",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"currentPassword\": \"Demo@12345\",\n  \"newPassword\": \"Demo@12345\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+         "// Every other session ends; this response carries the token to keep using.",
+         "if (j.data && j.data.token) { pm.collectionVariables.set('token', j.data.token); }"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Forgot password 1 - request OTP",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       },
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/auth/forgot-password",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "auth",
+        "forgot-password"
+       ]
+      },
+      "description": "Sends a 6-digit OTP by SMS to the staff mobile on record. In dev the OTP is printed in the platform-service log.",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"role\": \"TRANSPORT\",\n  \"identifier\": \"transport.demo@example.com\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      },
+      "auth": {
+       "type": "noauth"
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Forgot password 2 - verify OTP",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       },
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/auth/verify-reset-otp",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "auth",
+        "verify-reset-otp"
+       ]
+      },
+      "description": "Returns data.resetToken (saved automatically).",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"role\": \"TRANSPORT\",\n  \"identifier\": \"transport.demo@example.com\",\n  \"otp\": \"123456\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      },
+      "auth": {
+       "type": "noauth"
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+         "if (j.data && j.data.resetToken) { pm.collectionVariables.set('resetToken', j.data.resetToken); }"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Forgot password 3 - set new password",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       },
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/auth/reset-password",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "auth",
+        "reset-password"
+       ]
+      },
+      "description": "Then log in again with the new password.",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"resetToken\": \"{{resetToken}}\",\n  \"newPassword\": \"Demo@12345\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      },
+      "auth": {
+       "type": "noauth"
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "02 Routes and fleet",
+   "description": "Read-only. Vehicles, drivers, routes, stops and student assignments are managed by the school admin on the web.",
+   "item": [
+    {
+     "name": "Overview - today",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/overview",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "overview"
+       ]
+      },
+      "description": "Home screen. data: { date, totals, routes[] }. Saves the first routeId."
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+         "const routes = (j.data && j.data.routes) || [];",
+         "if (routes[0]) { pm.collectionVariables.set('routeId', routes[0].id); }"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Overview - a chosen day",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/overview?date={{today}}",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "overview"
+       ],
+       "query": [
+        {
+         "key": "date",
+         "value": "{{today}}"
+        }
+       ]
+      },
+      "description": "?date=YYYY-MM-DD."
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+         "const routes = (j.data && j.data.routes) || [];",
+         "if (routes[0]) { pm.collectionVariables.set('routeId', routes[0].id); }"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Route run (stops + students)",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/routes/{{routeId}}?date={{today}}",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "routes",
+        "{{routeId}}"
+       ],
+       "query": [
+        {
+         "key": "date",
+         "value": "{{today}}"
+        }
+       ]
+      },
+      "description": "data: { date, route, ready, stops[], students[], totalStudents, pickedUpCount, droppedCount }. Students are sorted by stop sequence. Saves a studentId that is still pending."
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('success === true', () => pm.expect(j.success).to.eql(true));",
+         "const riders = (j.data && j.data.students) || [];",
+         "const pending = riders.find((s) => s.pickupStatus === 'PENDING') || riders[0];",
+         "if (pending) { pm.collectionVariables.set('studentId', pending.studentId); }"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Fleet (vehicles + drivers)",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/fleet",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "fleet"
+       ]
+      },
+      "description": "data: { vehicles[], drivers[] }, each with the route it serves (or null)."
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "03 Daily pickup and drop",
+   "description": "The only thing the manager writes. Run 02 -> Route run first so {{studentId}} is set.",
+   "item": [
+    {
+     "name": "Mark picked up",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       },
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/students/{{studentId}}/pickup",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "students",
+        "{{studentId}}",
+        "pickup"
+       ]
+      },
+      "description": "`date` is optional (defaults to today). Marking twice is safe: the second call answers \"Already marked as picked up\".",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"date\": \"{{today}}\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Mark dropped",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       },
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/students/{{studentId}}/drop",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "students",
+        "{{studentId}}",
+        "drop"
+       ]
+      },
+      "description": "Needs a pickup first, else 409 TRANSPORT_NOT_PICKED_UP.",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"date\": \"{{today}}\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Undo drop",
+     "request": {
+      "method": "DELETE",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/students/{{studentId}}/drop?date={{today}}",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "students",
+        "{{studentId}}",
+        "drop"
+       ],
+       "query": [
+        {
+         "key": "date",
+         "value": "{{today}}"
+        }
+       ]
+      },
+      "description": "DELETE carries the date in the query string. data is null when there was nothing to undo."
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Undo pickup",
+     "request": {
+      "method": "DELETE",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/students/{{studentId}}/pickup?date={{today}}",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "students",
+        "{{studentId}}",
+        "pickup"
+       ],
+       "query": [
+        {
+         "key": "date",
+         "value": "{{today}}"
+        }
+       ]
+      },
+      "description": "409 TRANSPORT_ALREADY_DROPPED while the drop still stands - undo the drop first."
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "04 Edge cases (expected errors)",
+   "description": "Each request here is supposed to fail; the test checks the status and code the app must handle.",
+   "item": [
+    {
+     "name": "Drop before pickup -> 409",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       },
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/students/{{studentId}}/drop",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "students",
+        "{{studentId}}",
+        "drop"
+       ]
+      },
+      "description": "Run right after 03 -> Undo pickup.",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"date\": \"{{today}}\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 409', () => pm.expect(pm.response.code).to.eql(409));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('code === TRANSPORT_NOT_PICKED_UP', () => pm.expect(j.code).to.eql('TRANSPORT_NOT_PICKED_UP'));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Future date -> 400",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       },
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/students/{{studentId}}/pickup",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "students",
+        "{{studentId}}",
+        "pickup"
+       ]
+      },
+      "description": "",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"date\": \"2999-01-01\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 400', () => pm.expect(pm.response.code).to.eql(400));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('code === TRANSPORT_VALIDATION_ERROR', () => pm.expect(j.code).to.eql('TRANSPORT_VALIDATION_ERROR'));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Impossible date -> 400",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/overview?date=2026-02-31",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "overview"
+       ],
+       "query": [
+        {
+         "key": "date",
+         "value": "2026-02-31"
+        }
+       ]
+      },
+      "description": ""
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 400', () => pm.expect(pm.response.code).to.eql(400));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('code === TRANSPORT_VALIDATION_ERROR', () => pm.expect(j.code).to.eql('TRANSPORT_VALIDATION_ERROR'));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Student not on transport -> 404",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       },
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/students/000000000000000000000000/pickup",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "students",
+        "000000000000000000000000",
+        "pickup"
+       ]
+      },
+      "description": "",
+      "body": {
+       "mode": "raw",
+       "raw": "{}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 404', () => pm.expect(pm.response.code).to.eql(404));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('code === TRANSPORT_NOT_FOUND', () => pm.expect(j.code).to.eql('TRANSPORT_NOT_FOUND'));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Malformed id -> 400",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/routes/not-an-id",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "routes",
+        "not-an-id"
+       ]
+      },
+      "description": ""
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 400', () => pm.expect(pm.response.code).to.eql(400));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Wrong password -> 401",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       },
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/auth/transport-login",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "auth",
+        "transport-login"
+       ]
+      },
+      "description": "",
+      "body": {
+       "mode": "raw",
+       "raw": "{\n  \"identifier\": \"transport.demo@example.com\",\n  \"password\": \"wrong-password\"\n}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      },
+      "auth": {
+       "type": "noauth"
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 401', () => pm.expect(pm.response.code).to.eql(401));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('code === TRANSPORT_INVALID_CREDENTIALS', () => pm.expect(j.code).to.eql('TRANSPORT_INVALID_CREDENTIALS'));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "No token -> 401",
+     "request": {
+      "method": "GET",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/overview",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "overview"
+       ]
+      },
+      "description": "",
+      "auth": {
+       "type": "noauth"
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 401', () => pm.expect(pm.response.code).to.eql(401));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('code === TRANSPORT_UNAUTHORIZED', () => pm.expect(j.code).to.eql('TRANSPORT_UNAUTHORIZED'));"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "05 End the session (run last)",
+   "description": "",
+   "item": [
+    {
+     "name": "Logout",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/auth/logout",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "auth",
+        "logout"
+       ]
+      },
+      "description": "Ends the session on every device of this manager. The token stops working at once."
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "name": "Delete app account",
+     "request": {
+      "method": "POST",
+      "header": [
+       {
+        "key": "Accept",
+        "value": "application/json"
+       },
+       {
+        "key": "Content-Type",
+        "value": "application/json"
+       }
+      ],
+      "url": {
+       "raw": "http://localhost:5000/api/v1/platform/school-portal/transport-manager/account/delete",
+       "protocol": "http",
+       "host": [
+        "localhost"
+       ],
+       "port": "5000",
+       "path": [
+        "api",
+        "v1",
+        "platform",
+        "school-portal",
+        "transport-manager",
+        "account",
+        "delete"
+       ]
+      },
+      "description": "DANGER - only run on a throwaway account. Removes the app login (the staff record stays with the school). The office re-opens it by setting a new password in School Admin -> Users.",
+      "body": {
+       "mode": "raw",
+       "raw": "{}",
+       "options": {
+        "raw": {
+         "language": "json"
+        }
+       }
+      }
+     },
+     "response": [],
+     "event": [
+      {
+       "listen": "test",
+       "script": {
+        "type": "text/javascript",
+        "exec": [
+         "pm.test('HTTP 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+         "let j = {}; try { j = pm.response.json(); } catch (e) {}",
+         "pm.test('success === true', () => pm.expect(j.success).to.eql(true));"
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

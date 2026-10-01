@@ -37,5 +37,6 @@ export function errorHandler(err, req, res, next) {
     success: false,
     message,
     code,
+    ...(err?.suggestedRole ? { suggestedRole: err.suggestedRole } : {}),
   });
 }

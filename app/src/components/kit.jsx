@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { FlatList, Image, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -39,7 +39,9 @@ export function Badge({ label, tone = 'primary', icon }) {
       <Text style={[kitStatic.badgeText, { color: c }]}>{label}</Text>
     </View>
   );
+  
 }
+
 
 // Comprehensive status → badge tone.
 export const STATUS_TONE = {
@@ -76,7 +78,7 @@ export function StatusBadge({ status }) {
 }
 
 // ---------------------------------------------------------------- Chip / Segmented
-export function Chip({ label, active, onPress, color, disabled }) {
+export function Chip({ label, active, onPress, color, disabled, style }) {
   const theme = useTheme();
   const c = color || theme.primary;
   return (
@@ -88,6 +90,7 @@ export function Chip({ label, active, onPress, color, disabled }) {
         kitStatic.chip,
         { borderColor: active ? c : theme.border, backgroundColor: active ? c : theme.surface },
         disabled && { opacity: 0.5 },
+        style,
       ]}
     >
       <Text style={{ color: active ? '#FFFFFF' : theme.text, fontWeight: '700', fontSize: font.sm }}>{label}</Text>
@@ -175,13 +178,14 @@ export function PageHeader({ title, subtitle, badge, right, style }) {
 
 export function Avatar({ source, name, size = 42, style }) {
   const theme = useTheme();
-  const [failed, setFailed] = useState(false);
   const src = typeof source === 'string' ? { uri: source } : source;
   const uri = typeof source === 'string' ? source : source?.uri;
-
-  useEffect(() => {
+  const [prevUri, setPrevUri] = useState(uri);
+  const [failed, setFailed] = useState(false);
+  if (prevUri !== uri) {
+    setPrevUri(uri);
     setFailed(false);
-  }, [uri]);
+  }
 
   const initials = (name || '?')
     .split(/\s+/)
@@ -323,9 +327,9 @@ export function StatCard({ label, value, icon, color, subtitle, onPress, style }
         <View style={[styles.statIconBox, { backgroundColor: alpha(c, theme.isDark ? 0.22 : 0.12) }]}>
           <Ionicons name={icon} size={20} color={c} />
         </View>
-        {subtitle ? <Text style={styles.statCardSub}>{subtitle}</Text> : null}
+        {subtitle ? <Text style={styles.statCardSub} numberOfLines={2}>{subtitle}</Text> : null}
       </View>
-      <Text style={styles.statCardVal}>{value ?? '–'}</Text>
+      <Text style={styles.statCardVal} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>{value ?? '–'}</Text>
       <Text style={styles.statCardLbl} numberOfLines={1}>{label}</Text>
     </Pressable>
   );
@@ -496,7 +500,7 @@ export function DateField({ label, value, onChange, minimumDate, maximumDate, er
 const kitStatic = StyleSheet.create({
   badge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill },
   badgeText: { fontSize: font.xs, fontWeight: '800', letterSpacing: 0.3 },
-  chip: { paddingHorizontal: spacing.md, paddingVertical: 7, borderRadius: radius.pill, borderWidth: 1.5 },
+  chip: { paddingHorizontal: spacing.md, paddingVertical: 7, borderRadius: radius.pill, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-start' },
   segment: { flexDirection: 'row', borderRadius: radius.md, borderWidth: 1, padding: 3 },
   segmentItem: { flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: radius.sm, shadowColor: '#000', shadowOpacity: 0, shadowRadius: 4, shadowOffset: { width: 0, height: 1 } },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: spacing.xl, minHeight: 280 },
@@ -582,6 +586,9 @@ const makeStyles = (t) =>
       justifyContent: 'center',
     },
     statCardSub: {
+      flexShrink: 1,
+      marginLeft: spacing.sm,
+      textAlign: 'right',
       fontSize: font.xs,
       color: t.textMuted,
       fontWeight: '600',

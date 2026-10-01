@@ -31,12 +31,12 @@ function relativeTime(value) {
 
 function deliveryLabel(item) {
   if (!item.delivery?.firebaseConfigured) {
-    return {
-      tone: 'amber',
-      text: 'Saved only · Firebase not configured',
-    };
+    return null;
   }
   if (item.delivery?.skippedReason) {
+    if (/firebase.*not configured/i.test(item.delivery.skippedReason)) {
+      return null;
+    }
     return {
       tone: 'amber',
       text: item.delivery.skippedReason,
@@ -271,17 +271,19 @@ export const Notifications = () => {
                         <h3 className="text-sm font-semibold text-slate-900 dark:text-white">{item.title}</h3>
                         <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{item.body}</p>
                       </div>
-                      <span
-                        className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                          delivery.tone === 'emerald'
-                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
-                            : delivery.tone === 'rose'
-                              ? 'bg-rose-100 text-rose-700 dark:bg-slate-900/10 dark:text-rose-300'
-                              : 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'
-                        }`}
-                      >
-                        {delivery.text}
-                      </span>
+                      {delivery ? (
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                            delivery.tone === 'emerald'
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300'
+                              : delivery.tone === 'rose'
+                                ? 'bg-rose-100 text-rose-700 dark:bg-slate-900/10 dark:text-rose-300'
+                                : 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300'
+                          }`}
+                        >
+                          {delivery.text}
+                        </span>
+                      ) : null}
                     </div>
                     <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
                       {audienceNames(item.audiences) || 'No audience'}

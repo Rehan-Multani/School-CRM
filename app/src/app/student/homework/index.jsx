@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
-import { studentApi } from '../../../api/student';
+import { usePortal } from '../../../context/PortalScope';
 import { fmtDate } from '../../../lib/format';
 import PagedList from '../../../components/PagedList';
 import { Badge, Chip, EmptyState } from '../../../components/kit';
@@ -20,6 +20,7 @@ const FILTERS = [
 ];
 
 export default function HomeworkList() {
+  const { api, base, scopeKey } = usePortal();
   const params = useLocalSearchParams();
   const theme = useTheme();
   const styles = useStyles(makeStyles);
@@ -27,11 +28,11 @@ export default function HomeworkList() {
 
   return (
     <PagedList
-      deps={[status]}
-      fetchPage={(page) => studentApi.homeworkList({ page, limit: 20, status })}
+      deps={[status, scopeKey]}
+      fetchPage={(page) => api.homeworkList({ page, limit: 20, status })}
       skeleton={<SkeletonCards padded={false} />}
       ListHeaderComponent={
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm, paddingVertical: spacing.md }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }} contentContainerStyle={{ gap: spacing.sm, paddingVertical: spacing.md, alignItems: 'center' }}>
           {FILTERS.map((f) => (
             <Chip key={f.value} label={f.label} active={status === f.value} onPress={() => setStatus(f.value)} />
           ))}
@@ -50,7 +51,7 @@ export default function HomeworkList() {
 
         return (
           <Pressable
-            onPress={() => router.push(`/student/homework/${item.id}`)}
+            onPress={() => router.push(`${base}/homework/${item.id}`)}
             style={({ pressed }) => [
               styles.card,
               {

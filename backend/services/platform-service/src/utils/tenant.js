@@ -65,6 +65,18 @@ export function parentId(req) {
 }
 
 /**
+ * Transport Manager identity from the verified JWT (never from the request
+ * body/query). The token carries both `userId` and `sub` set to SchoolUser._id.
+ */
+export function transportManagerId(req) {
+  const raw = req.user?.userId || req.user?.sub;
+  if (!raw || !mongoose.isValidObjectId(String(raw))) {
+    throw new AppError('Transport manager context is missing or invalid on this session', 401);
+  }
+  return String(raw);
+}
+
+/**
  * Driver identity from the verified JWT (never from the request body/query).
  * The driver token carries both `driverId` and `sub` set to Driver._id.
  */

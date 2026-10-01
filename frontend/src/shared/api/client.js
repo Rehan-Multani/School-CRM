@@ -1070,6 +1070,12 @@ export const transportPortalApi = {
   setFee: (academicYearId, yearlyAmount) =>
     schoolAdminClient.put(`${TRANSPORT}/fees/${academicYearId}`, { yearlyAmount }).then((r) => r.data),
   clearFee: (academicYearId) => schoolAdminClient.delete(`${TRANSPORT}/fees/${academicYearId}`).then((r) => r.data),
+
+  // 7 - Daily pickup / drop, read-only. It is recorded by the Transport Manager
+  // in the mobile app. `date` is YYYY-MM-DD; omitted = today.
+  daily: (date) => schoolAdminClient.get(`${TRANSPORT}/daily`, { params: { date } }).then((r) => r.data),
+  dailyRoute: (routeId, date) =>
+    schoolAdminClient.get(`${TRANSPORT}/daily/${routeId}`, { params: { date } }).then((r) => r.data),
 };
 
 // ============================================================

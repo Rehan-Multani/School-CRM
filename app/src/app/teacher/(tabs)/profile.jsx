@@ -159,7 +159,8 @@ export default function TeacherProfile() {
         {/* Solid Circular Avatar with Error-Resilient Fallback */}
         <View style={styles.avatarWrapper}>
           <Pressable onPress={changePhoto} disabled={uploading} style={styles.avatarPress}>
-            <View style={[styles.avatarCircle, { backgroundColor: alpha(theme.primary, theme.isDark ? 0.28 : 0.12), borderColor: theme.surface }]}>
+            {/* Opaque base: Android draws the elevation shadow through a translucent fill. */}
+            <View style={[styles.avatarCircle, { backgroundColor: theme.surface, borderColor: theme.surface }]}>
               {hasPhoto ? (
                 <Image
                   source={{ uri: photo }}
@@ -168,7 +169,7 @@ export default function TeacherProfile() {
                   onError={() => setImgError(true)}
                 />
               ) : (
-                <View style={styles.avatarFallback}>
+                <View style={[styles.avatarFallback, { backgroundColor: alpha(theme.primary, theme.isDark ? 0.28 : 0.12) }]}>
                   <Text style={[styles.avatarInitials, { color: theme.primary }]}>{initials}</Text>
                 </View>
               )}
@@ -383,18 +384,18 @@ export default function TeacherProfile() {
       </View>
 
       {/* Account / Session Management */}
-      <View style={{ marginTop: spacing.xl, gap: spacing.md }}>
+      <View style={styles.accountSection}>
         <Button
           title="Sign Out"
           icon="log-out-outline"
-          variant="outline"
+          variant="secondary"
           onPress={doLogout}
           loading={loggingOut}
           loadingTitle="Signing out..."
-          style={{ borderColor: alpha(theme.danger, 0.35), backgroundColor: alpha(theme.danger, 0.05) }}
-          textStyle={{ color: theme.danger, fontWeight: '700' }}
+          style={styles.signOutBtn}
+          textStyle={styles.signOutText}
         />
-        <DeleteAccountButton />
+        <DeleteAccountButton style={{ marginTop: spacing.xs }} />
 
         <View style={styles.versionFooter}>
           <Ionicons name="shield-checkmark" size={14} color="#10B981" />
@@ -723,5 +724,27 @@ const makeStyles = (t) =>
       fontSize: font.xs,
       color: t.textMuted,
       fontWeight: '600',
+    },
+    accountSection: {
+      marginTop: spacing.xl,
+      gap: spacing.sm,
+    },
+    signOutBtn: {
+      height: 46,
+      minHeight: 46,
+      borderRadius: radius.md,
+      backgroundColor: t.surface,
+      borderWidth: 1,
+      borderColor: t.border,
+      shadowColor: t.shadow,
+      shadowOpacity: t.isDark ? 0 : 0.04,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 2 },
+      elevation: 1,
+    },
+    signOutText: {
+      fontSize: font.md,
+      fontWeight: '600',
+      color: t.text,
     },
   });

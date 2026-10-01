@@ -1,32 +1,42 @@
-import React, { useEffect, useState } from 'react';
-import { formatDistanceToNow } from 'date-fns';
-import { Bell, Loader2, Send, Smartphone } from 'lucide-react';
-import { Card, Button, Badge } from '../../components/ui/Button';
-import { Pulse } from '../../components/ui/SkeletonLoader';
-import { Input, Select, Textarea } from '../../components/ui/Input';
-import { useSuperAdminNotifications } from '../../context/SuperAdminNotificationContext';
-import { platformNotificationApi, platformSchoolApi } from '../../../../shared/api/client';
+import React, { useEffect, useState } from "react";
+import { formatDistanceToNow } from "date-fns";
+import { Bell, Loader2, LogOut, Send, Smartphone } from "lucide-react";
+import { Card, Button, Badge } from "../../components/ui/Button";
+import { Pulse } from "../../components/ui/SkeletonLoader";
+import { Input, Select, Textarea } from "../../components/ui/Input";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../../components/ui/Tabs";
+import { useSuperAdminNotifications } from "../../context/SuperAdminNotificationContext";
+import {
+  platformNotificationApi,
+  platformSchoolApi,
+} from "../../../../shared/api/client";
+import { ForceLogoutCard } from "./ForceLogoutCard";
 
 const emptyForm = () => ({
-  title: '',
-  body: '',
+  title: "",
+  body: "",
   principal: true,
   schoolAdmin: true,
-  schoolId: '',
+  schoolId: "",
 });
 
 function audienceLabel(audiences = []) {
   const labels = [];
-  if (audiences.includes('principal')) labels.push('Principal');
-  if (audiences.includes('school-admin')) labels.push('School Admin');
-  return labels.join(' + ') || '—';
+  if (audiences.includes("principal")) labels.push("Principal");
+  if (audiences.includes("school-admin")) labels.push("School Admin");
+  return labels.join(" + ") || "—";
 }
 
 function relativeTime(value) {
   try {
     return formatDistanceToNow(new Date(value), { addSuffix: true });
   } catch {
-    return '';
+    return "";
   }
 }
 
@@ -50,15 +60,21 @@ function NotificationsHistorySkeleton() {
 
 function deliveryBadge(item) {
   if (!item.delivery?.firebaseConfigured) {
-    return { variant: 'warning', label: 'Saved · Firebase not configured' };
+    return null;
   }
   if (item.delivery.skippedReason) {
-    return { variant: 'warning', label: item.delivery.skippedReason };
+    if (/firebase.*not configured/i.test(item.delivery.skippedReason)) {
+      return null;
+    }
+    return { variant: "warning", label: item.delivery.skippedReason };
   }
   if (item.delivery.success > 0) {
-    return { variant: 'success', label: `Firebase · ${item.delivery.success} sent` };
+    return {
+      variant: "success",
+      label: `Firebase · ${item.delivery.success} sent`,
+    };
   }
-  return { variant: 'danger', label: 'Firebase · no devices reached' };
+  return { variant: "danger", label: "Firebase · no devices reached" };
 }
 
 export default function NotificationsIndex() {
@@ -82,7 +98,12 @@ export default function NotificationsIndex() {
       setFirebaseConfigured(Boolean(notificationsResult.firebaseConfigured));
       setSchools(schoolsResult.data || []);
     } catch (err) {
-      addNotification('error', err.response?.data?.message || err.message || 'Unable to load notifications.');
+      addNotification(
+        "error",
+        err.response?.data?.message ||
+          err.message ||
+          "Unable to load notifications.",
+      );
     } finally {
       setLoading(false);
     }
@@ -94,9 +115,10 @@ export default function NotificationsIndex() {
 
   const validate = () => {
     const next = {};
-    if (!form.title.trim()) next.title = 'Title is required';
-    if (!form.body.trim()) next.body = 'Message is required';
-    if (!form.principal && !form.schoolAdmin) next.audience = 'Select Principal, School Admin, or both';
+    if (!form.title.trim()) next.title = "Title is required";
+    if (!form.body.trim()) next.body = "Message is required";
+    if (!form.principal && !form.schoolAdmin)
+      next.audience = "Select Principal, School Admin, or both";
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -106,8 +128,8 @@ export default function NotificationsIndex() {
     if (!validate()) return;
 
     const audiences = [];
-    if (form.principal) audiences.push('principal');
-    if (form.schoolAdmin) audiences.push('school-admin');
+    if (form.principal) audiences.push("principal");
+    if (form.schoolAdmin) audiences.push("school-admin");
 
     setSending(true);
     try {
@@ -117,15 +139,20 @@ export default function NotificationsIndex() {
         audiences,
         schoolId: form.schoolId,
       });
-      addNotification('success', result.message || 'Notification sent.');
+      addNotification("success", result.message || "Notification sent.");
       setForm(emptyForm());
       setErrors({});
       setHistory((prev) => [result.data, ...prev]);
-      if (typeof result.firebaseConfigured === 'boolean') {
+      if (typeof result.firebaseConfigured === "boolean") {
         setFirebaseConfigured(result.firebaseConfigured);
       }
     } catch (err) {
-      addNotification('error', err.response?.data?.message || err.message || 'Unable to send notification.');
+      addNotification(
+        "error",
+        err.response?.data?.message ||
+          err.message ||
+          "Unable to send notification.",
+      );
     } finally {
       setSending(false);
     }
@@ -134,119 +161,180 @@ export default function NotificationsIndex() {
   return (
     <div className="space-y-6 max-w-6xl">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Platform Notifications</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          Platform Notifications
+        </h1>
         <p className="text-xs text-slate-400">
-          Send Firebase push notifications to school Principals and School Admins.
+          Send Firebase push notifications to school Principals and School
+          Admins, and force logout mobile-app users.
         </p>
       </div>
 
-      <div className="flex items-center gap-2 text-xs">
-        <Smartphone size={14} className={firebaseConfigured ? 'text-emerald-500' : 'text-amber-500'} />
-        <span className={firebaseConfigured ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}>
-          {firebaseConfigured
-            ? 'Firebase is configured. Messages will be pushed to registered devices.'
-            : 'Firebase keys are missing. Notifications will still be saved and shown in Principal / Admin inboxes.'}
-        </span>
-      </div>
+      {/* Two jobs on this page — tabs keep "Force logout" one click away instead
+          of below a long sent-history list. */}
+      <Tabs defaultValue="send" className="w-full">
+        <TabsList>
+          <TabsTrigger value="send" className="gap-2">
+            <Send size={15} />
+            Send notification
+          </TabsTrigger>
+          <TabsTrigger value="force-logout" className="gap-2">
+            <LogOut size={15} />
+            Force logout
+          </TabsTrigger>
+        </TabsList>
 
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6 items-start">
-        <Card className="xl:col-span-2 space-y-5">
-          <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-            <Send size={16} className="text-indigo-500" />
-            Compose
-          </h3>
+        <TabsContent value="send">
+          <div className="grid grid-cols-1 xl:grid-cols-5 gap-6 items-start">
+            <Card className="xl:col-span-2 space-y-5">
+              <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Send size={16} className="text-indigo-500" />
+                Compose
+              </h3>
 
-          <form className="space-y-4" onSubmit={handleSend}>
-            <Input
-              label="Title"
-              placeholder="Fee reminder, circular, or alert title"
-              value={form.title}
-              error={errors.title}
-              onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-            />
-            <Textarea
-              label="Message"
-              placeholder="Write the notification that Principal and School Admin should receive"
-              value={form.body}
-              error={errors.body}
-              onChange={(event) => setForm((prev) => ({ ...prev, body: event.target.value }))}
-            />
-            <Select
-              label="School"
-              value={form.schoolId}
-              onChange={(event) => setForm((prev) => ({ ...prev, schoolId: event.target.value }))}
-            >
-              <option value="">All schools</option>
-              {schools.map((school) => (
-                <option key={school.id} value={school.id}>
-                  {school.name}
-                </option>
-              ))}
-            </Select>
-
-            <div className="space-y-2">
-              <p className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Send to</p>
-              <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
-                <input
-                  type="checkbox"
-                  className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                  checked={form.principal}
-                  onChange={(event) => setForm((prev) => ({ ...prev, principal: event.target.checked }))}
+              <form className="space-y-4" onSubmit={handleSend}>
+                <Input
+                  label="Title"
+                  placeholder="Fee reminder, circular, or alert title"
+                  value={form.title}
+                  error={errors.title}
+                  onChange={(event) =>
+                    setForm((prev) => ({ ...prev, title: event.target.value }))
+                  }
                 />
-                Principal
-              </label>
-              <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
-                <input
-                  type="checkbox"
-                  className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-                  checked={form.schoolAdmin}
-                  onChange={(event) => setForm((prev) => ({ ...prev, schoolAdmin: event.target.checked }))}
+                <Textarea
+                  label="Message"
+                  placeholder="Write the notification that Principal and School Admin should receive"
+                  value={form.body}
+                  error={errors.body}
+                  onChange={(event) =>
+                    setForm((prev) => ({ ...prev, body: event.target.value }))
+                  }
                 />
-                School Admin
-              </label>
-              {errors.audience && <p className="text-xs text-rose-500">{errors.audience}</p>}
-            </div>
+                <Select
+                  label="School"
+                  value={form.schoolId}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      schoolId: event.target.value,
+                    }))
+                  }
+                >
+                  <option value="">All schools</option>
+                  {schools.map((school) => (
+                    <option key={school.id} value={school.id}>
+                      {school.name}
+                    </option>
+                  ))}
+                </Select>
 
-            <Button type="submit" disabled={sending} className="w-full gap-2">
-              {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-              {sending ? 'Sending…' : 'Send via Firebase'}
-            </Button>
-          </form>
-        </Card>
+                <div className="space-y-2">
+                  <p className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Send to
+                  </p>
+                  <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+                    <input
+                      type="checkbox"
+                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      checked={form.principal}
+                      onChange={(event) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          principal: event.target.checked,
+                        }))
+                      }
+                    />
+                    Principal
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+                    <input
+                      type="checkbox"
+                      className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      checked={form.schoolAdmin}
+                      onChange={(event) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          schoolAdmin: event.target.checked,
+                        }))
+                      }
+                    />
+                    School Admin
+                  </label>
+                  {errors.audience && (
+                    <p className="text-xs text-rose-500">{errors.audience}</p>
+                  )}
+                </div>
 
-        <Card className="xl:col-span-3 space-y-4">
-          <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-            <Bell size={16} className="text-indigo-500" />
-            Sent history
-          </h3>
+                <Button
+                  type="submit"
+                  disabled={sending}
+                  className="w-full gap-2"
+                >
+                  {sending ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Send size={16} />
+                  )}
+                  {sending ? "Sending…" : "Send via Firebase"}
+                </Button>
+              </form>
+            </Card>
 
-          {loading ? (
-            <NotificationsHistorySkeleton />
-          ) : history.length === 0 ? (
-            <p className="text-sm text-slate-400 py-10 text-center">No notifications sent yet.</p>
-          ) : (
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {history.map((item) => {
-                const status = deliveryBadge(item);
-                return (
-                  <div key={item.id} className="py-4 first:pt-0 last:pb-0 space-y-1.5">
-                    <div className="flex items-start justify-between gap-3">
-                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{item.title}</p>
-                      <Badge variant={status.variant}>{status.label}</Badge>
-                    </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-300">{item.body}</p>
-                    <p className="text-xs text-slate-400">
-                      {audienceLabel(item.audiences)}
-                      {item.schoolName ? ` · ${item.schoolName}` : ' · All schools'}
-                      {item.createdAt ? ` · ${relativeTime(item.createdAt)}` : ''}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Card>
-      </div>
+            <Card className="xl:col-span-3 space-y-4">
+              <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Bell size={16} className="text-indigo-500" />
+                Sent history
+              </h3>
+
+              {loading ? (
+                <NotificationsHistorySkeleton />
+              ) : history.length === 0 ? (
+                <p className="text-sm text-slate-400 py-10 text-center">
+                  No notifications sent yet.
+                </p>
+              ) : (
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {history.map((item) => {
+                    const status = deliveryBadge(item);
+                    return (
+                      <div
+                        key={item.id}
+                        className="py-4 first:pt-0 last:pb-0 space-y-1.5"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                            {item.title}
+                          </p>
+                          {status && (
+                            <Badge variant={status.variant}>{status.label}</Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-slate-600 dark:text-slate-300">
+                          {item.body}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {audienceLabel(item.audiences)}
+                          {item.schoolName
+                            ? ` · ${item.schoolName}`
+                            : " · All schools"}
+                          {item.createdAt
+                            ? ` · ${relativeTime(item.createdAt)}`
+                            : ""}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="force-logout">
+          <ForceLogoutCard schools={schools} notify={addNotification} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

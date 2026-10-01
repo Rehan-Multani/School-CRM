@@ -8,6 +8,7 @@ import { sectionOptions, subjectOptions, useTeacher } from '../../../context/Tea
 import { teacherApi } from '../../../api/teacher';
 import { fmtBytes } from '../../../lib/format';
 import { showError, toast } from '../../../lib/notify';
+import { useKeyboard } from '../../../lib/useKeyboard';
 import { Button, Input } from '../../../components/ui';
 import { Chip, EmptyState, ErrorView, FieldLabel, ProgressBar, Select, TextArea } from '../../../components/kit';
 import { radius, spacing } from '../../../theme';
@@ -30,6 +31,7 @@ const PICKER_TYPES = [
 export default function NewMaterial() {
   const { sectionId: preset } = useLocalSearchParams();
   const theme = useTheme();
+  const { keyboardHeight, keyboardVisible } = useKeyboard();
   const { slots, loadSlots } = useTeacher();
   const [slotErr, setSlotErr] = useState(null);
   const [form, setForm] = useState({ title: '', description: '', sectionId: preset || null, subjectId: null, visibility: 'SECTION' });
@@ -100,7 +102,15 @@ export default function NewMaterial() {
   const uploading = progress !== null;
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView style={{ backgroundColor: theme.bg }} contentContainerStyle={{ padding: spacing.lg, paddingBottom: 60 }} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        style={{ backgroundColor: theme.bg }}
+        contentContainerStyle={{
+          padding: spacing.lg,
+          paddingBottom: Math.max(60, keyboardVisible ? keyboardHeight + 80 : 60),
+        }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         <FieldLabel>File</FieldLabel>
         <Pressable
           onPress={pick}

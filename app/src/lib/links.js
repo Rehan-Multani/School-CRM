@@ -1,17 +1,19 @@
 import { Linking } from 'react-native';
-import { API_URL } from '../api/client';
+import { PLATFORM_URL, getAuthToken } from '../api/client';
 import { showError } from './notify';
 
-// Server origin (API_URL minus the /api/v1 suffix) — uploaded files are served
-// from `<origin>/uploads/...`.
-const ORIGIN = API_URL.replace(/\/api\/v\d+$/, '');
+// Uploaded files are served by platform-service, which the gateway only exposes
+// under /platform — `<gateway>/uploads/...` is a 404. The mount is JWT-gated
+// (requireUploadAccess); <Image> and Linking cannot send an Authorization
+// header, so the token rides in `?t=` exactly like the web panels' assetUrl().
 
 /** Absolute URL for a stored file path, or '' when it isn't a safe link. */
 export function fileUrl(path) {
   const p = String(path || '').trim();
   if (/^https?:\/\//i.test(p)) return p;
-  if (p.startsWith('/uploads/') && !p.includes('..')) return `${ORIGIN}${p}`;
-  return '';
+  if (!p.startsWith('/uploads/') || p.includes('..')) return '';
+  const token = getAuthToken();
+  return `${PLATFORM_URL}${p}${token ? `${p.includes('?') ? '&' : '?'}t=${encodeURIComponent(token)}` : ''}`;
 }
 
 // Only ever hand http(s) links to the OS — never `javascript:`, `intent:`,

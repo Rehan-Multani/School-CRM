@@ -1,5 +1,4 @@
 import { StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -13,31 +12,38 @@ function greeting() {
   return 'Good evening';
 }
 
-// Home-screen header shared by every role: school logo + name (multi-line wrapping) + greeting,
-// painted in the school's live accent color.
-export default function SchoolHeader({ children, right }) {
-  const { user, school } = useAuth();
+// Persistent sticky header title for the Home tab across all role tab bars
+export function HomeHeaderTitle() {
+  const { school } = useAuth();
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
+  return (
+    <View style={styles.homeHeaderTitleRow}>
+      <SchoolLogo school={school} size={32} />
+      <View style={styles.homeHeaderTitleInfo}>
+        <Text style={[styles.schoolTitle, { color: theme.onPrimary }]} numberOfLines={1}>
+          {school?.name || 'School'}
+        </Text>
+        {school?.academicSession ? (
+          <Text style={[styles.sessionTitle, { color: theme.onPrimary }]}>
+            Session {school.academicSession}
+          </Text>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
+// Hero banner shown on Home screen below the persistent sticky header
+export default function SchoolHeader({ children }) {
+  const { user } = useAuth();
+  const theme = useTheme();
   return (
     <LinearGradient
       colors={[theme.primary, theme.primaryDark]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={[styles.wrap, { paddingTop: insets.top + spacing.md }]}
+      style={styles.wrap}
     >
-      <View style={styles.schoolRow}>
-        <SchoolLogo school={school} size={42} />
-        <View style={styles.schoolInfo}>
-          <Text style={[styles.school, { color: theme.onPrimary }]} numberOfLines={3}>
-            {school?.name || 'School'}
-          </Text>
-          {school?.academicSession ? (
-            <Text style={[styles.session, { color: theme.onPrimary }]}>Session {school.academicSession}</Text>
-          ) : null}
-        </View>
-        {right}
-      </View>
       <Text style={[styles.greet, { color: theme.onPrimary }]}>{greeting()},</Text>
       <Text style={[styles.name, { color: theme.onPrimary }]} numberOfLines={1}>
         {user?.name || 'there'}
@@ -48,34 +54,32 @@ export default function SchoolHeader({ children, right }) {
 }
 
 const styles = StyleSheet.create({
-  wrap: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xxl,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-  },
-  schoolRow: {
+  homeHeaderTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    gap: 8,
+    maxWidth: 220,
   },
-  schoolInfo: {
-    flex: 1,
-    marginLeft: spacing.md,
-    marginRight: spacing.sm,
-    justifyContent: 'center',
+  homeHeaderTitleInfo: {
+    flexShrink: 1,
   },
-  school: {
-    fontSize: 16,
+  schoolTitle: {
+    fontSize: 15,
     fontWeight: '800',
-    lineHeight: 21,
     letterSpacing: -0.2,
   },
-  session: {
-    fontSize: font.xs,
+  sessionTitle: {
+    fontSize: 10,
     opacity: 0.85,
-    marginTop: 2,
+    marginTop: 1,
     fontWeight: '500',
+  },
+  wrap: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xl,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
   },
   greet: {
     fontSize: font.md,
@@ -88,3 +92,4 @@ const styles = StyleSheet.create({
     letterSpacing: -0.4,
   },
 });
+

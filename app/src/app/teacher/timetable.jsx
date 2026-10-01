@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useStyles, useTheme } from '../../context/ThemeContext';
@@ -28,8 +28,25 @@ function isPeriodNow(p, selectedDay) {
 export default function Timetable() {
   const theme = useTheme();
   const styles = useStyles(makeStyles);
+  const { width: screenWidth } = useWindowDimensions();
   const [day, setDay] = useState(todayCode);
   const state = useAsync(() => teacherApi.timetable(), []);
+  const dayScrollRef = useRef(null);
+  const dayLayouts = useRef({});
+
+  const scrollToDay = (targetDay, animated = true) => {
+    const layout = dayLayouts.current[targetDay];
+    if (layout && dayScrollRef.current) {
+      const chipCenter = layout.x + layout.width / 2;
+      const scrollX = Math.max(0, chipCenter - screenWidth / 2);
+      dayScrollRef.current.scrollTo({ x: scrollX, animated });
+    }
+  };
+
+  const handleSelectDay = (selectedDay) => {
+    setDay(selectedDay);
+    scrollToDay(selectedDay, true);
+  };
 
   return (
     <RefreshableScroll onRefresh={() => state.reload({ silent: true })} contentContainerStyle={{ padding: spacing.lg, flexGrow: 1 }}>
@@ -38,7 +55,13 @@ export default function Timetable() {
           const periods = tt.timetable?.[day] || [];
           return (
             <>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm, paddingBottom: spacing.md }}>
+              <ScrollView
+                ref={dayScrollRef}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.dayScroll}
+                contentContainerStyle={styles.dayScrollContent}
+              >
                 {(tt.days || []).map((d) => {
                   const count = tt.timetable?.[d]?.length;
                   const isToday = d === todayCode;
@@ -47,7 +70,16 @@ export default function Timetable() {
                       key={d}
                       label={`${d}${isToday ? ' (Today)' : ''}${count ? ` · ${count}` : ''}`}
                       active={d === day}
-                      onPress={() => setDay(d)}
+                      onPress={() => handleSelectDay(d)}
+                      onLayout={(e) => {
+                        const { x, width } = e.nativeEvent.layout;
+                        dayLayouts.current[d] = { x, width };
+                        if (d === day) {
+                          const chipCenter = x + width / 2;
+                          const scrollX = Math.max(0, chipCenter - screenWidth / 2);
+                          dayScrollRef.current?.scrollTo({ x: scrollX, animated: false });
+                        }
+                      }}
                     />
                   );
                 })}
@@ -81,29 +113,29 @@ export default function Timetable() {
                         ]}
                       >
                         <View style={styles.cardHeader}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <View style={styles.headerLeft}>
                             <View style={[styles.periodBox, { backgroundColor: active ? theme.primary : alpha(theme.primary, 0.12) }]}>
                               <Text style={[styles.periodNumber, { color: active ? theme.onPrimary : theme.primary }]}>
                                 P{p.periodNumber}
                               </Text>
                             </View>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                            <View style={styles.timeRow}>
                               <Ionicons name="time-outline" size={14} color={theme.textMuted} />
-                              <Text style={styles.timeText}>
+                              <Text style={styles.timeText} numberOfLines={1}>
                                 {fmtHM(p.startTime)} – {fmtHM(p.endTime)}
                               </Text>
                             </View>
                           </View>
 
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                            {active ? <Badge label="LIVE NOW" tone="success" icon="radio-button-on" /> : null}
-                            <Badge label={withPrefix('Class', `${p.className}-${p.sectionName}`)} tone="primary" />
-                          </View>
+                          <Badge label={withPrefix('Class', `${p.className}-${p.sectionName}`)} tone="primary" />
                         </View>
 
-                        <Text style={styles.subjectTitle}>
-                          {p.subjectName || 'Period'}
-                        </Text>
+                        <View style={styles.subjectRow}>
+                          <Text style={styles.subjectTitle} numberOfLines={1}>
+                            {p.subjectName || 'Period'}
+                          </Text>
+                          {active ? <Badge label="LIVE NOW" tone="success" icon="radio-button-on" /> : null}
+                        </View>
 
                         <View style={styles.cardFooter}>
                           {p.room ? (
@@ -135,6 +167,17 @@ export default function Timetable() {
 
 const makeStyles = (t) =>
   StyleSheet.create({
+    dayScroll: {
+      flexGrow: 0,
+      marginHorizontal: -spacing.lg,
+      marginBottom: spacing.xs,
+    },
+    dayScrollContent: {
+      paddingHorizontal: spacing.lg,
+      gap: spacing.sm,
+      paddingVertical: spacing.xs,
+      alignItems: 'center',
+    },
     dayRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -156,7 +199,33 @@ const makeStyles = (t) =>
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      gap: spacing.xs,
       marginBottom: spacing.xs,
+    },
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      flexShrink: 1,
+    },
+    timeRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      flexShrink: 1,
+    },
+    subjectRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: spacing.sm,
+      marginTop: 2,
+    },
+    subjectTitle: {
+      fontSize: font.lg,
+      fontWeight: '800',
+      color: t.text,
+      flexShrink: 1,
     },
     periodBox: {
       paddingHorizontal: 8,
@@ -173,12 +242,6 @@ const makeStyles = (t) =>
       fontSize: font.xs,
       fontWeight: '600',
       color: t.textMuted,
-    },
-    subjectTitle: {
-      fontSize: font.lg,
-      fontWeight: '800',
-      color: t.text,
-      marginTop: 2,
     },
     cardFooter: {
       flexDirection: 'row',

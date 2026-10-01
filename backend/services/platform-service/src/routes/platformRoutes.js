@@ -3,7 +3,9 @@ import {
   loginRateLimiter,
   passwordResetRateLimiter,
   appPasswordResetRateLimiter,
+  otpLoginRateLimiter,
 } from '../middleware/loginRateLimiter.js';
+import { requestLoginOtp, verifyLoginOtp, selectLoginOtpAccount } from '../controllers/otpLogin.controller.js';
 import {
   requestPasswordResetOtp,
   verifyPasswordResetOtp,
@@ -15,6 +17,14 @@ import teacherApkRoutes from './teacher.routes.js';
 import studentApkRoutes from './student.routes.js';
 import parentApkRoutes from './parent.routes.js';
 import driverRoutes from './driver.routes.js';
+import {
+  notifyAppUpdate,
+  getLogoutNotice,
+  superForceLogout,
+  superForceLogoutHistory,
+} from '../controllers/appSession.controller.js';
+import transportManagerRoutes from './transportManager.routes.js';
+import { getTransportOverview, getTransportRouteRun } from '../controllers/transportManager.controller.js';
 import {
   getSafePickupSettings,
   updateSafePickupClass,
@@ -654,10 +664,14 @@ router.get('/school-portal/accountant/settings', requireAccountant, getAccountan
 router.patch('/school-portal/accountant/settings', requireAccountant, updateAccountantSettings);
 router.post('/school-auth/forgot-password', passwordResetRateLimiter, schoolAdminForgotPassword);
 router.post('/school-auth/reset-password', passwordResetRateLimiter, schoolAdminResetPassword);
-// Mobile-app roles (teacher / student / parent / driver): forgot password by SMS OTP.
+// Mobile-app roles (teacher / student / parent / transport manager / driver): forgot password by SMS OTP.
 router.post('/school-portal/auth/forgot-password', appPasswordResetRateLimiter, requestPasswordResetOtp);
 router.post('/school-portal/auth/verify-reset-otp', appPasswordResetRateLimiter, verifyPasswordResetOtp);
 router.post('/school-portal/auth/reset-password', appPasswordResetRateLimiter, resetPasswordWithOtpToken);
+// Student / parent apps: sign in with the mobile number given at admission + SMS OTP.
+router.post('/school-portal/auth/otp-login/request', otpLoginRateLimiter, requestLoginOtp);
+router.post('/school-portal/auth/otp-login/verify', otpLoginRateLimiter, verifyLoginOtp);
+router.post('/school-portal/auth/otp-login/select', otpLoginRateLimiter, selectLoginOtpAccount);
 router.get('/school-portal/dashboard/summary', requirePrincipal, getSchoolAdminDashboardSummary);
 router.get('/school-portal/reports/summary', requirePrincipal, getSchoolReportsSummary);
 router.get('/school-portal/reports/data', requirePrincipal, getCategoryReportData);
@@ -1007,6 +1021,10 @@ router.get('/school-portal/transport/fees', requireSchoolAdmin, listTransportFee
 router.put('/school-portal/transport/fees/:academicYearId', requireSchoolAdmin, setTransportFee);
 router.delete('/school-portal/transport/fees/:academicYearId', requireSchoolAdmin, deleteTransportFee);
 
+// 7 · Daily pickup / drop status — read-only here; it is recorded from the Transport Manager app
+router.get('/school-portal/transport/daily', requireSchoolAdmin, getTransportOverview);
+router.get('/school-portal/transport/daily/:routeId', requireSchoolAdmin, validateObjectId('routeId'), getTransportRouteRun);
+
 // ==========================================
 // HR Management Endpoints (accessible by School Admin & HR)
 // ==========================================
@@ -1242,6 +1260,12 @@ router.get('/app-config', getPlatformSettings);
 router.put('/app-config', requireSuperAdmin, updatePlatformSettings);
 router.put('/app-config/logo', requireSuperAdmin, uploadPlatformLogo, updatePlatformLogo);
 router.delete('/app-config/logo', requireSuperAdmin, deletePlatformLogo);
+
+// Mobile app: version-update push, and force logout of app roles (see appSession.service.js).
+router.post('/app-config/notify-update', requireSuperAdmin, notifyAppUpdate);
+router.get('/app-config/logout-notice', getLogoutNotice); // public — the app asks after a 401
+router.get('/app-config/force-logout', requireSuperAdmin, superForceLogoutHistory);
+router.post('/app-config/force-logout', requireSuperAdmin, superForceLogout);
 router.get('/reports', requireSuperAdmin, getReportSummary);
 router.get('/reports/schools', requireSuperAdmin, listSchoolReports);
 router.get('/reports/subscriptions', requireSuperAdmin, listSubscriptionReports);
@@ -1267,6 +1291,9 @@ router.use(parentApkRoutes);
 
 // ===================== Driver Portal (see driver.routes.js) =====================
 router.use(driverRoutes);
+
+// ============ Transport Manager app (see transportManager.routes.js) ============
+router.use(transportManagerRoutes);
 
 router.get('/', getServiceInfo);
 router.use(notFound);

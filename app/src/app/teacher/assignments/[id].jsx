@@ -47,7 +47,7 @@ function GradeSheet({ assignment, row, onClose, onSaved }) {
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' }} onPress={onClose} />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView behavior="padding">
         <View style={{ backgroundColor: theme.surface, borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: spacing.lg, paddingBottom: insets.bottom + spacing.lg }}>
           <Text style={{ fontSize: font.lg, fontWeight: '800', color: theme.text }}>Grade · {row.studentName}</Text>
           <Text style={{ color: theme.textMuted, marginBottom: spacing.lg }}>Out of {assignment.maxMarks}</Text>

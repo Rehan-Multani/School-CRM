@@ -392,6 +392,10 @@ export const platformAppConfigApi = {
       .then((res) => res.data);
   },
   removeLogo: () => apiClient.delete('/platform/app-config/logo').then((res) => res.data),
+  // Mobile app: push the saved version to every phone, and force logout of app roles.
+  notifyUpdate: () => apiClient.post('/platform/app-config/notify-update').then((res) => res.data),
+  forceLogout: (payload) => apiClient.post('/platform/app-config/force-logout', payload).then((res) => res.data),
+  forceLogoutHistory: () => apiClient.get('/platform/app-config/force-logout').then((res) => res.data),
 };
 
 export const platformSchoolApi = {

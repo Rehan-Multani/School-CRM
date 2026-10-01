@@ -39,6 +39,18 @@ export const appPasswordResetRateLimiter = rateLimit({
   },
 });
 
+// Student / parent sign-in by mobile OTP. One sign-in is 2-3 calls (+ resends)
+// and a school's phones often share one Wi-Fi IP. This only bounds the IP; the
+// OTP itself is capped in the service (5 attempts, 3 resends, 5 SMS an hour
+// per number), which is the real brute-force and SMS-flood guard.
+export const otpLoginRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 40,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many login attempts. Please try again later.' },
+});
+
 // Authenticated change-password: a stolen session token must not become an
 // unlimited oracle for the current password. Keyed per account (mount AFTER
 // the role guard) so teachers sharing a school Wi-Fi IP don't block each other.

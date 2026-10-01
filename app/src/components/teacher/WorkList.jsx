@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -38,11 +38,16 @@ export default function WorkList({ kind, sectionId }) {
   const [status, setStatus] = useState('ALL');
 
   const header = (
-    <View style={styles.filters}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.filtersScroll}
+      contentContainerStyle={styles.filters}
+    >
       {cfg.statuses.map((s) => (
         <Chip key={s} label={s} active={status === s} onPress={() => setStatus(s)} />
       ))}
-    </View>
+    </ScrollView>
   );
 
   return (
@@ -98,7 +103,16 @@ export default function WorkList({ kind, sectionId }) {
 
 const makeStyles = (t) =>
   StyleSheet.create({
-    filters: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, paddingVertical: spacing.md, paddingHorizontal: spacing.lg },
+    filtersScroll: {
+      flexGrow: 0,
+    },
+    filters: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.lg,
+      alignItems: 'center',
+    },
     card: {
       backgroundColor: t.surface,
       borderRadius: 16,

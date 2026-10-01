@@ -7,6 +7,7 @@ import SchoolsIndex from '../pages/schools/SchoolsIndex';
 import PlansIndex from '../pages/subscriptions/PlansIndex';
 import SubscriptionsIndex from '../pages/subscriptions/SubscriptionsIndex';
 import NotificationsIndex from '../pages/notifications/NotificationsIndex';
+import AppVersionIndex from '../pages/app-version/AppVersionIndex';
 import RevenueIndex from '../pages/revenue/RevenueIndex';
 import ReportsIndex from '../pages/reports/ReportsIndex';
 import PrivacyPolicyIndex from '../pages/privacy/PrivacyPolicyIndex';
@@ -82,6 +83,14 @@ export const SuperAdminRoutes = () => {
         element={
           <ProtectedRoute>
             <NotificationsIndex />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="app-version"
+        element={
+          <ProtectedRoute>
+            <AppVersionIndex />
           </ProtectedRoute>
         }
       />

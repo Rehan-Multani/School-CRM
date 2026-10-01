@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useStyles } from '../../../context/ThemeContext';
-import { studentApi } from '../../../api/student';
+import { usePortal } from '../../../context/PortalScope';
 import { useAsync } from '../../../lib/useAsync';
 import { fmtDate } from '../../../lib/format';
 import { Card } from '../../../components/ui';
@@ -12,9 +12,10 @@ import RefreshableScroll from '../../../components/RefreshableScroll';
 import { font, spacing } from '../../../theme';
 
 export default function ResultDetail() {
+  const { api, scopeKey } = usePortal();
   const { examId } = useLocalSearchParams();
   const styles = useStyles(makeStyles);
-  const state = useAsync(() => studentApi.result(examId), [examId]);
+  const state = useAsync(() => api.result(examId), [examId, scopeKey]);
 
   // RESULT_NOT_PUBLISHED is an expected state, not an error (doc §6.6).
   if (state.error?.code === 'RESULT_NOT_PUBLISHED') {

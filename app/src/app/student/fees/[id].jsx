@@ -1,7 +1,7 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
-import { studentApi } from '../../../api/student';
+import { usePortal } from '../../../context/PortalScope';
 import { useAsync } from '../../../lib/useAsync';
 import { fmtDate } from '../../../lib/format';
 import { Card } from '../../../components/ui';
@@ -9,6 +9,7 @@ import { AsyncView, Badge, SectionTitle } from '../../../components/kit';
 import { SkeletonDetail } from '../../../components/Skeleton';
 import { INVOICE_TONE, money } from '../../../components/student/status';
 import RefreshableScroll from '../../../components/RefreshableScroll';
+import PayNow from '../../../components/parent/PayNow';
 import { font, spacing } from '../../../theme';
 
 function Line({ label, value, strong, color, styles }) {
@@ -20,12 +21,14 @@ function Line({ label, value, strong, color, styles }) {
   );
 }
 
-// View only — heads, discounts, totals and the payments recorded against it.
+// Heads, discounts, totals and the payments recorded against it. View only for
+// a student; in the Parent app (`canPay`) it also carries Pay Now and receipts.
 export default function InvoiceDetail() {
+  const { api, scopeKey, canPay, base } = usePortal();
   const { id } = useLocalSearchParams();
   const theme = useTheme();
   const styles = useStyles(makeStyles);
-  const state = useAsync(() => studentApi.invoice(id), [id]);
+  const state = useAsync(() => api.invoice(id), [id, scopeKey]);
 
   return (
     <RefreshableScroll onRefresh={() => state.reload({ silent: true })} contentContainerStyle={{ padding: spacing.lg, paddingBottom: 60, flexGrow: 1 }}>
@@ -66,18 +69,28 @@ export default function InvoiceDetail() {
             <Card>
               {inv.payments?.length ? (
                 inv.payments.map((p) => (
-                  <View key={p.id} style={styles.payment}>
+                  <Pressable
+                    key={p.id}
+                    disabled={!canPay || p.status !== 'COMPLETED'}
+                    onPress={() => router.push(`${base}/fees/receipt/${p.id}`)}
+                    style={({ pressed }) => [styles.payment, pressed && { opacity: 0.7 }]}
+                  >
                     <Line styles={styles} label={fmtDate(p.paymentDate)} value={money(p.amount)} strong />
                     <Text style={styles.muted}>
                       {String(p.paymentMethod || '').replace(/_/g, ' ')} · Receipt {p.receiptNumber} · {p.status}
+                      {canPay && p.status === 'COMPLETED' ? ' · View receipt ›' : ''}
                     </Text>
-                  </View>
+                  </Pressable>
                 ))
               ) : (
                 <Text style={styles.muted}>No payments recorded yet.</Text>
               )}
             </Card>
-            <Text style={[styles.muted, { marginTop: spacing.lg, textAlign: 'center' }]}>Ask your parent to pay from the Parent app.</Text>
+            {canPay ? (
+              <PayNow invoice={inv} onChanged={() => state.reload({ silent: true })} />
+            ) : (
+              <Text style={[styles.muted, { marginTop: spacing.lg, textAlign: 'center' }]}>Ask your parent to pay from the Parent app.</Text>
+            )}
           </>
         )}
       </AsyncView>

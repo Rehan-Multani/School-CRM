@@ -1,11 +1,20 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '../../context/ThemeContext';
-import { StudentProvider } from '../../context/StudentContext';
+import { StudentProvider, useStudent } from '../../context/StudentContext';
+import { PortalScopeProvider, STUDENT_SCOPE } from '../../context/PortalScope';
 import { studentApi } from '../../api/student';
 import { registerPushToken } from '../../lib/permissions';
 import HeaderBack from '../../components/HeaderBack';
+
+// The shared screens read their API/route prefix from the PortalScope; for a
+// student that is the default scope plus this role's bell-badge controls.
+function StudentScope({ children }) {
+  const { setUnread, refreshUnread } = useStudent();
+  const scope = useMemo(() => ({ ...STUDENT_SCOPE, setUnread, refreshUnread }), [setUnread, refreshUnread]);
+  return <PortalScopeProvider value={scope}>{children}</PortalScopeProvider>;
+}
 
 // Student flow = bottom tabs `(tabs)` + pushed detail screens. Mostly read-only
 // (doc §0): a student can only write homework submissions, leave, own
@@ -22,6 +31,7 @@ export default function StudentLayout() {
 
   return (
     <StudentProvider>
+      <StudentScope>
       <StatusBar style={theme.onPrimary === '#FFFFFF' ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
@@ -57,6 +67,7 @@ export default function StudentLayout() {
         <Stack.Screen name="profile/settings" options={{ title: 'Notification Settings' }} />
         <Stack.Screen name="profile/change-password" options={{ title: 'Change Password' }} />
       </Stack>
+      </StudentScope>
     </StudentProvider>
   );
 }

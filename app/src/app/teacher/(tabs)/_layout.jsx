@@ -1,8 +1,10 @@
 import { Tabs } from 'expo-router';
 import { useTheme } from '../../../context/ThemeContext';
+import { spacing } from '../../../theme';
 import Bell from '../../../components/teacher/Bell';
 import HeaderActions from '../../../components/HeaderActions';
 import FloatingTabBar from '../../../components/FloatingTabBar';
+import { HomeHeaderTitle } from '../../../components/SchoolHeader';
 
 // Doc §5 bottom nav: Home · Classes · Attendance · Inbox · Profile. All colors
 // come from the school theme, so an admin-panel change repaints live.
@@ -23,7 +25,10 @@ export default function TeacherTabs() {
         headerStyle: { backgroundColor: theme.primary },
         headerTintColor: theme.onPrimary,
         headerTitleStyle: { fontWeight: '700' },
+        headerTitleAlign: 'left',
         headerShadowVisible: false,
+        headerLeftContainerStyle: { paddingLeft: spacing.lg },
+        headerRightContainerStyle: { paddingRight: spacing.lg },
         sceneStyle: { backgroundColor: theme.bg },
         tabBarStyle: {
           position: 'absolute',
@@ -39,13 +44,12 @@ export default function TeacherTabs() {
           name={t.name}
           options={{
             title: t.title,
-            // Home paints its own hero header (with its own bell).
-            headerShown: t.name !== 'index',
+            headerTitle: t.name === 'index' ? () => <HomeHeaderTitle /> : undefined,
             // Show profile icon and bell on all tabs in top-right.
             headerRight: () => (
               <HeaderActions
                 bell={<Bell />}
-                showProfile={true}
+                showProfile={t.name !== 'profile'}
               />
             ),
           }}

@@ -2,24 +2,26 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
+import { usePortal } from '../../../context/PortalScope';
 import RefreshableScroll from '../../../components/RefreshableScroll';
 import { font, radius, spacing } from '../../../theme';
 import { alpha } from '../../../theme/colors';
 
 const TILES = [
-  { icon: 'calendar-outline', label: 'Timetable', sub: 'Weekly schedule & rooms', to: '/student/timetable', color: '#3b82f6' },
-  { icon: 'book-outline', label: 'Homework', sub: 'View & submit tasks', to: '/student/homework', color: '#f59e0b' },
-  { icon: 'clipboard-outline', label: 'Classwork', sub: 'Daily notes & exercises', to: '/student/classwork', color: '#10b981' },
-  { icon: 'folder-open-outline', label: 'Study Material', sub: 'Notes, PDFs & slides', to: '/student/materials', color: '#8b5cf6' },
-  { icon: 'create-outline', label: 'Exams', sub: 'Date sheets & syllabus', to: '/student/exams', color: '#ec4899' },
-  { icon: 'ribbon-outline', label: 'Results', sub: 'Declared exam marks', to: '/student/results', color: '#6366f1' },
-  { icon: 'document-text-outline', label: 'Report Card', sub: 'Cumulative performance', to: '/student/report-card', color: '#14b8a6' },
-  { icon: 'wallet-outline', label: 'Fee Invoices', sub: 'Dues & receipts', to: '/student/fees', color: '#f97316' },
+  { icon: 'calendar-outline', label: 'Timetable', sub: 'Weekly schedule & rooms', to: 'timetable', color: '#3b82f6' },
+  { icon: 'book-outline', label: 'Homework', sub: 'View & submit tasks', readOnlySub: 'Tasks & submission status', to: 'homework', color: '#f59e0b' },
+  { icon: 'clipboard-outline', label: 'Classwork', sub: 'Daily notes & exercises', to: 'classwork', color: '#10b981' },
+  { icon: 'folder-open-outline', label: 'Study Material', sub: 'Notes, PDFs & slides', to: 'materials', color: '#8b5cf6' },
+  { icon: 'create-outline', label: 'Exams', sub: 'Date sheets & syllabus', to: 'exams', color: '#ec4899' },
+  { icon: 'ribbon-outline', label: 'Results', sub: 'Declared exam marks', to: 'results', color: '#6366f1' },
+  { icon: 'document-text-outline', label: 'Report Card', sub: 'Cumulative performance', to: 'report-card', color: '#14b8a6' },
+  { icon: 'wallet-outline', label: 'Fee Invoices', sub: 'Dues & receipts', to: 'fees', color: '#f97316' },
 ];
 
 export default function Academics() {
   const theme = useTheme();
   const styles = useStyles(makeStyles);
+  const { base, readOnly } = usePortal();
 
   return (
     <RefreshableScroll contentContainerStyle={{ padding: spacing.lg, paddingBottom: 110 }}>
@@ -29,14 +31,14 @@ export default function Academics() {
           return (
             <Pressable
               key={t.to}
-              onPress={() => router.push(t.to)}
+              onPress={() => router.push(`${base}/${t.to}`)}
               style={({ pressed }) => [
                 styles.tile,
                 { backgroundColor: theme.surface, borderColor: theme.border },
                 pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] },
               ]}
               accessibilityRole="button"
-              accessibilityLabel={`${t.label}, ${t.sub}`}
+              accessibilityLabel={`${t.label}, ${(readOnly && t.readOnlySub) || t.sub}`}
             >
               <View style={styles.tileTop}>
                 <View style={[styles.iconBox, { backgroundColor: alpha(accentColor, 0.12) }]}>
@@ -49,7 +51,7 @@ export default function Academics() {
                 {t.label}
               </Text>
               <Text style={styles.sub} numberOfLines={2}>
-                {t.sub}
+                {(readOnly && t.readOnlySub) || t.sub}
               </Text>
             </Pressable>
           );

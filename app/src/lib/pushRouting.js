@@ -19,8 +19,20 @@ const ROUTES = {
     notice: (id) => (id ? `/student/notice/${id}` : '/student/notifications'),
     default: () => '/student/notifications',
   },
-  PARENT: { default: () => '/parent' },
-  DRIVER: { default: () => '/driver' },
+  // Child screens open for the currently selected child.
+  PARENT: {
+    homework: (id) => (id ? `/parent/homework/${id}` : '/parent/homework'),
+    assignment: (id) => (id ? `/parent/classwork/${id}` : '/parent/classwork'),
+    attendance: () => '/parent/attendance',
+    result: (id) => (id ? `/parent/results/${id}` : '/parent/results'),
+    exam: (id) => (id ? `/parent/exams/${id}` : '/parent/exams'),
+    fee: () => '/parent/fees',
+    payment: () => '/parent/fees/receipts',
+    pickup: (id) => (id ? `/parent/pickup/${id}` : '/parent/pickup'),
+    notice: (id) => (id ? `/parent/notice/${id}` : '/parent/notices'),
+    default: () => '/parent/notices',
+  },
+  TRANSPORT: { default: () => '/transport' },
 };
 
 export function routeForLink(role, link) {

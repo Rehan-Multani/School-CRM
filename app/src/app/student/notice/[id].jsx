@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useStyles } from '../../../context/ThemeContext';
-import { studentApi } from '../../../api/student';
+import { usePortal } from '../../../context/PortalScope';
 import { useAsync } from '../../../lib/useAsync';
 import { fmtDateTime } from '../../../lib/format';
 import { Card } from '../../../components/ui';
@@ -13,13 +13,14 @@ import { font, spacing } from '../../../theme';
 
 // Opening a notice marks it read (doc §6.9).
 export default function NoticeDetail() {
+  const { api, scopeKey } = usePortal();
   const { id } = useLocalSearchParams();
   const styles = useStyles(makeStyles);
-  const state = useAsync(() => studentApi.notice(id), [id]);
+  const state = useAsync(() => api.notice(id), [id, scopeKey]);
 
   useEffect(() => {
-    studentApi.markNoticeRead(id).catch(() => {});
-  }, [id]);
+    api.markNoticeRead(id).catch(() => {});
+  }, [api, id, scopeKey]);
 
   return (
     <RefreshableScroll onRefresh={() => state.reload({ silent: true })} contentContainerStyle={{ padding: spacing.lg, flexGrow: 1 }}>

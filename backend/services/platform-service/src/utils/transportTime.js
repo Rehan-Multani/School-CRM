@@ -38,16 +38,25 @@ export function normalizeTime(value, label) {
   );
 }
 
-/** Today as YYYY-MM-DD. */
+/**
+ * Today as YYYY-MM-DD on the server's local clock, which config/timezone.js
+ * pins to the schools' timezone. (toISOString() is UTC: before 05:30 IST it is
+ * still "yesterday", and an early-morning pickup would be refused as a future date.)
+ */
 export function todayStr() {
-  return new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
 /** Validate an inbound YYYY-MM-DD, defaulting to today when omitted. */
 export function normalizeDate(value) {
   if (value === undefined || value === null || value === '') return todayStr();
   const raw = String(value).trim();
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw) || Number.isNaN(Date.parse(raw))) {
+  // The round trip rejects days the calendar does not have: Date.parse accepts
+  // "2026-02-31" and quietly rolls it into March.
+  const parsed = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? new Date(`${raw}T00:00:00Z`) : null;
+  if (!parsed || Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== raw) {
     throw new AppError('date must be in YYYY-MM-DD format', 400, TRANSPORT_ERR.VALIDATION_ERROR);
   }
   return raw;

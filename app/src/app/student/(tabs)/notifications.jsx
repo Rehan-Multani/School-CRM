@@ -3,8 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
-import { useStudent } from '../../../context/StudentContext';
-import { studentApi } from '../../../api/student';
+import { usePortal } from '../../../context/PortalScope';
 import { fmtDate, fmtDateTime, fmtTime } from '../../../lib/format';
 import { showError, toast } from '../../../lib/notify';
 import PagedList from '../../../components/PagedList';
@@ -59,16 +58,16 @@ function getNotificationMeta(title = '', body = '', theme) {
   return { icon: 'notifications-outline', color: theme.primary };
 }
 
-// Tap marks one read; the tab badge / bell stay in sync via StudentContext.
+// Tap marks one read; the tab badge / bell stay in sync via the role context.
 function Notifications() {
   const theme = useTheme();
   const styles = useStyles(makeStyles);
-  const { setUnread, refreshUnread } = useStudent();
+  const { api, role, setUnread, refreshUnread } = usePortal();
   const list = useRef(null);
 
   const markAll = async () => {
     try {
-      await studentApi.markAllNotificationsRead();
+      await api.markAllNotificationsRead();
       list.current?.update((items) => items.map((n) => ({ ...n, isRead: true })));
       setUnread(0);
       toast.success('All marked as read');
@@ -79,11 +78,11 @@ function Notifications() {
 
   const open = async (n) => {
     // Deep link (homework, leave, result…) opens that screen; read or not.
-    if (n.link?.type) openNotificationLink('STUDENT', n.link);
+    if (n.link?.type) openNotificationLink(role, n.link);
     if (n.isRead) return;
     list.current?.update((items) => items.map((x) => (x.id === n.id ? { ...x, isRead: true } : x)));
     try {
-      await studentApi.markNotificationRead(n.id);
+      await api.markNotificationRead(n.id);
     } catch {
       // badge re-syncs below either way
     } finally {
@@ -94,7 +93,7 @@ function Notifications() {
   return (
     <PagedList
       ref={list}
-      fetchPage={(page) => studentApi.notifications({ page, limit: 20 })}
+      fetchPage={(page) => api.notifications({ page, limit: 20 })}
       ListHeaderComponent={<ReadAllLink onPress={markAll} />}
       contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: 110, flexGrow: 1 }}
       ListEmptyComponent={<EmptyState icon="notifications-off-outline" title="You're all caught up" subtitle="No new alerts right now" />}
@@ -157,12 +156,13 @@ function Notifications() {
 
 // Opening a notice marks it read (on the detail screen).
 function Notices() {
+  const { api, base } = usePortal();
   const theme = useTheme();
   const styles = useStyles(makeStyles);
   const list = useRef(null);
   const markAll = async () => {
     try {
-      await studentApi.markAllNoticesRead();
+      await api.markAllNoticesRead();
       list.current?.update((items) => items.map((n) => ({ ...n, isRead: true })));
       toast.success('All notices marked read');
     } catch (e) {
@@ -172,7 +172,7 @@ function Notices() {
   return (
     <PagedList
       ref={list}
-      fetchPage={(page) => studentApi.notices({ page, limit: 20 })}
+      fetchPage={(page) => api.notices({ page, limit: 20 })}
       ListHeaderComponent={<ReadAllLink onPress={markAll} />}
       contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: 110, flexGrow: 1 }}
       ListEmptyComponent={<EmptyState icon="megaphone-outline" title="No notices" subtitle="No announcements posted yet" />}
@@ -182,7 +182,7 @@ function Notices() {
           <Pressable
             onPress={() => {
               list.current?.update((items) => items.map((n) => (n.id === item.id ? { ...n, isRead: true } : n)));
-              router.push(`/student/notice/${item.id}`);
+              router.push(`${base}/notice/${item.id}`);
             }}
             style={({ pressed }) => [
               styles.card,
@@ -243,13 +243,14 @@ function Notices() {
 }
 
 function Events() {
+  const { api } = usePortal();
   const styles = useStyles(makeStyles);
   const theme = useTheme();
   const [scope, setScope] = useState('upcoming');
   return (
     <PagedList
       deps={[scope]}
-      fetchPage={(page) => studentApi.events({ page, limit: 20, scope })}
+      fetchPage={(page) => api.events({ page, limit: 20, scope })}
       skeleton={<SkeletonCards padded={false} />}
       contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: 110, flexGrow: 1 }}
       ListHeaderComponent={
@@ -295,7 +296,8 @@ const TABS = ['notifications', 'notices', 'events'];
 export default function StudentNotifications() {
   const theme = useTheme();
   const params = useLocalSearchParams();
-  const [tab, setTab] = useState('notifications');
+  const { inboxTab } = usePortal();
+  const [tab, setTab] = useState(inboxTab);
   const [seenParam, setSeenParam] = useState(null);
 
   if (params.tab && params.tab !== seenParam) {

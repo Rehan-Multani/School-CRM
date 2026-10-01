@@ -182,9 +182,11 @@ if (WATCH) {
     const root = path.join(__dirname, 'services', svc.dir);
     const onChange = debounced((files) => restart(svc, `changed: ${files.slice(0, 3).join(', ')}${files.length > 3 ? ' …' : ''}`));
     watch(path.join(root, 'src'), onChange);
-    // .env sits in the service root; watch just that file.
-    const envFile = path.join(root, '.env');
-    if (fs.existsSync(envFile)) fs.watch(envFile, () => onChange('.env'));
+  }
+  // Watch root .env for all services
+  const rootEnv = path.join(__dirname, '.env');
+  if (fs.existsSync(rootEnv)) {
+    fs.watch(rootEnv, () => SERVICES.forEach((svc) => restart(svc, 'root .env changed')));
   }
   // Shared code is imported by every service.
   watch(

@@ -56,6 +56,11 @@ const EXEMPT_PATHS = [
   '/school-portal/driver/change-password',
   '/school-portal/driver/auth/logout',
   '/school-portal/driver/account/delete',
+  // Transport Manager app self-service — same rationale.
+  '/school-portal/transport-manager/auth',
+  '/school-portal/transport-manager/me',
+  '/school-portal/transport-manager/change-password',
+  '/school-portal/transport-manager/account/delete',
 ];
 
 function isExemptPath(path) {

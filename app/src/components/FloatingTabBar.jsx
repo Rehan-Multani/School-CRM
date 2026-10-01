@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../context/ThemeContext';
 import { useTeacher } from '../context/TeacherContext';
 import { alpha } from '../theme';
@@ -13,6 +14,8 @@ const TAB_DEFAULTS = {
   inbox: { title: 'Inbox', icon: 'mail' },
   academics: { title: 'Academics', icon: 'library' },
   notifications: { title: 'Alerts', icon: 'notifications' },
+  notices: { title: 'Notices', icon: 'megaphone' },
+  fleet: { title: 'Fleet', icon: 'bus' },
   profile: { title: 'Profile', icon: 'person' },
 };
 
@@ -184,7 +187,14 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
   const bottomOffset = Math.max(insets.bottom, 10) + (Platform.OS === 'ios' ? 2 : 6);
 
   return (
-    <View pointerEvents="box-none" style={[styles.floatingWrapper, { bottom: bottomOffset }]}>
+    <View style={[styles.floatingWrapper, { paddingBottom: bottomOffset, backgroundColor: theme.bg }]}>
+      {/* Opaque footer + soft fade: scrolled content ends above the bar instead of
+          showing through behind and below the pill. */}
+      <LinearGradient
+        pointerEvents="none"
+        colors={[alpha(theme.bg, 0), theme.bg]}
+        style={styles.fade}
+      />
       <View
         style={[
           styles.floatingBar,
@@ -247,8 +257,18 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
 const styles = StyleSheet.create({
   floatingWrapper: {
     position: 'absolute',
-    left: 14,
-    right: 14,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 14,
+    paddingTop: 6,
+  },
+  fade: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: -18,
+    height: 18,
   },
   floatingBar: {
     flexDirection: 'row',

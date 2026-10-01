@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useStyles } from '../../../context/ThemeContext';
-import { studentApi } from '../../../api/student';
+import { usePortal } from '../../../context/PortalScope';
 import { fmtDate } from '../../../lib/format';
 import PagedList from '../../../components/PagedList';
 import { EmptyState, StatusBadge } from '../../../components/kit';
@@ -10,15 +10,17 @@ import { font, radius, spacing } from '../../../theme';
 
 // Read-only work your teachers published to your section.
 export default function ClassworkList() {
+  const { api, base, scopeKey } = usePortal();
   const styles = useStyles(makeStyles);
   return (
     <PagedList
-      fetchPage={(page) => studentApi.classworkList({ page, limit: 20 })}
+      deps={[scopeKey]}
+      fetchPage={(page) => api.classworkList({ page, limit: 20 })}
       skeleton={<SkeletonCards padded={false} />}
       contentContainerStyle={{ paddingTop: spacing.md }}
       ListEmptyComponent={<EmptyState icon="clipboard-outline" title="No classwork yet" />}
       renderItem={({ item }) => (
-        <Pressable onPress={() => router.push(`/student/classwork/${item.id}`)} style={({ pressed }) => [styles.card, pressed && { opacity: 0.8 }]}>
+        <Pressable onPress={() => router.push(`${base}/classwork/${item.id}`)} style={({ pressed }) => [styles.card, pressed && { opacity: 0.8 }]}>
           <View style={styles.row}>
             <Text style={styles.subject}>{item.subjectName || 'General'}</Text>
             <StatusBadge status={item.status} />

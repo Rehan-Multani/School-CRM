@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { errorText } from '../../lib/format';
 import { showError, toast } from '../../lib/notify';
+import { useKeyboardScroll } from '../../lib/useKeyboard';
 import { Button, Input } from '../ui';
 import { font, radius, spacing } from '../../theme';
 import { alpha } from '../../theme/colors';
@@ -13,6 +14,12 @@ import { alpha } from '../../theme/colors';
 export default function ChangePasswordScreen({ changePassword }) {
   const theme = useTheme();
   const { setToken } = useAuth();
+  const {
+    scrollRef,
+    keyboardHeight,
+    keyboardVisible,
+    scrollToInput,
+  } = useKeyboardScroll({ defaultOffset: 100, autoReset: false });
   const [f, setF] = useState({ current: '', next: '', confirm: '' });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -60,9 +67,14 @@ export default function ChangePasswordScreen({ changePassword }) {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
+        ref={scrollRef}
         style={{ backgroundColor: theme.bg }}
-        contentContainerStyle={{ padding: spacing.lg, paddingBottom: 60 }}
+        contentContainerStyle={{
+          padding: spacing.lg,
+          paddingBottom: Math.max(60, keyboardVisible ? keyboardHeight + 80 : 60),
+        }}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
         {/* Security Banner */}
         <View style={[styles.banner, { backgroundColor: alpha(theme.primary, theme.isDark ? 0.18 : 0.08), borderColor: alpha(theme.primary, 0.25) }]}>
@@ -85,6 +97,7 @@ export default function ChangePasswordScreen({ changePassword }) {
             secureTextEntry
             value={f.current}
             onChangeText={set('current')}
+            onFocus={() => scrollToInput(60)}
             error={errors.current}
             autoCapitalize="none"
             placeholder="Enter current password"
@@ -95,6 +108,7 @@ export default function ChangePasswordScreen({ changePassword }) {
             secureTextEntry
             value={f.next}
             onChangeText={set('next')}
+            onFocus={() => scrollToInput(140)}
             error={errors.next}
             autoCapitalize="none"
             placeholder="At least 8 characters"
@@ -105,6 +119,7 @@ export default function ChangePasswordScreen({ changePassword }) {
             secureTextEntry
             value={f.confirm}
             onChangeText={set('confirm')}
+            onFocus={() => scrollToInput(210)}
             error={errors.confirm}
             autoCapitalize="none"
             placeholder="Re-enter new password"

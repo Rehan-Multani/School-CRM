@@ -16,6 +16,11 @@ export function setAuthToken(token) {
   authToken = token;
 }
 
+// For URLs that cannot carry an Authorization header (<Image>, Linking.openURL).
+export function getAuthToken() {
+  return authToken;
+}
+
 // AuthContext registers this so an expired/revoked token logs the user out.
 export function setUnauthorizedHandler(fn) {
   onUnauthorized = fn;
@@ -111,7 +116,9 @@ export async function request(path, { method = 'GET', body, params, headers, onR
       res.status === 429
         ? json?.message || 'Too many attempts. Please try again in a few minutes.'
         : json?.message || `Request failed (${res.status})`;
-    throw new ApiError(message, res.status, json?.code || (res.status === 429 ? 'RATE_LIMITED' : undefined));
+    const err = new ApiError(message, res.status, json?.code || (res.status === 429 ? 'RATE_LIMITED' : undefined));
+    if (json?.suggestedRole) err.suggestedRole = json.suggestedRole;
+    throw err;
   }
   return json;
 }

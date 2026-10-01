@@ -1,6 +1,6 @@
 /**
  * Mobile-app demo school — realistic, clearly-fake data for testing the
- * Teacher / Student / Parent flows end to end (lists, scrolling, pagination,
+ * Teacher / Student / Parent / Transport Manager flows end to end (lists, scrolling, pagination,
  * loading, empty states, alignment).
  *
  *   npm run seed:app-demo            create it (no-op if it already exists)
@@ -11,13 +11,16 @@
  * mixes with real schools and `--remove` takes it all out again. The boot-time
  * academic seeder skips this school (see constants/demoSchool.js).
  *
- * Logins (all password `Demo@12345`):
- *   admin@app-demo.example.com Demo Admin  — school admin web panel (/school-admin)
- *   teacher.demo@example.com  Meera Kapoor — class teacher 10-A, Maths in 9-A/9-B/10-A/10-B
- *   student.demo@example.com  Aarav Mehta  — Class 10-A, roll 1
- *   parent.demo@example.com   Rajiv Mehta  — Aarav's father
- *   teacher.empty@example.com Nisha Rao    — no classes (empty states)
- *   student.empty@example.com Ishaan Gupta — Class 8-A, which has no timetable/work/results
+ * App logins. Teacher and transport manager: email + password `Demo@12345`.
+ * Student and parent: mobile number + SMS OTP (dev: the OTP is printed in this
+ * service's log); the password still works on the web parent portal.
+ *   admin@app-demo.example.com   Demo Admin  — school admin web panel (/school-admin)
+ *   teacher.demo@example.com     Meera Kapoor — class teacher 10-A, Maths in 9-A/9-B/10-A/10-B
+ *   9000022222                   Aarav Mehta  — student, Class 10-A, roll 1
+ *   9000011111                   Rajiv Mehta  — parent of Aarav (10-A) and Anaya (9-A)
+ *   transport.demo@example.com   Vikram Rathore — transport manager: 2 routes, today half picked up
+ *   teacher.empty@example.com    Nisha Rao    — no classes (empty states)
+ *   9000033333                   Ishaan Gupta — student, Class 8-A, which has no timetable/work/results
  *
  * All names, numbers and addresses are invented. Never point this at production.
  */
@@ -30,6 +33,7 @@ import bcrypt from 'bcryptjs';
 import sharp from 'sharp';
 import { env } from './config/env.js';
 import { DEMO_SCHOOL_SLUG } from './constants/demoSchool.js';
+import { dropLegacyTransportIndexes } from './utils/legacyTransportIndexes.js';
 import {
   ensureUploadDirs,
   studentUploadsDir,
@@ -256,21 +260,24 @@ async function seed(M) {
   const roster = new Map(); // sectionId -> [{ student, roll, name, rate }]
   let demoStudent = null;
   let emptyStudent = null;
+  let siblingStudent = null;
   for (const sec of sections) {
     const list = [];
     for (let r = 1; r <= sec.size; r += 1) {
       const isDemo = sec.cls.numericOrder === 10 && sec.name === 'A' && r === 1;
       const isEmpty = sec.cls.numericOrder === 8 && r === 1;
-      const girl = !isDemo && !isEmpty && rand() < 0.5;
-      const firstName = isDemo ? 'Aarav' : isEmpty ? 'Ishaan' : pick(girl ? GIRL : BOY);
-      const lastName = isDemo ? 'Mehta' : isEmpty ? 'Gupta' : pick(LAST);
+      // The demo parent's second child (Class 9-A) — so the child switcher has something to switch.
+      const isSibling = sec.cls.numericOrder === 9 && sec.name === 'A' && r === 1;
+      const girl = isSibling || (!isDemo && !isEmpty && rand() < 0.5);
+      const firstName = isDemo ? 'Aarav' : isSibling ? 'Anaya' : isEmpty ? 'Ishaan' : pick(girl ? GIRL : BOY);
+      const lastName = isDemo || isSibling ? 'Mehta' : isEmpty ? 'Gupta' : pick(LAST);
       const parentFirst = pick(['Rajesh', 'Sunil', 'Anil', 'Manoj', 'Deepak', 'Sanjay', 'Vijay', 'Ashok', 'Rakesh', 'Prakash']);
       const student = {
         schoolId: S,
         admissionNumber: `DEMO-2026-${String(admission).padStart(3, '0')}`,
         firstName, lastName, gender: girl ? 'FEMALE' : 'MALE',
         dateOfBirth: new Date(2026 - sec.cls.numericOrder - 5, between(0, 11), between(1, 28)),
-        parentName: isDemo ? 'Rajiv Mehta' : `${parentFirst} ${lastName}`,
+        parentName: isDemo || isSibling ? 'Rajiv Mehta' : `${parentFirst} ${lastName}`,
         parentPhone: `9000${String(200000 + admission).padStart(6, '0')}`,
         address: `${between(1, 200)} Demo Nagar, Sampleville`,
         status: 'ACTIVE',
@@ -278,12 +285,14 @@ async function seed(M) {
       if (isDemo || isEmpty) {
         const email = isDemo ? 'student.demo@example.com' : 'student.empty@example.com';
         Object.assign(student, {
+          // The student app signs in with the student's own mobile + OTP.
+          phone: isDemo ? '9000022222' : '9000033333',
           email, passwordHash: hash,
           account: { createLoginAccount: true, loginEmail: email, username: isDemo ? 'student.demo' : 'student.empty', accountStatus: 'ACTIVE' },
         });
       }
       admission += 1;
-      list.push({ data: student, roll: String(r), girl, isDemo, isEmpty, rate: isDemo ? 0.93 : 0.78 + rand() * 0.2 });
+      list.push({ data: student, roll: String(r), girl, isDemo, isEmpty, isSibling, rate: isDemo ? 0.93 : isSibling ? 0.88 : 0.78 + rand() * 0.2 });
     }
     const docs = await M.Student.insertMany(list.map((x) => x.data));
     list.forEach((x, i) => {
@@ -299,12 +308,13 @@ async function seed(M) {
     roster.set(String(sec.doc._id), list);
     demoStudent = demoStudent || list.find((x) => x.isDemo)?.student || null;
     emptyStudent = emptyStudent || list.find((x) => x.isEmpty)?.student || null;
+    siblingStudent = siblingStudent || list.find((x) => x.isSibling)?.student || null;
   }
 
   // Photos: the demo accounts + about a third of each class (lists show a mix
   // of photos and initials, like a real school).
   for (const [i, x] of [...roster.values()].flat().entries()) {
-    if (!x.isDemo && rand() > 0.33) continue;
+    if (!x.isDemo && !x.isSibling && rand() > 0.33) continue;
     const initials = `${x.student.firstName[0]}${(x.student.lastName || ' ')[0]}`.toUpperCase();
     const photo = await avatar(studentUploadsDir, toStudentPhotoPublicPath, `student-${x.student.admissionNumber}`, initials, AVATAR_COLORS[i % AVATAR_COLORS.length]);
     await M.Student.updateOne({ _id: x.student._id }, { $set: { photo } });
@@ -316,7 +326,53 @@ async function seed(M) {
     status: 'ACTIVE', passwordHash: hash,
     account: { createLoginAccount: true, loginEmail: 'parent.demo@example.com', username: 'parent.demo', accountStatus: 'ACTIVE' },
   });
-  await M.ParentStudent.create({ schoolId: S, parentId: parent._id, studentId: demoStudent._id, relationship: 'FATHER', isPrimary: true, status: 'ACTIVE' });
+  await M.ParentStudent.insertMany([
+    { schoolId: S, parentId: parent._id, studentId: demoStudent._id, relationship: 'FATHER', isPrimary: true, status: 'ACTIVE' },
+    { schoolId: S, parentId: parent._id, studentId: siblingStudent._id, relationship: 'FATHER', isPrimary: false, status: 'ACTIVE' },
+  ]);
+
+  // ---- transport: manager login, 2 buses with drivers, 2 routes, riders, and a part-done day
+  const manager = await M.SchoolUser.create({
+    schoolId: S, employeeId: 'DEMO-TM-01', firstName: 'Vikram', lastName: 'Rathore', name: 'Vikram Rathore',
+    email: 'transport.demo@example.com', passwordHash: hash, role: 'TRANSPORT', phone: '9000044444',
+    designation: 'Transport Manager', department: 'Transport', status: 'ACTIVE', joiningDate: new Date('2024-06-01'),
+  });
+  const ROUTES = [
+    { name: 'Route 1 — Demo Nagar', bus: 'MP09DM0101', driver: ['Suresh Yadav', '9000055501', 'MP0920200001001'], stops: [['Demo Nagar Gate', '07:10 AM', '03:40 PM'], ['Sample Chowk', '07:20 AM', '03:30 PM'], ['Lake View Colony', '07:32 AM', '03:18 PM']] },
+    { name: 'Route 2 — Old City', bus: 'MP09DM0202', driver: ['Imran Sheikh', '9000055502', 'MP0920200001002'], stops: [['Old City Square', '07:05 AM', '03:45 PM'], ['Railway Colony', '07:18 AM', '03:32 PM'], ['Green Park', '07:30 AM', '03:20 PM']] },
+  ];
+  const sectionRoster = (order, name) => roster.get(String(sections.find((x) => x.cls.numericOrder === order && x.name === name).doc._id));
+  // Route 1 carries the first eight of 10-A (Aarav among them), route 2 of 9-A (Anaya).
+  const riders = [sectionRoster(10, 'A').slice(0, 8), sectionRoster(9, 'A').slice(0, 8)];
+  let transportRiders = 0;
+  for (const [i, r] of ROUTES.entries()) {
+    const vehicle = await M.Vehicle.create({ schoolId: S, vehicleNumber: r.bus, vehicleType: 'SCHOOL_BUS', capacity: 40, model: 'Tata Starbus', status: 'ACTIVE' });
+    const driver = await M.Driver.create({ schoolId: S, name: r.driver[0], mobile: r.driver[1], licenseNumber: r.driver[2], vehicleId: vehicle._id, status: 'ACTIVE' });
+    const route = await M.TransportRoute.create({ schoolId: S, routeName: r.name, vehicleId: vehicle._id, driverId: driver._id, status: 'ACTIVE' });
+    const stops = await M.RouteStop.insertMany(
+      r.stops.map(([stopName, pickupTime, dropTime], n) => ({ schoolId: S, routeId: route._id, stopName, sequenceOrder: n + 1, pickupTime, dropTime })),
+    );
+    const stopOf = (n) => stops[n % stops.length]._id;
+    await M.StudentTransportAssignment.insertMany(
+      riders[i].map((x, n) => ({ schoolId: S, studentId: x.student._id, routeId: route._id, stopId: stopOf(n), academicYearId: Y, status: 'ACTIVE' })),
+    );
+    transportRiders += riders[i].length;
+    // Yesterday: the whole run done. Today: the first stops are picked up, nobody dropped yet.
+    const day = (offset, hour, minute) => {
+      const d = daysFromToday(offset, hour);
+      d.setMinutes(minute);
+      return d;
+    };
+    const status = (x, n, offset, dropped) => ({
+      schoolId: S, date: ymd(daysFromToday(offset)), studentId: x.student._id, routeId: route._id, stopId: stopOf(n),
+      driverId: driver._id, markedByUserId: manager._id, pickupStatus: 'PICKED_UP', pickedUpAt: day(offset, 7, 10 + n * 3),
+      ...(dropped ? { dropStatus: 'DROPPED', droppedAt: day(offset, 15, 20 + n * 3) } : {}),
+    });
+    await M.TransportDailyStatus.insertMany([
+      ...riders[i].map((x, n) => status(x, n, -1, true)),
+      ...riders[i].slice(0, 4).map((x, n) => status(x, n, 0, false)),
+    ]);
+  }
 
   // ---- timetable: MON–SAT, 6 periods; the demo teacher's Maths period never clashes across her 4 sections
   const PERIODS = [
@@ -620,10 +676,11 @@ async function seed(M) {
     { ...leaveBase, employeeRefId: demoStudent._id, employeeType: 'STUDENT', employeeId: demoStudent.admissionNumber, employeeName: 'Aarav Mehta', classId: tenA.cls._id, className: tenA.cls.name, sectionId: tenA.doc._id, sectionName: tenA.name, rollNumber: '1', leaveType: 'OTHER', startDate: daysFromToday(4), endDate: daysFromToday(4), totalDays: 1, reason: 'Cousin’s wedding', status: 'PENDING' },
   ]);
 
-  // ---- fees (the demo student): paid term, pending term, upcoming term
-  const enr = await M.StudentEnrollment.findOne({ schoolId: S, studentId: demoStudent._id }).lean();
-  const inv = (n, label, start, end, due, paid) => ({
-    schoolId: S, studentId: demoStudent._id, enrollmentId: enr._id, academicYearId: Y, invoiceNumber: `INV-DEMO-${n}`,
+  // ---- fees (the demo parent's two children): paid term (with receipt), pending term, upcoming term
+  const enrOf = async (student) => (await M.StudentEnrollment.findOne({ schoolId: S, studentId: student._id }).lean())._id;
+  const enrollmentIds = { [demoStudent._id]: await enrOf(demoStudent), [siblingStudent._id]: await enrOf(siblingStudent) };
+  const inv = (n, label, start, end, due, paid, student = demoStudent) => ({
+    schoolId: S, studentId: student._id, enrollmentId: enrollmentIds[student._id], academicYearId: Y, invoiceNumber: `INV-DEMO-${n}`,
     periodLabel: label, periodStart: start, periodEnd: end, dueDate: due,
     items: [
       { feeHeadName: 'Tuition Fee', originalAmount: 18000, discountAmount: 0, finalAmount: 18000 },
@@ -632,10 +689,47 @@ async function seed(M) {
     ],
     totalAmount: 20000, paidAmount: paid, balanceAmount: 20000 - paid, status: paid >= 20000 ? 'PAID' : 'PENDING',
   });
-  await M.FeeInvoice.insertMany([
+  const invoices = await M.FeeInvoice.insertMany([
     inv(1, 'Term 1 (Apr–Jul)', new Date('2026-04-01'), new Date('2026-07-31'), new Date('2026-04-15'), 20000),
     inv(2, 'Term 2 (Aug–Nov)', new Date('2026-08-01'), new Date('2026-11-30'), daysFromToday(10), 0),
     inv(3, 'Term 3 (Dec–Mar)', new Date('2026-12-01'), new Date('2027-03-31'), new Date('2026-12-15'), 0),
+    inv(4, 'Term 1 (Apr–Jul)', new Date('2026-04-01'), new Date('2026-07-31'), new Date('2026-04-15'), 20000, siblingStudent),
+    inv(5, 'Term 2 (Aug–Nov)', new Date('2026-08-01'), new Date('2026-11-30'), daysFromToday(10), 8000, siblingStudent),
+  ]);
+  invoices[4].status = 'PARTIALLY_PAID';
+  await invoices[4].save();
+  // The payments behind the paid amounts — these are what the Parent app lists as receipts.
+  const pay = (invoice, n, amount, date, method, reference) => ({
+    schoolId: S, invoiceId: invoice._id, studentId: invoice.studentId, receiptNumber: `RCP-DEMO-${n}`, amount,
+    paymentMethod: method, paymentMode: method, paymentReference: reference, referenceNo: reference,
+    paymentDate: date, transactionDate: date, status: 'COMPLETED', remarks: 'Demo payment',
+  });
+  await M.FeePayment.insertMany([
+    pay(invoices[0], 1, 12000, new Date('2026-04-10T10:15:00'), 'UPI', 'UPI-DEMO-481516'),
+    pay(invoices[0], 2, 8000, new Date('2026-04-14T16:40:00'), 'CASH', ''),
+    pay(invoices[3], 3, 20000, new Date('2026-04-12T11:05:00'), 'UPI', 'UPI-DEMO-234223'),
+    pay(invoices[4], 4, 8000, daysFromToday(-20, 12), 'BANK_TRANSFER', 'NEFT-DEMO-90210'),
+  ]);
+
+  // ---- safe pickup history (read-only for the parent): three completed, one expired
+  const pickup = (back, status, extra = () => ({})) => {
+    const at = daysFromToday(-back, 13);
+    return {
+      schoolId: S, studentId: demoStudent._id, studentName: 'Aarav Mehta', classId: tenA.cls._id, className: tenA.cls.name,
+      sectionId: tenA.doc._id, sectionName: tenA.name, teacherId: demoTeacher._id, teacherName: demoTeacher.name,
+      guardianName: 'Rajiv Mehta', guardianMobile: parent.phone, status, initiatedAt: at, initiatedBy: demoTeacher._id,
+      lastOtpSentAt: at, otpExpiresAt: new Date(at.getTime() + 5 * 60000), ...extra(at),
+    };
+  };
+  const done = (person, relationship) => (at) => ({
+    verifiedAt: new Date(at.getTime() + 2 * 60000), completedAt: new Date(at.getTime() + 4 * 60000),
+    verifiedBy: demoTeacher._id, completedBy: demoTeacher._id, pickupPersonName: person, pickupPersonRelationship: relationship, handoverConfirmed: true,
+  });
+  await M.StudentPickupSession.insertMany([
+    pickup(3, 'COMPLETED', done('Rajiv Mehta', 'Parent')),
+    pickup(11, 'EXPIRED', (at) => ({ expiredAt: new Date(at.getTime() + 5 * 60000) })),
+    pickup(17, 'COMPLETED', done('Sunita Mehta', 'Relative')),
+    pickup(31, 'COMPLETED', done('Rajiv Mehta', 'Parent')),
   ]);
 
   // ---- notifications (targeted, so the empty-state accounts stay empty); some already read
@@ -688,10 +782,17 @@ async function seed(M) {
     ['Welcome to the new session', 'Your classes for 2026-27 are ready in the app.', '', ''],
   ], 5, 'TEACHER');
   await notify('parent', parent._id, [
-    ['Fee reminder', 'Term 2 fee of ₹20,000 for Aarav is due in 10 days.', '', ''],
+    ['Fee reminder', 'Term 2 fee of ₹20,000 for Aarav is due in 10 days.', 'fee', ''],
+    ['Aarav was marked late', 'Aarav was marked LATE in Class 10 - A.', 'attendance', ''],
+    ['Pickup completed', 'Aarav was handed over to Rajiv Mehta at the school gate.', 'pickup', ''],
+    ['New homework for Aarav', `Mathematics: ${aaravHw[0].title}`, 'homework', aaravHw[0]._id],
+    ['Fee reminder', 'Term 2 balance of ₹12,000 for Anaya is due in 10 days.', 'fee', ''],
     ['Result published', 'Aarav’s Unit Test 1 result is available.', 'result', ut1._id],
-    ['PTM on Saturday', '9:00 AM – 12:00 PM, Class 10 - A.', 'notice', ''],
-  ], 1, 'PARENT');
+    ['PTM on Saturday', '9:00 AM – 12:00 PM. Please meet the class teachers.', 'notice', ''],
+    ['Payment received', '₹8,000 received for Anaya — Term 2. Receipt RCP-DEMO-4.', 'payment', ''],
+    ['Unit Test 2 date sheet', 'Unit Test 2 starts in 12 days for Classes 9 and 10.', 'exam', ''],
+    ['Welcome to the Parent app', 'Track attendance, homework, results and fees for your children.', '', ''],
+  ], 5, 'PARENT');
 
   return {
     students: [...roster.values()].reduce((a, l) => a + l.length, 0),
@@ -703,6 +804,7 @@ async function seed(M) {
     examMarks: marks.length,
     results: results.length,
     timetable: timetable.length,
+    transportRiders,
   };
 }
 
@@ -719,10 +821,13 @@ async function main() {
       console.log('Demo school already exists. Use --reset to recreate it or --remove to delete it.');
       return;
     }
+    // A database that ran the old transport module would refuse the second demo route.
+    await dropLegacyTransportIndexes();
     const started = Date.now();
     const stats = await seed(M);
     console.log(`Demo school created in ${((Date.now() - started) / 1000).toFixed(1)}s`, stats);
-    console.log(`Logins (password ${PASSWORD}): admin@app-demo.example.com (admin panel), teacher.demo@example.com, student.demo@example.com, parent.demo@example.com, teacher.empty@example.com, student.empty@example.com`);
+    console.log(`Password logins (${PASSWORD}): admin@app-demo.example.com (admin panel), teacher.demo@example.com, transport.demo@example.com, teacher.empty@example.com`);
+    console.log('Mobile + OTP logins (the OTP is printed in the platform-service log): student 9000022222, parent 9000011111, student (empty) 9000033333');
   } finally {
     await mongoose.disconnect();
   }

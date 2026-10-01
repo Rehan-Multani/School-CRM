@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
-import { studentApi } from '../../../api/student';
+import { usePortal } from '../../../context/PortalScope';
 import { fmtBytes, fmtDate } from '../../../lib/format';
 import { openLink } from '../../../lib/links';
 import { showError } from '../../../lib/notify';
@@ -16,6 +16,7 @@ const ext = (m) => String(m.fileType || m.fileName || '').split('.').pop().toLow
 
 // Doc §6.4 — the download URL is short-lived: fetch it at tap time, never cache it.
 export default function Materials() {
+  const { api, scopeKey } = usePortal();
   const theme = useTheme();
   const styles = useStyles(makeStyles);
   const [opening, setOpening] = useState(null);
@@ -23,7 +24,7 @@ export default function Materials() {
   const open = async (m) => {
     setOpening(m.id);
     try {
-      const { url } = await studentApi.materialUrl(m.id);
+      const { url } = await api.materialUrl(m.id);
       await openLink(url);
     } catch (e) {
       showError(e, 'Could not open');
@@ -34,7 +35,8 @@ export default function Materials() {
 
   return (
     <PagedList
-      fetchPage={(page) => studentApi.materialList({ page, limit: 20 })}
+      deps={[scopeKey]}
+      fetchPage={(page) => api.materialList({ page, limit: 20 })}
       skeleton={<SkeletonCards padded={false} />}
       contentContainerStyle={{ paddingTop: spacing.md }}
       ListEmptyComponent={<EmptyState icon="folder-open-outline" title="No study material yet" message="Notes and slides from your teachers show up here." />}

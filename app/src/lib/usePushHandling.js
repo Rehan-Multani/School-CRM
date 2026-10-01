@@ -8,6 +8,8 @@ import { emitPushReceived, openNotificationLink } from './pushRouting';
 //     the handler set in permissions.js)
 //   • user taps a push (app open, backgrounded, or cold-started by the tap)
 //     → open the screen from its `{ type, id }` payload
+const SYSTEM_TYPES = ['app_update', 'force_logout'];
+
 export function usePushHandling(role) {
   const handledColdStart = useRef(false);
 
@@ -19,7 +21,9 @@ export function usePushHandling(role) {
       const data = response?.notification?.request?.content?.data || {};
       // A push addressed to another role (e.g. an old token) must not route here.
       if (data.role && data.role.toUpperCase() !== role) return;
-      openNotificationLink(role, { type: data.type, id: data.id });
+      // System pushes open nothing: the update popup (AppUpdateGate) and the
+      // signed-out popup (AuthContext) react to the event below.
+      if (!SYSTEM_TYPES.includes(data.type)) openNotificationLink(role, { type: data.type, id: data.id });
       emitPushReceived(data);
     };
 

@@ -9,26 +9,46 @@ import { ROLE_LIST, ROLES } from '../api/roles';
 import { useAuth } from '../context/AuthContext';
 import { Button, Input } from '../components/ui';
 import { PlatformLogo } from '../components/Logos';
+import OtpSignIn from '../components/OtpSignIn';
 import TopInsetBackdrop from '../components/TopInsetBackdrop';
 import { devCredentials } from '../lib/devCredentials';
 import { toast } from '../lib/notify';
+import { useKeyboardScroll } from '../lib/useKeyboard';
 import { BRAND_HERO_COLORS as HERO_COLORS, brandTheme as t, font, radius, spacing } from '../theme';
 
 // Login is pre-auth, so it always uses the platform brand (not a school theme).
+// Teacher and transport manager sign in with a password; student and parent with the
+// mobile number given at admission + an SMS OTP (`role.auth`, see api/roles.js).
 
 export default function Login() {
   const { login } = useAuth();
   const insets = useSafeAreaInsets();
   const passwordRef = useRef(null);
+  const {
+    scrollRef,
+    keyboardHeight,
+    keyboardVisible,
+    scrollToInput,
+  } = useKeyboardScroll({ defaultOffset: 170 });
   // Coming back from Forgot password lands on the same role tab + login id.
   const params = useLocalSearchParams();
   const initialRole = ROLES[params.role] ? params.role : 'TEACHER';
   const [roleKey, setRoleKey] = useState(initialRole);
   const [identifier, setIdentifier] = useState(() => params.identifier || devCredentials(initialRole).identifier);
   const [password, setPassword] = useState(() => (params.identifier ? '' : devCredentials(initialRole).password));
+  const [roleMismatch, setRoleMismatch] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const role = ROLES[roleKey];
+
+  const switchRole = (key, overrideIdentifier) => {
+    setRoleMismatch(null);
+    if (key === roleKey && overrideIdentifier === undefined) return;
+    const dev = devCredentials(key);
+    setRoleKey(key);
+    setIdentifier(overrideIdentifier !== undefined ? overrideIdentifier : dev.identifier);
+    setPassword(overrideIdentifier !== undefined ? '' : dev.password);
+  };
 
   const onSubmit = async () => {
     if (!identifier.trim() || !password) {
@@ -36,30 +56,33 @@ export default function Login() {
       return;
     }
     setLoading(true);
+    setRoleMismatch(null);
     try {
       await login(roleKey, identifier, password);
       toast.success('Signed in successfully!');
       router.replace(role.home);
     } catch (err) {
       toast.error(err.message || 'Login failed');
+      if (err.code === 'ROLE_MISMATCH' || err.suggestedRole) {
+        setRoleMismatch({ message: err.message, suggestedRole: err.suggestedRole });
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const switchRole = (key) => {
-    if (key === roleKey) return;
-    const dev = devCredentials(key);
-    setRoleKey(key);
-    setIdentifier(dev.identifier);
-    setPassword(dev.password);
-  };
-
   return (
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
-        contentContainerStyle={{ paddingBottom: insets.bottom + spacing.xl }}
+        ref={scrollRef}
+        contentContainerStyle={{
+          paddingBottom: Math.max(
+            insets.bottom + spacing.xl,
+            keyboardVisible ? (keyboardHeight || 300) + spacing.xl + 60 : 0,
+          ),
+        }}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
       >
         {/* Hero lives inside the ScrollView so the card can overlap it without being clipped. */}
@@ -101,48 +124,87 @@ export default function Login() {
             })}
           </View>
 
-          <Input
-            label={role.identifierLabel}
-            icon={roleKey === 'DRIVER' ? 'call-outline' : 'person-outline'}
-            value={identifier}
-            onChangeText={setIdentifier}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType={role.identifierKeyboard}
-            placeholder={`Enter your ${role.identifierLabel.toLowerCase()}`}
-            returnKeyType="next"
-            onSubmitEditing={() => passwordRef.current?.focus()}
-          />
-          <Input
-            ref={passwordRef}
-            label="Password"
-            icon="lock-closed-outline"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoCapitalize="none"
-            placeholder="Enter your password"
-            returnKeyType="go"
-            onSubmitEditing={onSubmit}
-            style={{ marginBottom: spacing.sm }}
-          />
+          {roleMismatch ? (
+            <View style={styles.mismatchBanner}>
+              <View style={styles.mismatchHeader}>
+                <Ionicons name="alert-circle" size={20} color={t.danger} style={{ marginTop: 1 }} />
+                <Text style={styles.mismatchText}>{roleMismatch.message}</Text>
+              </View>
+              {roleMismatch.suggestedRole && ROLES[roleMismatch.suggestedRole] ? (
+                <Pressable
+                  style={styles.switchButton}
+                  onPress={() => switchRole(roleMismatch.suggestedRole, identifier)}
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.switchButtonText}>
+                    Switch to {ROLES[roleMismatch.suggestedRole].label}
+                  </Text>
+                  <Ionicons name="arrow-forward" size={14} color="#FFFFFF" />
+                </Pressable>
+              ) : null}
+            </View>
+          ) : null}
 
-          <Pressable
-            onPress={() =>
-              router.push({ pathname: '/forgot-password', params: { role: roleKey, identifier: identifier.trim() } })
-            }
-            hitSlop={8}
-            style={styles.forgot}
-            accessibilityRole="link"
-          >
-            <Text style={styles.forgotText}>Forgot password?</Text>
-          </Pressable>
+          {role.auth === 'otp' ? (
+            // Keyed by role so switching tab starts a clean OTP flow.
+            <OtpSignIn
+              key={roleKey}
+              role={role}
+              initialMobile={identifier}
+              onSwitchRole={(nextRole, currentMobile) => switchRole(nextRole, currentMobile)}
+              onFocusInput={(offset = 170) => scrollToInput(offset)}
+            />
+          ) : (
+            <>
+              <Input
+                label={role.identifierLabel}
+                icon={role.identifierKeyboard === 'email-address' ? 'mail-outline' : 'person-outline'}
+                value={identifier}
+                onChangeText={(v) => {
+                  setIdentifier(v);
+                  if (roleMismatch) setRoleMismatch(null);
+                }}
+                onFocus={() => scrollToInput(170)}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType={role.identifierKeyboard}
+                placeholder={`Enter your ${role.identifierLabel.toLowerCase()}`}
+                returnKeyType="next"
+                onSubmitEditing={() => passwordRef.current?.focus()}
+              />
+              <Input
+                ref={passwordRef}
+                label="Password"
+                icon="lock-closed-outline"
+                value={password}
+                onChangeText={(v) => {
+                  setPassword(v);
+                  if (roleMismatch) setRoleMismatch(null);
+                }}
+                onFocus={() => scrollToInput(230)}
+                secureTextEntry
+                autoCapitalize="none"
+                placeholder="Enter your password"
+                returnKeyType="go"
+                onSubmitEditing={onSubmit}
+                style={{ marginBottom: spacing.sm }}
+              />
 
-          <Button title="Sign in" loadingTitle="Signing in..." onPress={onSubmit} loading={loading} style={{ marginTop: spacing.xs }} />
+              <Button title="Sign in" loadingTitle="Signing in..." onPress={onSubmit} loading={loading} style={{ marginTop: spacing.xs }} />
+            </>
+          )}
 
           <View style={styles.helpRow}>
-            <Ionicons name="help-circle-outline" size={16} color={t.textMuted} />
-            <Text style={styles.help}>Trouble signing in? Contact your school office.</Text>
+            <Text style={styles.help}>Trouble signing in?</Text>
+            <Pressable
+              onPress={() =>
+                router.push({ pathname: '/forgot-password', params: { role: roleKey, identifier: identifier.trim() } })
+              }
+              hitSlop={8}
+              accessibilityRole="link"
+            >
+              <Text style={styles.helpLink}>Forgot password?</Text>
+            </Pressable>
           </View>
         </View>
 
@@ -150,36 +212,6 @@ export default function Login() {
           <Ionicons name="shield-checkmark-outline" size={14} color={t.textMuted} />
           <Text style={styles.footerText}>School CRM · v{Constants.expoConfig?.version || '1.0.0'}</Text>
         </View>
-
-        {__DEV__ ? (
-          <View style={styles.toastTestRow}>
-            <Text style={styles.toastTestLabel}>Test Toasts:</Text>
-            <Pressable
-              onPress={() => toast.info('This is an info toast notification.')}
-              style={[styles.toastTestBtn, { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }]}
-              accessibilityRole="button"
-            >
-              <Ionicons name="information-circle" size={13} color="#2563EB" />
-              <Text style={[styles.toastTestText, { color: '#1D4ED8' }]}>Info</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => toast.success('Operation completed successfully!', 'Success')}
-              style={[styles.toastTestBtn, { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' }]}
-              accessibilityRole="button"
-            >
-              <Ionicons name="checkmark-circle" size={13} color="#059669" />
-              <Text style={[styles.toastTestText, { color: '#047857' }]}>Success</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => toast.error('Something went wrong. Please try again.', 'Error')}
-              style={[styles.toastTestBtn, { backgroundColor: '#FEF2F2', borderColor: '#FECACA' }]}
-              accessibilityRole="button"
-            >
-              <Ionicons name="alert-circle" size={13} color="#DC2626" />
-              <Text style={[styles.toastTestText, { color: '#B91C1C' }]}>Error</Text>
-            </Pressable>
-          </View>
-        ) : null}
       </ScrollView>
       <TopInsetBackdrop color={HERO_COLORS[0]} />
     </KeyboardAvoidingView>
@@ -254,6 +286,46 @@ const styles = StyleSheet.create({
   forgot: { alignSelf: 'flex-end', paddingVertical: 4, marginBottom: spacing.lg },
   forgotText: { color: t.primary, fontSize: font.md, fontWeight: '700' },
 
+  mismatchBanner: {
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+    gap: spacing.sm,
+  },
+  mismatchHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+  },
+  mismatchText: {
+    flex: 1,
+    color: '#991B1B',
+    fontSize: font.sm,
+    fontWeight: '600',
+    lineHeight: 19,
+  },
+  switchButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    alignSelf: 'flex-start',
+    backgroundColor: t.primary,
+    borderRadius: radius.pill,
+    paddingVertical: 7,
+    paddingHorizontal: spacing.md,
+    gap: 6,
+    marginTop: 2,
+    marginLeft: 28,
+  },
+  switchButtonText: {
+    color: '#FFFFFF',
+    fontSize: font.xs,
+    fontWeight: '700',
+  },
+
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -268,39 +340,18 @@ const styles = StyleSheet.create({
   },
   errorText: { flex: 1, color: t.danger, fontSize: font.md },
 
-  helpRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: spacing.lg },
-  help: { color: t.textMuted, fontSize: font.sm },
-
-  footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: spacing.xl },
-  footerText: { color: t.textMuted, fontSize: font.xs, letterSpacing: 0.3 },
-
-  toastTestRow: {
+  helpRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 6,
+    marginTop: spacing.lg,
     flexWrap: 'wrap',
-    gap: 8,
-    marginTop: spacing.md,
-    marginBottom: spacing.xl,
-    paddingHorizontal: spacing.md,
   },
-  toastTestLabel: {
-    fontSize: font.xs,
-    fontWeight: '700',
-    color: t.textMuted,
-    marginRight: 2,
-  },
-  toastTestBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingVertical: 5,
-    paddingHorizontal: 9,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-  },
-  toastTestText: {
-    fontSize: font.xs,
-    fontWeight: '700',
-  },
+  help: { color: t.textMuted, fontSize: font.sm },
+  helpDot: { color: t.textMuted, fontSize: font.sm, marginHorizontal: 2 },
+  helpLink: { color: t.primary, fontSize: font.sm, fontWeight: '700' },
+
+  footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: spacing.xl },
+  footerText: { color: t.textMuted, fontSize: font.xs, letterSpacing: 0.3 },
 });

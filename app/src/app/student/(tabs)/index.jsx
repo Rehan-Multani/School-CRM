@@ -13,9 +13,6 @@ import { Badge, ErrorView, SectionTitle, StatCard } from '../../../components/ki
 import { SkeletonHome } from '../../../components/Skeleton';
 import SchoolHeader from '../../../components/SchoolHeader';
 import RefreshableScroll from '../../../components/RefreshableScroll';
-import TopInsetBackdrop from '../../../components/TopInsetBackdrop';
-import Bell from '../../../components/student/Bell';
-import HeaderActions from '../../../components/HeaderActions';
 import { alpha, font, radius, spacing } from '../../../theme';
 
 const QUICK = [
@@ -70,8 +67,8 @@ export default function StudentHome() {
 
   return (
     <View style={{ flex: 1 }}>
-      <RefreshableScroll underStatusBar onRefresh={onRefresh} contentContainerStyle={{ paddingBottom: 110 }}>
-        <SchoolHeader right={<HeaderActions bell={<Bell />} />}>
+      <RefreshableScroll onRefresh={onRefresh} contentContainerStyle={{ paddingBottom: 110 }}>
+        <SchoolHeader>
           {classLine ? (
             <View style={[styles.chip, { backgroundColor: alpha('#FFFFFF', 0.2) }]}>
               <Ionicons name="school" size={12} color={theme.onPrimary} />
@@ -102,7 +99,7 @@ export default function StudentHome() {
                   icon="checkmark-done-outline"
                   label="Attendance"
                   value={`${dash?.todaySummary?.attendancePercentage ?? 0}%`}
-                  sub="Overall record"
+                  subtitle="Overall record"
                   color={theme.success}
                   onPress={() => router.push('/student/attendance')}
                 />
@@ -110,7 +107,7 @@ export default function StudentHome() {
                   icon="book-outline"
                   label="Pending Work"
                   value={dash?.todaySummary?.pendingHomework ?? 0}
-                  sub={dueToday.length ? `${dueToday.length} due today` : 'Up to date'}
+                  subtitle={dueToday.length ? `${dueToday.length} due today` : 'Up to date'}
                   color={theme.warning}
                   onPress={() => router.push({ pathname: '/student/homework', params: { status: 'pending' } })}
                 />
@@ -118,7 +115,7 @@ export default function StudentHome() {
                   icon="calendar-outline"
                   label="Today's Classes"
                   value={periods.length}
-                  sub={current ? 'Class live now' : `${periods.length} periods`}
+                  subtitle={current ? 'Class live now' : `${periods.length} periods`}
                   color={theme.primary}
                   onPress={() => router.push('/student/timetable')}
                 />
@@ -126,7 +123,7 @@ export default function StudentHome() {
                   icon="school-outline"
                   label="Upcoming Exams"
                   value={state.data?.upcoming?.exams?.length ?? 0}
-                  sub="Scheduled"
+                  subtitle="Scheduled"
                   color="#8b5cf6"
                   onPress={() => router.push('/student/results')}
                 />
@@ -267,14 +264,13 @@ export default function StudentHome() {
           </View>
         </View>
       </RefreshableScroll>
-      <TopInsetBackdrop color={theme.primary} light={theme.onPrimary === '#FFFFFF'} />
     </View>
   );
 }
 
 const makeStyles = (t) =>
   StyleSheet.create({
-    body: { paddingHorizontal: spacing.lg, marginTop: -spacing.xl },
+    body: { paddingHorizontal: spacing.lg, marginTop: spacing.md },
     chip: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: radius.pill, marginTop: spacing.md },
     chipText: { fontSize: font.sm, fontWeight: '700' },
     banner: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderWidth: 1, marginBottom: spacing.lg },

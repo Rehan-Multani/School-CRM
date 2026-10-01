@@ -7,6 +7,7 @@ import { useTheme } from '../../../context/ThemeContext';
 import { studentApi } from '../../../api/student';
 import { useAsync } from '../../../lib/useAsync';
 import { showError, toast } from '../../../lib/notify';
+import { useKeyboard } from '../../../lib/useKeyboard';
 import { Button, Input } from '../../../components/ui';
 import { ErrorView, TextArea } from '../../../components/kit';
 import { SkeletonForm } from '../../../components/Skeleton';
@@ -18,6 +19,7 @@ const PHONE_RE = /^\+?[0-9\s-]{7,15}$/;
 function ContactForm({ profile }) {
   const theme = useTheme();
   const { refreshSession } = useAuth();
+  const { keyboardHeight, keyboardVisible } = useKeyboard();
   const [f, setF] = useState({ phone: profile.phone || '', address: profile.address || '' });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -44,8 +46,12 @@ function ContactForm({ profile }) {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
         style={{ backgroundColor: theme.bg }}
-        contentContainerStyle={{ padding: spacing.lg, paddingBottom: 60 }}
+        contentContainerStyle={{
+          padding: spacing.lg,
+          paddingBottom: Math.max(60, keyboardVisible ? keyboardHeight + 80 : 60),
+        }}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
         {/* Information Notice Banner */}
         <View style={[styles.banner, { backgroundColor: alpha(theme.primary, theme.isDark ? 0.18 : 0.08), borderColor: alpha(theme.primary, 0.25) }]}>

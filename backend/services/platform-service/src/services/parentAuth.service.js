@@ -9,6 +9,7 @@ import { schoolThemeSnapshot } from './school.service.js';
 import { parentAccessService } from './parentAccess.service.js';
 import { parentSelf, childCard } from '../serializers/parent.serializers.js';
 import { PARENT_ERR } from '../constants/parentErrorCodes.js';
+import { checkRoleMismatch } from './roleMismatch.service.js';
 
 const BCRYPT_ROUNDS = 10;
 const MIN_PASSWORD_LEN = 8;
@@ -62,7 +63,10 @@ class ParentAuthService {
       );
     }
     const parent = candidates[0];
-    if (!parent || !parent.passwordHash) throw invalid;
+    if (!parent || !parent.passwordHash) {
+      await checkRoleMismatch('PARENT', identifier);
+      throw invalid;
+    }
 
     let ok = false;
     try {
@@ -80,6 +84,14 @@ class ParentAuthService {
       throw new AppError('This parent login has been disabled. Contact your school office.', 403, PARENT_ERR.PARENT_INACTIVE);
     }
 
+    return this.sessionFor(parent);
+  }
+
+  /**
+   * Token + login payload for a parent whose identity is ALREADY proven
+   * (password above, or mobile OTP in otpLogin.service.js).
+   */
+  async sessionFor(parent) {
     const schoolIdStr = parent.schoolId ? parent.schoolId.toString() : '';
     const [school, ctx] = await Promise.all([
       parent.schoolId ? School.findById(parent.schoolId) : null,

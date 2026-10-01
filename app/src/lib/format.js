@@ -89,6 +89,17 @@ const CODE_MESSAGES = {
   OFFLINE: 'You are offline. Check your internet connection.',
   NETWORK_ERROR: 'Could not reach the school server. Please try again.',
   TIMEOUT: 'The server is taking too long to respond. Please try again.',
+  // Parent app (doc 03 §8)
+  PARENT_INACTIVE: 'Your account is inactive. Please contact the school office.',
+  NO_LINKED_CHILDREN: 'No student is linked to your account. Please contact the school.',
+  CHILD_ACCESS_DENIED: 'This student is not linked to your account.',
+  CHILD_NOT_FOUND: 'This student could not be found.',
+  PAYMENTS_NOT_CONFIGURED: 'Online payment is not enabled by your school. Please pay at the school office.',
+  INVOICE_ALREADY_PAID: 'This invoice is already paid.',
+  INVOICE_NOT_PAYABLE: 'This invoice cannot be paid online.',
+  PAYMENT_AMOUNT_INVALID: 'Enter an amount between ₹1 and the balance due.',
+  PAYMENT_SIGNATURE_INVALID: 'We could not verify the payment yet. It will update once the bank confirms.',
+  PAYMENT_GATEWAY_ERROR: 'The payment service is unavailable right now. Please try again.',
   INVALID_ID: 'This item could not be found. Please go back and try again.',
   DUPLICATE: 'This was already saved.',
 };

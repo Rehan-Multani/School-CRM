@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Image, Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -6,19 +6,15 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { fileUrl } from '../lib/links';
 
-// Top-right header cluster shared by role tab bars: signed-in user's
-// avatar/icon (photo or crisp person icon) → their Profile tab, then the role's notification bell.
+// Top-right header cluster shared by role tab bars: the role's notification bell,
+// then signed-in user's avatar/icon (photo or crisp person icon) → their Profile tab.
 export function ProfileAvatar({ size = 32, style }) {
   const { user, role } = useAuth();
   const theme = useTheme();
   const photo = fileUrl(user?.profilePhoto || user?.photo);
-  const [imgError, setImgError] = useState(false);
+  const [failedUrl, setFailedUrl] = useState(null);
 
-  useEffect(() => {
-    setImgError(false);
-  }, [photo]);
-
-  const hasPhoto = Boolean(photo && !imgError);
+  const hasPhoto = Boolean(photo && failedUrl !== photo);
 
   return (
     <Pressable
@@ -46,7 +42,7 @@ export function ProfileAvatar({ size = 32, style }) {
             source={{ uri: photo }}
             style={{ width: '100%', height: '100%' }}
             resizeMode="cover"
-            onError={() => setImgError(true)}
+            onError={() => setFailedUrl(photo)}
           />
         ) : (
           <Ionicons name="person" size={Math.round(size * 0.55)} color={theme.onPrimary} />
@@ -58,9 +54,9 @@ export function ProfileAvatar({ size = 32, style }) {
 
 export default function HeaderActions({ bell = null, showProfile = true }) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingLeft: 8, paddingRight: bell ? 0 : 12 }}>
-      {showProfile ? <ProfileAvatar /> : null}
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
       {bell}
+      {showProfile ? <ProfileAvatar /> : null}
     </View>
   );
 }

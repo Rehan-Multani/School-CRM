@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Circle } from 'react-native-svg';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
-import { studentApi } from '../../../api/student';
+import { usePortal } from '../../../context/PortalScope';
 import { useAsync } from '../../../lib/useAsync';
 import { fmtDate, ymd } from '../../../lib/format';
 import { Card } from '../../../components/ui';
@@ -57,6 +57,7 @@ function Ring({ percent, size = 132, stroke = 12 }) {
 }
 
 export default function Attendance() {
+  const { api, scopeKey } = usePortal();
   const theme = useTheme();
   const styles = useStyles(makeStyles);
   const meta = statusMeta(theme);
@@ -64,8 +65,8 @@ export default function Attendance() {
   const [picked, setPicked] = useState(null);
   const month = monthKey(cursor);
 
-  const summary = useAsync(() => studentApi.attendanceSummary(), [], { refetchOnFocus: true });
-  const monthly = useAsync(() => studentApi.attendanceMonthly(month), [month]);
+  const summary = useAsync(() => api.attendanceSummary(), [scopeKey], { refetchOnFocus: true });
+  const monthly = useAsync(() => api.attendanceMonthly(month), [month, scopeKey]);
 
   const byDate = useMemo(() => new Map((monthly.data?.days || []).map((d) => [d.date, d])), [monthly.data]);
 

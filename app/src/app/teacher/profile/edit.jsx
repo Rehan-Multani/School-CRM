@@ -7,6 +7,7 @@ import { useTheme } from '../../../context/ThemeContext';
 import { teacherApi } from '../../../api/teacher';
 import { useAsync } from '../../../lib/useAsync';
 import { showError, toast } from '../../../lib/notify';
+import { useKeyboard } from '../../../lib/useKeyboard';
 import { Button, Input } from '../../../components/ui';
 import { ErrorView, Select } from '../../../components/kit';
 import { font, radius, spacing } from '../../../theme';
@@ -20,6 +21,7 @@ const MARITAL = ['', 'SINGLE', 'MARRIED', 'DIVORCED', 'WIDOWED'].map((m) => ({ v
 export default function EditProfile() {
   const theme = useTheme();
   const { refreshSession } = useAuth();
+  const { keyboardHeight, keyboardVisible } = useKeyboard();
   const state = useAsync(() => teacherApi.profile(), []);
   const [f, setF] = useState(null);
   const [errors, setErrors] = useState({});
@@ -98,8 +100,12 @@ export default function EditProfile() {
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView
         style={{ backgroundColor: theme.bg }}
-        contentContainerStyle={{ padding: spacing.lg, paddingBottom: 60 }}
+        contentContainerStyle={{
+          padding: spacing.lg,
+          paddingBottom: Math.max(60, keyboardVisible ? keyboardHeight + 80 : 60),
+        }}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
         {/* Information Notice Banner */}
         <View style={[styles.banner, { backgroundColor: alpha(theme.primary, theme.isDark ? 0.18 : 0.08), borderColor: alpha(theme.primary, 0.25) }]}>
