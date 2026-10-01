@@ -22,11 +22,11 @@ function RootNavigator() {
   const { role } = useAuth();
   const theme = useTheme();
 
-  // Each role only ever sees its own route tree; logged-out users only see login.
   return (
     <>
       <StatusBar style={theme.isDark ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.bg } }}>
+        <Stack.Screen name="index" />
         <Stack.Protected guard={!role}>
           <Stack.Screen name="login" />
           <Stack.Screen name="forgot-password" />

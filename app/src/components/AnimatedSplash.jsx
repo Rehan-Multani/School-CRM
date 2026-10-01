@@ -35,9 +35,26 @@ export default function AnimatedSplash({ ready, children }) {
   };
 
   useEffect(() => {
+    // Failsafe 1: Ensure native splash hides even if onLayout was delayed
+    const nativeTimer = setTimeout(() => {
+      SplashScreen.hideAsync().catch(() => {});
+    }, 500);
+
+    // Minimum visible timer for smooth animation
     const t = setTimeout(() => setMinElapsed(true), MIN_VISIBLE_MS);
-    return () => clearTimeout(t);
-  }, []);
+
+    // Failsafe 2: Under no circumstance stay stuck on splash for more than 3.5 seconds
+    const maxTimer = setTimeout(() => {
+      SplashScreen.hideAsync().catch(() => {});
+      Animated.timing(overlayOpacity, { toValue: 0, duration: 300, useNativeDriver: true }).start(() => setVisible(false));
+    }, 3500);
+
+    return () => {
+      clearTimeout(nativeTimer);
+      clearTimeout(t);
+      clearTimeout(maxTimer);
+    };
+  }, [overlayOpacity]);
 
   useEffect(() => {
     if (!ready || !minElapsed) return;
@@ -46,7 +63,7 @@ export default function AnimatedSplash({ ready, children }) {
 
   return (
     <View style={{ flex: 1 }}>
-      {ready ? children : null}
+      {children}
       {visible ? (
         <Animated.View style={[StyleSheet.absoluteFill, styles.overlay, { opacity: overlayOpacity }]} onLayout={onLayout}>
           <Animated.Image
