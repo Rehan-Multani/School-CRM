@@ -102,10 +102,9 @@ app.get('/ready', (req, res) => {
   });
 });
 
-// Routes
-// Note: Vercel maps request URLs as-is, and Express matching handles prefixes automatically
-app.use('/api/v1/platform/auth', authRoutes);
-app.use('/api/v1/platform', platformRoutes);
+// Routes (Support both /api/v1 and /v1 prefixes for cPanel sub-path /api or root)
+app.use(['/api/v1/platform/auth', '/v1/platform/auth'], authRoutes);
+app.use(['/api/v1/platform', '/v1/platform'], platformRoutes);
 
 // Error handlers
 app.use((req, res) => {

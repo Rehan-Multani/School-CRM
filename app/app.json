@@ -23,11 +23,11 @@
       },
       "package": "com.schoolcrm.app",
       "permissions": [
-        "INTERNET",
-        "ACCESS_NETWORK_STATE",
-        "CAMERA",
-        "POST_NOTIFICATIONS",
-        "VIBRATE"
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.CAMERA",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.VIBRATE"
       ],
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO",
@@ -71,6 +71,13 @@
       "@react-native-community/datetimepicker",
       "expo-sharing"
     ],
-    "scheme": "schoolcrm"
+    "scheme": "schoolcrm",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "cee6a8b5-4654-4dcc-b256-f5596ac9e72d"
+      }
+    },
+    "owner": "rehan121"
   }
 }
