@@ -11,6 +11,7 @@
  * mixes with real schools and `--remove` takes it all out again. The boot-time
  * academic seeder skips this school (see constants/demoSchool.js).
  *
+<<<<<<< HEAD
  * App logins. Teacher and transport manager: email + password `Demo@12345`.
  * Student and parent: mobile number + SMS OTP (dev: the OTP is printed in this
  * service's log); the password still works on the web parent portal.
@@ -21,6 +22,15 @@
  *   transport.demo@example.com   Vikram Rathore — transport manager: 2 routes, today half picked up
  *   teacher.empty@example.com    Nisha Rao    — no classes (empty states)
  *   9000033333                   Ishaan Gupta — student, Class 8-A, which has no timetable/work/results
+=======
+ * Logins (all password `Demo@12345`):
+ *   admin@app-demo.example.com Demo Admin  — school admin web panel (/school-admin)
+ *   teacher.demo@example.com  Meera Kapoor — class teacher 10-A, Maths in 9-A/9-B/10-A/10-B
+ *   student.demo@example.com  Aarav Mehta  — Class 10-A, roll 1
+ *   parent.demo@example.com   Rajiv Mehta  — Aarav's father
+ *   teacher.empty@example.com Nisha Rao    — no classes (empty states)
+ *   student.empty@example.com Ishaan Gupta — Class 8-A, which has no timetable/work/results
+>>>>>>> f2106951fb2cfc7c9c8ae055a1990f5b0f7919c2
  *
  * All names, numbers and addresses are invented. Never point this at production.
  */
@@ -826,8 +836,12 @@ async function main() {
     const started = Date.now();
     const stats = await seed(M);
     console.log(`Demo school created in ${((Date.now() - started) / 1000).toFixed(1)}s`, stats);
+<<<<<<< HEAD
     console.log(`Password logins (${PASSWORD}): admin@app-demo.example.com (admin panel), teacher.demo@example.com, transport.demo@example.com, teacher.empty@example.com`);
     console.log('Mobile + OTP logins (the OTP is printed in the platform-service log): student 9000022222, parent 9000011111, student (empty) 9000033333');
+=======
+    console.log(`Logins (password ${PASSWORD}): admin@app-demo.example.com (admin panel), teacher.demo@example.com, student.demo@example.com, parent.demo@example.com, teacher.empty@example.com, student.empty@example.com`);
+>>>>>>> f2106951fb2cfc7c9c8ae055a1990f5b0f7919c2
   } finally {
     await mongoose.disconnect();
   }
