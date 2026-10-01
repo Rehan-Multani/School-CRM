@@ -84,17 +84,17 @@ app.use(async (req, res, next) => {
   }
 });
 
-// Health Checks
-app.get('/health', (req, res) => {
+// Health Checks (support both /health and /api/health for sub-path or root mount)
+app.get(['/health', '/api/health'], (req, res) => {
   res.json({
     success: true,
-    service: 'api-gateway-vercel',
+    service: 'api-gateway-cpanel',
     status: 'HEALTHY',
     timestamp: new Date().toISOString(),
   });
 });
 
-app.get('/ready', (req, res) => {
+app.get(['/ready', '/api/ready'], (req, res) => {
   res.json({
     success: true,
     status: 'READY',
