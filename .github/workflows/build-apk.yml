@@ -34,8 +34,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 🤖 Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: 🤖 Accept Android SDK Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: 🐘 Setup Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -48,13 +49,13 @@ jobs:
 
       - name: 📦 Install NPM dependencies
         working-directory: ./app
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: 🔨 Expo Prebuild (Generate Android native project)
         working-directory: ./app
         env:
           EXPO_PUBLIC_API_URL: https://schoolsarthiapp.com/api/v1
-        run: npx expo prebuild --platform android --clean
+        run: npx expo prebuild --platform android --clean --no-install
 
       - name: 🚀 Build APK with Gradle
         working-directory: ./app/android
@@ -72,11 +73,12 @@ jobs:
         run: |
           mkdir -p output-apk
           APK_FILE=$(find app/android/app/build/outputs/apk -name "*.apk" | head -n 1)
-          if [ -f "$APK_FILE" ]; then
+          if [ -n "$APK_FILE" ] && [ -f "$APK_FILE" ]; then
             echo "Found APK: $APK_FILE"
             cp "$APK_FILE" output-apk/SchoolCRM.apk
           else
             echo "No APK found!"
+            find app/android/app/build/outputs -type f || true
             exit 1
           fi
 
