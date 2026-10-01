@@ -70,7 +70,27 @@ async function connectDB() {
   }
 }
 
-// Database Connection Middleware
+// Health & Availability Checks (Mounted before DB check so availability pings return 200 OK)
+app.get(['/', '/health', '/api', '/api/health'], (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'CONNECTED' : 'DISCONNECTED';
+  res.json({
+    success: true,
+    service: 'api-gateway-cpanel',
+    status: 'HEALTHY',
+    database: dbStatus,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get(['/ready', '/api/ready'], (req, res) => {
+  res.json({
+    success: true,
+    status: 'READY',
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Database Connection Middleware for API routes
 app.use(async (req, res, next) => {
   try {
     await connectDB();
@@ -82,24 +102,6 @@ app.use(async (req, res, next) => {
       error: error.message,
     });
   }
-});
-
-// Health Checks (support both /health and /api/health for sub-path or root mount)
-app.get(['/health', '/api/health'], (req, res) => {
-  res.json({
-    success: true,
-    service: 'api-gateway-cpanel',
-    status: 'HEALTHY',
-    timestamp: new Date().toISOString(),
-  });
-});
-
-app.get(['/ready', '/api/ready'], (req, res) => {
-  res.json({
-    success: true,
-    status: 'READY',
-    timestamp: new Date().toISOString(),
-  });
 });
 
 // Routes (Support both /api/v1 and /v1 prefixes for cPanel sub-path /api or root)
