@@ -9,7 +9,8 @@
     "start": "node server.js",
     "supervisor": "node index.js",
     "clean-ports": "node clean-ports.js",
-    "seed": "npm run seed --prefix services/auth-service"
+    "seed": "node services/auth-service/src/seedSuperAdmin.js",
+    "test": "vitest run"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -18,12 +19,15 @@
     "express": "^5.1.0",
     "express-rate-limit": "^8.6.2",
     "firebase-admin": "^14.2.0",
+    "http-proxy-middleware": "^3.0.5",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.17.1",
     "morgan": "^1.10.0",
     "multer": "^2.2.0",
+    "node-cron": "^3.0.3",
     "nodemailer": "^9.0.5",
     "nodemon": "^3.1.14",
+    "razorpay": "^2.9.8",
     "sharp": "^0.35.3"
   }
 }
