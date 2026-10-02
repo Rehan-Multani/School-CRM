@@ -1,4 +1,4 @@
-// Dev-only login prefill, read from app/.env.local (git-ignored). Never used in
+// Dev-only login prefill, read from app/.env (git-ignored). Never used in
 // a release build (__DEV__ is false there), so no password ships in the APK.
 // Expo inlines EXPO_PUBLIC_* only for literal `process.env.X` references —
 // keep each one spelled out.
