@@ -72,14 +72,23 @@ async function connectDB() {
   }
 }
 
-// Health & Availability Checks (Mounted before DB check so availability pings return 200 OK)
-app.get(['/', '/health', '/api', '/api/health'], (req, res) => {
-  const dbStatus = mongoose.connection.readyState === 1 ? 'CONNECTED' : 'DISCONNECTED';
+// Health & Availability Checks
+app.get(['/', '/health', '/api', '/api/health'], async (req, res) => {
+  let dbError = null;
+  if (mongoose.connection.readyState !== 1) {
+    try {
+      await connectDB();
+    } catch (err) {
+      dbError = err.message;
+    }
+  }
+  const isConnected = mongoose.connection.readyState === 1;
   res.json({
     success: true,
     service: 'api-gateway-cpanel',
-    status: 'HEALTHY',
-    database: dbStatus,
+    status: isConnected ? 'HEALTHY' : 'DEGRADED',
+    database: isConnected ? 'CONNECTED' : 'DISCONNECTED',
+    ...(dbError ? { error: dbError } : {}),
     timestamp: new Date().toISOString(),
   });
 });

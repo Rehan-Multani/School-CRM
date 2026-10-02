@@ -7,11 +7,12 @@ dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Port assigned by cPanel Phusion Passenger or fallback to 5000
+// Port or Unix socket assigned by cPanel Phusion Passenger (or fallback to 5000)
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[School-CRM] Server is running on port ${PORT}`);
+// Passenger passes a socket path in PORT on Linux; omit host parameter for socket compatibility
+const server = app.listen(PORT, () => {
+  console.log(`[School-CRM] Server is listening on ${PORT}`);
 });
 
 server.on('error', (err) => {
