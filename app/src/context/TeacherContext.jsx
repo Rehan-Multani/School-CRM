@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { AppState } from 'react-native';
 import { teacherApi } from '../api/teacher';
 import { useAuth } from './AuthContext';
 import { onPushReceived } from '../lib/pushRouting';
+import { onAppForeground } from '../lib/foreground';
 
 // Teacher-wide state: the bell's unread count (refreshed on app resume and
 // every minute) and the teacher's teaching slots — the (class, section,
@@ -29,11 +29,11 @@ export function TeacherProvider({ children }) {
     if (!session?.token) return undefined;
     refreshUnread();
     const timer = setInterval(refreshUnread, UNREAD_POLL_MS);
-    const sub = AppState.addEventListener('change', (s) => s === 'active' && refreshUnread());
+    const offForeground = onAppForeground(refreshUnread);
     const offPush = onPushReceived(() => refreshUnread()); // a push just landed
     return () => {
       clearInterval(timer);
-      sub.remove();
+      offForeground();
       offPush();
     };
   }, [session?.token, refreshUnread]);

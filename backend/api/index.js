@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 import authRoutes from '../services/auth-service/src/routes/authRoutes.js';
 import platformRoutes from '../services/platform-service/src/routes/platformRoutes.js';
 import { ensureUploadDirs, uploadsRoot } from '../services/platform-service/src/utils/upload.utils.js';
+import { brandAssetLinks } from '../services/platform-service/src/middleware/brandAssetLinks.js';
 import { errorHandler as authErrorHandler } from '../services/auth-service/src/config/errorHandler.js';
 import { errorHandler as platformErrorHandler } from '../services/platform-service/src/config/errorHandler.js';
 
@@ -151,6 +152,9 @@ app.use(async (req, res, next) => {
     });
   }
 });
+
+// Mobile app: school logo as a cacheable link instead of an inline data URI
+app.use(brandAssetLinks);
 
 // Routes (Support both /api/v1 and /v1 prefixes for cPanel sub-path /api or root)
 app.use(['/api/v1/platform/auth', '/v1/platform/auth'], authRoutes);

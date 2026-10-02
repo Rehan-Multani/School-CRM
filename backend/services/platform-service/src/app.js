@@ -7,6 +7,7 @@ import { errorHandler } from './config/errorHandler.js';
 import platformRoutes from './routes/platformRoutes.js';
 import { ensureUploadDirs, uploadsRoot } from './utils/upload.utils.js';
 import { requireUploadAccess } from './middleware/requireUploadAccess.js';
+import { brandAssetLinks } from './middleware/brandAssetLinks.js';
 import { securityHeaders } from '../../shared/securityHeaders.js';
 import { receiveRazorpayWebhook } from './controllers/razorpayWebhook.controller.js';
 
@@ -61,6 +62,7 @@ app.use(
   })
 );
 
+app.use(brandAssetLinks);
 app.use(platformRoutes);
 app.use(errorHandler);
 

@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useSta
 import { FlatList, RefreshControl, ScrollView, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useTheme } from '../context/ThemeContext';
+import { staleOnFocus } from '../lib/useAsync';
 import { spacing } from '../theme';
 import { ErrorView } from './kit';
 import { SkeletonList } from './Skeleton';
@@ -9,7 +10,8 @@ import { SkeletonList } from './Skeleton';
 // Infinite-scroll list over the standard list envelope
 // `{ data: [], pagination: { page, totalPages } }`.
 // `fetchPage(page)` must return that envelope. Re-fetches page 1 when `deps`
-// change, on pull-to-refresh, and (silently) when the screen regains focus.
+// change, on pull-to-refresh, and (silently) when the screen regains focus
+// with stale data (see staleOnFocus).
 // Parent can call `ref.current.reload()` / `ref.current.update(fn)`.
 const PagedList = forwardRef(function PagedList(
   { fetchPage, skeleton, deps = [], renderItem, keyExtractor = (x) => String(x.id), ListEmptyComponent, ListHeaderComponent, contentContainerStyle, refetchOnFocus = true, ...props },
@@ -27,15 +29,18 @@ const PagedList = forwardRef(function PagedList(
   fetchRef.current = fetchPage;
   const reqId = useRef(0);
   const focusedOnce = useRef(false);
+  const loadedAt = useRef(0);
 
   const loadFirst = useCallback(async (mode = 'initial') => {
     const my = ++reqId.current;
     if (mode === 'initial') setLoading(true);
     if (mode === 'refresh') setRefreshing(true);
     setError(null);
+    const startedAt = Date.now();
     try {
       const res = await fetchRef.current(1);
       if (my !== reqId.current) return;
+      loadedAt.current = startedAt;
       setItems(res?.data || []);
       setPage(1);
       setTotalPages(res?.pagination?.totalPages || 1);
@@ -62,7 +67,7 @@ const PagedList = forwardRef(function PagedList(
         focusedOnce.current = true;
         return;
       }
-      loadFirst('silent');
+      if (staleOnFocus(loadedAt.current)) loadFirst('silent');
     }, [refetchOnFocus, loadFirst]),
   );
 

@@ -1,9 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { AppState } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { parentApi } from '../api/parent';
 import { useAuth } from './AuthContext';
 import { onPushReceived } from '../lib/pushRouting';
+import { onAppForeground } from '../lib/foreground';
 
 // Parent-wide state (doc 03 §1): the linked children, the SELECTED child every
 // child screen shows, and the bell's unread count.
@@ -70,11 +70,11 @@ export function ParentProvider({ children: content }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     refreshUnread();
     const timer = setInterval(refreshUnread, UNREAD_POLL_MS);
-    const sub = AppState.addEventListener('change', (s) => s === 'active' && refreshUnread());
+    const offForeground = onAppForeground(refreshUnread);
     const offPush = onPushReceived(() => refreshUnread());
     return () => {
       clearInterval(timer);
-      sub.remove();
+      offForeground();
       offPush();
     };
   }, [session?.token, refreshUnread]);

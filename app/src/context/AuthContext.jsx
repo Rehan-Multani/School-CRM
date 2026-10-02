@@ -1,10 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { AppState } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { api, setAuthToken, setSubscriptionBlockedHandler, setUnauthorizedHandler } from '../api/client';
 import { ROLES } from '../api/roles';
 import { toast } from '../lib/notify';
 import { onPushReceived } from '../lib/pushRouting';
+import { onAppForeground } from '../lib/foreground';
 
 const STORAGE_KEY = 'schoolcrm.session';
 
@@ -41,6 +41,8 @@ function forStorage(session) {
     },
   };
 }
+
+const sameJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 // Session = { token, role, user, school }. One 7-day token per login, no
 // refresh token in any APK flow — on 401 we simply drop the session.
@@ -103,7 +105,10 @@ export function AuthProvider({ children }) {
         setSession(saved);
         try {
           const { data } = await api.get(role.mePath);
-          await persist({ ...saved, user: data.user || saved.user, school: data.school || saved.school });
+          const next = { ...saved, user: data.user || saved.user, school: data.school || saved.school };
+          // Nothing changed since the last launch (the usual case): keep the
+          // session object, so the app is not re-rendered and re-saved for nothing.
+          if (!sameJson(forStorage(next), saved)) await persist(next);
         } catch (err) {
           // Offline: keep the cached session. 401 is already handled by the client;
           // 402 (subscription) keeps the session and shows the blocked screen.
@@ -161,11 +166,12 @@ export function AuthProvider({ children }) {
     const role = ROLES[session?.role];
     if (!role) return;
     const { data } = await api.get(role.mePath);
-    await persist({
+    const next = {
       ...session,
       user: data.user || session.user,
       school: data.school ? { ...session.school, ...data.school } : session.school,
-    });
+    };
+    if (!sameJson(next, session)) await persist(next);
   }, [session, persist]);
 
   // An administrator's force logout takes effect on the next request. Ask the
@@ -179,10 +185,10 @@ export function AuthProvider({ children }) {
       if (role) api.get(role.mePath).catch(() => {});
     };
     const offPush = onPushReceived((data) => data?.type === 'force_logout' && check());
-    const sub = AppState.addEventListener('change', (s) => s === 'active' && check());
+    const offForeground = onAppForeground(check);
     return () => {
       offPush();
-      sub.remove();
+      offForeground();
     };
   }, [hasSession]);
 

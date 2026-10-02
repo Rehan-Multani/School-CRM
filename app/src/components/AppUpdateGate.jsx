@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { AppState, Linking, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { api } from '../api/client';
 import { onPushReceived } from '../lib/pushRouting';
+import { onAppForeground } from '../lib/foreground';
 import { compareVersions } from '../lib/appVersion';
 import { toast } from '../lib/notify';
 import { Button } from './ui';
@@ -43,10 +44,10 @@ export default function AppUpdateGate() {
       });
     };
     check();
-    const sub = AppState.addEventListener('change', (s) => s === 'active' && check());
+    const offForeground = onAppForeground(check);
     const offPush = onPushReceived((data) => data?.type === 'app_update' && check());
     return () => {
-      sub.remove();
+      offForeground();
       offPush();
     };
   }, []);

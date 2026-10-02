@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { AppState } from 'react-native';
 import { studentApi } from '../api/student';
 import { useAuth } from './AuthContext';
 import { onPushReceived } from '../lib/pushRouting';
+import { onAppForeground } from '../lib/foreground';
 
 // Student-wide state: the bell / Notifications-tab unread count, refreshed on
 // app resume and every minute (doc §6.9).
@@ -28,11 +28,11 @@ export function StudentProvider({ children }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     refreshUnread();
     const timer = setInterval(refreshUnread, UNREAD_POLL_MS);
-    const sub = AppState.addEventListener('change', (s) => s === 'active' && refreshUnread());
+    const offForeground = onAppForeground(refreshUnread);
     const offPush = onPushReceived(() => refreshUnread()); // a push just landed
     return () => {
       clearInterval(timer);
-      sub.remove();
+      offForeground();
       offPush();
     };
   }, [session?.token, refreshUnread]);

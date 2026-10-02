@@ -3,7 +3,9 @@ import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { BRAND_PRIMARY } from '../theme';
 
-export const SPLASH_MIN_MS = 2600;
+// Just long enough for the logo + title animation (~700ms) to finish; a
+// restored session should not be held back behind the splash.
+export const SPLASH_MIN_MS = 900;
 const MIN_VISIBLE_MS = SPLASH_MIN_MS;
 
 // In-app splash drawn over the app while the session restores. It starts as

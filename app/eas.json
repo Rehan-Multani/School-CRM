@@ -4,6 +4,24 @@
     "appVersionSource": "remote"
   },
   "build": {
+    "debug": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleDebug",
+        "withoutCredentials": true
+      }
+    },
+    "local": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://192.168.1.29:5000/api/v1",
+        "ALLOW_HTTP": "1"
+      }
+    },
     "preview": {
       "distribution": "internal",
       "android": {

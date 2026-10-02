@@ -12,6 +12,17 @@ let authToken = null;
 let onUnauthorized = null;
 let onSubscriptionBlocked = null;
 
+// Ask the backend for the school logo as a cacheable image link instead of a
+// base64 data URI inside every login / `me` / theme response.
+const BRAND_ASSETS = { 'X-Brand-Assets': 'url' };
+
+// When the app last saved something. Screens that reload on focus use it to
+// tell "data may have changed" from "just came back" (see lib/useAsync).
+let lastWriteAt = 0;
+export function getLastWriteAt() {
+  return lastWriteAt;
+}
+
 export function setAuthToken(token) {
   authToken = token;
 }
@@ -87,6 +98,7 @@ export async function request(path, { method = 'GET', body, params, headers, onR
         method,
         headers: {
           Accept: 'application/json',
+          ...BRAND_ASSETS,
           ...(body && !isForm ? { 'Content-Type': 'application/json' } : {}),
           ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
           ...headers,
@@ -120,6 +132,7 @@ export async function request(path, { method = 'GET', body, params, headers, onR
     if (json?.suggestedRole) err.suggestedRole = json.suggestedRole;
     throw err;
   }
+  if (method !== 'GET') lastWriteAt = Date.now();
   return json;
 }
 
@@ -155,6 +168,7 @@ export function upload(path, formData, { method = 'POST', onProgress, headers } 
     const xhr = new XMLHttpRequest();
     xhr.open(method, `${PLATFORM_URL}${path}`);
     xhr.setRequestHeader('Accept', 'application/json');
+    xhr.setRequestHeader('X-Brand-Assets', BRAND_ASSETS['X-Brand-Assets']);
     if (authToken) xhr.setRequestHeader('Authorization', `Bearer ${authToken}`);
     for (const [k, v] of Object.entries(headers || {})) xhr.setRequestHeader(k, v);
     if (onProgress && xhr.upload) {
@@ -173,7 +187,10 @@ export function upload(path, formData, { method = 'POST', onProgress, headers } 
         // non-JSON body
       }
       const ok = xhr.status >= 200 && xhr.status < 300 && json?.success !== false;
-      if (ok) return resolve(json);
+      if (ok) {
+        lastWriteAt = Date.now();
+        return resolve(json);
+      }
       if (xhr.status === 401 && authToken && onUnauthorized) onUnauthorized(json?.code);
       if (xhr.status === 402 && onSubscriptionBlocked) onSubscriptionBlocked(json?.message);
       reject(

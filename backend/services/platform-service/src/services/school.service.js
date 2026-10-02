@@ -1,5 +1,7 @@
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
+import sharp from 'sharp';
+import { brandAssetVersion, parseImageDataUri } from '../utils/brandAsset.utils.js';
 import { AppError } from '../../../shared/AppError.js';
 import { signAccessToken } from '../../../shared/generateToken.js';
 import { env } from '../config/env.js';
@@ -22,6 +24,11 @@ const CLASS_OPTIONS = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7
 const WORKING_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const DEFAULT_PRIMARY_COLOR = '#4F46E5';
+
+// Resized logos, keyed by content hash (so a changed logo is a new entry).
+const LOGO_SIZE = 256;
+const LOGO_CACHE_MAX = 200;
+const logoCache = new Map();
 
 // Shared brand-theme snapshot for any panel that resolves a School document.
 // Keeps the shape identical across school-admin, principal, librarian and HR payloads.
@@ -587,14 +594,9 @@ export class SchoolService {
 
   // Public (no-auth) brand theme lookup used by every role portal + login screens.
   // Accepts a school slug, code, or Mongo _id.
-  async getPublicTheme(idOrSlug) {
+  async findPublicSchool(idOrSlug, fields) {
     const raw = String(idOrSlug || '').trim();
-    // Public + polled by every signed-in app: read only what the snapshot uses.
-    const find = (id) =>
-      schoolRepository
-        .findById(id)
-        ?.select('schoolId name logo settings.theme settings.primaryColor settings.portalBranding')
-        .lean();
+    const find = (id) => schoolRepository.findById(id)?.select(fields).lean();
     // `schoolId` is stored lowercase and `code` uppercase; try the value as
     // given, then normalized, so a caller's casing never misses.
     let school = await find(raw);
@@ -607,11 +609,52 @@ export class SchoolService {
     if (!school) {
       throw new AppError('School not found', 404);
     }
+    return school;
+  }
+
+  async getPublicTheme(idOrSlug) {
+    // Public + polled by every signed-in app: read only what the snapshot uses.
+    const school = await this.findPublicSchool(
+      idOrSlug,
+      'schoolId name logo settings.theme settings.primaryColor settings.portalBranding'
+    );
     return {
       schoolId: school.schoolId,
       schoolName: school.name,
       ...schoolThemeSnapshot(school),
     };
+  }
+
+  // The school's logo as image bytes, for clients that asked for a link instead
+  // of the inline data URI (see middleware/brandAssetLinks.js). Scaled down to
+  // what a phone header needs — an uploaded logo can be a ~2 MB original.
+  async getPublicLogo(idOrSlug) {
+    const school = await this.findPublicSchool(idOrSlug, 'logo settings.portalBranding');
+    const logo = schoolThemeSnapshot(school).branding.logo;
+    const parsed = parseImageDataUri(logo);
+    if (!parsed) {
+      throw new AppError('Logo not found', 404);
+    }
+
+    const version = brandAssetVersion(logo);
+    let asset = logoCache.get(version);
+    if (!asset) {
+      try {
+        const buffer = await sharp(parsed.buffer, { failOn: 'none' })
+          .rotate()
+          .resize(LOGO_SIZE, LOGO_SIZE, { fit: 'inside', withoutEnlargement: true })
+          .png()
+          .toBuffer();
+        asset = { buffer, contentType: 'image/png' };
+      } catch {
+        asset = parsed; // unreadable by sharp — serve the upload as it is
+      }
+      if (logoCache.size >= LOGO_CACHE_MAX) {
+        logoCache.delete(logoCache.keys().next().value);
+      }
+      logoCache.set(version, asset);
+    }
+    return { ...asset, version };
   }
 
   toSchoolConfigPayload(school) {

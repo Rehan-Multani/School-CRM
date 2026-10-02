@@ -69,9 +69,13 @@
         }
       ],
       "@react-native-community/datetimepicker",
-      "expo-sharing"
+      "expo-sharing",
+      "expo-build-properties"
     ],
     "scheme": "schoolcrm",
+    "experiments": {
+      "reactCompiler": true
+    },
     "extra": {
       "router": {},
       "eas": {

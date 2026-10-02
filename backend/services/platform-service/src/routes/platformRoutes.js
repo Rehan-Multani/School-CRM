@@ -76,6 +76,7 @@ import {
   getSchoolFeatures,
   updateSchoolFeatures,
   schoolThemePublic,
+  schoolLogoPublic,
   schoolPortalChangePassword,
   schoolPortalConfig,
   schoolPortalMe,
@@ -603,6 +604,7 @@ router.post('/schools/:id/change-password', requireSuperAdmin, validateObjectId(
 router.delete('/schools/:id', requireSuperAdmin, deleteSchool);
 router.get('/school-auth/branding', schoolBranding);
 router.get('/school-theme/:schoolId', schoolThemePublic);
+router.get('/school-theme/:schoolId/logo', schoolLogoPublic);
 router.post('/school-auth/login', loginRateLimiter, schoolAdminLogin);
 router.post('/school-auth/librarian-login', loginRateLimiter, librarianLogin);
 router.post('/school-portal/auth/librarian-login', loginRateLimiter, librarianLogin);

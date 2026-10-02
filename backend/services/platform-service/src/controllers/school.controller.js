@@ -190,6 +190,20 @@ export async function schoolThemePublic(req, res, next) {
   }
 }
 
+// Public like the theme itself. `?v=` is the logo's content hash, so a matching
+// request can be cached for good — a new logo gets a new URL.
+export async function schoolLogoPublic(req, res, next) {
+  try {
+    const asset = await schoolService.getPublicLogo(req.params.schoolId);
+    res.set('Content-Type', asset.contentType);
+    res.set('ETag', `"${asset.version}"`);
+    res.set('Cache-Control', req.query.v === asset.version ? 'public, max-age=31536000, immutable' : 'public, max-age=300');
+    res.send(asset.buffer);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function schoolAdminLogin(req, res, next) {
   try {
     const result = await schoolService.loginSchoolAdmin(req.body || {});

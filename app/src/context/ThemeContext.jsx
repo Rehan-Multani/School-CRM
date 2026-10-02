@@ -1,13 +1,15 @@
 import { createContext, useContext, useEffect, useMemo, useRef } from 'react';
 import { AppState } from 'react-native';
 import { conditionalGet } from '../api/client';
+import { FOREGROUND_MIN_GAP_MS } from '../lib/foreground';
 import { brandTheme, buildTheme } from '../theme';
 import { useAuth } from './AuthContext';
 
-// How often to re-check the school's theme while the app is open. Changes
-// made in the admin panel also apply instantly whenever the app returns to
-// the foreground.
-const SYNC_INTERVAL_MS = 15000;
+// How often to re-check the school's theme while the app stays open. A theme
+// changes rarely, and changes made in the admin panel also apply whenever the
+// app returns to the foreground — so this is only a slow safety net, not a
+// request every few seconds for the whole session.
+const SYNC_INTERVAL_MS = 5 * 60 * 1000;
 
 const ThemeContext = createContext(brandTheme);
 
@@ -31,11 +33,12 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     if (!schoolId) return undefined;
     let cancelled = false;
-    // The theme payload can carry the school logo as a multi-MB data URI;
-    // with the ETag an unchanged theme is an empty 304 on every poll.
+    // With the ETag an unchanged theme is an empty 304 on every poll.
     let etag = null;
 
+    let syncedAt = 0;
     const sync = async () => {
+      syncedAt = Date.now();
       try {
         const res = await conditionalGet(`/school-theme/${encodeURIComponent(schoolId)}`, etag);
         if (cancelled || res.notModified) return;
@@ -55,7 +58,8 @@ export function ThemeProvider({ children }) {
 
     let timer = null;
     const start = () => {
-      sync();
+      // "active" also fires after every picker / permission dialog (see lib/foreground).
+      if (Date.now() - syncedAt >= FOREGROUND_MIN_GAP_MS) sync();
       if (!timer) timer = setInterval(sync, SYNC_INTERVAL_MS);
     };
     const stop = () => {

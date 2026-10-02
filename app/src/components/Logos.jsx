@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
-import { api, API_URL } from '../api/client';
+import { api, API_URL, PLATFORM_URL } from '../api/client';
 import { useTheme } from '../context/ThemeContext';
 
 const BUNDLED_LOGO = require('../../assets/logo.png');
@@ -21,10 +21,14 @@ function fetchPlatformLogo() {
   return platformLogoPromise;
 }
 
-// School logo may be a data-URI, an absolute URL or a server-relative path.
+// School logo is normally a `/school-theme/:id/logo?v=…` link (the app asks
+// for links — see BRAND_ASSETS in api/client), which the OS image cache keeps
+// on disk. It may also be an absolute URL, a server-relative path or, from an
+// older backend, a data-URI.
 export function resolveAssetUri(value) {
   if (!value || typeof value !== 'string') return null;
   if (/^(data:|https?:)/i.test(value)) return value;
+  if (value.startsWith('/school-theme/')) return `${PLATFORM_URL}${value}`;
   if (value.startsWith('/')) return `${API_URL.replace(/\/api\/v1$/, '')}${value}`;
   return null;
 }
