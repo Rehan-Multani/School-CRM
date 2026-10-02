@@ -72,6 +72,28 @@ async function connectDB() {
   }
 }
 
+import net from 'net';
+
+function probeTcp(host, port, timeoutMs = 2500) {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    socket.setTimeout(timeoutMs);
+    socket.on('connect', () => {
+      socket.destroy();
+      resolve('OPEN');
+    });
+    socket.on('timeout', () => {
+      socket.destroy();
+      resolve('TIMEOUT (Blocked by server outbound firewall)');
+    });
+    socket.on('error', (err) => {
+      socket.destroy();
+      resolve(`ERROR: ${err.message}`);
+    });
+    socket.connect(port, host);
+  });
+}
+
 // Health & Availability Checks
 app.get(['/', '/health', '/api', '/api/health'], async (req, res) => {
   let dbError = null;
@@ -83,11 +105,26 @@ app.get(['/', '/health', '/api', '/api/health'], async (req, res) => {
     }
   }
   const isConnected = mongoose.connection.readyState === 1;
+  const rawUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/school_crm_platform';
+  const maskedUri = rawUri.replace(/:([^:@]+)@/, ':****@');
+
+  // Probe port 27017 directly to test host firewall
+  let tcpProbe = 'SKIPPED';
+  try {
+    const hostMatch = rawUri.match(/@([^:/,]+)/);
+    const host = hostMatch ? hostMatch[1] : 'ac-jtfgutv-shard-00-00.6kmkkna.mongodb.net';
+    tcpProbe = await probeTcp(host, 27017);
+  } catch (probeErr) {
+    tcpProbe = probeErr.message;
+  }
+
   res.json({
     success: true,
     service: 'api-gateway-cpanel',
     status: isConnected ? 'HEALTHY' : 'DEGRADED',
     database: isConnected ? 'CONNECTED' : 'DISCONNECTED',
+    tcpOutboundPort27017: tcpProbe,
+    uriPreview: maskedUri,
     ...(dbError ? { error: dbError } : {}),
     timestamp: new Date().toISOString(),
   });
