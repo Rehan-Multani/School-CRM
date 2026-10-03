@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { otpLoginApi } from '../api/otpLogin';
 import { useAuth } from '../context/AuthContext';
 import { Button, Input } from './ui';

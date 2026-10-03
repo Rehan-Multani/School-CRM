@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useAuth } from '../../../context/AuthContext';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
@@ -9,7 +9,7 @@ import { teacherApi } from '../../../api/teacher';
 import { useAsync } from '../../../lib/useAsync';
 import { fmtHM, withPrefix } from '../../../lib/format';
 import { Card } from '../../../components/ui';
-import { Badge, ErrorView, SectionTitle, StatCard } from '../../../components/kit';
+import { Badge, ErrorView, SectionTitle, StaleNotice, StatCard } from '../../../components/kit';
 import SchoolHeader from '../../../components/SchoolHeader';
 import RefreshableScroll from '../../../components/RefreshableScroll';
 import { alpha, font, radius, spacing } from '../../../theme';
@@ -29,7 +29,7 @@ export default function TeacherHome() {
       return { dash, today };
     },
     [],
-    { refetchOnFocus: true },
+    { refetchOnFocus: true, cacheKey: 'teacher.home' },
   );
 
   const onRefresh = useCallback(async () => {
@@ -106,6 +106,7 @@ export default function TeacherHome() {
             <ErrorView error={state.error} onRetry={state.reload} />
           ) : (
             <>
+              {state.stale ? <StaleNotice at={state.cachedAt} onRetry={state.reload} /> : null}
               {/* 4 Summary Stat Cards */}
               <View style={styles.stats}>
                 <StatCard

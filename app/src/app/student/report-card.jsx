@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useStyles, useTheme } from '../../context/ThemeContext';
 import { usePortal } from '../../context/PortalScope';
 import { useAsync } from '../../lib/useAsync';
@@ -18,7 +18,7 @@ export default function ReportCard() {
   const { api, scopeKey } = usePortal();
   const theme = useTheme();
   const styles = useStyles(makeStyles);
-  const state = useAsync(() => api.reportCard(), [scopeKey]);
+  const state = useAsync(() => api.reportCard(), [scopeKey], { cacheKey: 'reportCard' });
   const [open, setOpen] = useState(null);
 
   return (

@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useStyles, useTheme } from '../../context/ThemeContext';
 import { fmtDate, parseYmd, ymd } from '../../lib/format';
 import { font, radius, spacing } from '../../theme';

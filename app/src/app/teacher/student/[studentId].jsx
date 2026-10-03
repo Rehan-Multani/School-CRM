@@ -1,5 +1,5 @@
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams } from 'expo-router';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { teacherApi } from '../../../api/teacher';
@@ -38,7 +38,7 @@ export default function StudentDetail() {
       teacherApi.studentAttendance(studentId).catch(() => null),
     ]);
     return { student, attendance };
-  }, [studentId]);
+  }, [studentId], { cacheKey: 'teacher.student' });
 
   return (
     <RefreshableScroll onRefresh={() => state.reload({ silent: true })} contentContainerStyle={{ padding: spacing.lg, flexGrow: 1 }}>

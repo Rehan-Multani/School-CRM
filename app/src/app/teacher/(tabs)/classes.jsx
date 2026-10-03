@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { teacherApi } from '../../../api/teacher';
@@ -145,7 +145,7 @@ function ClassCard({ cls }) {
 export default function TeacherClasses() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('ALL'); // 'ALL' | 'CLASS_TEACHER'
-  const state = useAsync(() => teacherApi.classes(), []);
+  const state = useAsync(() => teacherApi.classes(), [], { cacheKey: 'teacher.classes' });
 
   const filteredClasses = (state.data || []).filter((c) => {
     const matchSearch =

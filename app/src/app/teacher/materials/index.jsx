@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
@@ -42,6 +42,7 @@ export default function Materials() {
       <PagedList
         ref={list}
         deps={[sectionId]}
+        cacheKey="teacher.materials"
         fetchPage={(page) => teacherApi.materialList({ page, limit: 20, sectionId })}
         contentContainerStyle={{ paddingTop: spacing.md, paddingBottom: 110 }}
         ListEmptyComponent={<EmptyState icon="folder-open-outline" title="No materials yet" message="Upload notes, worksheets or slides for your students." />}

@@ -25,6 +25,7 @@ export default function ExamList() {
   return (
     <PagedList
       deps={[status, scopeKey]}
+      cacheKey="exams.list"
       fetchPage={(page) => api.exams({ page, limit: 20, status })}
       skeleton={<SkeletonCards padded={false} />}
       ListHeaderComponent={

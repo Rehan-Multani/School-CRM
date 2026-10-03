@@ -10,7 +10,7 @@ import { SkeletonList } from '../../../components/Skeleton';
 
 // Exams of the current year that include one of the teacher's classes.
 export default function Exams() {
-  const state = useAsync(() => teacherApi.exams(), []);
+  const state = useAsync(() => teacherApi.exams(), [], { cacheKey: 'teacher.exams' });
   return (
     <RefreshableScroll onRefresh={() => state.reload({ silent: true })} contentContainerStyle={{ padding: spacing.lg, flexGrow: 1 }}>
       <AsyncView

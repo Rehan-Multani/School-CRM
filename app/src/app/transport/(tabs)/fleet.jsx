@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { transportApi } from '../../../api/transport';
 import { useAsync } from '../../../lib/useAsync';
@@ -27,7 +27,7 @@ const pretty = (v) =>
 export default function Fleet() {
   const styles = useStyles(makeStyles);
   const [view, setView] = useState('vehicles');
-  const state = useAsync(() => transportApi.fleet(), [], { refetchOnFocus: true });
+  const state = useAsync(() => transportApi.fleet(), [], { refetchOnFocus: true, cacheKey: 'transport.fleet' });
 
   return (
     <RefreshableScroll onRefresh={() => state.reload({ silent: true })} contentContainerStyle={styles.page}>

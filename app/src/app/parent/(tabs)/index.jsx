@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useAuth } from '../../../context/AuthContext';
 import { useParent } from '../../../context/ParentContext';
@@ -36,8 +36,8 @@ export default function ParentHome() {
   const { child, children, selectChild, reloadChildren, refreshUnread } = useParent();
   const childId = child?.childId;
 
-  const overview = useAsync(() => parentApi.overview(), [], { refetchOnFocus: true });
-  const dash = useAsync(() => parentApi.dashboard(childId), [childId], { refetchOnFocus: true });
+  const overview = useAsync(() => parentApi.overview(), [], { refetchOnFocus: true, cacheKey: 'parent.overview' });
+  const dash = useAsync(() => parentApi.dashboard(childId), [childId], { refetchOnFocus: true, cacheKey: 'parent.dashboard' });
 
   const onRefresh = useCallback(async () => {
     await Promise.all([overview.reload({ silent: true }), dash.reload({ silent: true }), reloadChildren(), refreshUnread()]);

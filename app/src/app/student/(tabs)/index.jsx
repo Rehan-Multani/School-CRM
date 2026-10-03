@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useAuth } from '../../../context/AuthContext';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
@@ -9,8 +9,8 @@ import { studentApi } from '../../../api/student';
 import { useAsync } from '../../../lib/useAsync';
 import { fmtDate, fmtHM, withPrefix } from '../../../lib/format';
 import { Card } from '../../../components/ui';
-import { Badge, ErrorView, SectionTitle, StatCard } from '../../../components/kit';
-import { SkeletonHome } from '../../../components/Skeleton';
+import { Badge, ErrorView, SectionTitle, StaleNotice, StatCard } from '../../../components/kit';
+import { SkeletonHome, SkeletonList } from '../../../components/Skeleton';
 import SchoolHeader from '../../../components/SchoolHeader';
 import RefreshableScroll from '../../../components/RefreshableScroll';
 import { alpha, font, radius, spacing } from '../../../theme';
@@ -41,18 +41,21 @@ export default function StudentHome() {
   const { user } = useAuth();
   const { refreshUnread } = useStudent();
 
+  // Critical: today's numbers and classes. The page is usable as soon as these land.
   const state = useAsync(
     async () => {
-      const [dash, today, upcoming] = await Promise.all([studentApi.dashboard(), studentApi.today(), studentApi.upcoming()]);
-      return { dash, today, upcoming };
+      const [dash, today] = await Promise.all([studentApi.dashboard(), studentApi.today()]);
+      return { dash, today };
     },
     [],
-    { refetchOnFocus: true },
+    { refetchOnFocus: true, cacheKey: 'student.home' },
   );
+  // Secondary: the "upcoming" list fills in by itself and never holds the page back.
+  const upcoming = useAsync(() => studentApi.upcoming(), [], { refetchOnFocus: true, cacheKey: 'student.upcoming' });
 
   const onRefresh = useCallback(async () => {
-    await Promise.all([state.reload({ silent: true }), refreshUnread()]);
-  }, [state, refreshUnread]);
+    await Promise.all([state.reload({ silent: true }), upcoming.reload({ silent: true }), refreshUnread()]);
+  }, [state, upcoming, refreshUnread]);
 
   const dash = state.data?.dash;
   const today = state.data?.today;
@@ -60,7 +63,7 @@ export default function StudentHome() {
   const current = periods.find((p) => p.id === today?.currentPeriodId) || null;
   const next = dash?.todaySummary?.nextClass || null;
   const dueToday = today?.homeworkDueToday || [];
-  const items = upcomingItems(state.data?.upcoming);
+  const items = upcomingItems(upcoming.data);
   const classLine = [user?.className && user?.sectionName ? withPrefix('Class', `${user.className}-${user.sectionName}`) : withPrefix('Class', user?.className), user?.rollNumber ? `Roll ${user.rollNumber}` : '']
     .filter(Boolean)
     .join(' · ');
@@ -93,6 +96,7 @@ export default function StudentHome() {
             <ErrorView error={state.error} onRetry={state.reload} />
           ) : (
             <>
+              {state.stale ? <StaleNotice at={state.cachedAt} onRetry={state.reload} /> : null}
               {/* Modern 2x2 Metric Cards */}
               <View style={styles.stats}>
                 <StatCard
@@ -122,7 +126,7 @@ export default function StudentHome() {
                 <StatCard
                   icon="school-outline"
                   label="Upcoming Exams"
-                  value={state.data?.upcoming?.exams?.length ?? 0}
+                  value={upcoming.data?.exams?.length ?? '–'}
                   subtitle="Scheduled"
                   color="#8b5cf6"
                   onPress={() => router.push('/student/results')}
@@ -201,7 +205,9 @@ export default function StudentHome() {
 
               {/* Upcoming Items */}
               <SectionTitle title="Upcoming Schedule" />
-              {items.length ? (
+              {upcoming.loading && !upcoming.data ? (
+                <SkeletonList count={3} padded={false} />
+              ) : items.length ? (
                 <View style={[styles.upcomingCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                   {items.map((it, idx) => (
                     <Pressable
@@ -232,7 +238,9 @@ export default function StudentHome() {
                 </View>
               ) : (
                 <Card>
-                  <Text style={styles.muted}>Nothing coming up this week.</Text>
+                  <Text style={styles.muted}>
+                    {upcoming.error && !upcoming.data ? 'Could not load upcoming items. Pull down to try again.' : 'Nothing coming up this week.'}
+                  </Text>
                 </Card>
               )}
             </>

@@ -28,7 +28,7 @@ export default function InvoiceDetail() {
   const { id } = useLocalSearchParams();
   const theme = useTheme();
   const styles = useStyles(makeStyles);
-  const state = useAsync(() => api.invoice(id), [id, scopeKey]);
+  const state = useAsync(() => api.invoice(id), [id, scopeKey], { cacheKey: 'fees.invoice' });
 
   return (
     <RefreshableScroll onRefresh={() => state.reload({ silent: true })} contentContainerStyle={{ padding: spacing.lg, paddingBottom: 60, flexGrow: 1 }}>

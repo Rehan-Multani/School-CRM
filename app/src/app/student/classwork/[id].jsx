@@ -15,7 +15,7 @@ export default function ClassworkDetail() {
   const { api, scopeKey } = usePortal();
   const { id } = useLocalSearchParams();
   const styles = useStyles(makeStyles);
-  const state = useAsync(() => api.classwork(id), [id, scopeKey]);
+  const state = useAsync(() => api.classwork(id), [id, scopeKey], { cacheKey: 'classwork.detail' });
   return (
     <RefreshableScroll onRefresh={() => state.reload({ silent: true })} contentContainerStyle={{ padding: spacing.lg, flexGrow: 1 }}>
       <AsyncView state={state} skeleton={<SkeletonDetail padded={false} />}>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStyles, useTheme } from '../../context/ThemeContext';
@@ -53,6 +53,7 @@ export default function WorkList({ kind, sectionId }) {
   return (
     <View style={{ flex: 1 }}>
       <PagedList
+        cacheKey={`teacher.${kind}.list`}
         deps={[status, sectionId]}
         skeleton={<SkeletonCards padded={false} />}
         fetchPage={(page) => cfg.fetch({ page, limit: 20, status, sectionId })}

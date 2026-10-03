@@ -1,6 +1,6 @@
 import { useLocalSearchParams, router } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { teacherApi } from '../../../api/teacher';
 import { fmtDate } from '../../../lib/format';
@@ -19,6 +19,7 @@ export default function AttendanceHistory() {
     <PagedList
       deps={[sectionId]}
       skeleton={<SkeletonCards count={3} padded={false} />}
+      cacheKey="teacher.attendanceHistory"
       fetchPage={(page) => teacherApi.attendanceHistory({ page, sectionId })}
       contentContainerStyle={{ paddingTop: spacing.md }}
       ListEmptyComponent={

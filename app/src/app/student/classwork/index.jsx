@@ -15,6 +15,7 @@ export default function ClassworkList() {
   return (
     <PagedList
       deps={[scopeKey]}
+      cacheKey="classwork.list"
       fetchPage={(page) => api.classworkList({ page, limit: 20 })}
       skeleton={<SkeletonCards padded={false} />}
       contentContainerStyle={{ paddingTop: spacing.md }}

@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useTheme } from '../../context/ThemeContext';
 import { useStudent } from '../../context/StudentContext';
@@ -10,7 +10,7 @@ export default function Bell({ color }) {
   const { unread } = useStudent();
   const c = color || theme.onPrimary;
   return (
-    <Pressable onPress={() => router.navigate('/student/notifications')} hitSlop={10} style={{ paddingHorizontal: 12 }}>
+    <Pressable onPress={() => router.navigate('/student/notifications')} hitSlop={10} accessibilityRole="button" accessibilityLabel={unread ? `Notifications, ${unread} unread` : 'Notifications'} style={{ paddingHorizontal: 12 }}>
       <Ionicons name={unread ? 'notifications' : 'notifications-outline'} size={24} color={c} />
       {unread ? (
         <View

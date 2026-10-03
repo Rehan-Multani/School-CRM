@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { usePortal } from '../../../context/PortalScope';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
@@ -19,6 +19,7 @@ export default function PickupHistory() {
   return (
     <PagedList
       deps={[scopeKey]}
+      cacheKey="parent.pickups"
       fetchPage={(page) => api.pickups({ page, limit: 20 })}
       contentContainerStyle={{ paddingTop: spacing.lg }}
       ListHeaderComponent={

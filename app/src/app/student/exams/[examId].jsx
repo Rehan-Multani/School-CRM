@@ -18,7 +18,7 @@ export default function ExamDetail() {
   const state = useAsync(async () => {
     const [exam, schedule] = await Promise.all([api.exam(examId), api.examSchedule(examId)]);
     return { exam, papers: schedule?.papers || [] };
-  }, [examId, scopeKey]);
+  }, [examId, scopeKey], { cacheKey: 'exam.detail' });
 
   return (
     <RefreshableScroll onRefresh={() => state.reload({ silent: true })} contentContainerStyle={{ padding: spacing.lg, paddingBottom: 60, flexGrow: 1 }}>

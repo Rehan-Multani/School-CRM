@@ -19,3 +19,25 @@ export function onAppForeground(fn, minGapMs = FOREGROUND_MIN_GAP_MS) {
   });
   return () => sub.remove();
 }
+
+/**
+ * Runs `fn` every `ms` only while the app is on screen. A backgrounded app must
+ * not keep waking the radio for a badge nobody is looking at; the foreground
+ * hook above refreshes it again when the user comes back.
+ */
+export function pollWhileActive(fn, ms) {
+  let timer = null;
+  const start = () => {
+    if (!timer) timer = setInterval(fn, ms);
+  };
+  const stop = () => {
+    if (timer) clearInterval(timer);
+    timer = null;
+  };
+  if (AppState.currentState !== 'background') start();
+  const sub = AppState.addEventListener('change', (state) => (state === 'active' ? start() : stop()));
+  return () => {
+    stop();
+    sub.remove();
+  };
+}

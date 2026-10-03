@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useStyles, useTheme } from '../../context/ThemeContext';
 import { teacherApi } from '../../api/teacher';
 import { useAsync } from '../../lib/useAsync';
@@ -30,7 +30,7 @@ export default function Timetable() {
   const styles = useStyles(makeStyles);
   const { width: screenWidth } = useWindowDimensions();
   const [day, setDay] = useState(todayCode);
-  const state = useAsync(() => teacherApi.timetable(), []);
+  const state = useAsync(() => teacherApi.timetable(), [], { cacheKey: 'teacher.timetable' });
   const dayScrollRef = useRef(null);
   const dayLayouts = useRef({});
 

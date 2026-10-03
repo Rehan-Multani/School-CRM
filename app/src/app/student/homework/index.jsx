@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { usePortal } from '../../../context/PortalScope';
@@ -29,6 +29,7 @@ export default function HomeworkList() {
   return (
     <PagedList
       deps={[status, scopeKey]}
+      cacheKey="homework.list"
       fetchPage={(page) => api.homeworkList({ page, limit: 20, status })}
       skeleton={<SkeletonCards padded={false} />}
       ListHeaderComponent={

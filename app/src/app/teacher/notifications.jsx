@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useStyles, useTheme } from '../../context/ThemeContext';
 import { useTeacher } from '../../context/TeacherContext';
 import { teacherApi } from '../../api/teacher';
@@ -85,6 +85,7 @@ export default function Notifications() {
   return (
     <PagedList
       ref={list}
+      cacheKey="teacher.notifications"
       fetchPage={(page) => teacherApi.notifications({ page, limit: 20 })}
       contentContainerStyle={{ padding: spacing.lg, paddingBottom: 110, flexGrow: 1 }}
       ListHeaderComponent={

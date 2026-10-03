@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Linking, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import Constants from 'expo-constants';
 import { api } from '../api/client';
 import { onPushReceived } from '../lib/pushRouting';

@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { FlatList, Image, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStyles, useTheme } from '../context/ThemeContext';
 import { alpha, font, radius, spacing } from '../theme';
-import { fmtDate, parseYmd, ymd } from '../lib/format';
+import { fmtDate, fmtDateTime, parseYmd, ymd } from '../lib/format';
 import { Button } from './ui';
 import { SkeletonList } from './Skeleton';
 import NetworkState from './NetworkState';
@@ -85,7 +85,9 @@ export function Chip({ label, active, onPress, color, disabled, style }) {
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      hitSlop={4}
+      hitSlop={8}
+      accessibilityRole="button"
+      accessibilityState={{ selected: Boolean(active), disabled: Boolean(disabled) }}
       style={[
         kitStatic.chip,
         { borderColor: active ? c : theme.border, backgroundColor: active ? c : theme.surface },
@@ -108,6 +110,8 @@ export function Segmented({ options, value, onChange }) {
           <Pressable
             key={o.value}
             onPress={() => onChange(o.value)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: active }}
             style={[kitStatic.segmentItem, active && { backgroundColor: theme.surface, shadowOpacity: 0.08, elevation: 1 }]}
           >
             <Text style={{ fontWeight: '700', color: active ? theme.primary : theme.textMuted, fontSize: font.md }}>
@@ -156,7 +160,33 @@ export function AsyncView({ state, children, empty, skeleton }) {
   if (state.loading && !state.data) return skeleton || <SkeletonList padded={false} />;
   if (state.error && !state.data) return <ErrorView error={state.error} onRetry={state.reload} />;
   if (empty && empty.when(state.data)) return empty.view;
-  return children(state.data);
+  if (!state.stale) return children(state.data);
+  return (
+    <>
+      <StaleNotice at={state.cachedAt} onRetry={state.reload} />
+      {children(state.data)}
+    </>
+  );
+}
+
+// Saved data is on screen because the refresh failed (offline / server down).
+export function StaleNotice({ at, onRetry, style }) {
+  const theme = useTheme();
+  return (
+    <Pressable
+      onPress={onRetry ? () => onRetry() : undefined}
+      disabled={!onRetry}
+      accessibilityRole={onRetry ? 'button' : 'text'}
+      accessibilityLabel="Showing saved data. Tap to try again."
+      style={[kitStatic.stale, { backgroundColor: alpha(theme.warning, theme.isDark ? 0.2 : 0.12), borderColor: alpha(theme.warning, 0.35) }, style]}
+    >
+      <Ionicons name="cloud-offline-outline" size={16} color={theme.warning} />
+      <Text style={{ flex: 1, color: theme.text, fontSize: font.sm, fontWeight: '600' }}>
+        {at ? `Showing saved data from ${fmtDateTime(at)}` : 'Could not refresh. Showing saved data.'}
+      </Text>
+      {onRetry ? <Text style={{ color: theme.primary, fontSize: font.sm, fontWeight: '800' }}>Retry</Text> : null}
+    </Pressable>
+  );
 }
 
 // ---------------------------------------------------------------- rows & headers
@@ -243,7 +273,7 @@ export function SearchBar({ value, onChangeText, placeholder = 'Search...', onCl
         autoCorrect={false}
       />
       {value ? (
-        <Pressable onPress={onClear || (() => onChangeText(''))} hitSlop={8} style={{ padding: 4 }}>
+        <Pressable onPress={onClear || (() => onChangeText(''))} hitSlop={12} style={{ padding: 4 }} accessibilityRole="button" accessibilityLabel="Clear search">
           <Ionicons name="close-circle" size={18} color={theme.textMuted} />
         </Pressable>
       ) : null}
@@ -268,6 +298,7 @@ export function ListRow({ icon, iconColor, title, subtitle, right, onPress, unre
     <Pressable
       onPress={onPress}
       disabled={!onPress || disabled}
+      accessibilityRole={onPress ? 'button' : undefined}
       style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}
     >
       {icon ? (
@@ -297,7 +328,7 @@ export function Stat({ label, value, icon, color, onPress }) {
   const styles = useStyles(makeStyles);
   const c = color || theme.primary;
   return (
-    <Pressable onPress={onPress} disabled={!onPress} style={({ pressed }) => [styles.stat, pressed && { opacity: 0.75 }]}>
+    <Pressable onPress={onPress} disabled={!onPress} accessibilityRole={onPress ? 'button' : undefined} accessibilityLabel={`${label}: ${value ?? ''}`} style={({ pressed }) => [styles.stat, pressed && { opacity: 0.75 }]}>
       <View style={[styles.rowIcon, { backgroundColor: alpha(c, theme.isDark ? 0.22 : 0.12) }]}>
         <Ionicons name={icon} size={18} color={c} />
       </View>
@@ -317,6 +348,8 @@ export function StatCard({ label, value, icon, color, subtitle, onPress, style }
     <Pressable
       onPress={onPress}
       disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={`${label}: ${value ?? ''}`}
       style={({ pressed }) => [
         styles.statCard,
         pressed && { opacity: 0.8, transform: [{ scale: 0.98 }] },
@@ -386,6 +419,8 @@ function FieldBox({ label, value, placeholder, icon, onPress, error, disabled })
       <Pressable
         onPress={onPress}
         disabled={disabled}
+        accessibilityRole="button"
+        accessibilityLabel={`${label || placeholder || 'Select'}${value ? `: ${value}` : ''}`}
         style={{
           height: 52,
           flexDirection: 'row',
@@ -435,6 +470,7 @@ export function Select({ label, value, options, onChange, placeholder, error, di
             data={options}
             keyExtractor={(o) => String(o.value)}
             style={{ maxHeight: 420 }}
+            initialNumToRender={12}
             ListEmptyComponent={<Text style={{ color: theme.textMuted, padding: spacing.lg }}>Nothing to choose from.</Text>}
             renderItem={({ item }) => (
               <Pressable
@@ -442,7 +478,9 @@ export function Select({ label, value, options, onChange, placeholder, error, di
                   onChange(item.value);
                   setOpen(false);
                 }}
-                style={{ paddingVertical: spacing.md, flexDirection: 'row', alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }}
+                accessibilityRole="button"
+                accessibilityState={{ selected: item.value === value }}
+                style={{ minHeight: 48, paddingVertical: spacing.md, flexDirection: 'row', alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }}
               >
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: font.lg, color: theme.text, fontWeight: item.value === value ? '800' : '500' }}>{item.label}</Text>
@@ -511,6 +549,7 @@ const kitStatic = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
   sheet: { borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: spacing.lg },
   grabber: { width: 40, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: spacing.md },
+  stale: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 44, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: radius.md, borderWidth: 1, marginBottom: spacing.md },
   searchBarWrap: {
     flexDirection: 'row',
     alignItems: 'center',

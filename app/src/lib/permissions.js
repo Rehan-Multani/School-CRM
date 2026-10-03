@@ -1,6 +1,5 @@
 import { PermissionsAndroid, Platform } from 'react-native';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
-import * as ImagePicker from 'expo-image-picker';
 
 // Expo Go on Android throws as soon as `expo-notifications` is *imported*
 // (remote push was removed from Expo Go in SDK 53). So the module is only
@@ -54,28 +53,16 @@ async function ensureNotificationPermission() {
   return next.granted;
 }
 
-async function ensureCameraPermission() {
-  const current = await ImagePicker.getCameraPermissionsAsync();
-  if (current.granted || !current.canAskAgain) return current.granted;
-  const next = await ImagePicker.requestCameraPermissionsAsync();
-  return next.granted;
-}
-
-// Asked once per launch, one after another (never two system dialogs at once).
-// Already-granted / permanently-denied permissions are skipped, so the user is
-// never nagged. Photos use the system photo picker — no storage permission needed.
-// Internet / network-state are install-time on Android (no prompt).
+// The only runtime permission the app needs is notifications. An
+// already-granted / permanently-denied permission is skipped, so the user is
+// never nagged. Photos and files go through the system pickers — no camera or
+// storage permission. Internet / network-state are install-time on Android.
 export async function requestStartupPermissions() {
-  const result = { notifications: false, camera: false };
+  const result = { notifications: false };
   try {
     result.notifications = await ensureNotificationPermission();
   } catch {
     // unsupported environment — ignore
-  }
-  try {
-    result.camera = await ensureCameraPermission();
-  } catch {
-    // ignore
   }
   return result;
 }

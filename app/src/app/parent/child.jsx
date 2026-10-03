@@ -25,7 +25,7 @@ function Line({ label, value, styles }) {
 export default function ChildProfile() {
   const { api, scopeKey } = usePortal();
   const styles = useStyles(makeStyles);
-  const state = useAsync(() => api.childProfile(), [scopeKey]);
+  const state = useAsync(() => api.childProfile(), [scopeKey], { cacheKey: 'parent.child' });
 
   return (
     <RefreshableScroll onRefresh={() => state.reload({ silent: true })} contentContainerStyle={{ padding: spacing.lg, paddingBottom: 60, flexGrow: 1 }}>

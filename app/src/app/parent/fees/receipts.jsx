@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { usePortal } from '../../../context/PortalScope';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
@@ -17,6 +17,7 @@ export default function Receipts() {
   return (
     <PagedList
       deps={[scopeKey]}
+      cacheKey="parent.receipts"
       fetchPage={(page) => api.receipts({ page, limit: 20 })}
       contentContainerStyle={{ paddingTop: spacing.lg }}
       ListEmptyComponent={<EmptyState icon="receipt-outline" title="No receipts yet" message="Receipts appear here after a fee payment is confirmed." />}

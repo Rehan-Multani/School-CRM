@@ -15,6 +15,9 @@ import ConfirmModalContainer from '../components/ConfirmModal';
 import { requestStartupPermissions } from '../lib/permissions';
 import { usePushHandling } from '../lib/usePushHandling';
 
+// A render crash anywhere below shows a retry screen instead of a dead app.
+export { default as ErrorBoundary } from '../components/CrashScreen';
+
 // Keep the native splash up until AnimatedSplash has painted its copy of it.
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -52,7 +55,7 @@ function Boot() {
   const { booting, role } = useAuth();
   usePushHandling(booting ? null : role);
 
-  // Ask for notification + camera permission once the splash has faded out.
+  // Ask for notification permission once the splash has faded out.
   useEffect(() => {
     if (booting) return undefined;
     const t = setTimeout(() => requestStartupPermissions(), SPLASH_MIN_MS + 600);

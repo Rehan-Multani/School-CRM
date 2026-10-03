@@ -1,5 +1,5 @@
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { studentApi } from '../../../api/student';
 import { useAsync } from '../../../lib/useAsync';
@@ -33,7 +33,7 @@ export default function AcademicInfo() {
   const state = useAsync(async () => {
     const [info, guardians] = await Promise.all([studentApi.academicInfo(), studentApi.guardians()]);
     return { info, guardians };
-  }, []);
+  }, [], { cacheKey: 'profile.academic' });
 
   return (
     <RefreshableScroll onRefresh={() => state.reload({ silent: true })} contentContainerStyle={{ padding: spacing.lg, flexGrow: 1 }}>

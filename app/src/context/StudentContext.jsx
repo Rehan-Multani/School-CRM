@@ -2,12 +2,14 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { studentApi } from '../api/student';
 import { useAuth } from './AuthContext';
 import { onPushReceived } from '../lib/pushRouting';
-import { onAppForeground } from '../lib/foreground';
+import { onAppForeground, pollWhileActive } from '../lib/foreground';
 
 // Student-wide state: the bell / Notifications-tab unread count, refreshed on
 // app resume and every minute (doc §6.9).
 const StudentContext = createContext(null);
-const UNREAD_POLL_MS = 60000;
+// Push + app-resume already refresh the badge; this slow poll only covers a
+// phone with notifications switched off.
+const UNREAD_POLL_MS = 120000;
 
 export function StudentProvider({ children }) {
   const { session } = useAuth();
@@ -27,11 +29,11 @@ export function StudentProvider({ children }) {
     // setState only runs after the awaited fetch, never synchronously here.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     refreshUnread();
-    const timer = setInterval(refreshUnread, UNREAD_POLL_MS);
+    const stopPoll = pollWhileActive(refreshUnread, UNREAD_POLL_MS);
     const offForeground = onAppForeground(refreshUnread);
     const offPush = onPushReceived(() => refreshUnread()); // a push just landed
     return () => {
-      clearInterval(timer);
+      stopPoll();
       offForeground();
       offPush();
     };

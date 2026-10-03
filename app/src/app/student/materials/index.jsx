@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { usePortal } from '../../../context/PortalScope';
 import { fmtBytes, fmtDate } from '../../../lib/format';
@@ -36,6 +36,7 @@ export default function Materials() {
   return (
     <PagedList
       deps={[scopeKey]}
+      cacheKey="materials.list"
       fetchPage={(page) => api.materialList({ page, limit: 20 })}
       skeleton={<SkeletonCards padded={false} />}
       contentContainerStyle={{ paddingTop: spacing.md }}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useParent } from '../../context/ParentContext';
 import { useStyles, useTheme } from '../../context/ThemeContext';
 import { fileUrl } from '../../lib/links';

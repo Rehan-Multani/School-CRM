@@ -30,6 +30,7 @@ function Notices() {
   return (
     <PagedList
       ref={list}
+      cacheKey="teacher.notices"
       fetchPage={(page) => teacherApi.notices({ page, limit: 20 })}
       ListHeaderComponent={
         <Pressable onPress={markAll} style={{ alignSelf: 'flex-end', paddingVertical: spacing.md }} hitSlop={6}>
@@ -60,6 +61,7 @@ function Events() {
   return (
     <PagedList
       deps={[scope]}
+      cacheKey="teacher.events"
       fetchPage={(page) => teacherApi.events({ page, limit: 20, scope })}
       ListHeaderComponent={
         <View style={{ flexDirection: 'row', gap: spacing.sm, paddingVertical: spacing.md }}>
@@ -100,7 +102,7 @@ function Events() {
 }
 
 function Messages() {
-  const state = useAsync(() => teacherApi.conversations(), [], { refetchOnFocus: true });
+  const state = useAsync(() => teacherApi.conversations(), [], { refetchOnFocus: true, cacheKey: 'teacher.conversations' });
   if (state.loading && !state.data) return <SkeletonList count={1} />;
   if (state.error && !state.data) return <ErrorView error={state.error} onRetry={state.reload} />;
   return (

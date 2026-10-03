@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
@@ -38,6 +38,7 @@ export default function Leaves() {
       <PagedList
         ref={list}
         skeleton={<SkeletonCards padded={false} />}
+        cacheKey="teacher.leaves"
         fetchPage={(page) => teacherApi.leaves({ page, limit: 20 })}
         contentContainerStyle={{ paddingTop: spacing.md, paddingBottom: 110 }}
         ListEmptyComponent={<EmptyState icon="airplane-outline" title="No leave requests" message="Tap + to apply for leave." />}

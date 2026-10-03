@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { usePortal } from '../../../context/PortalScope';
@@ -75,7 +75,7 @@ export default function Fees() {
   const { api, scopeKey } = usePortal();
   const styles = useStyles(makeStyles);
   const [tab, setTab] = useState('pending');
-  const summary = useAsync(() => api.feeSummary(), [scopeKey], { refetchOnFocus: true });
+  const summary = useAsync(() => api.feeSummary(), [scopeKey], { refetchOnFocus: true, cacheKey: 'fees.summary' });
   const header = <Header summary={summary} tab={tab} setTab={setTab} />;
 
   // /fees/pending is a plain array; wrap it in the list envelope. A page-1
@@ -90,6 +90,7 @@ export default function Fees() {
   return (
     <PagedList
       deps={[tab, scopeKey]}
+      cacheKey="fees.list"
       fetchPage={fetchPage}
       skeleton={<SkeletonCards padded={false} />}
       ListHeaderComponent={header}

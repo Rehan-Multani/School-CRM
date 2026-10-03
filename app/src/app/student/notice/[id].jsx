@@ -16,7 +16,7 @@ export default function NoticeDetail() {
   const { api, scopeKey } = usePortal();
   const { id } = useLocalSearchParams();
   const styles = useStyles(makeStyles);
-  const state = useAsync(() => api.notice(id), [id, scopeKey]);
+  const state = useAsync(() => api.notice(id), [id, scopeKey], { cacheKey: 'notice.detail' });
 
   useEffect(() => {
     api.markNoticeRead(id).catch(() => {});

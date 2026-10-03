@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import Svg, { Circle } from 'react-native-svg';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { usePortal } from '../../../context/PortalScope';
@@ -65,8 +65,8 @@ export default function Attendance() {
   const [picked, setPicked] = useState(null);
   const month = monthKey(cursor);
 
-  const summary = useAsync(() => api.attendanceSummary(), [scopeKey], { refetchOnFocus: true });
-  const monthly = useAsync(() => api.attendanceMonthly(month), [month, scopeKey]);
+  const summary = useAsync(() => api.attendanceSummary(), [scopeKey], { refetchOnFocus: true, cacheKey: 'attendance.summary' });
+  const monthly = useAsync(() => api.attendanceMonthly(month), [month, scopeKey], { cacheKey: 'attendance.monthly' });
 
   const byDate = useMemo(() => new Map((monthly.data?.days || []).map((d) => [d.date, d])), [monthly.data]);
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../../../../context/AuthContext';
 import { useParent } from '../../../../context/ParentContext';
@@ -38,7 +38,7 @@ export default function Receipt() {
   const theme = useTheme();
   const styles = useStyles(makeStyles);
   const [sharing, setSharing] = useState(false);
-  const state = useAsync(() => api.receipt(paymentId), [paymentId, scopeKey]);
+  const state = useAsync(() => api.receipt(paymentId), [paymentId, scopeKey], { cacheKey: 'parent.receipt' });
 
   const share = async (receipt) => {
     setSharing(true);

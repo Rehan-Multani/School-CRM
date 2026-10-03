@@ -15,7 +15,7 @@ export default function ResultDetail() {
   const { api, scopeKey } = usePortal();
   const { examId } = useLocalSearchParams();
   const styles = useStyles(makeStyles);
-  const state = useAsync(() => api.result(examId), [examId, scopeKey]);
+  const state = useAsync(() => api.result(examId), [examId, scopeKey], { cacheKey: 'result.detail' });
 
   // RESULT_NOT_PUBLISHED is an expected state, not an error (doc §6.6).
   if (state.error?.code === 'RESULT_NOT_PUBLISHED') {

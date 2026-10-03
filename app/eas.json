@@ -19,7 +19,8 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "http://192.168.1.29:5000/api/v1",
-        "ALLOW_HTTP": "1"
+        "ALLOW_HTTP": "1",
+        "APP_RELEASE": "1"
       }
     },
     "preview": {
@@ -28,7 +29,36 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://schoolsarthiapp.com/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://schoolsarthiapp.com/api/v1",
+        "APP_RELEASE": "1"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://schoolsarthiapp.com/api/v1",
+        "APP_RELEASE": "1"
+      }
+    },
+    "vps": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://145.223.21.188:3005/api/v1",
+        "ALLOW_HTTP": "1",
+        "APP_RELEASE": "1",
+        "EXPO_PUBLIC_PREFILL_LOGIN": "1",
+        "EXPO_PUBLIC_DEV_TEACHER_ID": "teacher.demo@example.com",
+        "EXPO_PUBLIC_DEV_TEACHER_PASSWORD": "Demo@12345",
+        "EXPO_PUBLIC_DEV_TRANSPORT_ID": "transport.demo@example.com",
+        "EXPO_PUBLIC_DEV_TRANSPORT_PASSWORD": "Demo@12345",
+        "EXPO_PUBLIC_DEV_STUDENT_ID": "9000022222",
+        "EXPO_PUBLIC_DEV_PARENT_ID": "9000011111"
       }
     }
   }

@@ -4,7 +4,12 @@ import { isOfflineState } from '../lib/useNetwork';
 // envelope: success `{ success: true, data, pagination? }`,
 // error `{ success: false, message, code }` + HTTP status.
 
-export const API_URL = (process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000/api/v1').replace(/\/+$/, '');
+// A release build must never fall back to a developer machine: without
+// EXPO_PUBLIC_API_URL it talks to the production gateway. Only a dev build
+// (Metro) may default to localhost.
+const PRODUCTION_API_URL = 'https://schoolsarthiapp.com/api/v1';
+const configuredUrl = (process.env.EXPO_PUBLIC_API_URL || '').trim();
+export const API_URL = (configuredUrl || (__DEV__ ? 'http://localhost:5000/api/v1' : PRODUCTION_API_URL)).replace(/\/+$/, '');
 // Every platform-service route (school-portal, school-theme, app-config) is mounted under /platform.
 export const PLATFORM_URL = `${API_URL}/platform`;
 
@@ -86,15 +91,40 @@ const REQUEST_TIMEOUT_MS = 20000;
 const UPLOAD_TIMEOUT_MS = 120000;
 const timeoutError = () => new ApiError('The server is taking too long to respond. Please try again.', 0, 'TIMEOUT');
 
-export async function request(path, { method = 'GET', body, params, headers, onResponse } = {}) {
+const cancelledError = () => new ApiError('Request cancelled', 0, 'CANCELLED');
+
+// A screen that loads through useAsync / PagedList hands its AbortSignal to the
+// GETs it starts (see `withSignal`), so leaving the screen or changing its
+// filters stops the old download instead of letting it finish for nothing.
+let ambientSignal = null;
+export function withSignal(signal, fn) {
+  const prev = ambientSignal;
+  ambientSignal = signal;
+  try {
+    return fn();
+  } finally {
+    ambientSignal = prev;
+  }
+}
+
+async function perform(url, { method = 'GET', body, headers, onResponse }, signal) {
   const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), isForm ? UPLOAD_TIMEOUT_MS : REQUEST_TIMEOUT_MS);
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, isForm ? UPLOAD_TIMEOUT_MS : REQUEST_TIMEOUT_MS);
+  const onAbort = () => controller.abort();
+  if (signal) {
+    if (signal.aborted) controller.abort();
+    else signal.addEventListener('abort', onAbort);
+  }
   let res;
   let json = null;
   try {
     try {
-      res = await fetch(`${PLATFORM_URL}${path}${buildQuery(params)}`, {
+      res = await fetch(url, {
         method,
         headers: {
           Accept: 'application/json',
@@ -107,7 +137,9 @@ export async function request(path, { method = 'GET', body, params, headers, onR
         signal: controller.signal,
       });
     } catch {
-      throw controller.signal.aborted ? timeoutError() : await networkError();
+      if (timedOut) throw timeoutError();
+      if (controller.signal.aborted) throw cancelledError();
+      throw await networkError();
     }
     onResponse?.(res);
     // 304 answers a conditional GET (If-None-Match): unchanged, no body.
@@ -116,9 +148,12 @@ export async function request(path, { method = 'GET', body, params, headers, onR
       json = await res.json();
     } catch {
       // non-JSON body (e.g. gateway 502 HTML), or the body stalled past the timeout
+      if (timedOut) throw timeoutError();
+      if (controller.signal.aborted) throw cancelledError();
     }
   } finally {
     clearTimeout(timer);
+    if (signal) signal.removeEventListener('abort', onAbort);
   }
 
   if (!res.ok || json?.success === false) {
@@ -132,8 +167,97 @@ export async function request(path, { method = 'GET', body, params, headers, onR
     if (json?.suggestedRole) err.suggestedRole = json.suggestedRole;
     throw err;
   }
+  // A read that "succeeded" without the JSON envelope (captive portal, proxy
+  // page) is a failure the screen can retry — not a crash on `undefined.data`.
+  if (method === 'GET' && json === null) {
+    throw new ApiError('The server sent an unexpected response. Please try again.', res.status, 'BAD_RESPONSE');
+  }
   if (method !== 'GET') lastWriteAt = Date.now();
   return json;
+}
+
+// Reads are safe to repeat, so a blip (connection dropped, gateway restarting)
+// is retried quietly with a growing pause. Writes are NEVER retried here: only
+// the user's own tap may send a save / payment again.
+const RETRY_DELAYS_MS = [600, 1800];
+const isTransient = (err) => err?.code === 'NETWORK_ERROR' || [502, 503, 504].includes(err?.status);
+const sleep = (ms, signal) =>
+  new Promise((resolve) => {
+    const t = setTimeout(resolve, ms);
+    signal?.addEventListener('abort', () => {
+      clearTimeout(t);
+      resolve();
+    });
+  });
+
+async function getWithRetry(url, signal) {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await perform(url, { method: 'GET' }, signal);
+    } catch (err) {
+      if (attempt >= RETRY_DELAYS_MS.length || !isTransient(err) || signal.aborted) throw err;
+      await sleep(RETRY_DELAYS_MS[attempt] + Math.random() * 250, signal);
+      if (signal.aborted) throw cancelledError();
+    }
+  }
+}
+
+// Two parts of the app asking for the same thing at the same moment (a screen
+// and its tab badge, a double focus event) share one request.
+const inflight = new Map();
+
+function sharedGet(url, signal) {
+  const key = `${authToken || ''}|${url}`;
+  let entry = inflight.get(key);
+  if (!entry) {
+    const controller = new AbortController();
+    entry = { controller, waiting: 0, pinned: false, promise: null };
+    const mine = entry;
+    entry.promise = getWithRetry(url, controller.signal).finally(() => {
+      if (inflight.get(key) === mine) inflight.delete(key);
+    });
+    // Every caller attaches its own handlers; this keeps a fully-cancelled
+    // request from surfacing as an unhandled rejection.
+    entry.promise.catch(() => {});
+    inflight.set(key, entry);
+  }
+  const shared = entry;
+  if (!signal) {
+    shared.pinned = true; // someone who cannot cancel needs the answer
+    return shared.promise;
+  }
+  if (signal.aborted) return Promise.reject(cancelledError());
+  shared.waiting += 1;
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      shared.waiting -= 1;
+      if (shared.waiting <= 0 && !shared.pinned) {
+        shared.controller.abort();
+        if (inflight.get(key) === shared) inflight.delete(key);
+      }
+      reject(cancelledError());
+    };
+    signal.addEventListener('abort', onAbort);
+    const done = () => signal.removeEventListener('abort', onAbort);
+    shared.promise.then(
+      (v) => {
+        done();
+        resolve(v);
+      },
+      (e) => {
+        done();
+        reject(e);
+      },
+    );
+  });
+}
+
+export function request(path, { method = 'GET', body, params, headers, onResponse, signal } = {}) {
+  const url = `${PLATFORM_URL}${path}${buildQuery(params)}`;
+  // Plain reads are shared + retried; conditional GETs (own headers) and every
+  // write go straight through, exactly once.
+  if (method === 'GET' && !headers && !onResponse) return sharedGet(url, signal || ambientSignal);
+  return perform(url, { method, body, headers, onResponse }, signal);
 }
 
 /**

@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 import { parentApi } from '../api/parent';
 import { useAuth } from './AuthContext';
 import { onPushReceived } from '../lib/pushRouting';
-import { onAppForeground } from '../lib/foreground';
+import { onAppForeground, pollWhileActive } from '../lib/foreground';
 
 // Parent-wide state (doc 03 §1): the linked children, the SELECTED child every
 // child screen shows, and the bell's unread count.
@@ -11,7 +11,9 @@ import { onAppForeground } from '../lib/foreground';
 // Child ids only ever come from the server's `children[]` — the backend also
 // re-checks the parent↔child link on every call (CHILD_ACCESS_DENIED).
 const ParentContext = createContext(null);
-const UNREAD_POLL_MS = 60000;
+// Push + app-resume already refresh the badge; this slow poll only covers a
+// phone with notifications switched off.
+const UNREAD_POLL_MS = 120000;
 const LAST_CHILD_KEY = 'schoolcrm.parent.lastChild'; // not secret; just remembers the last pick
 
 export function ParentProvider({ children: content }) {
@@ -69,11 +71,11 @@ export function ParentProvider({ children: content }) {
     // setState only runs after the awaited fetch, never synchronously here.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     refreshUnread();
-    const timer = setInterval(refreshUnread, UNREAD_POLL_MS);
+    const stopPoll = pollWhileActive(refreshUnread, UNREAD_POLL_MS);
     const offForeground = onAppForeground(refreshUnread);
     const offPush = onPushReceived(() => refreshUnread());
     return () => {
-      clearInterval(timer);
+      stopPoll();
       offForeground();
       offPush();
     };

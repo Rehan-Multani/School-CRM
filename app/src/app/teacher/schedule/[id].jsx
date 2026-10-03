@@ -14,7 +14,7 @@ import { SkeletonCards } from '../../../components/Skeleton';
 export default function ScheduleEntry() {
   const { id } = useLocalSearchParams();
   const styles = useStyles(makeStyles);
-  const state = useAsync(() => teacherApi.scheduleEntry(id), [id]);
+  const state = useAsync(() => teacherApi.scheduleEntry(id), [id], { cacheKey: 'teacher.schedule' });
   return (
     <RefreshableScroll onRefresh={() => state.reload({ silent: true })} contentContainerStyle={{ padding: spacing.lg, flexGrow: 1 }}>
       <AsyncView state={state} skeleton={<SkeletonCards count={1} padded={false} />}>

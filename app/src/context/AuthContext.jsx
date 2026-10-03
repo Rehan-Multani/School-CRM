@@ -5,6 +5,7 @@ import { ROLES } from '../api/roles';
 import { toast } from '../lib/notify';
 import { onPushReceived } from '../lib/pushRouting';
 import { onAppForeground } from '../lib/foreground';
+import { clearCache, setCacheScope } from '../lib/cache';
 
 const STORAGE_KEY = 'schoolcrm.session';
 
@@ -44,6 +45,9 @@ function forStorage(session) {
 
 const sameJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
+// Saved screen data (lib/cache) belongs to exactly one signed-in account.
+const cacheScopeOf = (s) => (s ? `${s.role}:${s.school?.id || ''}:${s.user?.id || s.user?._id || ''}` : '');
+
 // Session = { token, role, user, school }. One 7-day token per login, no
 // refresh token in any APK flow — on 401 we simply drop the session.
 export function AuthProvider({ children }) {
@@ -59,10 +63,14 @@ export function AuthProvider({ children }) {
 
   const persist = useCallback(async (next) => {
     setAuthToken(next?.token || null);
+    setCacheScope(cacheScopeOf(next));
     sessionRef.current = next;
     setSession(next);
     if (next) await SecureStore.setItemAsync(STORAGE_KEY, JSON.stringify(forStorage(next)));
-    else await SecureStore.deleteItemAsync(STORAGE_KEY);
+    else {
+      // Logout / revoked session: the token and every saved screen leave the phone.
+      await Promise.all([SecureStore.deleteItemAsync(STORAGE_KEY), clearCache()]);
+    }
   }, []);
 
   const clear = useCallback(() => persist(null), [persist]);
@@ -101,6 +109,7 @@ export function AuthProvider({ children }) {
         const role = ROLES[saved?.role];
         if (!saved?.token || !role) return clear();
         setAuthToken(saved.token);
+        setCacheScope(cacheScopeOf(saved));
         sessionRef.current = saved;
         setSession(saved);
         try {

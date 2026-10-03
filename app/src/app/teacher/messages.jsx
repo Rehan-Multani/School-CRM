@@ -1,29 +1,36 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStyles, useTheme } from '../../context/ThemeContext';
 import { teacherApi } from '../../api/teacher';
 import { fmtDateTime } from '../../lib/format';
 import { showError } from '../../lib/notify';
+import { pollWhileActive } from '../../lib/foreground';
 import { ErrorView } from '../../components/kit';
 import { font, radius, spacing } from '../../theme';
 import { SkeletonChat } from '../../components/Skeleton';
 
 // Doc §6.8 — chat with the school office. No sockets: poll every 15 s while
-// the screen is focused. Messages capped at 4000 chars (server enforces too).
+// the screen is focused and the app is on screen. Messages capped at 4000
+// chars (server enforces too).
 const POLL_MS = 15000;
 const PAGE = 100;
 
-async function fetchLatest(conversationId) {
-  // The API pages oldest→newest; read the last page so the newest are shown.
-  const first = await teacherApi.messages(conversationId, { page: 1, limit: PAGE });
-  const pages = first?.pagination?.totalPages || 1;
-  if (pages <= 1) return first.data || [];
+// The API pages oldest→newest, so the newest messages are on the last page.
+// `lastPage` remembers which page that is: a long conversation costs one
+// request per poll, not two.
+async function fetchLatest(conversationId, lastPage) {
+  const res = await teacherApi.messages(conversationId, { page: lastPage.current, limit: PAGE });
+  const pages = res?.pagination?.totalPages || 1;
+  if (pages === lastPage.current) return res?.data || [];
+  lastPage.current = pages;
   const last = await teacherApi.messages(conversationId, { page: pages, limit: PAGE });
-  return last.data || [];
+  return last?.data || [];
 }
+
+const lastId = (rows) => rows?.[rows.length - 1]?.id;
 
 export default function Messages() {
   const { id, title } = useLocalSearchParams();
@@ -35,6 +42,8 @@ export default function Messages() {
   const [error, setError] = useState(null);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
+  const sendingRef = useRef(false);
+  const lastPage = useRef(1);
   const listRef = useRef(null);
 
   useEffect(() => {
@@ -43,8 +52,9 @@ export default function Messages() {
 
   const load = useCallback(async () => {
     try {
-      const rows = await fetchLatest(id);
-      setItems(rows);
+      const rows = await fetchLatest(id, lastPage);
+      // An unchanged poll must not re-render (and re-scroll) the whole chat.
+      setItems((prev) => (prev && prev.length === rows.length && lastId(prev) === lastId(rows) ? prev : rows));
       setError(null);
     } catch (e) {
       setError(e);
@@ -54,14 +64,15 @@ export default function Messages() {
   useFocusEffect(
     useCallback(() => {
       load();
-      const t = setInterval(load, POLL_MS);
-      return () => clearInterval(t);
+      return pollWhileActive(load, POLL_MS);
     }, [load]),
   );
 
   const send = async () => {
     const body = text.trim();
-    if (!body || sending) return;
+    // The ref closes the gap before `sending` re-renders: a double tap sends once.
+    if (!body || sendingRef.current) return;
+    sendingRef.current = true;
     setSending(true);
     try {
       const msg = await teacherApi.sendMessage(id, body);
@@ -71,6 +82,7 @@ export default function Messages() {
     } catch (e) {
       showError(e, 'Not sent');
     } finally {
+      sendingRef.current = false;
       setSending(false);
     }
   };
@@ -83,8 +95,9 @@ export default function Messages() {
       <FlatList
         ref={listRef}
         data={items}
-        keyExtractor={(m) => m.id}
+        keyExtractor={(m) => String(m.id)}
         contentContainerStyle={{ padding: spacing.lg, flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
         onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
         ListEmptyComponent={<Text style={[styles.muted, { textAlign: 'center', marginTop: spacing.xxl }]}>No messages yet. Say hello to the school office.</Text>}
         renderItem={({ item }) => {
@@ -108,7 +121,7 @@ export default function Messages() {
           maxLength={4000}
           style={styles.input}
         />
-        <Pressable onPress={send} disabled={!text.trim() || sending} style={[styles.send, { backgroundColor: theme.primary, opacity: !text.trim() || sending ? 0.5 : 1 }]}>
+        <Pressable onPress={send} disabled={!text.trim() || sending} hitSlop={6} accessibilityRole="button" accessibilityLabel="Send message" style={[styles.send, { backgroundColor: theme.primary, opacity: !text.trim() || sending ? 0.5 : 1 }]}>
           <Ionicons name="send" size={18} color={theme.onPrimary} />
         </Pressable>
       </View>

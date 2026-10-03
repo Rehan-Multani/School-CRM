@@ -2,13 +2,15 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { teacherApi } from '../api/teacher';
 import { useAuth } from './AuthContext';
 import { onPushReceived } from '../lib/pushRouting';
-import { onAppForeground } from '../lib/foreground';
+import { onAppForeground, pollWhileActive } from '../lib/foreground';
 
 // Teacher-wide state: the bell's unread count (refreshed on app resume and
-// every minute) and the teacher's teaching slots — the (class, section,
+// every two minutes) and the teacher's teaching slots — the (class, section,
 // subject) combos the backend accepts, cached once per session for pickers.
 const TeacherContext = createContext(null);
-const UNREAD_POLL_MS = 60000;
+// Push + app-resume already refresh the badge; this slow poll only covers a
+// phone with notifications switched off.
+const UNREAD_POLL_MS = 120000;
 
 export function TeacherProvider({ children }) {
   const { session } = useAuth();
@@ -28,11 +30,11 @@ export function TeacherProvider({ children }) {
   useEffect(() => {
     if (!session?.token) return undefined;
     refreshUnread();
-    const timer = setInterval(refreshUnread, UNREAD_POLL_MS);
+    const stopPoll = pollWhileActive(refreshUnread, UNREAD_POLL_MS);
     const offForeground = onAppForeground(refreshUnread);
     const offPush = onPushReceived(() => refreshUnread()); // a push just landed
     return () => {
-      clearInterval(timer);
+      stopPoll();
       offForeground();
       offPush();
     };

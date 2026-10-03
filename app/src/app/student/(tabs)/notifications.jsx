@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { usePortal } from '../../../context/PortalScope';
 import { fmtDate, fmtDateTime, fmtTime } from '../../../lib/format';
@@ -93,6 +93,7 @@ function Notifications() {
   return (
     <PagedList
       ref={list}
+      cacheKey="inbox.notifications"
       fetchPage={(page) => api.notifications({ page, limit: 20 })}
       ListHeaderComponent={<ReadAllLink onPress={markAll} />}
       contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: 110, flexGrow: 1 }}
@@ -172,6 +173,7 @@ function Notices() {
   return (
     <PagedList
       ref={list}
+      cacheKey="inbox.notices"
       fetchPage={(page) => api.notices({ page, limit: 20 })}
       ListHeaderComponent={<ReadAllLink onPress={markAll} />}
       contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: 110, flexGrow: 1 }}
@@ -250,6 +252,7 @@ function Events() {
   return (
     <PagedList
       deps={[scope]}
+      cacheKey="inbox.events"
       fetchPage={(page) => api.events({ page, limit: 20, scope })}
       skeleton={<SkeletonCards padded={false} />}
       contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: 110, flexGrow: 1 }}

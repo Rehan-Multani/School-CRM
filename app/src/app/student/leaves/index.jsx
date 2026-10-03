@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
@@ -36,6 +36,7 @@ export default function Leaves() {
     <View style={{ flex: 1 }}>
       <PagedList
         ref={list}
+        cacheKey="leaves.list"
         fetchPage={(page) => studentApi.leaves({ page, limit: 20 })}
         skeleton={<SkeletonCards padded={false} />}
         contentContainerStyle={{ paddingTop: spacing.md, paddingBottom: 110 }}

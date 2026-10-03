@@ -3,8 +3,10 @@ import { FlatList, RefreshControl, ScrollView, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useTheme } from '../context/ThemeContext';
 import { staleOnFocus } from '../lib/useAsync';
+import { withSignal } from '../api/client';
+import { peekCache, readCache, writeCache } from '../lib/cache';
 import { spacing } from '../theme';
-import { ErrorView } from './kit';
+import { ErrorView, StaleNotice } from './kit';
 import { SkeletonList } from './Skeleton';
 
 // Infinite-scroll list over the standard list envelope
@@ -12,15 +14,32 @@ import { SkeletonList } from './Skeleton';
 // `fetchPage(page)` must return that envelope. Re-fetches page 1 when `deps`
 // change, on pull-to-refresh, and (silently) when the screen regains focus
 // with stale data (see staleOnFocus).
+// `cacheKey`: page 1 is remembered (memory + disk), so the list opens with its
+// last content instead of a skeleton and still shows it when offline.
 // Parent can call `ref.current.reload()` / `ref.current.update(fn)`.
 const PagedList = forwardRef(function PagedList(
-  { fetchPage, skeleton, deps = [], renderItem, keyExtractor = (x) => String(x.id), ListEmptyComponent, ListHeaderComponent, contentContainerStyle, refetchOnFocus = true, ...props },
+  { fetchPage, skeleton, cacheKey, deps = [], renderItem, keyExtractor = (x) => String(x.id), ListEmptyComponent, ListHeaderComponent, contentContainerStyle, refetchOnFocus = true, ...props },
   ref,
 ) {
   const theme = useTheme();
-  const [items, setItems] = useState([]);
+  const key = cacheKey ? `${cacheKey}:${JSON.stringify(deps)}` : null;
+  const [items, setItems] = useState(() => (key ? peekCache(key)?.data?.data : null) || []);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(() => (key ? peekCache(key)?.data?.pagination?.totalPages : null) || 1);
+  // Filters changed: swap to that filter's saved page right away (when there is one).
+  const [prevKey, setPrevKey] = useState(key);
+  if (prevKey !== key) {
+    setPrevKey(key);
+    const hit = key ? peekCache(key)?.data : null;
+    if (hit?.data) {
+      setItems(hit.data);
+      setTotalPages(hit.pagination?.totalPages || 1);
+    }
+  }
+  const keyRef = useRef(key);
+  keyRef.current = key;
+  const aborter = useRef(null);
+  const fresh = useRef(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -33,13 +52,19 @@ const PagedList = forwardRef(function PagedList(
 
   const loadFirst = useCallback(async (mode = 'initial') => {
     const my = ++reqId.current;
+    const forKey = keyRef.current;
+    aborter.current?.abort();
+    const controller = new AbortController();
+    aborter.current = controller;
     if (mode === 'initial') setLoading(true);
     if (mode === 'refresh') setRefreshing(true);
     setError(null);
     const startedAt = Date.now();
     try {
-      const res = await fetchRef.current(1);
+      const res = await withSignal(controller.signal, () => fetchRef.current(1));
+      if (forKey && res?.data) writeCache(forKey, { data: res.data, pagination: res.pagination });
       if (my !== reqId.current) return;
+      fresh.current = true;
       loadedAt.current = startedAt;
       setItems(res?.data || []);
       setPage(1);
@@ -56,9 +81,21 @@ const PagedList = forwardRef(function PagedList(
 
   useEffect(() => {
     focusedOnce.current = false;
+    fresh.current = false;
     loadFirst('initial');
+    if (!key) return;
+    // After a restart: show the saved page from disk unless the network already answered.
+    const my = reqId.current;
+    readCache(key).then((hit) => {
+      if (!hit?.data?.data || my !== reqId.current || fresh.current) return;
+      setItems(hit.data.data);
+      setTotalPages(hit.data.pagination?.totalPages || 1);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
+
+  // Leaving the screen stops a download that is still running.
+  useEffect(() => () => aborter.current?.abort(), []);
 
   useFocusEffect(
     useCallback(() => {
@@ -123,8 +160,20 @@ const PagedList = forwardRef(function PagedList(
       renderItem={renderItem}
       onEndReached={loadMore}
       onEndReachedThreshold={0.4}
-      ListHeaderComponent={ListHeaderComponent}
+      ListHeaderComponent={
+        error && items.length ? (
+          <>
+            {ListHeaderComponent}
+            <StaleNotice onRetry={() => loadFirst('silent')} />
+          </>
+        ) : (
+          ListHeaderComponent
+        )
+      }
       ListEmptyComponent={ListEmptyComponent}
+      initialNumToRender={10}
+      maxToRenderPerBatch={10}
+      windowSize={9}
       ListFooterComponent={loadingMore ? <SkeletonList count={2} padded={false} /> : null}
       contentContainerStyle={[{ paddingHorizontal: spacing.lg, paddingBottom: 110, flexGrow: 1 }, contentContainerStyle]}
       refreshControl={

@@ -15,7 +15,7 @@ import { SkeletonCards } from '../../../components/Skeleton';
 export default function NoticeDetail() {
   const { id } = useLocalSearchParams();
   const styles = useStyles(makeStyles);
-  const state = useAsync(() => teacherApi.notice(id), [id]);
+  const state = useAsync(() => teacherApi.notice(id), [id], { cacheKey: 'teacher.notice' });
 
   useEffect(() => {
     teacherApi.markNoticeRead(id).catch(() => {});

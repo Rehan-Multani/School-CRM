@@ -80,19 +80,18 @@ app.get(['/', '/health', '/api', '/api/health'], async (req, res) => {
     try {
       await connectDB();
     } catch (err) {
-      dbError = err.message;
+      // The driver's message names the cluster hosts — server log only.
+      dbError = err.name || 'DatabaseError';
     }
   }
   const isConnected = mongoose.connection.readyState === 1;
-  const rawUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/school_crm_platform';
-  const maskedUri = rawUri.replace(/:([^:@]+)@/, ':****@');
 
+  // Public endpoint: never the connection string, user or host names.
   res.json({
     success: true,
     service: 'api-gateway-cpanel',
     status: isConnected ? 'HEALTHY' : 'DEGRADED',
     database: isConnected ? 'CONNECTED' : 'DISCONNECTED',
-    uriPreview: maskedUri,
     ...(dbError ? { error: dbError } : {}),
     timestamp: new Date().toISOString(),
   });
@@ -112,10 +111,12 @@ app.use(async (req, res, next) => {
     await connectDB();
     next();
   } catch (error) {
-    res.status(500).json({
+    // 503 = temporary: the apps show "server not reachable" and retry reads.
+    // The reason is already in the server log (connectDB) — not for clients.
+    res.status(503).json({
       success: false,
-      message: 'Database connection failed',
-      error: error.message,
+      message: 'The service is temporarily unavailable. Please try again in a moment.',
+      code: 'SERVICE_UNAVAILABLE',
     });
   }
 });

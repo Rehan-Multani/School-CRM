@@ -19,7 +19,7 @@ export default function ExamDetail() {
     if (name) navigation.setOptions({ title: String(name) });
   }, [navigation, name]);
 
-  const state = useAsync(() => teacherApi.examSubjects(examId), [examId]);
+  const state = useAsync(() => teacherApi.examSubjects(examId), [examId], { cacheKey: 'teacher.examSubjects' });
 
   return (
     <RefreshableScroll onRefresh={() => state.reload({ silent: true })} contentContainerStyle={{ padding: spacing.lg, flexGrow: 1 }}>
