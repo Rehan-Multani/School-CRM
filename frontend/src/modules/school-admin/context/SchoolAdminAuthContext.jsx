@@ -143,7 +143,9 @@ export const SchoolAdminAuthProvider = ({ children }) => {
     return null;
   };
 
-  const hasPlan = Boolean(user?.hasPlan || user?.subscriptionPlan);
+  // The server decides (live autopay subscription or an active manual plan).
+  // A stored plan NAME is not proof: it stays behind after a plan has ended.
+  const hasPlan = Boolean(user?.hasPlan);
 
   return (
     <SchoolAdminAuthContext.Provider

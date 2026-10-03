@@ -12,6 +12,7 @@ import { parentAuthService } from './parentAuth.service.js';
 import { toMobileDigits, isValidMobile, mobileVariants } from '../utils/mobile.js';
 import { checkRoleMismatch } from './roleMismatch.service.js';
 import { env } from '../config/env.js';
+import { subscriptionAccessService } from './subscriptionAccess.service.js';
 
 /**
  * Sign-in by mobile OTP for the student and parent apps — no password.
@@ -164,6 +165,8 @@ function findAccounts(role, phone) {
 }
 
 async function issueSession(role, account) {
+  // No plan at the school = nobody but its School Admin signs in.
+  await subscriptionAccessService.assertSchoolCanSignIn(account.schoolId);
   // PENDING = the school made the record but never issued a password. The
   // guards only let '' / ACTIVE through, so a verified OTP completes it.
   if (account.account?.accountStatus === 'PENDING') {

@@ -7,8 +7,10 @@ import { useTheme } from '../context/ThemeContext';
 import { font, spacing } from '../theme';
 import { Button } from './ui';
 
-// Full-screen notice for HTTP 402 (school subscription expired). The user is
-// NOT logged out — once the school renews, "Try again" lets them straight in.
+// Full-screen notice for HTTP 402: the school has no active plan (never bought
+// one, or it ran out). The user is NOT logged out — once the School Admin
+// renews, "Try again" lets them straight in. The server's message already says
+// who to contact.
 export default function SubscriptionBlocked() {
   const { blocked, retryBlocked, logout } = useAuth();
   const theme = useTheme();
@@ -28,9 +30,8 @@ export default function SubscriptionBlocked() {
       <View style={[styles.icon, { backgroundColor: theme.primarySoft }]}>
         <Ionicons name="lock-closed-outline" size={36} color={theme.primary} />
       </View>
-      <Text style={[styles.title, { color: theme.text }]}>Subscription expired</Text>
+      <Text style={[styles.title, { color: theme.text }]}>School subscription is not active</Text>
       <Text style={[styles.msg, { color: theme.textMuted }]}>{blocked}</Text>
-      <Text style={[styles.msg, { color: theme.textMuted }]}>Please contact your school office.</Text>
       <Button title="Try again" icon="refresh" onPress={retryBlocked} style={styles.btn} />
       <Button title="Logout" variant="secondary" onPress={doLogout} loading={loggingOut} loadingTitle="Signing out..." style={styles.btn} />
     </View>

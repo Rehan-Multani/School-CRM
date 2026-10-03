@@ -100,6 +100,8 @@ const CODE_MESSAGES = {
   PAYMENT_AMOUNT_INVALID: 'Enter an amount between ₹1 and the balance due.',
   PAYMENT_SIGNATURE_INVALID: 'We could not verify the payment yet. It will update once the bank confirms.',
   PAYMENT_GATEWAY_ERROR: 'The payment service is unavailable right now. Please try again.',
+  SCHOOL_SUBSCRIPTION_INACTIVE:
+    'Your school does not have an active subscription, so sign-in is turned off. Please contact your school administrator.',
   INVALID_ID: 'This item could not be found. Please go back and try again.',
   DUPLICATE: 'This was already saved.',
 };

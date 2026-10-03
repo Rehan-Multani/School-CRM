@@ -7,6 +7,7 @@ import { School } from '../models/School.js';
 import { schoolThemeSnapshot } from './school.service.js';
 import { transportRepository } from '../repositories/transport.repository.js';
 import { TRANSPORT_ERR } from '../constants/transportErrorCodes.js';
+import { subscriptionAccessService } from './subscriptionAccess.service.js';
 
 const MIN_PASSWORD_LEN = 8;
 const BCRYPT_ROUNDS = 10;
@@ -110,6 +111,8 @@ class DriverAuthService {
     const schoolId = driver.schoolId.toString();
     const school = await School.findById(driver.schoolId);
 
+    // No plan at the school = nobody but its School Admin signs in.
+    await subscriptionAccessService.assertSchoolCanSignIn(driver.schoolId);
     const token = signDriverToken(driver);
 
     Driver.updateOne({ _id: driver._id }, { $set: { lastLoginAt: new Date() } }).catch(() => {});

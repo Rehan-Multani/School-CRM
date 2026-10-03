@@ -76,6 +76,9 @@ export async function hrLogin(req, res, next) {
 
     const schoolIdStr = user.schoolId ? user.schoolId.toString() : school ? school._id.toString() : '';
 
+    // No plan at the school = nobody but its School Admin signs in.
+    await subscriptionAccessService.assertSchoolCanSignIn(schoolIdStr);
+
     // Sign JWT Token
     const token = signAccessToken(
       {
@@ -156,6 +159,7 @@ export async function getEmployee(req, res, next) {
 }
 
 import { collectSchoolUserUploadFiles } from '../middleware/uploadSchoolUser.js';
+import { subscriptionAccessService } from '../services/subscriptionAccess.service.js';
 
 function parseJsonField(val, fallback = null) {
   if (typeof val === 'string') {

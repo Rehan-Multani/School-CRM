@@ -9,7 +9,6 @@ import {
   Check,
   Eye,
   EyeOff,
-  Loader2,
   Lock,
   Mail,
   Save,
@@ -286,7 +285,7 @@ export default function ProfileIndex() {
                     )}
                   </AnimatePresence>
                   <Button type="submit" className="h-11 gap-2 rounded-xl px-5" disabled={savingProfile}>
-                    {savingProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    <Save className="h-4 w-4" />
                     {savingProfile ? 'Saving…' : 'Save changes'}
                   </Button>
                 </div>
@@ -379,7 +378,7 @@ export default function ProfileIndex() {
                   )}
                 </AnimatePresence>
                 <Button type="submit" className="h-11 gap-2 rounded-xl px-5" disabled={savingPassword}>
-                  {savingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
+                  <Lock className="h-4 w-4" />
                   {savingPassword ? 'Updating…' : 'Update password'}
                 </Button>
               </div>

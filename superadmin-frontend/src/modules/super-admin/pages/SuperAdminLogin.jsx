@@ -6,7 +6,6 @@ import {
   Mail,
   Lock,
   ArrowRight,
-  Loader2,
   Eye,
   EyeOff,
   ShieldAlert,
@@ -176,10 +175,7 @@ export default function SuperAdminLogin() {
 
               <Button type="submit" className="mt-2 h-12 w-full gap-2 text-sm font-semibold" disabled={loading}>
                 {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Signing in...
-                  </>
+                  'Signing in...'
                 ) : (
                   <>
                     Sign in

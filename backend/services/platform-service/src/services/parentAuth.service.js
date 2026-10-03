@@ -10,6 +10,7 @@ import { parentAccessService } from './parentAccess.service.js';
 import { parentSelf, childCard } from '../serializers/parent.serializers.js';
 import { PARENT_ERR } from '../constants/parentErrorCodes.js';
 import { checkRoleMismatch } from './roleMismatch.service.js';
+import { subscriptionAccessService } from './subscriptionAccess.service.js';
 
 const BCRYPT_ROUNDS = 10;
 const MIN_PASSWORD_LEN = 8;
@@ -98,6 +99,8 @@ class ParentAuthService {
       parentAccessService.buildContext(schoolIdStr, parent._id.toString()),
     ]);
 
+    // No plan at the school = nobody but its School Admin signs in.
+    await subscriptionAccessService.assertSchoolCanSignIn(parent.schoolId);
     const token = signParentToken(parent);
 
     Parent.updateOne({ _id: parent._id }, { $set: { lastLoginAt: new Date() } }).catch(() => {});

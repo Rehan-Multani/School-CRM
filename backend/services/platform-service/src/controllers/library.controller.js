@@ -7,6 +7,7 @@ import { env } from '../config/env.js';
 import { AppError } from '../../../shared/AppError.js';
 import { escapeRegex } from '../../../shared/sanitize.js';
 import { schoolThemeSnapshot } from '../services/school.service.js';
+import { subscriptionAccessService } from '../services/subscriptionAccess.service.js';
 
 function schoolId(req) {
   const role = req.user?.role?.toUpperCase();
@@ -72,6 +73,9 @@ export async function librarianLogin(req, res, next) {
     }
 
     const schoolIdStr = user.schoolId ? user.schoolId.toString() : school ? school._id.toString() : '';
+
+    // No plan at the school = nobody but its School Admin signs in.
+    await subscriptionAccessService.assertSchoolCanSignIn(schoolIdStr);
 
     // Sign JWT Token
     const token = signAccessToken(

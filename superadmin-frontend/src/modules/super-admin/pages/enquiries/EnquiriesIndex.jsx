@@ -14,7 +14,6 @@ import {
   Check,
   Copy,
   AlertCircle,
-  Loader2,
   Download,
   MessageCircle,
   StickyNote,
@@ -374,12 +373,12 @@ export const EnquiriesIndex = () => {
 
         <div className="flex items-center gap-2">
           <Button variant="secondary" size="sm" onClick={handleExport} disabled={exporting || loading} className="gap-2">
-            {exporting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
-            Export CSV
+            <Download className="h-3.5 w-3.5" />
+            {exporting ? 'Exporting…' : 'Export CSV'}
           </Button>
           <Button variant="secondary" size="sm" onClick={() => fetchEnquiries({ manual: true })} disabled={refreshing} className="gap-2">
-            <RefreshCw className={cn('h-3.5 w-3.5', refreshing && 'animate-spin')} />
-            Refresh
+            <RefreshCw className="h-3.5 w-3.5" />
+            {refreshing ? 'Refreshing…' : 'Refresh'}
           </Button>
         </div>
       </div>
@@ -672,8 +671,8 @@ export const EnquiriesIndex = () => {
                         <div className="flex items-center justify-end gap-1.5">
                           {!isContacted && (
                             <Button variant="success" size="xs" onClick={() => handleSetStatus(item, 'Contacted')} disabled={isActing} className="h-8 px-3">
-                              {isActing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                              Mark Contacted
+                              <Check className="h-3.5 w-3.5" />
+                              {isActing ? 'Saving…' : 'Mark Contacted'}
                             </Button>
                           )}
 
@@ -780,7 +779,7 @@ export const EnquiriesIndex = () => {
                       disabled={!notesDirty || savingNotes}
                       className="h-6 px-2 text-[11px]"
                     >
-                      {savingNotes ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> : <StickyNote className="h-2.5 w-2.5" />}
+                      <StickyNote className="h-2.5 w-2.5" />
                       {savingNotes ? 'Saving...' : 'Save notes'}
                     </Button>
                   </div>
@@ -828,8 +827,8 @@ export const EnquiriesIndex = () => {
                     onClick={() => handleSetStatus(selectedEnquiry, 'Contacted')}
                     disabled={actionLoadingId === selectedEnquiry.id}
                   >
-                    {actionLoadingId === selectedEnquiry.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                    Mark as Contacted
+                    <Check className="h-3.5 w-3.5" />
+                    {actionLoadingId === selectedEnquiry.id ? 'Saving…' : 'Mark as Contacted'}
                   </Button>
                 ) : (
                   <Button
@@ -839,8 +838,8 @@ export const EnquiriesIndex = () => {
                     disabled={actionLoadingId === selectedEnquiry.id}
                     title="Use this if it was marked by mistake or needs another follow-up"
                   >
-                    {actionLoadingId === selectedEnquiry.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
-                    Move back to Pending
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    {actionLoadingId === selectedEnquiry.id ? 'Saving…' : 'Move back to Pending'}
                   </Button>
                 )}
               </div>
@@ -878,7 +877,6 @@ export const EnquiriesIndex = () => {
             <Button variant="destructive" size="sm" onClick={handleDelete} disabled={actionLoadingId === enquiryToDelete?.id}>
               {actionLoadingId === enquiryToDelete?.id ? (
                 <>
-                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                   Deleting...
                 </>
               ) : (

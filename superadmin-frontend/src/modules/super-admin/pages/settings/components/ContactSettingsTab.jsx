@@ -7,7 +7,6 @@ import {
   LifeBuoy,
   ShieldCheck,
   Save,
-  Loader2,
   Check,
   AlertCircle,
   Sparkles,
@@ -183,7 +182,7 @@ export default function ContactSettingsTab() {
 
       {loading ? (
         <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-slate-200 bg-white p-8 dark:border-slate-800 dark:bg-slate-900">
-          <Loader2 className="h-7 w-7 animate-spin text-indigo-600" />
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Loading contact settings…</p>
         </div>
       ) : (
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -307,7 +306,7 @@ export default function ContactSettingsTab() {
                   className="h-11 gap-2 rounded-xl px-5"
                   disabled={saving}
                 >
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  <Save className="h-4 w-4" />
                   {saving ? 'Saving...' : 'Save contact settings'}
                 </Button>
               </div>

@@ -8,6 +8,7 @@ import { School } from '../models/School.js';
 import { schoolThemeSnapshot } from './school.service.js';
 import { TRANSPORT_ERR } from '../constants/transportErrorCodes.js';
 import { checkRoleMismatch } from './roleMismatch.service.js';
+import { subscriptionAccessService } from './subscriptionAccess.service.js';
 
 /**
  * Sign-in for the Transport Manager app. The manager is a staff account — a
@@ -113,6 +114,8 @@ class TransportManagerAuthService {
     }
 
     const school = await School.findById(user.schoolId);
+    // No plan at the school = nobody but its School Admin signs in.
+    await subscriptionAccessService.assertSchoolCanSignIn(user.schoolId);
     const token = signManagerToken(user);
 
     SchoolUser.updateOne({ _id: user._id }, { $set: { lastLoginAt: new Date() } }).catch(() => {});

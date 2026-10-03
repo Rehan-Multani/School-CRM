@@ -17,7 +17,6 @@ import {
   CreditCard,
   Download,
   IndianRupee,
-  Loader2,
   Printer,
   Search,
 } from 'lucide-react';
@@ -689,8 +688,8 @@ export default function ReportsIndex() {
               Print
             </Button>
             <Button size="sm" className="h-9 px-3.5" onClick={handleExport} disabled={loading || exporting}>
-              {exporting ? <Loader2 size={14} className="mr-1.5 animate-spin" /> : <Download size={14} className="mr-1.5" />}
-              Export CSV
+              <Download size={14} className="mr-1.5" />
+              {exporting ? 'Exporting…' : 'Export CSV'}
             </Button>
           </div>
         </div>

@@ -14,6 +14,7 @@ import { accountantService } from '../services/accountant.service.js';
 import { academicService } from '../services/academic.service.js';
 import { studentService } from '../services/student.service.js';
 import { notificationService } from '../services/notification.service.js';
+import { subscriptionAccessService } from '../services/subscriptionAccess.service.js';
 
 // ----------------------------------------------------
 // Shared scope helpers (mirror hr / library controllers)
@@ -76,6 +77,9 @@ export async function accountantLogin(req, res, next) {
     }
 
     const schoolIdStr = user.schoolId ? user.schoolId.toString() : school ? school._id.toString() : '';
+
+    // No plan at the school = nobody but its School Admin signs in.
+    await subscriptionAccessService.assertSchoolCanSignIn(schoolIdStr);
 
     const token = signAccessToken(
       {

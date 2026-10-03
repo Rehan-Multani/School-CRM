@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Bell, Loader2, LogOut, Send, Smartphone } from "lucide-react";
+import { Bell, LogOut, Send, Smartphone } from "lucide-react";
 import { Card, Button, Badge } from "../../components/ui/Button";
 import { Pulse } from "../../components/ui/SkeletonLoader";
 import { Input, Select, Textarea } from "../../components/ui/Input";
@@ -271,11 +271,7 @@ export default function NotificationsIndex() {
                   disabled={sending}
                   className="w-full gap-2"
                 >
-                  {sending ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    <Send size={16} />
-                  )}
+                  <Send size={16} />
                   {sending ? "Sending…" : "Send"}
                 </Button>
               </form>

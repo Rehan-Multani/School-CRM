@@ -8,7 +8,6 @@ import { platformSchoolSubscriptionApi, platformSubscriptionApi, platformSchoolA
 import { openInvoiceDocument } from './invoiceDocument';
 import {
   Plus,
-  Loader2,
   Ban,
   Receipt,
   ChevronLeft,
@@ -414,7 +413,7 @@ export default function SchoolSubscriptionsPanel() {
             className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition-all duration-150 hover:bg-slate-50 hover:text-slate-900 active:scale-95 disabled:opacity-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
             title="Refresh list"
           >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin text-indigo-600' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'text-indigo-600' : ''}`} />
           </button>
           <Button size="sm" onClick={openCreate} className="gap-1.5 whitespace-nowrap">
             <Plus size={15} />
@@ -893,7 +892,7 @@ export default function SchoolSubscriptionsPanel() {
             </div>
 
             <Button type="submit" className="w-full gap-2" disabled={creating}>
-              {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+              <Plus className="h-4 w-4" />
               {creating ? 'Creating…' : 'Create Subscription'}
             </Button>
           </form>

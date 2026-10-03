@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BellRing, CloudDownload, Loader2, Save, Smartphone, Store } from 'lucide-react';
+import { BellRing, CloudDownload, Save, Smartphone, Store } from 'lucide-react';
 import { Card, Button, Badge } from '../../components/ui/Button';
 import { Pulse } from '../../components/ui/SkeletonLoader';
 import { Input, Textarea } from '../../components/ui/Input';
@@ -171,11 +171,11 @@ export default function AppVersionIndex() {
               onClick={notify}
               title={dirty ? 'Save your changes first' : 'Push a notification to every phone signed in to the app'}
             >
-              {busy === 'notify' ? <Loader2 size={16} className="animate-spin" /> : <BellRing size={16} />}
-              Notify all users
+              <BellRing size={16} />
+              {busy === 'notify' ? 'Notifying…' : 'Notify all users'}
             </Button>
             <Button type="submit" className="gap-2" disabled={loading || Boolean(busy) || !dirty}>
-              {busy === 'save' ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+              <Save size={16} />
               {busy === 'save' ? 'Saving…' : 'Save'}
             </Button>
           </div>

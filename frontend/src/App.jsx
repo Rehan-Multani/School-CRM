@@ -38,6 +38,7 @@ import { SchoolAdminAuthProvider } from './modules/school-admin/context/SchoolAd
 import { SchoolAdminThemeProvider } from './modules/school-admin/context/SchoolAdminThemeContext';
 import { SchoolAdminNotificationProvider } from './modules/school-admin/context/SchoolAdminNotificationContext';
 import { SchoolAdminLayout } from './modules/school-admin/components/layout/SchoolAdminLayout';
+import { SubscriptionBlockedOverlay } from './shared/ui/SubscriptionBlockedOverlay';
 import { SchoolAdminLogin } from './modules/school-admin/pages/SchoolAdminLogin';
 import { SchoolAdminLoginAs } from './modules/school-admin/pages/SchoolAdminLoginAs';
 import SchoolAdminResetPassword from './modules/school-admin/pages/SchoolAdminResetPassword';
@@ -77,6 +78,7 @@ function App() {
   return (
     <AppStoreProvider>
       <BrowserRouter>
+        <SubscriptionBlockedOverlay />
         <ThemeProvider>
           <StudentAuthProvider>
             <NotificationProvider>

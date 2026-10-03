@@ -10,6 +10,7 @@ import { schoolThemeSnapshot } from './school.service.js';
 import { teacherAccessService } from './teacherAccess.service.js';
 import { TEACHER_ERR } from '../constants/teacherErrorCodes.js';
 import { checkRoleMismatch } from './roleMismatch.service.js';
+import { subscriptionAccessService } from './subscriptionAccess.service.js';
 
 const BCRYPT_ROUNDS = 10; // matches principal/HR/accountant login provisioning
 const MIN_PASSWORD_LEN = 8;
@@ -112,6 +113,8 @@ class TeacherAuthService {
     const school = teacher.schoolId ? await School.findById(teacher.schoolId) : null;
     const schoolIdStr = teacher.schoolId ? teacher.schoolId.toString() : '';
 
+    // No plan at the school = nobody but its School Admin signs in.
+    await subscriptionAccessService.assertSchoolCanSignIn(teacher.schoolId);
     const token = signTeacherToken(teacher);
 
     Teacher.updateOne({ _id: teacher._id }, { $set: { lastLoginAt: new Date() } }).catch(() => {});

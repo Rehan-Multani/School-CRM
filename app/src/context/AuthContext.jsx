@@ -96,7 +96,7 @@ export function AuthProvider({ children }) {
         else toast.warning('Your session has ended. Please log in again.', 'Signed out');
       });
     });
-    setSubscriptionBlockedHandler((msg) => setBlocked(msg || 'School subscription expired. Please contact the school office.'));
+    setSubscriptionBlockedHandler((msg) => setBlocked(msg || 'Your school does not have an active subscription. Please contact your school administrator.'));
   }, [clear]);
 
   // Restore saved session, then refresh user/school from `me` (also validates the token).

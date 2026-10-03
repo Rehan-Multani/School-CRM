@@ -11,7 +11,7 @@ import {
 } from '../../components/ui/Dialog';
 import { useSuperAdminNotifications } from '../../context/SuperAdminNotificationContext';
 import { platformLegalApi } from '../../../../shared/api/client';
-import { Eye, Loader2, Save, Scale } from 'lucide-react';
+import { Eye, Save, Scale } from 'lucide-react';
 
 function LegalPreviewBody({ text }) {
   const lines = (text || '').split('\n');
@@ -241,7 +241,6 @@ export default function PrivacyPolicyIndex() {
           <Button type="submit" className="gap-2" disabled={saving}>
             {saving ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
                 Saving...
               </>
             ) : (

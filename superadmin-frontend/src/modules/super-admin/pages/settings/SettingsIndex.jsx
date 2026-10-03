@@ -11,7 +11,6 @@ import {
   HelpCircle,
   ImagePlus,
   Link2,
-  Loader2,
   Mail,
   RotateCcw,
   Save,
@@ -226,8 +225,8 @@ export default function SettingsIndex() {
                     className="h-10 gap-2 rounded-xl px-4"
                     disabled={logoBusy}
                   >
-                    {logoBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
-                    {platformLogo ? 'Replace logo' : 'Upload logo'}
+                    <ImagePlus className="h-4 w-4" />
+                    {logoBusy ? 'Uploading…' : platformLogo ? 'Replace logo' : 'Upload logo'}
                   </Button>
                   {platformLogo && (
                     <Button
@@ -388,7 +387,7 @@ export default function SettingsIndex() {
                   className="h-11 gap-2 rounded-xl px-5"
                   disabled={savingAppConfig || loadingAppConfig}
                 >
-                  {savingAppConfig ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  <Save className="h-4 w-4" />
                   {savingAppConfig ? 'Saving…' : 'Save links'}
                 </Button>
               </div>

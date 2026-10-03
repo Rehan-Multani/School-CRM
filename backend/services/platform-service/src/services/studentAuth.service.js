@@ -10,6 +10,7 @@ import { studentAccessService } from './studentAccess.service.js';
 import { studentSelf } from '../serializers/student.serializers.js';
 import { STUDENT_ERR } from '../constants/studentErrorCodes.js';
 import { checkRoleMismatch } from './roleMismatch.service.js';
+import { subscriptionAccessService } from './subscriptionAccess.service.js';
 
 const BCRYPT_ROUNDS = 10; // matches teacher/principal/HR login provisioning
 const MIN_PASSWORD_LEN = 8;
@@ -107,6 +108,8 @@ class StudentAuthService {
     const school = student.schoolId ? await School.findById(student.schoolId) : null;
     const ctx = await studentAccessService.buildContext(schoolIdStr, student._id.toString());
 
+    // No plan at the school = nobody but its School Admin signs in.
+    await subscriptionAccessService.assertSchoolCanSignIn(student.schoolId);
     const token = signStudentToken(student);
 
     Student.updateOne({ _id: student._id }, { $set: { lastLoginAt: new Date() } }).catch(() => {});

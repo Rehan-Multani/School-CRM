@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Loader2, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { Card, Button, Badge, cn } from '../../components/ui/Button';
 import { Input, Select } from '../../components/ui/Input';
 import { platformAppConfigApi } from '../../../../shared/api/client';
@@ -129,7 +129,7 @@ export function ForceLogoutCard({ schools, notify }) {
                   Cancel
                 </Button>
                 <Button type="button" variant="destructive" className="flex-1 gap-2" disabled={busy} onClick={submit}>
-                  {busy ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />}
+                  <LogOut size={16} />
                   {busy ? 'Signing out…' : 'Yes, sign out'}
                 </Button>
               </div>

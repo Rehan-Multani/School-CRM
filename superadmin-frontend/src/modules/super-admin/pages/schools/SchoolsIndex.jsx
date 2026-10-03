@@ -19,7 +19,6 @@ import {
   Search,
   Building2,
   Server,
-  Loader2,
   MapPin,
   GraduationCap,
   Phone,
@@ -213,6 +212,21 @@ function SchoolsTableSkeleton() {
       </TableBody>
     </Table>
   );
+}
+
+// Where the school panel lives, worked out from where THIS panel is open — so
+// "Login as school" on localhost opens the local school panel, and on the live
+// site opens the live one. (The server's own FRONTEND_URL is not used: it points
+// at the live site even while developing.)
+//   - VITE_SCHOOL_APP_URL, when the school panel is hosted somewhere else
+//   - dev: this panel runs on port 5174, the school panel on 5173, same host
+//   - otherwise both panels are served from the same site
+function schoolPanelOrigin() {
+  const configured = (import.meta.env.VITE_SCHOOL_APP_URL || '').replace(/\/+$/, '');
+  if (configured) return configured;
+  const { protocol, hostname, port, origin } = window.location;
+  if (port === '5174') return `${protocol}//${hostname}:5173`;
+  return origin;
 }
 
 function ActionIcon({ label, onClick, className, disabled, children }) {
@@ -599,11 +613,9 @@ export default function SchoolsIndex() {
     setLoginAsId(school.id);
     try {
       const result = await platformSchoolApi.loginAs(school.id);
-      const link = result?.data?.url;
-      if (!link) throw new Error('The server did not return a login link.');
-      // A separately hosted school panel can be set with VITE_SCHOOL_APP_URL.
-      const base = (import.meta.env.VITE_SCHOOL_APP_URL || '').replace(/\/+$/, '');
-      tab.location.replace(base ? `${base}/school-admin/login-as#code=${result.data.code}` : link);
+      const code = result?.data?.code;
+      if (!code) throw new Error('The server did not return a login code.');
+      tab.location.replace(`${schoolPanelOrigin()}/school-admin/login-as#code=${code}`);
       addNotification('info', `Opened ${school.name} in a new tab. You are signed in as this school there.`);
     } catch (err) {
       tab.close();
@@ -1049,7 +1061,6 @@ export default function SchoolsIndex() {
                 <Button type="submit" className="flex-1 gap-2" disabled={saving}>
                       {saving ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
                       {editingSchool ? 'Saving...' : 'Creating...'}
                     </>
                   ) : editingSchool ? (
@@ -1184,9 +1195,6 @@ export default function SchoolsIndex() {
                     </TableCell>
                     <TableCell className="whitespace-nowrap min-w-[130px]">
                       <div className="flex items-center justify-center gap-2">
-                        {featureBusyId === school.id && (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />
-                        )}
                         <Switch
                           checked={Boolean(school.safePickupEnabled)}
                           onCheckedChange={(next) => handleToggleSafePickup(school, next)}
@@ -1210,7 +1218,7 @@ export default function SchoolsIndex() {
                           disabled={Boolean(loginAsId)}
                           className="hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-500/15 dark:hover:text-emerald-400"
                         >
-                          {loginAsId === school.id ? <Loader2 size={15} className="animate-spin" /> : <LogIn size={15} />}
+                          <LogIn size={15} />
                         </ActionIcon>
                         <ActionIcon
                           label="Change password"
@@ -1441,7 +1449,6 @@ export default function SchoolsIndex() {
             <Button type="button" variant="destructive" className="flex-1 gap-2" disabled={deleting} onClick={handleDeleteSchool}>
               {deleting ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
                   Deleting...
                 </>
               ) : (
@@ -1588,7 +1595,6 @@ export default function SchoolsIndex() {
                 >
                   {passwordSubmitting ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
                       Updating...
                     </>
                   ) : (

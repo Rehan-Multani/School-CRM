@@ -8,6 +8,7 @@ import { escapeRegex } from '../../../shared/sanitize.js';
 import { schoolThemeSnapshot } from '../services/school.service.js';
 import { collectSchoolUserUploadFiles } from '../middleware/uploadSchoolUser.js';
 import { deleteUploadedFile } from '../utils/upload.utils.js';
+import { subscriptionAccessService } from '../services/subscriptionAccess.service.js';
 
 // ----------------------------------------------------
 // Principal Auth Login
@@ -55,6 +56,9 @@ export async function principalLogin(req, res, next) {
     }
 
     const schoolIdStr = user.schoolId ? user.schoolId.toString() : school ? school._id.toString() : '';
+
+    // No plan at the school = nobody but its School Admin signs in.
+    await subscriptionAccessService.assertSchoolCanSignIn(schoolIdStr);
 
     const token = signAccessToken(
       {

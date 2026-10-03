@@ -52,6 +52,9 @@ async function buildSchool(models, name, slug) {
     academic: { session: '2026-27', classFrom: '1', classTo: '10', medium: 'English', workingDays: [] },
     admin: { name: 'Admin', email: `admin@${slug}.edu`, mobile: '+919999999999' },
     status: 'Active',
+    // An active plan: without one, only the School Admin can use the school at all.
+    subscriptionPlan: 'Test Plan',
+    subscription: { status: 'Active', planType: 'Yearly' },
     settings: { safePickupEnabled: true },
   });
 

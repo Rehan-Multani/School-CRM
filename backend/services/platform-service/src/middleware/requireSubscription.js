@@ -1,5 +1,9 @@
 import { AppError } from '../../../shared/AppError.js';
-import { subscriptionAccessService } from '../services/subscriptionAccess.service.js';
+import {
+  subscriptionAccessService,
+  SCHOOL_SUBSCRIPTION_INACTIVE,
+  SCHOOL_SUBSCRIPTION_INACTIVE_MESSAGE,
+} from '../services/subscriptionAccess.service.js';
 
 function resolveSchoolId(req) {
   const role = (req.user?.role || '').toUpperCase();
@@ -63,6 +67,16 @@ const EXEMPT_PATHS = [
   '/school-portal/transport-manager/account/delete',
 ];
 
+// 402 for a school without access. The School Admin is told what to do (pick or
+// renew a plan); everyone else is told to contact that admin.
+function blockedError(req, entitlement) {
+  const isAdmin = (req.user?.role || '').toUpperCase() === 'SCHOOLADMIN';
+  if (!isAdmin) return new AppError(SCHOOL_SUBSCRIPTION_INACTIVE_MESSAGE, 402, SCHOOL_SUBSCRIPTION_INACTIVE);
+  return entitlement.state === 'none'
+    ? new AppError('Your school does not have a plan yet. Please choose a plan to continue.', 402, 'SUBSCRIPTION_REQUIRED')
+    : new AppError('Your school’s subscription has expired. Please renew to continue.', 402, 'SUBSCRIPTION_EXPIRED');
+}
+
 function isExemptPath(path) {
   return EXEMPT_PATHS.some((exempt) => path === exempt || path.startsWith(`${exempt}/`));
 }
@@ -72,8 +86,8 @@ function isExemptPath(path) {
  * (requireSchoolAdmin, requirePrincipal, requireHR, requireLibrarian,
  * requireAccountant) right after req.user is set. Blocks with 402 once a
  * school's subscription has moved past its grace period into `expired` (or
- * its cancelled period has fully ended). Schools with no SchoolSubscription
- * record at all are never blocked — see subscriptionAccess.service.js for why.
+ * its cancelled period has fully ended), and for a school that never had a
+ * plan at all — see subscriptionAccess.service.js for what counts as a plan.
  *
  * `prefetched` is the promise from prefetchSubscriptionAccess(), so a guard can
  * run this lookup in parallel with its own account lookup instead of after it.
@@ -84,9 +98,7 @@ export async function enforceSubscriptionAccess(req, res, next, prefetched = nul
     const schoolId = resolveSchoolId(req);
     if (!schoolId) return next(); // no tenant context on this route — nothing to gate
     const entitlement = await (prefetched || subscriptionAccessService.getGateEntitlement(schoolId));
-    if (!entitlement.hasFullAccess) {
-      throw new AppError('Your school’s subscription has expired. Please renew to continue.', 402);
-    }
+    if (!entitlement.hasFullAccess) throw blockedError(req, entitlement);
     req.subscriptionEntitlement = entitlement;
     next();
   } catch (error) {

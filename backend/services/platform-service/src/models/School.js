@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { invalidateEntitlementOnWrite } from '../utils/entitlementCache.js';
 
 const schoolSchema = new mongoose.Schema(
   {
@@ -133,5 +134,8 @@ schoolSchema.methods.toPublicJSON = function toPublicJSON() {
     updatedAt: this.updatedAt,
   };
 };
+
+// The subscription gate caches each school's plan for a few seconds.
+invalidateEntitlementOnWrite(schoolSchema);
 
 export const School = mongoose.model('School', schoolSchema);

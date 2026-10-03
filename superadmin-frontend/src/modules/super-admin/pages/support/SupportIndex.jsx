@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   CircleDot,
   LifeBuoy,
-  Loader2,
   MessageSquare,
   Plus,
   Send,
@@ -389,8 +388,8 @@ export default function SupportIndex() {
                     className="min-h-[80px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/40 dark:border-slate-800 dark:bg-slate-950"
                   />
                   <Button type="submit" className="w-full gap-2" disabled={sending || !replyText.trim()}>
-                    {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    Send reply
+                    <Send className="h-4 w-4" />
+                    {sending ? 'Sending…' : 'Send reply'}
                   </Button>
                 </form>
               ) : (

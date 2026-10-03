@@ -5,7 +5,7 @@ import { Input, Select } from '../../components/ui/Input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/Dialog';
 import { useSuperAdminNotifications } from '../../context/SuperAdminNotificationContext';
 import { platformSubscriptionApi } from '../../../../shared/api/client';
-import { Plus, Trash2, CheckCircle2, Loader2, X, Pencil, AlertTriangle, Layers, Repeat } from 'lucide-react';
+import { Plus, Trash2, CheckCircle2, X, Pencil, AlertTriangle, Layers, Repeat } from 'lucide-react';
 
 const PLAN_TYPES = ['Weekly', 'Monthly', 'Yearly'];
 
@@ -315,7 +315,6 @@ export default function PlansIndex() {
               <Button type="submit" className="w-full gap-2" disabled={saving}>
                 {saving ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
                     Publishing...
                   </>
                 ) : editingPlan ? (
@@ -438,7 +437,6 @@ export default function PlansIndex() {
             >
               {deleting ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
                   Deleting...
                 </>
               ) : (

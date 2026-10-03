@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { announceSubscriptionBlocked } from '../ui/SubscriptionBlockedOverlay';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
@@ -96,6 +97,22 @@ export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
+
+// Every panel except the School Admin's: a 402 means the school has no active
+// plan. Only the School Admin can fix that, so these panels show a blocked
+// screen (SubscriptionBlockedOverlay) instead of redirecting anywhere.
+function blockOnSubscription402(client) {
+  client.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      // The School Admin panel handles its own 402 (it sends the admin to Plans).
+      const inAdminPanel = typeof window !== 'undefined' && window.location.pathname.startsWith('/school-admin');
+      if (error.response?.status === 402 && !inAdminPanel) announceSubscriptionBlocked(error.response?.data?.message);
+      return Promise.reject(error);
+    }
+  );
+}
+blockOnSubscription402(apiClient);
 
 const refreshClient = axios.create({
   baseURL: API_BASE_URL,
@@ -578,6 +595,7 @@ const librarianClient = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
+blockOnSubscription402(librarianClient);
 
 librarianClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('librarian_token') || localStorage.getItem('school_admin_token');
@@ -654,6 +672,7 @@ const hrClient = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
+blockOnSubscription402(hrClient);
 
 hrClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('hr_token') || localStorage.getItem('school_admin_token');
@@ -765,6 +784,7 @@ const principalClient = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
+blockOnSubscription402(principalClient);
 
 principalClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('principal_token') || localStorage.getItem('school_admin_token');
@@ -1095,6 +1115,7 @@ const accountantClient = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
+blockOnSubscription402(accountantClient);
 
 accountantClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('accountant_token') || localStorage.getItem('school_admin_token');

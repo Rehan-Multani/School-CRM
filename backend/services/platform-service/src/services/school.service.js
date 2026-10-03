@@ -17,6 +17,7 @@ import { razorpaySubscriptionService } from './razorpaySubscription.service.js';
 import { normalizeIndianMobile } from '../utils/mobile.js';
 import { LoginAsCode } from '../models/LoginAsCode.js';
 import { AuditLog } from '../models/AuditLog.js';
+import { subscriptionAccessService } from './subscriptionAccess.service.js';
 
 // "Login as school": the hand-off code lives for a minute, the session it buys
 // for two hours (a support visit, not a standing login).
@@ -304,6 +305,14 @@ function toPortalUser(school) {
   };
 }
 
+// `hasPlan` decides whether the School Admin sees the whole panel or only the
+// Plans page, so it must be the same answer the API gate gives — a live autopay
+// subscription or an active manual plan — never just "a plan name is stored".
+async function portalUserFor(school) {
+  const entitlement = await subscriptionAccessService.getEntitlement(school._id);
+  return { ...toPortalUser(school), hasPlan: entitlement.hasFullAccess, subscriptionState: entitlement.state };
+}
+
 // The generated password is delivered by email only. Everything the Super Admin
 // is allowed to see about the new login goes through here, so no response path
 // can leak the plaintext by accident.
@@ -498,7 +507,7 @@ export class SchoolService {
 
     return {
       token,
-      user: toPortalUser(school),
+      user: await portalUserFor(school),
     };
   }
 
@@ -564,7 +573,7 @@ export class SchoolService {
 
     return {
       token,
-      user: toPortalUser(school),
+      user: await portalUserFor(school),
       impersonation: { by: entry.actorName || 'Super Admin', expiresInSeconds: LOGIN_AS_SESSION_SECONDS },
     };
   }
@@ -635,7 +644,7 @@ export class SchoolService {
     if (!school) {
       throw new AppError('School not found', 404);
     }
-    return { user: toPortalUser(school) };
+    return { user: await portalUserFor(school) };
   }
 
   toSettingsPayload(school) {
@@ -862,7 +871,7 @@ export class SchoolService {
 
     return {
       data: this.toSchoolConfigPayload(school),
-      user: toPortalUser(school),
+      user: await portalUserFor(school),
     };
   }
 
@@ -899,7 +908,7 @@ export class SchoolService {
     return {
       theme: school.settings?.theme || 'light',
       primaryColor: school.settings?.primaryColor || '#4F46E5',
-      user: toPortalUser(school),
+      user: await portalUserFor(school),
     };
   }
 
@@ -927,7 +936,7 @@ export class SchoolService {
         logo: school.settings?.portalBranding?.logo || '',
         favicon: school.settings?.portalBranding?.favicon || '',
       },
-      user: toPortalUser(school),
+      user: await portalUserFor(school),
     };
   }
 
@@ -1037,7 +1046,16 @@ export class SchoolService {
       school.subscription?.endsAt || planEndDate(startedAt, planType);
     const endsAt = endsAtRaw instanceof Date ? endsAtRaw : new Date(endsAtRaw);
     const billingStatus = invoice?.status || 'Pending';
-    const status = school.subscription?.status === 'Cancelled' ? 'Cancelled' : resolveSubscriptionStatus(endsAt, billingStatus);
+    // A plan the Super Admin activated without an invoice (or a seeded demo
+    // school) is Active on the school record itself — the same test the access
+    // gate uses, so the Plans page and the rest of the panel always agree.
+    const activeOnRecord = school.subscription?.status === 'Active' && !(endsAt && endsAt < new Date());
+    const status =
+      school.subscription?.status === 'Cancelled'
+        ? 'Cancelled'
+        : activeOnRecord
+          ? 'Active'
+          : resolveSubscriptionStatus(endsAt, billingStatus);
 
     const msRemaining = endsAt && !isNaN(endsAt.getTime()) ? endsAt.getTime() - Date.now() : 0;
     const daysRemaining = Math.max(0, Math.ceil(msRemaining / 86400000));

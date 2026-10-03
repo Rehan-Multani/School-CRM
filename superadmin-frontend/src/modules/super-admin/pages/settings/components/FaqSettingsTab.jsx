@@ -6,7 +6,6 @@ import {
   Pencil,
   Trash2,
   Search,
-  Loader2,
   CheckCircle2,
   AlertCircle,
   FolderOpen,
@@ -482,7 +481,6 @@ export default function FaqSettingsTab() {
               >
                 {submitting ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
                     Saving...
                   </>
                 ) : (
@@ -532,7 +530,6 @@ export default function FaqSettingsTab() {
                 >
                   {deleting ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
                       Deleting...
                     </>
                   ) : (
