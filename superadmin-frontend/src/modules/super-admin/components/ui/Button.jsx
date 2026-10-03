@@ -12,7 +12,7 @@ export const Button = React.forwardRef(
       <button
         ref={ref}
         className={cn(
-          'group relative inline-flex items-center justify-center font-semibold select-none rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950 disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none active:scale-[0.98] cursor-pointer',
+          'group relative inline-flex items-center justify-center font-semibold select-none rounded-xl whitespace-nowrap transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-950 disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none active:scale-[0.98] cursor-pointer',
           {
             // Primary - Vibrant indigo gradient with top border highlight & ambient glow
             'bg-gradient-to-b from-indigo-500 to-indigo-600 text-white shadow-[0_2px_10px_-2px_rgba(79,70,229,0.35)] hover:from-indigo-600 hover:to-indigo-700 hover:shadow-[0_4px_16px_-2px_rgba(79,70,229,0.45)] hover:-translate-y-0.5 active:translate-y-0 border border-indigo-400/30':
@@ -26,8 +26,8 @@ export const Button = React.forwardRef(
             'bg-gradient-to-b from-rose-500 to-rose-600 text-white shadow-[0_2px_10px_-2px_rgba(225,29,72,0.35)] hover:from-rose-600 hover:to-rose-700 hover:shadow-[0_4px_16px_-2px_rgba(225,29,72,0.45)] hover:-translate-y-0.5 active:translate-y-0 border border-rose-400/30':
               variant === 'destructive',
 
-            // Success - Emerald gradient for approvals, activations
-            'bg-gradient-to-b from-emerald-500 to-emerald-600 text-white shadow-[0_2px_10px_-2px_rgba(16,185,129,0.35)] hover:from-emerald-600 hover:to-emerald-700 hover:shadow-[0_4px_16px_-2px_rgba(16,185,129,0.45)] hover:-translate-y-0.5 active:translate-y-0 border border-emerald-400/30':
+            // Success - Emerald gradient with crisp border and subtle glow
+            'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-[0_2px_8px_-1px_rgba(16,185,129,0.35)] hover:from-emerald-500 hover:to-emerald-600 hover:shadow-[0_4px_14px_-2px_rgba(16,185,129,0.45)] hover:-translate-y-0.5 active:translate-y-0 border border-emerald-400/40':
               variant === 'success',
 
             // Outline - Clean tinted border & smooth fill on hover

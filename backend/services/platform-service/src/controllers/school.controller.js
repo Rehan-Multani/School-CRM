@@ -216,6 +216,28 @@ export async function schoolAdminLogin(req, res, next) {
   }
 }
 
+export async function superAdminLoginAsSchool(req, res, next) {
+  try {
+    const data = await schoolService.createLoginAsCode(
+      req.params.id,
+      { id: req.user?.sub || '', name: req.user?.name || req.user?.email || 'Super Admin' },
+      { ip: req.ip || '', userAgent: req.headers['user-agent'] || '' }
+    );
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function schoolAdminLoginAs(req, res, next) {
+  try {
+    const result = await schoolService.loginWithLoginAsCode(req.body || {});
+    res.json({ success: true, ...result });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function schoolAdminForgotPassword(req, res, next) {
   try {
     const result = await schoolService.requestPasswordReset(req.body || {});

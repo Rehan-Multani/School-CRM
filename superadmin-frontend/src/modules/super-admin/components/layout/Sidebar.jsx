@@ -12,7 +12,9 @@ import {
   FileText,
   Scale,
   LifeBuoy,
+  Inbox,
   Settings,
+  UserRound,
   ChevronLeft,
   ChevronRight,
   LogOut
@@ -22,10 +24,11 @@ import { cn } from '../ui/Button';
 import BrandLogo from '../../../../shared/ui/BrandLogo';
 
 // Grouped in the order an operator actually works: overview -> tenants ->
-// commercial (plan/billing/revenue) -> insights -> ops -> legal/config.
+// commercial (plan/billing/revenue) -> insights -> ops -> legal/config -> account.
 const menuItems = [
   { name: 'Dashboard', path: '/super-admin/dashboard', icon: LayoutDashboard },
   { name: 'Schools', path: '/super-admin/schools', icon: School },
+  { name: 'Enquiry', path: '/super-admin/enquiries', icon: Inbox },
   { name: 'Plans', path: '/super-admin/plans', icon: Layers },
   { name: 'Subscriptions', path: '/super-admin/subscriptions', icon: CreditCard },
   { name: 'Revenue', path: '/super-admin/revenue', icon: DollarSign },
@@ -34,6 +37,7 @@ const menuItems = [
   { name: 'App Version', path: '/super-admin/app-version', icon: Smartphone },
   { name: 'Help & Support', path: '/super-admin/support', icon: LifeBuoy },
   { name: 'Privacy & Policy', path: '/super-admin/privacy-policy', icon: Scale },
+  { name: 'Profile', path: '/super-admin/profile', icon: UserRound },
   { name: 'Settings', path: '/super-admin/settings', icon: Settings },
 ];
 
@@ -115,22 +119,31 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
       </div>
 
       <div className="px-3 border-t border-border dark:border-slate-900/60 pt-4 mt-auto">
-        <div className={cn('flex items-center gap-3 p-2 rounded-lg bg-slate-50 dark:bg-slate-900/40 border border-border dark:border-slate-900/60', isCollapsed && 'justify-center')}>
-          <img
-            src={admin?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&auto=format&fit=crop&q=60'}
-            alt="Avatar"
-            className="w-8 h-8 rounded-full border border-border dark:border-slate-800"
-          />
-          {!isCollapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-foreground dark:text-slate-200 truncate">{admin?.name || 'Chirag J.'}</p>
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate">{admin?.role || 'Super Admin'}</p>
-            </div>
-          )}
+        <div className={cn('flex items-center gap-2 p-2 rounded-lg bg-slate-50 dark:bg-slate-900/40 border border-border dark:border-slate-900/60 transition-colors', isCollapsed && 'justify-center')}>
+          <button
+            type="button"
+            onClick={() => navigate('/super-admin/profile')}
+            className={cn('flex items-center gap-2.5 min-w-0 text-left group', isCollapsed ? 'justify-center' : 'flex-1')}
+            title="View Profile"
+          >
+            <img
+              src={admin?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&auto=format&fit=crop&q=60'}
+              alt="Avatar"
+              className="w-8 h-8 rounded-full border border-border dark:border-slate-800 shrink-0 group-hover:ring-2 group-hover:ring-indigo-500/50 transition-all object-cover"
+            />
+            {!isCollapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-foreground dark:text-slate-200 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{admin?.name || 'Super Admin'}</p>
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate">{admin?.role || 'Super Admin'}</p>
+              </div>
+            )}
+          </button>
           {!isCollapsed && (
             <button
               onClick={() => { logout(); navigate('/super-admin/login'); }}
               className="text-slate-400 hover:text-rose-500 dark:hover:text-rose-450 transition-colors p-1"
+              title="Logout"
+              aria-label="Logout"
             >
               <LogOut size={16} />
             </button>

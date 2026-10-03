@@ -13,6 +13,7 @@ import WorkflowSection from '../components/sections/WorkflowSection';
 import TestimonialsSection from '../components/sections/TestimonialsSection';
 import CtaSection from '../components/sections/CtaSection';
 import { FAQS, PRODUCT } from '../data/content';
+import { publicFaqApi } from '../../../shared/api/client';
 
 const FaqItem = ({ item, open, onToggle }) => (
   <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-colors dark:border-slate-800/90 dark:bg-slate-900">
@@ -22,7 +23,7 @@ const FaqItem = ({ item, open, onToggle }) => (
       className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left transition hover:text-indigo-600 dark:hover:text-indigo-400"
     >
       <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
-        {item.q}
+        {item.q || item.question}
       </span>
       <ChevronDown
         className={`h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 ${
@@ -39,8 +40,8 @@ const FaqItem = ({ item, open, onToggle }) => (
           transition={{ duration: 0.25, ease: 'easeOut' }}
           className="overflow-hidden"
         >
-          <p className="px-6 pb-6 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-            {item.a}
+          <p className="px-6 pb-6 text-sm leading-relaxed text-slate-600 dark:text-slate-400 whitespace-pre-line">
+            {item.a || item.answer}
           </p>
         </motion.div>
       )}
@@ -50,9 +51,28 @@ const FaqItem = ({ item, open, onToggle }) => (
 
 export const LandingPage = () => {
   const [openFaq, setOpenFaq] = useState(0);
+  const [faqs, setFaqs] = useState(FAQS);
 
   useEffect(() => {
     document.title = `${PRODUCT.name} – ${PRODUCT.headline}`;
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    publicFaqApi
+      .list()
+      .then((res) => {
+        if (!alive) return;
+        if (Array.isArray(res?.data) && res.data.length > 0) {
+          setFaqs(res.data);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load FAQs dynamically:', err);
+      });
+    return () => {
+      alive = false;
+    };
   }, []);
 
   return (
@@ -99,8 +119,8 @@ export const LandingPage = () => {
           </Reveal>
 
           <div className="mt-12 space-y-4">
-            {FAQS.map((item, i) => (
-              <Reveal key={item.q} delay={i * 0.03}>
+            {faqs.map((item, i) => (
+              <Reveal key={item.id || item.q || item.question || i} delay={i * 0.03}>
                 <FaqItem
                   item={item}
                   open={openFaq === i}

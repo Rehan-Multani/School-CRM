@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Building2, Layers, Radio, ShieldCheck } from 'lucide-react';
 import Reveal from '../components/Reveal';
-import { APP_ROLES, PRODUCT, STATS, WEB_PORTALS } from '../data/content';
+import { PRODUCT, STATS, WEB_PORTALS } from '../data/content';
 
 const PILLARS = [
   {
@@ -94,7 +94,7 @@ export const AboutPage = () => {
 
         <Reveal className="mt-14 rounded-2xl border border-slate-200 bg-slate-50 p-7 dark:border-slate-800 dark:bg-slate-900/50 sm:p-9">
           <h2 className="text-xl font-black text-slate-900 dark:text-white">Who signs in where</h2>
-          <div className="mt-5 grid gap-6 md:grid-cols-2">
+          <div className="mt-5 max-w-md">
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Web portals</p>
               <ul className="mt-3 space-y-2">
@@ -106,22 +106,6 @@ export const AboutPage = () => {
                       className="inline-flex items-center gap-1 font-bold text-indigo-600 dark:text-indigo-400"
                     >
                       Login <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Mobile app roles</p>
-              <ul className="mt-3 space-y-2">
-                {APP_ROLES.map((role) => (
-                  <li key={role.key} className="flex items-center justify-between gap-3 text-sm">
-                    <span className="font-semibold text-slate-700 dark:text-slate-200">{role.name}</span>
-                    <Link
-                      to={role.href}
-                      className="inline-flex items-center gap-1 font-bold text-indigo-600 dark:text-indigo-400"
-                    >
-                      Web preview <ArrowRight className="h-3.5 w-3.5" />
                     </Link>
                   </li>
                 ))}

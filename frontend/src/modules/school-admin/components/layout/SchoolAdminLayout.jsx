@@ -6,6 +6,7 @@ import { Breadcrumb } from './Breadcrumb';
 import { CommandPalette } from './CommandPalette';
 import { SchoolAdminBrandingEffect } from './SchoolAdminBrandingEffect';
 import { SchoolAdminThemeScope } from './SchoolAdminThemeScope';
+import { ImpersonationBanner } from './ImpersonationBanner';
 import { useSchoolAdminAuth } from '../../context/SchoolAdminAuthContext';
 import { useSchoolAdminNotifications } from '../../context/SchoolAdminNotificationContext';
 import { usePlatformPush } from '../../../../shared/hooks/usePlatformPush';
@@ -98,6 +99,7 @@ export const SchoolAdminLayout = () => {
 
       {/* Main Content Area */}
       <div className={`flex-1 flex flex-col min-h-screen relative max-w-full overflow-x-hidden transition-[margin] duration-200 ${onRolesPage ? '' : isCollapsed ? 'md:ml-[68px]' : 'md:ml-64'}`}>
+        <ImpersonationBanner />
         {/* Header/TopBar */}
         <TopBar 
           onMenuClick={() => setMobileMenuOpen(true)} 

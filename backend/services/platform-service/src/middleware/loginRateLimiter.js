@@ -66,3 +66,16 @@ export const changePasswordRateLimiter = rateLimit({
     code: 'RATE_LIMITED',
   },
 });
+
+// Public "Contact us" form: no login, so the IP budget is the only thing
+// between a bot and thousands of junk rows in the Super Admin's enquiry inbox.
+export const enquiryRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'You have sent several enquiries already. Please try again later or email us directly.',
+  },
+});

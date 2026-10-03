@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -30,7 +30,7 @@ export default function Login() {
     keyboardVisible,
     scrollToInput,
   } = useKeyboardScroll({ defaultOffset: 170 });
-  // Coming back from Forgot password lands on the same role tab + login id.
+  // Coming back from Forgot password or Verify OTP lands on the same role tab + login id.
   const params = useLocalSearchParams();
   const initialRole = ROLES[params.role] ? params.role : 'TEACHER';
   const [roleKey, setRoleKey] = useState(initialRole);
@@ -38,6 +38,15 @@ export default function Login() {
   const [password, setPassword] = useState(() => (params.identifier ? '' : devCredentials(initialRole).password));
   const [roleMismatch, setRoleMismatch] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (params.role && ROLES[params.role] && params.role !== roleKey) {
+      setRoleKey(params.role);
+    }
+    if (params.identifier !== undefined && params.identifier !== identifier) {
+      setIdentifier(params.identifier);
+    }
+  }, [params.role, params.identifier]);
 
   const role = ROLES[roleKey];
 
@@ -194,18 +203,25 @@ export default function Login() {
             </>
           )}
 
-          <View style={styles.helpRow}>
-            <Text style={styles.help}>Trouble signing in?</Text>
-            <Pressable
-              onPress={() =>
-                router.push({ pathname: '/forgot-password', params: { role: roleKey, identifier: identifier.trim() } })
-              }
-              hitSlop={8}
-              accessibilityRole="link"
-            >
-              <Text style={styles.helpLink}>Forgot password?</Text>
-            </Pressable>
-          </View>
+          {role.auth === 'password' ? (
+            <View style={styles.helpRow}>
+              <Text style={styles.help}>Trouble signing in?</Text>
+              <Pressable
+                onPress={() =>
+                  router.push({ pathname: '/forgot-password', params: { role: roleKey, identifier: identifier.trim() } })
+                }
+                hitSlop={8}
+                accessibilityRole="link"
+              >
+                <Text style={styles.helpLink}>Forgot password?</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <View style={styles.helpRow}>
+              <Text style={styles.help}>Need help?</Text>
+              <Text style={styles.help}>Please contact your school office</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.footer}>

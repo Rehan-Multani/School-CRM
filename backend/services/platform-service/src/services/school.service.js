@@ -15,6 +15,15 @@ import { schoolSubscriptionService } from './schoolSubscription.service.js';
 import { schoolSubscriptionRepository } from '../repositories/schoolSubscription.repository.js';
 import { razorpaySubscriptionService } from './razorpaySubscription.service.js';
 import { normalizeIndianMobile } from '../utils/mobile.js';
+import { LoginAsCode } from '../models/LoginAsCode.js';
+import { AuditLog } from '../models/AuditLog.js';
+
+// "Login as school": the hand-off code lives for a minute, the session it buys
+// for two hours (a support visit, not a standing login).
+const LOGIN_AS_CODE_TTL_MS = 60 * 1000;
+const LOGIN_AS_SESSION = '2h';
+const LOGIN_AS_SESSION_SECONDS = 2 * 60 * 60;
+const hashLoginAsCode = (code) => crypto.createHash('sha256').update(code).digest('hex');
 
 const SCHOOL_TYPES = ['Public', 'Private', 'Government', 'Government Aided', 'International', 'Other'];
 const SCHOOL_BOARDS = ['CBSE', 'ICSE', 'State Board', 'IB', 'Cambridge', 'Other'];
@@ -490,6 +499,73 @@ export class SchoolService {
     return {
       token,
       user: toPortalUser(school),
+    };
+  }
+
+  /**
+   * Super Admin asks to open a school's admin panel. Returns a one-time code
+   * (and the link that carries it) — never a session token: the link may sit in
+   * browser history, so it must be worthless after one use / one minute.
+   */
+  async createLoginAsCode(schoolId, actor = {}, meta = {}) {
+    const school = await schoolRepository.findById(schoolId);
+    if (!school) throw new AppError('School not found', 404);
+
+    const code = crypto.randomBytes(32).toString('hex');
+    await LoginAsCode.create({
+      codeHash: hashLoginAsCode(code),
+      schoolId: school._id,
+      actorId: actor.id || '',
+      actorName: actor.name || 'Super Admin',
+      expiresAt: new Date(Date.now() + LOGIN_AS_CODE_TTL_MS),
+    });
+
+    // The school can see in its own audit trail that support opened its panel.
+    AuditLog.create({
+      schoolId: school._id,
+      module: 'SECURITY',
+      action: 'SUPER_ADMIN_LOGIN_AS',
+      entityType: 'School',
+      entityId: school._id.toString(),
+      actorId: actor.id || '',
+      actorRole: 'SuperAdmin',
+      actorName: actor.name || 'Super Admin',
+      summary: `${actor.name || 'Super Admin'} opened this school's admin panel from the Super Admin console`,
+      ip: meta.ip || '',
+      userAgent: meta.userAgent || '',
+    }).catch(() => {});
+
+    return {
+      code,
+      url: `${String(env.frontendUrl || '').replace(/\/+$/, '')}/school-admin/login-as#code=${code}`,
+      expiresInSeconds: LOGIN_AS_CODE_TTL_MS / 1000,
+      schoolName: school.name,
+    };
+  }
+
+  /** The school panel swaps the one-time code for a school-admin session. */
+  async loginWithLoginAsCode({ code }) {
+    const raw = typeof code === 'string' ? code.trim() : '';
+    const invalid = new AppError('This login link has expired or was already used. Open the school again from the Super Admin panel.', 401);
+    if (!/^[a-f0-9]{64}$/.test(raw)) throw invalid;
+
+    // Find-and-delete in one step: two tabs racing with the same code cannot both win.
+    const entry = await LoginAsCode.findOneAndDelete({ codeHash: hashLoginAsCode(raw), expiresAt: { $gt: new Date() } });
+    if (!entry) throw invalid;
+
+    const school = await schoolRepository.findById(entry.schoolId);
+    if (!school) throw new AppError('School not found', 404);
+
+    const token = signAccessToken(
+      // `imp` marks the session as a Super Admin visit (who it was), for audit.
+      { sub: school._id.toString(), role: 'SchoolAdmin', schoolId: school.schoolId, imp: entry.actorId || 'super-admin' },
+      { secret: env.jwtSecret, expiresIn: LOGIN_AS_SESSION }
+    );
+
+    return {
+      token,
+      user: toPortalUser(school),
+      impersonation: { by: entry.actorName || 'Super Admin', expiresInSeconds: LOGIN_AS_SESSION_SECONDS },
     };
   }
 

@@ -85,8 +85,6 @@ const STATUS_CONFIG = {
   },
   cancelled: {
     label: 'Cancelled',
-    pillClass: 'bg-slate-500/10 text-slate-500 dark:text-slate-400 border-slate-500/20',
-    dotClass: 'bg-slate-400',
     pillClass: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
     dotClass: 'bg-rose-500',
     pulse: false,
@@ -342,7 +340,6 @@ export default function SchoolSubscriptionsPanel() {
     () => [
       {
         label: 'Active',
-        value: stats?.byStatus?.active || 0,
         value: stats?.byStatus?.active ?? rows.filter((r) => r.status === 'active' && !r.cancelAtPeriodEnd).length,
         sub: 'Live & billing',
         icon: CheckCircle2,
@@ -367,13 +364,9 @@ export default function SchoolSubscriptionsPanel() {
       },
       {
         label: 'Cancelled',
-        value: stats?.byStatus?.cancelled || 0,
-        sub: 'Revoked / ended',
         value: stats?.byStatus?.cancelled ?? rows.filter((r) => r.status === 'cancelled' || r.cancelAtPeriodEnd).length,
         sub: 'Revoked / stopped',
         icon: Ban,
-        color: 'text-slate-600 dark:text-slate-400',
-        bg: 'bg-slate-500/10 border-slate-500/20',
         color: 'text-rose-600 dark:text-rose-400',
         bg: 'bg-rose-500/10 border-rose-500/20',
       },
@@ -386,7 +379,6 @@ export default function SchoolSubscriptionsPanel() {
         bg: 'bg-red-500/10 border-red-500/20',
       },
     ],
-    [stats]
     [stats, rows]
   );
 
@@ -785,21 +777,11 @@ export default function SchoolSubscriptionsPanel() {
                             >
                               <Eye size={13} />
                             </button>
-                            <button
-                              type="button"
-                              title="Cancel subscription"
-                              onClick={() => {
-                                setCancelTarget(r);
-                                setCancelImmediate(false);
-                              }}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 bg-white text-slate-500 shadow-2xs transition-all hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-rose-500/10 dark:hover:text-rose-400"
-                            >
-                              <Ban size={13} />
-                            </button>
                             {!isCancelled && (
                               <button
                                 type="button"
                                 title="Cancel subscription"
+                                aria-label="Cancel subscription"
                                 onClick={() => {
                                   setCancelTarget(r);
                                   setCancelImmediate(false);

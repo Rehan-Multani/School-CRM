@@ -32,6 +32,7 @@ function RootNavigator() {
         <Stack.Screen name="index" />
         <Stack.Protected guard={!role}>
           <Stack.Screen name="login" />
+          <Stack.Screen name="verify-otp" />
           <Stack.Screen name="forgot-password" />
         </Stack.Protected>
         <Stack.Protected guard={role === 'TEACHER'}>

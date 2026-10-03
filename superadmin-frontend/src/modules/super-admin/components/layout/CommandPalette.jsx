@@ -14,8 +14,10 @@ import {
   FileText,
   Scale,
   LifeBuoy,
+  Inbox,
   Settings,
   SunMoon,
+  UserRound,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
@@ -25,6 +27,7 @@ import { cn } from '../ui/Button';
 const COMMANDS = [
   { name: 'Dashboard', category: 'Navigation', path: '/super-admin/dashboard', icon: LayoutDashboard },
   { name: 'Schools', category: 'Navigation', path: '/super-admin/schools', icon: School },
+  { name: 'Enquiry', category: 'Navigation', path: '/super-admin/enquiries', icon: Inbox },
   { name: 'Plans', category: 'Navigation', path: '/super-admin/plans', icon: Layers },
   { name: 'Subscriptions', category: 'Navigation', path: '/super-admin/subscriptions', icon: CreditCard },
   { name: 'Invoices', category: 'Navigation', path: '/super-admin/subscriptions', icon: Receipt },
@@ -34,6 +37,7 @@ const COMMANDS = [
   { name: 'App Version', category: 'Navigation', path: '/super-admin/app-version', icon: Smartphone },
   { name: 'Help & Support', category: 'Support', path: '/super-admin/support', icon: LifeBuoy },
   { name: 'Privacy & Policy', category: 'Navigation', path: '/super-admin/privacy-policy', icon: Scale },
+  { name: 'Profile', category: 'Account', path: '/super-admin/profile', icon: UserRound },
   { name: 'Settings', category: 'Settings', path: '/super-admin/settings', icon: Settings },
   { name: 'Toggle Theme', category: 'Settings', icon: SunMoon, action: 'theme' },
 ];

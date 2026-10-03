@@ -409,6 +409,7 @@ export const platformSchoolApi = {
   changePassword: (id, password) =>
     apiClient.post(`/platform/schools/${id}/change-password`, { password }).then((res) => res.data),
   remove: (id) => apiClient.delete(`/platform/schools/${id}`).then((res) => res.data),
+  loginAs: (id) => apiClient.post(`/platform/schools/${id}/login-as`).then((res) => res.data),
   getFeatures: (id) => apiClient.get(`/platform/schools/${id}/features`).then((res) => res.data),
   updateFeatures: (id, payload) =>
     apiClient.patch(`/platform/schools/${id}/features`, payload).then((res) => res.data),
@@ -481,6 +482,20 @@ export const platformSupportApi = {
     apiClient.post(`/platform/support/tickets/${id}/replies`, payload).then((res) => res.data),
   updateStatus: (id, status) =>
     apiClient.patch(`/platform/support/tickets/${id}/status`, { status }).then((res) => res.data),
+};
+
+export const platformEnquiryApi = {
+  list: (params) => apiClient.get('/platform/superadmin/enquiries', { params }).then((res) => res.data),
+  updateStatus: (id, payload) =>
+    apiClient.patch(`/platform/superadmin/enquiries/${id}/status`, payload).then((res) => res.data),
+  remove: (id) => apiClient.delete(`/platform/superadmin/enquiries/${id}`).then((res) => res.data),
+};
+
+export const platformFaqApi = {
+  list: (params) => apiClient.get('/platform/superadmin/faqs', { params }).then((res) => res.data),
+  create: (payload) => apiClient.post('/platform/superadmin/faqs', payload).then((res) => res.data),
+  update: (id, payload) => apiClient.put(`/platform/superadmin/faqs/${id}`, payload).then((res) => res.data),
+  remove: (id) => apiClient.delete(`/platform/superadmin/faqs/${id}`).then((res) => res.data),
 };
 
 export const schoolSupportApi = {

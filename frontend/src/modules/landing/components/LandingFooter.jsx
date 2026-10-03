@@ -3,47 +3,51 @@ import { Link } from 'react-router-dom';
 import { ArrowUpRight, Mail, MapPin, Phone, ShieldCheck } from 'lucide-react';
 import BrandLogo from '../../../shared/ui/BrandLogo';
 import { ALL_ROLES, PRODUCT } from '../data/content';
+import { usePlatformContact } from '../data/siteContent';
 
 const linkClass =
   'text-xs font-medium text-slate-600 transition hover:text-indigo-600 dark:text-slate-400 dark:hover:text-white';
 
-export const LandingFooter = () => (
-  <footer className="border-t border-slate-200/80 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-950">
-    <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-      <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-        {/* Col 1 & 2: Brand and Contact */}
-        <div className="sm:col-span-2 md:col-span-3 lg:col-span-2">
-          <Link to="/" className="flex items-center gap-2.5">
-            <BrandLogo className="h-9 w-9 shadow-sm" />
-            <span className="text-base font-black tracking-tight text-slate-900 dark:text-white">
-              {PRODUCT.name}
-            </span>
-          </Link>
-          <p className="mt-4 max-w-sm text-xs leading-relaxed text-slate-600 dark:text-slate-400">
-            {PRODUCT.description}
-          </p>
+export const LandingFooter = () => {
+  const contact = usePlatformContact();
 
-          <div className="mt-6 space-y-2.5 text-xs text-slate-600 dark:text-slate-400">
-            <a
-              href={`mailto:${PRODUCT.email}`}
-              className="flex items-center gap-2 transition hover:text-indigo-600 dark:hover:text-white"
-            >
-              <Mail className="h-4 w-4 text-indigo-500 shrink-0" />
-              <span>{PRODUCT.email}</span>
-            </a>
-            <a
-              href={`tel:${PRODUCT.phone.replace(/\s+/g, '')}`}
-              className="flex items-center gap-2 transition hover:text-indigo-600 dark:hover:text-white"
-            >
-              <Phone className="h-4 w-4 text-indigo-500 shrink-0" />
-              <span>{PRODUCT.phone}</span>
-            </a>
-            <p className="flex items-start gap-2">
-              <MapPin className="mt-0.5 h-4 w-4 text-indigo-500 shrink-0" />
-              <span>{PRODUCT.address}</span>
+  return (
+    <footer className="border-t border-slate-200/80 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-950">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="grid gap-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+          {/* Col 1 & 2: Brand and Contact */}
+          <div className="sm:col-span-2 md:col-span-3 lg:col-span-2">
+            <Link to="/" className="flex items-center gap-2.5">
+              <BrandLogo className="h-9 w-9 shadow-sm" />
+              <span className="text-base font-black tracking-tight text-slate-900 dark:text-white">
+                {PRODUCT.name}
+              </span>
+            </Link>
+            <p className="mt-4 max-w-sm text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+              {PRODUCT.description}
             </p>
+
+            <div className="mt-6 space-y-2.5 text-xs text-slate-600 dark:text-slate-400">
+              <a
+                href={`mailto:${contact.salesEmail}`}
+                className="flex items-center gap-2 transition hover:text-indigo-600 dark:hover:text-white"
+              >
+                <Mail className="h-4 w-4 text-indigo-500 shrink-0" />
+                <span>{contact.salesEmail}</span>
+              </a>
+              <a
+                href={`tel:${(contact.phone || '').replace(/\s+/g, '')}`}
+                className="flex items-center gap-2 transition hover:text-indigo-600 dark:hover:text-white"
+              >
+                <Phone className="h-4 w-4 text-indigo-500 shrink-0" />
+                <span>{contact.phone}</span>
+              </a>
+              <p className="flex items-start gap-2">
+                <MapPin className="mt-0.5 h-4 w-4 text-indigo-500 shrink-0" />
+                <span>{contact.address}</span>
+              </p>
+            </div>
           </div>
-        </div>
 
         {/* Col 3: Product */}
         <div>
@@ -183,6 +187,7 @@ export const LandingFooter = () => (
       </div>
     </div>
   </footer>
-);
+  );
+};
 
 export default LandingFooter;

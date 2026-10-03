@@ -4,6 +4,7 @@ import { useSuperAdminAuth } from '../context/SuperAdminAuthContext';
 import { Pulse, KpiSkeleton } from '../components/ui/SkeletonLoader';
 import Dashboard from '../pages/dashboard/Dashboard';
 import SchoolsIndex from '../pages/schools/SchoolsIndex';
+import EnquiriesIndex from '../pages/enquiries/EnquiriesIndex';
 import PlansIndex from '../pages/subscriptions/PlansIndex';
 import SubscriptionsIndex from '../pages/subscriptions/SubscriptionsIndex';
 import NotificationsIndex from '../pages/notifications/NotificationsIndex';
@@ -12,6 +13,7 @@ import RevenueIndex from '../pages/revenue/RevenueIndex';
 import ReportsIndex from '../pages/reports/ReportsIndex';
 import PrivacyPolicyIndex from '../pages/privacy/PrivacyPolicyIndex';
 import SupportIndex from '../pages/support/SupportIndex';
+import ProfileIndex from '../pages/profile/ProfileIndex';
 import SettingsIndex from '../pages/settings/SettingsIndex';
 
 const ProtectedRoute = ({ children }) => {
@@ -59,6 +61,14 @@ export const SuperAdminRoutes = () => {
         element={
           <ProtectedRoute>
             <SchoolsIndex />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="enquiries"
+        element={
+          <ProtectedRoute>
+            <EnquiriesIndex />
           </ProtectedRoute>
         }
       />
@@ -125,6 +135,14 @@ export const SuperAdminRoutes = () => {
         element={
           <ProtectedRoute>
             <SupportIndex />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="profile"
+        element={
+          <ProtectedRoute>
+            <ProfileIndex />
           </ProtectedRoute>
         }
       />

@@ -40,6 +40,7 @@ import {
   KeyRound,
   Copy,
   Check,
+  LogIn,
 } from 'lucide-react';
 
 const DEFAULT_SCHOOL_LOGO = schoolLogo;
@@ -153,14 +154,12 @@ function Pulse({ className }) {
 
 function SchoolsTableSkeleton() {
   return (
-    <Table className="min-w-[1210px]">
+    <Table className="min-w-[1000px]">
       <TableHeader>
         <TableRow>
           <TableHead className="w-12 text-center">#</TableHead>
           <TableHead className="min-w-[220px]">School</TableHead>
-          <TableHead className="min-w-[110px]">Code</TableHead>
           <TableHead className="min-w-[120px]">Board & Type</TableHead>
-          <TableHead className="min-w-[120px]">Location</TableHead>
           <TableHead className="min-w-[130px]">Academic</TableHead>
           <TableHead className="min-w-[100px]">Plan</TableHead>
           <TableHead className="min-w-[90px]">Status</TableHead>
@@ -183,17 +182,9 @@ function SchoolsTableSkeleton() {
                 </div>
               </div>
             </TableCell>
-            <TableCell className="min-w-[110px]">
-              <Pulse className="mb-1.5 h-3 w-16" />
-              <Pulse className="h-2.5 w-20" />
-            </TableCell>
             <TableCell className="min-w-[120px]">
               <Pulse className="mb-1.5 h-3 w-14" />
               <Pulse className="h-2.5 w-16" />
-            </TableCell>
-            <TableCell className="min-w-[120px]">
-              <Pulse className="mb-1.5 h-3 w-16" />
-              <Pulse className="h-2.5 w-20" />
             </TableCell>
             <TableCell className="min-w-[130px]">
               <Pulse className="mb-1.5 h-3 w-14" />
@@ -224,14 +215,15 @@ function SchoolsTableSkeleton() {
   );
 }
 
-function ActionIcon({ label, onClick, className, children }) {
+function ActionIcon({ label, onClick, className, disabled, children }) {
   return (
     <button
       type="button"
       title={label}
       aria-label={label}
       onClick={onClick}
-      className={`relative flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-all duration-150 hover:scale-105 active:scale-95 cursor-pointer ${className}`}
+      disabled={disabled}
+      className={`disabled:pointer-events-none disabled:opacity-50 relative flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-all duration-150 hover:scale-105 active:scale-95 cursor-pointer ${className}`}
     >
       {children}
     </button>
@@ -295,6 +287,7 @@ export default function SchoolsIndex() {
   const [copiedField, setCopiedField] = useState('');
   const [resettingId, setResettingId] = useState('');
   const [featureBusyId, setFeatureBusyId] = useState('');
+  const [loginAsId, setLoginAsId] = useState('');
   const [changePasswordSchool, setChangePasswordSchool] = useState(null);
   const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -590,6 +583,33 @@ export default function SchoolsIndex() {
       );
     } finally {
       setPasswordSubmitting(false);
+    }
+  };
+
+  // Opens the school's own admin panel in a new tab, signed in as that school.
+  // The tab is opened first (inside the click) so the browser does not block it
+  // as a pop-up; it is pointed at the one-time link once the server answers.
+  const handleLoginAs = async (school) => {
+    if (loginAsId) return;
+    const tab = window.open('about:blank', '_blank');
+    if (!tab) {
+      addNotification('error', 'Your browser blocked the new tab. Allow pop-ups for this site and try again.');
+      return;
+    }
+    setLoginAsId(school.id);
+    try {
+      const result = await platformSchoolApi.loginAs(school.id);
+      const link = result?.data?.url;
+      if (!link) throw new Error('The server did not return a login link.');
+      // A separately hosted school panel can be set with VITE_SCHOOL_APP_URL.
+      const base = (import.meta.env.VITE_SCHOOL_APP_URL || '').replace(/\/+$/, '');
+      tab.location.replace(base ? `${base}/school-admin/login-as#code=${result.data.code}` : link);
+      addNotification('info', `Opened ${school.name} in a new tab. You are signed in as this school there.`);
+    } catch (err) {
+      tab.close();
+      addNotification('error', err.response?.data?.message || err.message || 'Unable to open this school.');
+    } finally {
+      setLoginAsId('');
     }
   };
 
@@ -1089,14 +1109,12 @@ export default function SchoolsIndex() {
       {loading ? (
         <SchoolsTableSkeleton />
       ) : (
-        <Table className="min-w-[1210px]">
+        <Table className="min-w-[1000px]">
           <TableHeader>
             <TableRow>
               <TableHead className="w-12 text-center">#</TableHead>
               <TableHead className="min-w-[220px]">School</TableHead>
-              <TableHead className="min-w-[110px]">Code</TableHead>
               <TableHead className="min-w-[120px]">Board & Type</TableHead>
-              <TableHead className="min-w-[120px]">Location</TableHead>
               <TableHead className="min-w-[130px]">Academic</TableHead>
               <TableHead className="min-w-[100px]">Plan</TableHead>
               <TableHead className="min-w-[90px]">Status</TableHead>
@@ -1107,7 +1125,7 @@ export default function SchoolsIndex() {
           <TableBody>
             {schools.length === 0 ? (
               <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={10} className="py-16 text-center">
+                <TableCell colSpan={8} className="py-16 text-center">
                   <Building2 className="mx-auto mb-3 h-8 w-8 text-slate-300 dark:text-slate-600" />
                   <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">No schools found</p>
                   <p className="mt-1 text-xs text-slate-400">Click &quot;Add School&quot; to create the first tenant.</p>
@@ -1140,22 +1158,9 @@ export default function SchoolsIndex() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="whitespace-nowrap min-w-[110px]">
-                      <span className="inline-flex rounded-md bg-indigo-50 px-2 py-0.5 font-mono text-[11px] font-bold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
-                        {school.code}
-                      </span>
-                      <div className="mt-0.5 font-mono text-[10px] text-slate-400">{school.schoolId}</div>
-                    </TableCell>
                     <TableCell className="whitespace-nowrap min-w-[120px]">
                       <div className="font-semibold text-slate-900 dark:text-slate-100">{school.board || '—'}</div>
                       <div className="text-[11px] text-slate-400">{school.type || '—'}</div>
-                    </TableCell>
-                    <TableCell className="whitespace-nowrap min-w-[120px]">
-                      <div className="flex items-center gap-1 text-slate-700 dark:text-slate-300">
-                        <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                        <span className="font-medium">{school.address?.city || '—'}</span>
-                      </div>
-                      <div className="text-[11px] text-slate-400 pl-[18px]">{school.address?.state || ''}</div>
                     </TableCell>
                     <TableCell className="whitespace-nowrap min-w-[130px]">
                       <div className="font-semibold text-slate-900 dark:text-slate-100">{school.academic?.session || '—'}</div>
@@ -1190,7 +1195,7 @@ export default function SchoolsIndex() {
                         />
                       </div>
                     </TableCell>
-                    <TableCell className="text-right whitespace-nowrap min-w-[190px] pr-4">
+                    <TableCell className="text-right whitespace-nowrap min-w-[224px] pr-4">
                       <div className="inline-flex items-center gap-0.5 rounded-xl border border-slate-200/90 bg-white/90 p-1 shadow-2xs dark:border-slate-800 dark:bg-slate-900/90 backdrop-blur-xs">
                         <ActionIcon
                           label="View details"
@@ -1198,6 +1203,14 @@ export default function SchoolsIndex() {
                           className="hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-500/15 dark:hover:text-indigo-400"
                         >
                           <Eye size={15} />
+                        </ActionIcon>
+                        <ActionIcon
+                          label={`Login as ${school.name}`}
+                          onClick={() => handleLoginAs(school)}
+                          disabled={Boolean(loginAsId)}
+                          className="hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-500/15 dark:hover:text-emerald-400"
+                        >
+                          {loginAsId === school.id ? <Loader2 size={15} className="animate-spin" /> : <LogIn size={15} />}
                         </ActionIcon>
                         <ActionIcon
                           label="Change password"
@@ -1285,44 +1298,116 @@ export default function SchoolsIndex() {
       )}
 
       <Dialog open={Boolean(viewingSchool)} onOpenChange={(open) => { if (!open) setViewingSchool(null); }}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-full p-6 sm:p-7">
           <DialogHeader>
-            <DialogTitle>School details</DialogTitle>
+            <DialogTitle className="text-xl font-bold">School details</DialogTitle>
             <DialogDescription>Read-only profile for this school tenant.</DialogDescription>
           </DialogHeader>
           {viewingSchool && (
-            <div className="space-y-5">
-              <div className="flex items-center gap-3">
-                {viewingSchool.logo ? (
-                  <img src={viewingSchool.logo} alt="" className="h-14 w-14 rounded-xl border border-slate-200 object-cover dark:border-slate-700" />
-                ) : (
-                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-indigo-50 text-indigo-500">
-                    <Building2 size={22} />
+            <div className="mt-2 space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/50">
+                <div className="flex items-center gap-3.5">
+                  {viewingSchool.logo ? (
+                    <img
+                      src={viewingSchool.logo}
+                      alt=""
+                      className="h-14 w-14 rounded-2xl border border-slate-200 object-cover shadow-2xs dark:border-slate-700"
+                    />
+                  ) : (
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-400">
+                      <Building2 size={24} />
+                    </div>
+                  )}
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{viewingSchool.name}</h3>
+                      <Badge variant={viewingSchool.status}>{viewingSchool.status}</Badge>
+                      {assignedPlanName(viewingSchool.subscriptionPlan) && (
+                        <Badge variant={assignedPlanName(viewingSchool.subscriptionPlan)}>
+                          {assignedPlanName(viewingSchool.subscriptionPlan)}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-xs text-slate-500">
+                      <span className="font-semibold text-indigo-600 dark:text-indigo-400">{viewingSchool.code}</span>
+                      <span>·</span>
+                      <span>{viewingSchool.schoolId}</span>
+                    </div>
                   </div>
-                )}
-                <div>
-                  <p className="text-lg font-semibold">{viewingSchool.name}</p>
-                  <p className="font-mono text-xs text-slate-500">{viewingSchool.code} · {viewingSchool.schoolId}</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3 text-sm">
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-4 text-sm">
+                <Detail
+                  label="School Code"
+                  value={
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-flex rounded-md bg-indigo-50 px-2 py-0.5 font-mono text-xs font-bold text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300">
+                        {viewingSchool.code || '—'}
+                      </span>
+                      {viewingSchool.schoolId && (
+                        <span className="font-mono text-[11px] text-slate-400">({viewingSchool.schoolId})</span>
+                      )}
+                    </div>
+                  }
+                />
+                <Detail
+                  label="Location"
+                  value={
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5 shrink-0 text-indigo-500 dark:text-indigo-400" />
+                      <span className="font-medium">
+                        {[viewingSchool.address?.city, viewingSchool.address?.state].filter(Boolean).join(', ') || '—'}
+                      </span>
+                    </div>
+                  }
+                />
                 <Detail label="Type" value={viewingSchool.type} />
                 <Detail label="Board" value={viewingSchool.board} />
-                <Detail label="Status" value={viewingSchool.status} />
+                <Detail label="Status" value={<Badge variant={viewingSchool.status}>{viewingSchool.status}</Badge>} />
                 <Detail label="Plan" value={assignedPlanName(viewingSchool.subscriptionPlan) || 'Not assigned'} />
                 <Detail label="Email" value={viewingSchool.contact?.email} />
                 <Detail label="Phone" value={viewingSchool.contact?.phone} />
                 <Detail label="Principal" value={viewingSchool.contact?.principalName || '—'} />
-                <Detail label="Admin email" value={viewingSchool.admin?.email || viewingSchool.contact?.email} />
-                <Detail label="Portal login" value={viewingSchool.admin?.hasLogin ? 'Ready' : 'Not issued'} />
-                <Detail label="Website" value={viewingSchool.website || '—'} />
+                <Detail label="Admin Email" value={viewingSchool.admin?.email || viewingSchool.contact?.email} />
+                <Detail label="Portal Login" value={viewingSchool.admin?.hasLogin ? 'Ready' : 'Not issued'} />
                 <Detail
-                  label="Address"
-                  value={`${viewingSchool.address?.line1 || ''}${viewingSchool.address?.city ? `, ${viewingSchool.address.city}` : ''}${viewingSchool.address?.state ? `, ${viewingSchool.address.state}` : ''}`}
+                  label="Website"
+                  value={
+                    viewingSchool.website ? (
+                      <a
+                        href={viewingSchool.website.startsWith('http') ? viewingSchool.website : `https://${viewingSchool.website}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="truncate text-indigo-600 hover:underline dark:text-indigo-400 block max-w-[200px]"
+                      >
+                        {viewingSchool.website}
+                      </a>
+                    ) : (
+                      '—'
+                    )
+                  }
                 />
                 <Detail
                   label="Academic"
+                  className="col-span-2"
                   value={`${viewingSchool.academic?.session || '—'} · ${viewingSchool.academic?.classFrom || ''}–${viewingSchool.academic?.classTo || ''} · ${viewingSchool.academic?.medium || ''}`}
+                />
+                <Detail
+                  label="Address"
+                  className="col-span-2"
+                  value={
+                    [
+                      viewingSchool.address?.line1,
+                      viewingSchool.address?.line2,
+                      viewingSchool.address?.city,
+                      viewingSchool.address?.state,
+                      viewingSchool.address?.pincode,
+                      viewingSchool.address?.country,
+                    ]
+                      .filter(Boolean)
+                      .join(', ') || '—'
+                  }
                 />
               </div>
             </div>
@@ -1587,11 +1672,11 @@ export default function SchoolsIndex() {
   );
 }
 
-function Detail({ label, value }) {
+function Detail({ label, value, className = '' }) {
   return (
-    <div>
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{label}</p>
-      <p className="mt-0.5 text-slate-800 dark:text-slate-200">{value || '—'}</p>
+    <div className={className}>
+      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">{label}</p>
+      <div className="mt-1 text-sm font-medium text-slate-800 dark:text-slate-200">{value || '—'}</div>
     </div>
   );
 }

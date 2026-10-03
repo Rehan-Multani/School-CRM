@@ -57,6 +57,32 @@ function normalizeUrl(value, label) {
   return url;
 }
 
+const MAX_EMAIL = 254;
+const MAX_PHONE = 60;
+const MAX_ADDRESS = 500;
+
+function normalizeEmail(value, label) {
+  if (value === undefined || value === null) return undefined;
+  const email = String(value).trim();
+  if (!email) return '';
+  if (email.length > MAX_EMAIL) {
+    throw new AppError(`${label} must be ${MAX_EMAIL} characters or fewer`, 400);
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new AppError(`${label} must be a valid email address`, 400);
+  }
+  return email;
+}
+
+function normalizeText(value, label, maxLength = 500) {
+  if (value === undefined || value === null) return undefined;
+  const text = String(value).trim();
+  if (text.length > maxLength) {
+    throw new AppError(`${label} must be ${maxLength} characters or fewer`, 400);
+  }
+  return text;
+}
+
 export class PlatformSettingService {
   async getSettings() {
     const existing = await platformSettingRepository.findPlatformSetting();
@@ -102,6 +128,30 @@ export class PlatformSettingService {
     if (min && compareVersions(min, latest) > 0) {
       throw new AppError('Minimum version cannot be higher than the latest version', 400);
     }
+
+    // Public contact details (sales, support, privacy, phone, office address)
+    const sourceContact = patch?.contact && typeof patch.contact === 'object' ? patch.contact : {};
+
+    const rawSalesEmail = patch?.contactSalesEmail ?? patch?.salesEmail ?? sourceContact?.salesEmail ?? sourceContact?.contactSalesEmail;
+    const rawSupportEmail = patch?.contactSupportEmail ?? patch?.supportEmail ?? sourceContact?.supportEmail ?? sourceContact?.contactSupportEmail;
+    const rawPrivacyEmail = patch?.contactPrivacyEmail ?? patch?.privacyEmail ?? sourceContact?.privacyEmail ?? sourceContact?.contactPrivacyEmail;
+    const rawPhone = patch?.contactPhone ?? patch?.phone ?? sourceContact?.phone ?? sourceContact?.contactPhone;
+    const rawAddress = patch?.contactAddress ?? patch?.address ?? sourceContact?.address ?? sourceContact?.contactAddress;
+
+    const salesEmail = normalizeEmail(rawSalesEmail, 'Sales & onboarding email');
+    if (salesEmail !== undefined) update.contactSalesEmail = salesEmail;
+
+    const supportEmail = normalizeEmail(rawSupportEmail, 'Support email');
+    if (supportEmail !== undefined) update.contactSupportEmail = supportEmail;
+
+    const privacyEmail = normalizeEmail(rawPrivacyEmail, 'Privacy email');
+    if (privacyEmail !== undefined) update.contactPrivacyEmail = privacyEmail;
+
+    const phone = normalizeText(rawPhone, 'Contact phone', MAX_PHONE);
+    if (phone !== undefined) update.contactPhone = phone;
+
+    const address = normalizeText(rawAddress, 'Office address', MAX_ADDRESS);
+    if (address !== undefined) update.contactAddress = address;
 
     const document = await platformSettingRepository.upsertPlatformSetting(update);
     return document.toPublicJSON();

@@ -56,6 +56,13 @@ export const Topbar = ({ onOpenCommandPalette }) => {
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem
               className="gap-2.5 cursor-pointer"
+              onSelect={() => navigate('/super-admin/profile')}
+            >
+              <User size={15} className="text-slate-400" />
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="gap-2.5 cursor-pointer"
               onSelect={() => navigate('/super-admin/settings')}
             >
               <Settings size={15} className="text-slate-400" />

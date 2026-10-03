@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { PRIVACY_POLICY, TERMS_OF_SERVICE } from './legal';
+import { PRODUCT } from './content';
 
 // Public, unauthenticated reads of platform-managed content:
 //  - GET /platform/privacy-policy  -> legal copy the Super Admin edits
@@ -109,3 +110,36 @@ export function useAppConfig() {
 
   return state;
 }
+
+export function usePlatformContact() {
+  const [state, setState] = useState({
+    salesEmail: PRODUCT.email,
+    supportEmail: PRODUCT.supportEmail,
+    privacyEmail: PRODUCT.privacyEmail,
+    phone: PRODUCT.phone,
+    address: PRODUCT.address,
+    loading: true,
+  });
+
+  useEffect(() => {
+    let alive = true;
+    fetchAppConfig().then((data) => {
+      if (!alive || !data) return;
+      const contact = data.contact || {};
+      setState({
+        salesEmail: contact.salesEmail || data.salesEmail || PRODUCT.email,
+        supportEmail: contact.supportEmail || data.supportEmail || PRODUCT.supportEmail,
+        privacyEmail: contact.privacyEmail || data.privacyEmail || PRODUCT.privacyEmail,
+        phone: contact.phone || data.phone || PRODUCT.phone,
+        address: contact.address || data.address || PRODUCT.address,
+        loading: false,
+      });
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  return state;
+}
+

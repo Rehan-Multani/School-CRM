@@ -17,6 +17,8 @@ import teacherApkRoutes from './teacher.routes.js';
 import studentApkRoutes from './student.routes.js';
 import parentApkRoutes from './parent.routes.js';
 import driverRoutes from './driver.routes.js';
+import enquiryRoutes from './enquiry.routes.js';
+import faqRoutes from './faq.routes.js';
 import {
   notifyAppUpdate,
   getLogoutNotice,
@@ -71,6 +73,8 @@ import {
   changeSchoolAdminPassword,
   schoolAdminForgotPassword,
   schoolAdminLogin,
+  schoolAdminLoginAs,
+  superAdminLoginAsSchool,
   schoolAdminResetPassword,
   schoolBranding,
   getSchoolFeatures,
@@ -601,11 +605,14 @@ router.patch('/schools/:id/features', requireSuperAdmin, validateObjectId('id'),
 router.patch('/schools/:id/status', requireSuperAdmin, updateSchoolStatus);
 router.post('/schools/:id/reset-login', requireSuperAdmin, resetSchoolLogin);
 router.post('/schools/:id/change-password', requireSuperAdmin, validateObjectId('id'), changeSchoolAdminPassword);
+router.post('/schools/:id/login-as', requireSuperAdmin, validateObjectId('id'), superAdminLoginAsSchool);
 router.delete('/schools/:id', requireSuperAdmin, deleteSchool);
 router.get('/school-auth/branding', schoolBranding);
 router.get('/school-theme/:schoolId', schoolThemePublic);
 router.get('/school-theme/:schoolId/logo', schoolLogoPublic);
 router.post('/school-auth/login', loginRateLimiter, schoolAdminLogin);
+// Redeems the one-time code from "Login as school" (Super Admin → Schools).
+router.post('/school-auth/login-as', loginRateLimiter, schoolAdminLoginAs);
 router.post('/school-auth/librarian-login', loginRateLimiter, librarianLogin);
 router.post('/school-portal/auth/librarian-login', loginRateLimiter, librarianLogin);
 router.post('/school-auth/hr-login', loginRateLimiter, hrLogin);
@@ -1296,6 +1303,12 @@ router.use(driverRoutes);
 
 // ============ Transport Manager app (see transportManager.routes.js) ============
 router.use(transportManagerRoutes);
+
+// ============ Platform Enquiries (Landing Page & Superadmin) ============
+router.use(enquiryRoutes);
+
+// ============ Platform FAQs (Landing Page & Superadmin) ============
+router.use(faqRoutes);
 
 router.get('/', getServiceInfo);
 router.use(notFound);

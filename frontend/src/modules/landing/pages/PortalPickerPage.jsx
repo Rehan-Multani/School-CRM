@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Moon, Smartphone, Sun } from 'lucide-react';
+import { ArrowLeft, Moon, Sun } from 'lucide-react';
 import BrandLogo from '../../../shared/ui/BrandLogo';
 import { LandingThemeProvider, useLandingTheme } from '../context/LandingThemeContext';
 import PortalCard from '../components/PortalCard';
-import { APP_ROLES, PRODUCT, WEB_PORTALS } from '../data/content';
+import { PRODUCT, WEB_PORTALS } from '../data/content';
 
 const ThemeButton = () => {
   const { theme, toggleTheme } = useLandingTheme();
@@ -66,35 +66,6 @@ const PortalPicker = () => {
           {WEB_PORTALS.map((portal) => (
             <PortalCard key={portal.key} portal={portal} />
           ))}
-        </div>
-
-        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900/50">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-600 text-white">
-                <Smartphone className="h-5 w-5" />
-              </span>
-              <div>
-                <h2 className="text-sm font-bold text-slate-900 dark:text-white">On mobile?</h2>
-                <p className="mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                  Teachers, students, parents and transport staff use the {PRODUCT.name} Android
-                  app. Open a web preview below.
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {APP_ROLES.map((role) => (
-                <Link
-                  key={role.key}
-                  to={role.href}
-                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:border-indigo-300 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-indigo-500/40 dark:hover:text-indigo-300"
-                >
-                  {role.name}
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              ))}
-            </div>
-          </div>
         </div>
       </main>
 

@@ -29,7 +29,7 @@ export const DialogContent = React.forwardRef(({ className, children, ...props }
 });
 
 export const DialogHeader = ({ className, ...props }) => (
-  <div className={cn('flex flex-col space-y-1.5 text-center sm:text-left', className)} {...props} />
+  <div className={cn('flex flex-col space-y-1.5 text-center sm:text-left pr-8', className)} {...props} />
 );
 
 export const DialogTitle = React.forwardRef(({ className, ...props }, ref) => (

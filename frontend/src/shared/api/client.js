@@ -193,6 +193,8 @@ export const platformAuthApi = {
 export const schoolAdminAuthApi = {
   login: (email, password) =>
     apiClient.post('/platform/school-auth/login', { email, password }).then((res) => res.data),
+  // One-time code from the Super Admin panel's "Login as school".
+  loginAs: (code) => apiClient.post('/platform/school-auth/login-as', { code }).then((res) => res.data),
   forgotPassword: (email) =>
     apiClient.post('/platform/school-auth/forgot-password', { email }).then((res) => res.data),
   resetPassword: (token, password) =>
@@ -541,6 +543,14 @@ export const platformSupportApi = {
     apiClient.post(`/platform/support/tickets/${id}/replies`, payload).then((res) => res.data),
   updateStatus: (id, status) =>
     apiClient.patch(`/platform/support/tickets/${id}/status`, { status }).then((res) => res.data),
+};
+
+export const publicEnquiryApi = {
+  submit: (payload) => apiClient.post('/platform/enquiries', payload).then((res) => res.data),
+};
+
+export const publicFaqApi = {
+  list: () => apiClient.get('/platform/faqs').then((res) => res.data),
 };
 
 export const schoolSupportApi = {

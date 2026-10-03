@@ -276,7 +276,7 @@ export default function NotificationsIndex() {
                   ) : (
                     <Send size={16} />
                   )}
-                  {sending ? "Sending…" : "Send via Firebase"}
+                  {sending ? "Sending…" : "Send"}
                 </Button>
               </form>
             </Card>

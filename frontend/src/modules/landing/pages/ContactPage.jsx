@@ -1,21 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, LifeBuoy, Mail, MapPin, Phone, Send, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, LifeBuoy, Loader2, Mail, MapPin, Phone, Send, ShieldCheck } from 'lucide-react';
 import Reveal from '../components/Reveal';
 import { PRODUCT } from '../data/content';
-
-const CHANNELS = [
-  { icon: Mail, label: 'Sales & onboarding', value: PRODUCT.email, href: `mailto:${PRODUCT.email}` },
-  { icon: LifeBuoy, label: 'Support', value: PRODUCT.supportEmail, href: `mailto:${PRODUCT.supportEmail}` },
-  { icon: ShieldCheck, label: 'Privacy', value: PRODUCT.privacyEmail, href: `mailto:${PRODUCT.privacyEmail}` },
-  { icon: Phone, label: 'Phone', value: PRODUCT.phone, href: `tel:${PRODUCT.phone.replace(/\s+/g, '')}` },
-];
+import { usePlatformContact } from '../data/siteContent';
+import { publicEnquiryApi } from '../../../shared/api/client';
+import { sanitizeMobileInput, isValid10DigitMobile } from '../../../shared/utils/mobileValidation';
 
 const inputClass =
   'w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100';
 
 export const ContactPage = () => {
-  const [form, setForm] = useState({ name: '', email: '', school: '', message: '' });
+  const contact = usePlatformContact();
+  const [form, setForm] = useState({ name: '', email: '', school: '', phone: '', message: '', website: '' });
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const channels = [
+    { icon: Mail, label: 'Sales & onboarding', value: contact.salesEmail, href: `mailto:${contact.salesEmail}` },
+    { icon: LifeBuoy, label: 'Support', value: contact.supportEmail, href: `mailto:${contact.supportEmail}` },
+    { icon: ShieldCheck, label: 'Privacy', value: contact.privacyEmail, href: `mailto:${contact.privacyEmail}` },
+    { icon: Phone, label: 'Phone', value: contact.phone, href: `tel:${(contact.phone || '').replace(/\s+/g, '')}` },
+  ];
 
   useEffect(() => {
     document.title = `Contact – ${PRODUCT.name}`;
@@ -23,14 +29,32 @@ export const ContactPage = () => {
 
   const update = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const subject = encodeURIComponent(`School CRM enquiry – ${form.school || form.name || 'Website'}`);
-    const body = encodeURIComponent(
-      `Name: ${form.name}\nEmail: ${form.email}\nSchool: ${form.school}\n\n${form.message}`,
-    );
-    window.location.href = `mailto:${PRODUCT.email}?subject=${subject}&body=${body}`;
-    setSent(true);
+    setError('');
+
+    if (form.phone && !isValid10DigitMobile(form.phone, false)) {
+      setError('Contact phone must be exactly 10 digits');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await publicEnquiryApi.submit({
+        name: form.name,
+        email: form.email,
+        school: form.school,
+        phone: form.phone ? sanitizeMobileInput(form.phone) : '',
+        message: form.message,
+        website: form.website,
+      });
+      setSent(true);
+      setForm({ name: '', email: '', school: '', phone: '', message: '', website: '' });
+    } catch (err) {
+      setError(err?.response?.data?.message || err?.message || 'Failed to submit enquiry. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -50,7 +74,7 @@ export const ContactPage = () => {
 
       <div className="mt-12 grid gap-8 lg:grid-cols-[1fr_1.1fr]">
         <div className="space-y-4">
-          {CHANNELS.map((channel, i) => {
+          {channels.map((channel, i) => {
             const Icon = channel.icon;
             return (
               <Reveal key={channel.label} delay={i * 0.04}>
@@ -81,7 +105,7 @@ export const ContactPage = () => {
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Office</p>
                 <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-                  {PRODUCT.address}
+                  {contact.address}
                 </p>
               </div>
             </div>
@@ -92,38 +116,47 @@ export const ContactPage = () => {
           <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900 sm:p-8">
             {sent ? (
               <div className="flex flex-col items-center py-10 text-center">
-                <CheckCircle2 className="h-12 w-12 text-emerald-500" />
-                <h2 className="mt-4 text-lg font-black text-slate-900 dark:text-white">
-                  Almost there
+                <div className="grid h-16 w-16 place-items-center rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-500">
+                  <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+                </div>
+                <h2 className="mt-4 text-xl font-black text-slate-900 dark:text-white">
+                  Enquiry Submitted Successfully!
                 </h2>
                 <p className="mt-2 max-w-sm text-sm text-slate-600 dark:text-slate-400">
-                  Your email app should have opened with the message ready to send. If it didn't,
-                  write to{' '}
-                  <a className="font-semibold text-indigo-600 dark:text-indigo-400" href={`mailto:${PRODUCT.email}`}>
-                    {PRODUCT.email}
-                  </a>
-                  .
+                  Thank you for reaching out. We have safely received your details and our team will contact you shortly.
                 </p>
                 <button
                   type="button"
                   onClick={() => setSent(false)}
-                  className="mt-6 rounded-xl border border-slate-300 px-4 py-2 text-sm font-bold text-slate-700 dark:border-slate-700 dark:text-slate-200"
+                  className="mt-6 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-5 py-2.5 text-sm font-bold text-slate-700 dark:text-slate-200 transition hover:bg-slate-50 dark:hover:bg-slate-700"
                 >
-                  Edit message
+                  Send another message
                 </button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                  <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-semibold text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-400">
+                    {error}
+                  </div>
+                )}
+                {/* Spam trap: hidden from people, filled in by bots. The server drops any enquiry that has it. */}
+                <div className="absolute -left-[9999px] h-0 w-0 overflow-hidden" aria-hidden="true">
+                  <label>
+                    Website
+                    <input type="text" name="website" tabIndex={-1} autoComplete="off" value={form.website} onChange={update('website')} />
+                  </label>
+                </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
-                      Your name
+                      Your name <span className="text-rose-500">*</span>
                     </label>
                     <input required value={form.name} onChange={update('name')} className={inputClass} placeholder="Full name" />
                   </div>
                   <div>
                     <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
-                      Work email
+                      Work email <span className="text-rose-500">*</span>
                     </label>
                     <input
                       required
@@ -135,15 +168,42 @@ export const ContactPage = () => {
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
-                    School name
-                  </label>
-                  <input value={form.school} onChange={update('school')} className={inputClass} placeholder="e.g. Greenfield Public School" />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
+                      School name
+                    </label>
+                    <input value={form.school} onChange={update('school')} className={inputClass} placeholder="e.g. Greenfield Public School" />
+                  </div>
+                  <div>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                        Contact phone (optional)
+                      </label>
+                      {form.phone ? (
+                        <span
+                          className={`text-[10px] font-bold ${
+                            form.phone.length === 10 ? 'text-emerald-500' : 'text-amber-500'
+                          }`}
+                        >
+                          {form.phone.length}/10 digits
+                        </span>
+                      ) : null}
+                    </div>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={10}
+                      value={form.phone}
+                      onChange={(e) => setForm((f) => ({ ...f, phone: sanitizeMobileInput(e.target.value) }))}
+                      className={inputClass}
+                      placeholder="9876543210"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="mb-1.5 block text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Message
+                    Message <span className="text-rose-500">*</span>
                   </label>
                   <textarea
                     required
@@ -156,13 +216,23 @@ export const ContactPage = () => {
                 </div>
                 <button
                   type="submit"
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-indigo-500"
+                  disabled={submitting}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-indigo-500 disabled:opacity-60"
                 >
-                  <Send className="h-4 w-4" />
-                  Send message
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Submitting enquiry...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4" />
+                      Send message
+                    </>
+                  )}
                 </button>
                 <p className="text-center text-xs text-slate-400">
-                  This opens your email app with the details filled in – nothing is stored on this page.
+                  Your enquiry will be sent directly to our team. We usually respond within 24 hours.
                 </p>
               </form>
             )}
