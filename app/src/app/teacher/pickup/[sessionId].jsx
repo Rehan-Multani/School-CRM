@@ -10,48 +10,11 @@ import { Button, Card, Input } from '../../../components/ui';
 import { Badge, Chip, ErrorView, FieldLabel } from '../../../components/kit';
 import { font, radius, spacing } from '../../../theme';
 import { SkeletonForm } from '../../../components/Skeleton';
+import OtpBoxes from '../../../components/OtpBoxes';
 
 // Doc §6.10 — OTP (6 boxes) → handover (person + relationship + confirm) →
 // complete. Cancel is available at any step.
 const RELATIONSHIPS = ['Parent', 'Guardian', 'Relative', 'Family Friend', 'Authorized Person', 'Other'];
-
-function OtpBoxes({ value, onChange, disabled }) {
-  const theme = useTheme();
-  const ref = useRef(null);
-  return (
-    <Pressable onPress={() => ref.current?.focus()} style={{ flexDirection: 'row', justifyContent: 'space-between', marginVertical: spacing.lg }}>
-      {Array.from({ length: 6 }).map((_, i) => (
-        <View
-          key={i}
-          style={{
-            width: 46,
-            height: 56,
-            borderRadius: radius.md,
-            borderWidth: 2,
-            borderColor: i === value.length ? theme.primary : theme.border,
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: theme.surface,
-          }}
-        >
-          <Text style={{ fontSize: font.xxl, fontWeight: '800', color: theme.text }}>{value[i] || ''}</Text>
-        </View>
-      ))}
-      <TextInput
-        ref={ref}
-        value={value}
-        onChangeText={(v) => onChange(v.replace(/\D/g, '').slice(0, 6))}
-        keyboardType="number-pad"
-        textContentType="oneTimeCode"
-        autoComplete="sms-otp"
-        maxLength={6}
-        editable={!disabled}
-        autoFocus
-        style={{ position: 'absolute', opacity: 0, width: 1, height: 1 }}
-      />
-    </Pressable>
-  );
-}
 
 export default function PickupSession() {
   const { sessionId } = useLocalSearchParams();

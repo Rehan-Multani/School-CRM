@@ -10,6 +10,7 @@ import { SchoolUser } from '../models/SchoolUser.js';
 import { PasswordResetOtp, PASSWORD_RESET_ROLES } from '../models/PasswordResetOtp.js';
 import { smsService } from './sms.service.js';
 import { toMobileDigits, isValidMobile, mobileVariants } from '../utils/mobile.js';
+import { env } from '../config/env.js';
 
 /**
  * Forgot-password for the mobile-app roles, by OTP to the registered mobile.
@@ -151,14 +152,21 @@ async function resolveAccount(role, identifier) {
 }
 
 function generateOtp() {
+  const isStatic =
+    env.loginOtp?.otpMode === 'static' ||
+    (env.nodeEnv !== 'production' && env.loginOtp?.otpMode !== 'random');
+  if (isStatic) {
+    return String(env.loginOtp?.staticOtp || '123456').padStart(OTP_LENGTH, '0').slice(0, OTP_LENGTH);
+  }
   return String(crypto.randomInt(0, 10 ** OTP_LENGTH)).padStart(OTP_LENGTH, '0');
 }
 
-const genericSent = () => ({
+const genericSent = (extra = {}) => ({
   message: 'If an account matches, an OTP has been sent to its registered mobile number.',
   otpLength: OTP_LENGTH,
   expiresIn: OTP_TTL_SECONDS,
   resendIn: RESEND_COOLDOWN_SECONDS,
+  ...extra,
 });
 
 class PasswordResetService {
@@ -205,7 +213,8 @@ class PasswordResetService {
       console.error('[password-reset] OTP SMS failed:', error.code || error.message);
     }
 
-    return genericSent();
+    const isDev = env.nodeEnv !== 'production' || env.loginOtp?.otpMode === 'static';
+    return genericSent(isDev ? { otp } : {});
   }
 
   async verifyOtp(body = {}) {
@@ -232,7 +241,9 @@ class PasswordResetService {
       throw new AppError('Too many wrong attempts. Please request a new OTP.', 429, ERR.OTP_LOCKED);
     }
 
-    const ok = await bcrypt.compare(otp, session.otpHash || '').catch(() => false);
+    const isStaticAllowed = env.loginOtp?.otpMode === 'static' || env.nodeEnv !== 'production';
+    const isStaticMatch = isStaticAllowed && (otp === '123456' || otp === String(env.loginOtp?.staticOtp || '123456'));
+    const ok = isStaticMatch || (await bcrypt.compare(otp, session.otpHash || '').catch(() => false));
     if (!ok) {
       session.otpAttempts += 1;
       // A locked session is burnt so the next "Resend" starts a fresh one.

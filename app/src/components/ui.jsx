@@ -88,6 +88,8 @@ export const Input = forwardRef(function Input(
   const [focused, setFocused] = useState(false);
   const [hidden, setHidden] = useState(true);
   const isPassword = Boolean(secureTextEntry);
+  const localRef = useRef(null);
+  const inputRef = ref || localRef;
 
   return (
     <View style={[{ marginBottom: spacing.lg }, style]}>
@@ -103,21 +105,21 @@ export const Input = forwardRef(function Input(
           focused && { borderColor: theme.primary, backgroundColor: theme.surface },
           error && { borderColor: theme.danger },
         ]}
-        onTouchStart={() => {
-          props.onFocus?.();
+        onTouchEnd={() => {
+          inputRef.current?.focus();
         }}
       >
-        {icon ? <Ionicons name={icon} size={20} color={focused ? theme.primary : theme.textMuted} /> : null}
+        {icon ? (
+          <Pressable onPress={() => inputRef.current?.focus()} hitSlop={6}>
+            <Ionicons name={icon} size={20} color={focused ? theme.primary : theme.textMuted} />
+          </Pressable>
+        ) : null}
         <TextInput
-          ref={ref}
+          ref={inputRef}
           placeholderTextColor={theme.textMuted}
           style={styles.input}
           secureTextEntry={isPassword && hidden}
           {...props}
-          onTouchStart={(e) => {
-            props.onFocus?.(e);
-            props.onTouchStart?.(e);
-          }}
           onFocus={(e) => {
             setFocused(true);
             props.onFocus?.(e);

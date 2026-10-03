@@ -76,7 +76,7 @@ export default function OtpSignIn({ role, initialMobile, onFocusInput, onSwitchR
       const data = await otpLoginApi.requestOtp(role.key, mobile);
       setOtpLength(data.otpLength || 6);
       setResendIn(data.resendIn || 30);
-      setOtp('');
+      setOtp(data.otp || (__DEV__ ? '123456' : ''));
       setNotice(data.message);
       setStage('otp');
     });

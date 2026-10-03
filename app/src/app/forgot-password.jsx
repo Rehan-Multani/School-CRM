@@ -69,7 +69,7 @@ export default function ForgotPassword() {
       const data = await passwordResetApi.requestOtp(roleKey, identifier);
       setOtpLength(data.otpLength || 6);
       setResendIn(data.resendIn || 30);
-      setOtp('');
+      setOtp(data.otp || (__DEV__ ? '123456' : ''));
       setNotice(data.message);
       setStep(1);
     });

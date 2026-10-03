@@ -79,5 +79,9 @@ export const env = {
     resendCooldownSeconds: Number(process.env.SAFE_PICKUP_RESEND_COOLDOWN_SECONDS) || 30,
     maxResends: Number(process.env.SAFE_PICKUP_MAX_RESENDS) || 3,
   },
+  loginOtp: {
+    otpMode: (process.env.LOGIN_OTP_MODE || (NODE_ENV === 'production' ? 'random' : 'static')).toLowerCase(),
+    staticOtp: process.env.LOGIN_STATIC_OTP || '123456',
+  },
   smsProvider: (process.env.SMS_PROVIDER || 'mock').toLowerCase(),
 };
