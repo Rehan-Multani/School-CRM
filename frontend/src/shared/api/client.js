@@ -497,6 +497,8 @@ export const schoolSubscriptionApi = {
   checkoutInfo: () => schoolAdminClient.get('/platform/school-portal/subscription/checkout-info').then((r) => r.data),
   get: () => schoolAdminClient.get('/platform/school-portal/subscription').then((r) => r.data),
   entitlement: () => schoolAdminClient.get('/platform/school-portal/subscription/entitlement').then((r) => r.data),
+  // Asks the backend to check with Razorpay whether the open checkout was paid.
+  sync: () => schoolAdminClient.post('/platform/school-portal/subscription/sync').then((r) => r.data),
   checkout: (planId) => schoolAdminClient.post('/platform/school-portal/subscription/checkout', { planId }).then((r) => r.data),
   changePlan: (planId) => schoolAdminClient.post('/platform/school-portal/subscription/change-plan', { planId }).then((r) => r.data),
   cancel: (reason) => schoolAdminClient.post('/platform/school-portal/subscription/cancel', { reason }).then((r) => r.data),

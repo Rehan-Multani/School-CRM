@@ -8,6 +8,7 @@ import { ROLE_LIST, ROLES } from '../api/roles';
 import { passwordResetApi } from '../api/passwordReset';
 import { Button, Input } from '../components/ui';
 import OtpBoxes from '../components/OtpBoxes';
+import RoleSegment from '../components/RoleSegment';
 import TopInsetBackdrop from '../components/TopInsetBackdrop';
 import { useKeyboardScroll } from '../lib/useKeyboard';
 import { BRAND_HERO_COLORS as HERO_COLORS, brandTheme as t, font, radius, spacing } from '../theme';
@@ -165,23 +166,7 @@ export default function ForgotPassword() {
               <Text style={styles.title}>Find your account</Text>
               <Text style={styles.subtitle}>We will send an OTP to your registered mobile number.</Text>
 
-              <View style={styles.segment}>
-                {ROLE_LIST.map((r) => {
-                  const active = r.key === roleKey;
-                  return (
-                    <Pressable
-                      key={r.key}
-                      onPress={() => switchRole(r.key)}
-                      style={[styles.segItem, active && styles.segItemActive]}
-                      accessibilityRole="tab"
-                      accessibilityState={{ selected: active }}
-                    >
-                      <Ionicons name={r.icon} size={17} color={active ? t.primary : t.textMuted} />
-                      <Text style={[styles.segText, active && styles.segTextActive]}>{r.label}</Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
+              <RoleSegment roles={ROLE_LIST} value={roleKey} onChange={(key) => switchRole(key)} style={styles.segment} />
 
               <Input
                 label={role.identifierLabel}
@@ -395,24 +380,7 @@ const styles = StyleSheet.create({
   stepLabel: { fontSize: font.xs, color: t.textMuted, fontWeight: '600' },
   stepLabelOn: { color: t.primary },
 
-  segment: {
-    flexDirection: 'row',
-    backgroundColor: t.surfaceAlt,
-    borderRadius: radius.md + 2,
-    padding: 4,
-    marginBottom: spacing.xl,
-  },
-  segItem: { flex: 1, alignItems: 'center', paddingVertical: 8, borderRadius: radius.md, gap: 3 },
-  segItemActive: {
-    backgroundColor: t.surface,
-    shadowColor: '#0A1A3F',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  segText: { fontSize: font.sm, fontWeight: '600', color: t.textMuted },
-  segTextActive: { color: t.primary, fontWeight: '700' },
+  segment: { marginBottom: spacing.xl },
 
   idChip: {
     flexDirection: 'row',

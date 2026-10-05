@@ -49,6 +49,10 @@ export class AcademicRepository {
     });
   }
 
+  findCurrentYear(schoolId) {
+    return AcademicYear.findOne({ schoolId: toObjectId(schoolId), isCurrent: true });
+  }
+
   clearCurrentYear(schoolId, exceptId = null) {
     const query = { schoolId: toObjectId(schoolId), isCurrent: true };
     if (exceptId) query._id = { $ne: exceptId };
@@ -280,6 +284,28 @@ export class AcademicRepository {
 
   findTeacherById(schoolId, id) {
     return Teacher.findOne({ _id: id, schoolId: toObjectId(schoolId) });
+  }
+
+  findYearsByIds(schoolId, ids = []) {
+    if (!ids.length) return Promise.resolve([]);
+    return AcademicYear.find({ _id: { $in: ids }, schoolId: toObjectId(schoolId) });
+  }
+
+  findSectionsByIds(schoolId, ids = []) {
+    if (!ids.length) return Promise.resolve([]);
+    return Section.find({ _id: { $in: ids }, schoolId: toObjectId(schoolId) });
+  }
+
+  findSubjectsByIds(schoolId, ids = []) {
+    if (!ids.length) return Promise.resolve([]);
+    return Subject.find({ _id: { $in: ids }, schoolId: toObjectId(schoolId) });
+  }
+
+  // Another teacher of the same school already using this email (login is by email).
+  findTeacherByEmail(schoolId, email, exceptId = null) {
+    const query = { schoolId: toObjectId(schoolId), email };
+    if (exceptId) query._id = { $ne: exceptId };
+    return Teacher.findOne(query).select('_id').lean();
   }
 
   findTeachersByIds(schoolId, ids = []) {

@@ -11,33 +11,69 @@ function toObjectId(id) {
 }
 
 export class StudentRepository {
-  async listStudents(schoolId, { search, status, academicYearId, classId, sectionId } = {}) {
+  // The Mongo filter for a students list, or null when the class/section/year
+  // filter matches nobody. Each word of the search must match one of the fields,
+  // so a full name ("Aarav Mehta") finds the student.
+  async buildStudentQuery(schoolId, { search, status, academicYearId, classId, sectionId } = {}) {
     const query = { schoolId: toObjectId(schoolId) };
     if (status) query.status = status;
-    if (search) {
-      const safe = escapeRegex(search);
-      query.$or = [
-        { admissionNumber: { $regex: safe, $options: 'i' } },
-        { firstName: { $regex: safe, $options: 'i' } },
-        { lastName: { $regex: safe, $options: 'i' } },
-        { email: { $regex: safe, $options: 'i' } },
-        { parentName: { $regex: safe, $options: 'i' } },
-      ];
+    const words = String(search || '').trim().split(/\s+/).filter(Boolean).slice(0, 5);
+    if (words.length) {
+      query.$and = words.map((word) => {
+        const safe = escapeRegex(word);
+        return {
+          $or: [
+            { admissionNumber: { $regex: safe, $options: 'i' } },
+            { firstName: { $regex: safe, $options: 'i' } },
+            { lastName: { $regex: safe, $options: 'i' } },
+            { email: { $regex: safe, $options: 'i' } },
+            { parentName: { $regex: safe, $options: 'i' } },
+          ],
+        };
+      });
     }
 
-    let studentIds = null;
     if (academicYearId || classId || sectionId) {
       const enrollmentQuery = { schoolId: toObjectId(schoolId) };
       if (academicYearId) enrollmentQuery.academicYearId = academicYearId;
       if (classId) enrollmentQuery.classId = classId;
       if (sectionId) enrollmentQuery.sectionId = sectionId;
-      const enrollments = await StudentEnrollment.find(enrollmentQuery).select('studentId').lean();
-      studentIds = [...new Set(enrollments.map((item) => item.studentId.toString()))];
-      if (!studentIds.length) return [];
+      const studentIds = await StudentEnrollment.distinct('studentId', enrollmentQuery);
+      if (!studentIds.length) return null;
       query._id = { $in: studentIds };
     }
+    return query;
+  }
 
-    return Student.find(query).sort({ firstName: 1, lastName: 1, createdAt: -1 });
+  // `paging` ({ skip, limit }) is optional: without it the whole list is returned.
+  async listStudents(schoolId, filters = {}, paging = null) {
+    const query = await this.buildStudentQuery(schoolId, filters);
+    if (!query) return [];
+    const cursor = Student.find(query).sort({ firstName: 1, lastName: 1, createdAt: -1 });
+    return paging ? cursor.skip(paging.skip).limit(paging.limit) : cursor;
+  }
+
+  async countStudents(schoolId, filters = {}) {
+    const query = await this.buildStudentQuery(schoolId, filters);
+    return query ? Student.countDocuments(query) : 0;
+  }
+
+  // Students (within the same filters) whose most recent enrollment is WITHDRAWN.
+  async countWithdrawnStudents(schoolId, filters = {}) {
+    const query = await this.buildStudentQuery(schoolId, filters);
+    if (!query) return 0;
+    const enrollmentMatch = { schoolId: toObjectId(schoolId) };
+    if (filters.academicYearId) enrollmentMatch.academicYearId = toObjectId(filters.academicYearId);
+    if (filters.classId) enrollmentMatch.classId = toObjectId(filters.classId);
+    if (filters.sectionId) enrollmentMatch.sectionId = toObjectId(filters.sectionId);
+    const withdrawn = await StudentEnrollment.aggregate([
+      { $match: enrollmentMatch },
+      { $sort: { createdAt: -1 } },
+      { $group: { _id: '$studentId', status: { $first: '$status' } } },
+      { $match: { status: 'WITHDRAWN' } },
+    ]);
+    if (!withdrawn.length) return 0;
+    return Student.countDocuments({ $and: [query, { _id: { $in: withdrawn.map((row) => row._id) } }] });
   }
 
   findStudentById(schoolId, id) {

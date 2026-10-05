@@ -135,7 +135,7 @@ export default function PlansIndex() {
       planType: form.planType,
       features: form.features,
     };
-    // Recurring Razorpay billing is always on for Monthly/Yearly plans — the
+    // Recurring Razorpay billing is always on for every plan type — the
     // backend creates the matching Razorpay plan by default (no trial), so the
     // client sends no recurring flags.
 

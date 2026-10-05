@@ -1,10 +1,13 @@
-import { useEffect, useRef } from 'react';
-import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
+import GlassSurface, { LIQUID_GLASS } from './GlassSurface';
 import { useTheme } from '../context/ThemeContext';
 import { useTeacher } from '../context/TeacherContext';
+import { useLiquidSlide } from '../lib/useLiquidSlide';
 import { alpha } from '../theme';
 
 const TAB_DEFAULTS = {
@@ -19,6 +22,10 @@ const TAB_DEFAULTS = {
   profile: { title: 'Profile', icon: 'person' },
 };
 
+const SLIDE_SPRING = { damping: 20, stiffness: 240, mass: 0.8 };
+const FOCUS_SPRING = { damping: 14, stiffness: 220, mass: 0.7 };
+const PRESS_SPRING = { damping: 16, stiffness: 320, mass: 0.6 };
+
 function TabItem({
   route,
   isFocused,
@@ -28,35 +35,21 @@ function TabItem({
   badgeCount,
   theme,
 }) {
-  const pressAnim = useRef(new Animated.Value(1)).current;
-  const focusAnim = useRef(new Animated.Value(isFocused ? 1 : 0)).current;
+  const press = useSharedValue(1);
+  const focus = useSharedValue(isFocused ? 1 : 0);
 
   useEffect(() => {
-    Animated.spring(focusAnim, {
-      toValue: isFocused ? 1 : 0,
-      friction: 7,
-      tension: 110,
-      useNativeDriver: true,
-    }).start();
-  }, [isFocused, focusAnim]);
+    focus.set(withSpring(isFocused ? 1 : 0, FOCUS_SPRING));
+  }, [isFocused, focus]);
 
-  const handlePressIn = () => {
-    Animated.spring(pressAnim, {
-      toValue: 0.92,
-      friction: 6,
-      tension: 140,
-      useNativeDriver: true,
-    }).start();
-  };
+  const handlePressIn = () => press.set(withSpring(0.9, PRESS_SPRING));
+  const handlePressOut = () => press.set(withSpring(1, PRESS_SPRING));
 
-  const handlePressOut = () => {
-    Animated.spring(pressAnim, {
-      toValue: 1,
-      friction: 6,
-      tension: 110,
-      useNativeDriver: true,
-    }).start();
-  };
+  const contentStyle = useAnimatedStyle(() => ({ transform: [{ scale: press.get() }] }));
+  // The focused icon lifts and grows a touch as the shared pill lands under it.
+  const iconStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: focus.get() * -1 }, { scale: 1 + focus.get() * 0.1 }],
+  }));
 
   const tabInfo = TAB_DEFAULTS[route.name] || {
     title: options.title || route.name,
@@ -70,21 +63,6 @@ function TabItem({
         ? options.title
         : tabInfo.title;
 
-  const pillScale = focusAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.75, 1],
-  });
-
-  const iconScale = focusAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 1.08],
-  });
-
-  const dotScale = focusAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 1],
-  });
-
   return (
     <Pressable
       onPress={onPress}
@@ -96,21 +74,9 @@ function TabItem({
       accessibilityState={isFocused ? { selected: true } : {}}
       accessibilityLabel={options.tabBarAccessibilityLabel || title}
     >
-      <Animated.View style={[styles.tabContent, { transform: [{ scale: pressAnim }] }]}>
-        {/* Soft Pill behind the Icon */}
+      <Animated.View style={[styles.tabContent, contentStyle]}>
         <View style={styles.iconWrapper}>
-          <Animated.View
-            style={[
-              styles.activePill,
-              {
-                backgroundColor: theme.primarySoft,
-                borderColor: alpha(theme.primary, 0.16),
-                opacity: focusAnim,
-                transform: [{ scale: pillScale }],
-              },
-            ]}
-          />
-          <Animated.View style={{ transform: [{ scale: iconScale }] }}>
+          <Animated.View style={iconStyle}>
             {typeof options.tabBarIcon === 'function' ? (
               options.tabBarIcon({
                 focused: isFocused,
@@ -147,25 +113,52 @@ function TabItem({
           {title}
         </Text>
 
-        {/* Subtle Active Pill Dot Indicator */}
-        <Animated.View
-          style={[
-            styles.activeDot,
-            {
-              backgroundColor: theme.primary,
-              opacity: focusAnim,
-              transform: [{ scaleX: dotScale }, { scaleY: dotScale }],
-            },
-          ]}
-        />
+        {/* Keeps the row height the shared indicator's dot is laid out against. */}
+        <View style={styles.activeDot} />
       </Animated.View>
     </Pressable>
+  );
+}
+
+// One pill + dot shared by every tab: it springs from the old tab to the new one
+// instead of each tab fading its own, and the pill stretches mid-flight like a drop
+// of liquid. It is laid out with the same styles as a TabItem (the blank label only
+// reserves the label's height), so it always lines up.
+function ActiveIndicator({ index, tabWidth, theme }) {
+  const { position, stretch } = useLiquidSlide(index, SLIDE_SPRING);
+
+  const slideStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: position.get() * tabWidth }],
+  }));
+  const pillStyle = useAnimatedStyle(() => ({
+    transform: [{ scaleX: 1 + stretch.get() * 0.35 }, { scaleY: 1 - stretch.get() * 0.12 }],
+  }));
+
+  return (
+    <Animated.View pointerEvents="none" style={[styles.indicator, { width: tabWidth }, slideStyle]}>
+      <View style={styles.tabContent}>
+        <View style={styles.iconWrapper}>
+          <Animated.View
+            style={[
+              styles.activePill,
+              { backgroundColor: alpha(theme.primary, theme.isDark ? 0.26 : 0.14), borderColor: alpha(theme.primary, 0.22) },
+              pillStyle,
+            ]}
+          />
+        </View>
+        <Text numberOfLines={1} style={styles.tabLabel}>
+          {' '}
+        </Text>
+        <View style={[styles.activeDot, { backgroundColor: theme.primary }]} />
+      </View>
+    </Animated.View>
   );
 }
 
 export default function FloatingTabBar({ state, descriptors, navigation }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const [rowWidth, setRowWidth] = useState(0);
 
   let teacherContext = null;
   try {
@@ -187,69 +180,73 @@ export default function FloatingTabBar({ state, descriptors, navigation }) {
   const bottomOffset = Math.max(insets.bottom, 10) + (Platform.OS === 'ios' ? 2 : 6);
 
   return (
-    <View style={[styles.floatingWrapper, { paddingBottom: bottomOffset, backgroundColor: theme.bg }]}>
-      {/* Opaque footer + soft fade: scrolled content ends above the bar instead of
-          showing through behind and below the pill. */}
-      <LinearGradient
-        pointerEvents="none"
-        colors={[alpha(theme.bg, 0), theme.bg]}
-        style={styles.fade}
-      />
-      <View
-        style={[
-          styles.floatingBar,
-          {
-            backgroundColor: theme.surface,
-            borderColor: theme.isDark ? theme.border : 'rgba(0, 0, 0, 0.06)',
-            shadowColor: theme.isDark ? '#000' : theme.shadow,
-            shadowOpacity: theme.isDark ? 0.35 : 0.08,
-          },
-        ]}
+    <View pointerEvents="box-none" style={[styles.floatingWrapper, { paddingBottom: bottomOffset }]}>
+      {/* Scrolled content passes behind the glass bar. Real Liquid Glass keeps it
+          legible by itself; the frosted stand-in has no blur, so a soft scrim dims
+          what is under it. */}
+      {LIQUID_GLASS ? null : (
+        <LinearGradient
+          pointerEvents="none"
+          colors={[alpha(theme.bg, 0), alpha(theme.bg, 0.6), alpha(theme.bg, 0.6)]}
+          locations={[0, 0.4, 1]}
+          style={styles.fade}
+        />
+      )}
+      <GlassSurface
+        radius={28}
+        isDark={theme.isDark}
+        fill={alpha(theme.surface, 0.82)}
+        style={styles.floatingBar}
       >
-        {state.routes.map((route, index) => {
-          const isFocused = state.index === index;
-          const { options } = descriptors[route.key];
+        <View style={styles.tabsRow} onLayout={(e) => setRowWidth(e.nativeEvent.layout.width)}>
+          {rowWidth > 0 ? (
+            <ActiveIndicator index={state.index} tabWidth={rowWidth / state.routes.length} theme={theme} />
+          ) : null}
+          {state.routes.map((route, index) => {
+            const isFocused = state.index === index;
+            const { options } = descriptors[route.key];
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
+            const onPress = () => {
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              });
 
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name, route.params);
-            }
-          };
+              if (!isFocused && !event.defaultPrevented) {
+                navigation.navigate(route.name, route.params);
+              }
+            };
 
-          const onLongPress = () => {
-            navigation.emit({
-              type: 'tabLongPress',
-              target: route.key,
-            });
-          };
+            const onLongPress = () => {
+              navigation.emit({
+                type: 'tabLongPress',
+                target: route.key,
+              });
+            };
 
-          const badgeCount =
-            options.tabBarBadge !== undefined
-              ? options.tabBarBadge
-              : route.name === 'inbox'
-                ? unreadCount
-                : 0;
+            const badgeCount =
+              options.tabBarBadge !== undefined
+                ? options.tabBarBadge
+                : route.name === 'inbox'
+                  ? unreadCount
+                  : 0;
 
-          return (
-            <TabItem
-              key={route.key}
-              route={route}
-              isFocused={isFocused}
-              options={options}
-              onPress={onPress}
-              onLongPress={onLongPress}
-              badgeCount={badgeCount}
-              theme={theme}
-            />
-          );
-        })}
-      </View>
+            return (
+              <TabItem
+                key={route.key}
+                route={route}
+                isFocused={isFocused}
+                options={options}
+                onPress={onPress}
+                onLongPress={onLongPress}
+                badgeCount={badgeCount}
+                theme={theme}
+              />
+            );
+          })}
+        </View>
+      </GlassSurface>
     </View>
   );
 }
@@ -268,19 +265,24 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     top: -18,
-    height: 18,
+    bottom: 0,
   },
   floatingBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
     paddingVertical: 7,
     paddingHorizontal: 4,
-    borderRadius: 28,
-    borderWidth: 1,
-    elevation: 8,
-    shadowOffset: { width: 0, height: 6 },
-    shadowRadius: 16,
+  },
+  tabsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  indicator: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 2,
   },
   tabButton: {
     flex: 1,

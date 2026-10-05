@@ -4,6 +4,7 @@ import { staffAttendanceService } from '../services/staffAttendance.service.js';
 import { payrollService } from '../services/payroll.service.js';
 import { SchoolUser } from '../models/SchoolUser.js';
 import { School } from '../models/School.js';
+import { PlatformNotification } from '../models/PlatformNotification.js';
 import { signAccessToken } from '../../../shared/generateToken.js';
 import { env } from '../config/env.js';
 import { AppError } from '../../../shared/AppError.js';

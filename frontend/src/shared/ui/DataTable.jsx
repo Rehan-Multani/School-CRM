@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Search,
   ChevronDown,
@@ -41,7 +41,13 @@ export const DataTable = ({
   onView,
   onEdit,
   onMore,
+  // Server mode, for lists too large to load whole. The parent fetches one page
+  // at a time and passes { total, page, pageSize, onChange({ page, pageSize,
+  // search }), onExport? }. `data` is then just the current page: searching and
+  // paging are done by the server, sorting applies to the rows on screen.
+  server,
 }) => {
+  const serverMode = Boolean(server);
   const rows = data ?? initialData ?? [];
   const busy = loading ?? isLoading ?? false;
   const exportName = csvFilename || exportFilename || `export_${Date.now()}.csv`;
@@ -51,8 +57,20 @@ export const DataTable = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilters, setSelectedFilters] = useState({});
   const [sortConfig, setSortConfig] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(defaultPageSize);
+  const [localPage, setLocalPage] = useState(1);
+  const [localPageSize, setLocalPageSize] = useState(defaultPageSize);
+  const currentPage = serverMode ? server.page : localPage;
+  const pageSize = serverMode ? server.pageSize : localPageSize;
+  const appliedSearch = useRef('');
+  const setCurrentPage = (next) => {
+    const page = typeof next === 'function' ? next(currentPage) : next;
+    if (serverMode) server.onChange({ page, pageSize, search: appliedSearch.current });
+    else setLocalPage(page);
+  };
+  const setPageSize = (size) => {
+    if (serverMode) server.onChange({ page: 1, pageSize: size, search: appliedSearch.current });
+    else setLocalPageSize(size);
+  };
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [visibleColumns, setVisibleColumns] = useState(() => new Set(columns.map(getKey)));
   const [showFilterDrawer, setShowFilterDrawer] = useState(false);
@@ -79,8 +97,21 @@ export const DataTable = ({
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    setCurrentPage(1);
+    if (!serverMode) setCurrentPage(1);
   };
+
+  // Server mode: ask for results once the user pauses typing.
+  const serverOnChange = server?.onChange;
+  useEffect(() => {
+    if (!serverMode) return undefined;
+    const term = searchTerm.trim();
+    if (term === appliedSearch.current) return undefined;
+    const timer = setTimeout(() => {
+      appliedSearch.current = term;
+      serverOnChange({ page: 1, pageSize, search: term });
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchTerm, serverMode]);
 
   const handleFilterChange = (key, value) => {
     setSelectedFilters((prev) => {
@@ -89,7 +120,7 @@ export const DataTable = ({
       else next[key] = value;
       return next;
     });
-    setCurrentPage(1);
+    if (!serverMode) setCurrentPage(1);
   };
 
   const handleSort = (col) => {
@@ -134,7 +165,7 @@ export const DataTable = ({
   const processedData = useMemo(() => {
     let result = [...rows];
 
-    if (searchTerm) {
+    if (searchTerm && !serverMode) {
       const term = searchTerm.toLowerCase();
       result = result.filter((item) => {
         if (effectiveSearchKeys) {
@@ -179,14 +210,15 @@ export const DataTable = ({
     }
 
     return result;
-  }, [rows, searchTerm, effectiveSearchKeys, selectedFilters, sortConfig]);
+  }, [rows, searchTerm, effectiveSearchKeys, selectedFilters, sortConfig, serverMode]);
 
-  const totalRecords = processedData.length;
+  const totalRecords = serverMode ? server.total : processedData.length;
   const totalPages = Math.ceil(totalRecords / pageSize) || 1;
   const paginatedData = useMemo(() => {
+    if (serverMode) return processedData;
     const start = (currentPage - 1) * pageSize;
     return processedData.slice(start, start + pageSize);
-  }, [processedData, currentPage, pageSize]);
+  }, [processedData, currentPage, pageSize, serverMode]);
 
   const activeColumns = columns.filter((c) => visibleColumns.has(getKey(c)));
   const hasBulkArray = Array.isArray(bulkActions) && bulkActions.length > 0;
@@ -315,7 +347,7 @@ export const DataTable = ({
             {enableExport && (
               <button
                 type="button"
-                onClick={() => exportToCSV(processedData, exportName)}
+                onClick={() => (server?.onExport ? server.onExport(appliedSearch.current) : exportToCSV(processedData, exportName))}
                 className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 shadow-2xs transition hover:border-indigo-600 hover:text-indigo-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 cursor-pointer"
               >
                 <Download className="h-3.5 w-3.5" />
@@ -562,7 +594,7 @@ export const DataTable = ({
                 value={pageSize}
                 onChange={(e) => {
                   setPageSize(Number(e.target.value));
-                  setCurrentPage(1);
+                  if (!serverMode) setCurrentPage(1);
                 }}
                 className="h-8 rounded-lg border border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold text-slate-700 outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 cursor-pointer"
               >

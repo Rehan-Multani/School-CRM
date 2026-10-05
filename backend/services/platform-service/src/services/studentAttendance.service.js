@@ -12,9 +12,15 @@ export function validDate(date) {
   if (s > todayStr()) throw new AppError('Cannot mark attendance for a future date', 400);
   return s;
 }
+// A missing status takes the fallback; an unrecognised one is refused, so a
+// typo can never be stored as "present".
 function pickStatus(v, fallback = 'PRESENT') {
-  const up = String(v || '').toUpperCase();
-  return STUDENT_ATTENDANCE_STATUSES.includes(up) ? up : fallback;
+  if (v === undefined || v === null || v === '') return fallback;
+  const up = String(v).toUpperCase();
+  if (!STUDENT_ATTENDANCE_STATUSES.includes(up)) {
+    throw new AppError(`Attendance status must be one of ${STUDENT_ATTENDANCE_STATUSES.join(', ')}`, 400);
+  }
+  return up;
 }
 
 class StudentAttendanceService {

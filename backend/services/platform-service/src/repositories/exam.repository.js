@@ -232,6 +232,34 @@ class ExamRepository {
     };
   }
 
+  findExamSubjectById(schoolId, examId, id) {
+    return ExamSubject.findOne({ schoolId: toObjectId(schoolId), examId: toObjectId(examId), _id: toObjectId(id) });
+  }
+
+  findExamSubjectFor(schoolId, examId, classId, subjectId) {
+    return ExamSubject.findOne({
+      schoolId: toObjectId(schoolId),
+      examId: toObjectId(examId),
+      classId: toObjectId(classId),
+      subjectId: toObjectId(subjectId),
+    });
+  }
+
+  findScheduleEntryById(schoolId, examId, id) {
+    return ExamSchedule.findOne({ schoolId: toObjectId(schoolId), examId: toObjectId(examId), _id: toObjectId(id) });
+  }
+
+  // Ids (as strings) of the students actively enrolled in a section.
+  async activeStudentIdsInSection(schoolId, classId, sectionId) {
+    const ids = await StudentEnrollment.distinct('studentId', {
+      schoolId: toObjectId(schoolId),
+      classId: toObjectId(classId),
+      sectionId: toObjectId(sectionId),
+      status: 'ACTIVE',
+    });
+    return new Set(ids.map(String));
+  }
+
   async addExamSubject(data) {
     return ExamSubject.create({
       ...data,

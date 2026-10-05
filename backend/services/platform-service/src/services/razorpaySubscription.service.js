@@ -55,7 +55,7 @@ export const razorpaySubscriptionService = {
     const client = getClient();
     return wrap(
       client.plans.create({
-        period: interval, // 'monthly' | 'yearly'
+        period: interval, // 'weekly' | 'monthly' | 'yearly'
         interval: intervalCount || 1,
         item: {
           name,

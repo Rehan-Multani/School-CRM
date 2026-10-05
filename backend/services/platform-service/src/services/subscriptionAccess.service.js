@@ -27,7 +27,9 @@ function deriveState(sub) {
   }
   if (sub.gracePeriodEndsAt && now < new Date(sub.gracePeriodEndsAt).getTime()) return 'grace_period';
   if (sub.status === 'halted' || sub.status === 'pending') return 'past_due';
-  if (sub.status === 'active' || sub.status === 'authenticated' || sub.status === 'created') return 'active';
+  // `created` is deliberately absent: the checkout was opened but nothing has
+  // been paid or authorised, so it grants nothing.
+  if (sub.status === 'active' || sub.status === 'authenticated') return 'active';
   return 'expired';
 }
 
@@ -67,11 +69,12 @@ class SubscriptionAccessService {
    *   - its Razorpay autopay subscription is live (active / trial / inside the
    *     grace period / cancelled but the paid period is still running), or
    *   - it holds an active manual plan (see manualPlanActive).
+   * A checkout that was opened but not paid is ignored (see findForAccess).
    * A school with neither has NO access: its School Admin can only reach the
    * Plans page, and nobody else in the school can sign in.
    */
   async getEntitlement(schoolId) {
-    const [sub, school] = await Promise.all([schoolSubscriptionRepository.findForSchool(schoolId), loadSchoolPlan(schoolId)]);
+    const [sub, school] = await Promise.all([schoolSubscriptionRepository.findForAccess(schoolId), loadSchoolPlan(schoolId)]);
     return this.#resolve(sub, school);
   }
 
@@ -83,7 +86,7 @@ class SubscriptionAccessService {
    */
   async getGateEntitlement(schoolId) {
     const { sub, school } = await cachedSubscription(schoolId, async () => {
-      const [s, sc] = await Promise.all([schoolSubscriptionRepository.findForSchool(schoolId).lean(), loadSchoolPlan(schoolId)]);
+      const [s, sc] = await Promise.all([schoolSubscriptionRepository.findForAccess(schoolId).lean(), loadSchoolPlan(schoolId)]);
       return { sub: s, school: sc };
     });
     return this.#resolve(sub, school);

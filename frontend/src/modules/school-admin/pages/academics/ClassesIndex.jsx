@@ -169,7 +169,8 @@ export const ClassesIndex = () => {
         await academicPortalApi.updateClass(editingClass.id, payload);
         showToast('Class updated', 'success');
       } else {
-        const res = await academicPortalApi.createClass(payload);
+        // A class is created inside an academic year (the server falls back to the current one).
+        const res = await academicPortalApi.createClass({ ...payload, academicYearId: form.academicYearId || undefined });
         const newClass = res.data;
         showToast('Class created', 'success');
 
@@ -232,6 +233,7 @@ export const ClassesIndex = () => {
         try {
           const res = await academicPortalApi.createClass({
             ...row,
+            academicYearId: selectedYear || undefined,
             description: row.description?.trim() || `Reusable ${row.name} class for academic year planning and section mapping.`,
           });
           if (selectedYear && res.data?.id) {

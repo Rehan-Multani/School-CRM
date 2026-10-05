@@ -836,12 +836,8 @@ async function main() {
     const started = Date.now();
     const stats = await seed(M);
     console.log(`Demo school created in ${((Date.now() - started) / 1000).toFixed(1)}s`, stats);
-<<<<<<< HEAD
     console.log(`Password logins (${PASSWORD}): admin@app-demo.example.com (admin panel), teacher.demo@example.com, transport.demo@example.com, teacher.empty@example.com`);
     console.log('Mobile + OTP logins (the OTP is printed in the platform-service log): student 9000022222, parent 9000011111, student (empty) 9000033333');
-=======
-    console.log(`Logins (password ${PASSWORD}): admin@app-demo.example.com (admin panel), teacher.demo@example.com, student.demo@example.com, parent.demo@example.com, teacher.empty@example.com, student.empty@example.com`);
->>>>>>> f2106951fb2cfc7c9c8ae055a1990f5b0f7919c2
   } finally {
     await mongoose.disconnect();
   }

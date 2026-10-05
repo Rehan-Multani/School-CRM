@@ -4,8 +4,9 @@ import { RazorpayWebhookEvent } from '../models/RazorpayWebhookEvent.js';
 import { schoolSubscriptionRepository } from '../repositories/schoolSubscription.repository.js';
 import { subscriptionRepository } from '../repositories/subscription.repository.js';
 import { razorpaySubscriptionService } from '../services/razorpaySubscription.service.js';
-import { razorpayWebhookService, grantSchoolPlanIfNeeded } from '../services/razorpayWebhook.service.js';
-import { GRACE_PERIOD_DAYS, toDate } from '../services/schoolSubscription.service.js';
+import { razorpayWebhookService } from '../services/razorpayWebhook.service.js';
+import { GRACE_PERIOD_DAYS } from '../services/schoolSubscription.service.js';
+import { syncSubscriptionFromRazorpay } from '../services/subscriptionSync.service.js';
 import { notificationService } from '../services/notification.service.js';
 import { School } from '../models/School.js';
 
@@ -57,51 +58,11 @@ export async function runReconciliationJob() {
     for (const sub of candidates) {
       checked += 1;
       try {
-        const live = await razorpaySubscriptionService.fetchSubscription(sub.razorpaySubscriptionId);
-        const fromStatus = sub.status;
-        let changed = false;
-        if (live.status && live.status !== sub.status) {
-          sub.status = live.status;
-          changed = true;
-        }
-        if (live.current_start) {
-          sub.currentPeriodStart = toDate(live.current_start);
-          changed = true;
-        }
-        if (live.current_end) {
-          sub.currentPeriodEnd = toDate(live.current_end);
-          changed = true;
-        }
-        if (live.charge_at) {
-          sub.nextBillingAt = toDate(live.charge_at);
-        }
-        sub.lastReconciledAt = new Date();
-        sub.reconciliationNote = changed ? `Synced from Razorpay (was ${fromStatus})` : 'In sync';
-        await schoolSubscriptionRepository.save(sub);
-        if (changed) {
-          updated += 1;
-          await schoolSubscriptionRepository.recordHistory({
-            schoolId: sub.schoolId,
-            subscriptionId: sub._id,
-            action: 'reconciled',
-            fromStatus,
-            toStatus: sub.status,
-            performedBy: 'Cron',
-            source: 'cron',
-          });
-        }
-        // Safety net for a webhook that never arrived at all (not just one that
-        // failed after being received — runWebhookRecoveryJob covers that case).
-        // Without this, a school that Razorpay confirms as paid could stay
-        // locked out forever if subscription.activated/charged was never
-        // delivered. grantSchoolPlanIfNeeded no-ops once already granted, so
-        // this is safe to call on every reconciled-active tick, not just
-        // on the tick where the status actually changed.
-        if (sub.status === 'active') {
-          await grantSchoolPlanIfNeeded(sub).catch((err) => {
-            log('reconciliation', `grantSchoolPlanIfNeeded failed for school ${sub.schoolId}: ${err.message}`);
-          });
-        }
+        // Also grants the plan when Razorpay reports the subscription active —
+        // the safety net for a webhook that never arrived at all (one that
+        // failed after being received is runWebhookRecoveryJob's job).
+        const changed = await syncSubscriptionFromRazorpay(sub, { performedBy: 'Cron', source: 'cron' });
+        if (changed) updated += 1;
       } catch (error) {
         // Fetch failed (network/Razorpay outage) — leave local state untouched, try again next tick.
         log('reconciliation', `fetch failed for ${sub.razorpaySubscriptionId}: ${error.message}`);

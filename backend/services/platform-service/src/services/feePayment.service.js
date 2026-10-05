@@ -73,32 +73,38 @@ export const feePaymentService = {
       );
     }
 
-    // Create the payment record
-    const payment = await feeRepository.createFeePayment({
-      schoolId,
-      studentFeeAssignmentId: assignmentId,
-      amount,
-      paymentMode,
-      referenceNo: data.referenceNo || '',
-      transactionDate: data.transactionDate || new Date(),
-      status: 'SUCCESS',
-      notes: data.notes || '',
-    });
-
     // Use a transaction to ensure consistency
     const session = await mongoose.startSession();
     session.startTransaction();
 
+    // The payment, receipt and ledger rows are written outside the session, so
+    // they are tracked here and removed again if any later step fails — a
+    // failed collection must not leave a "paid" record behind with the dues unchanged.
+    const created = [];
+
     try {
+      // One receipt number per payment, from the same sequence the invoice
+      // payments use — the payment and its receipt carry the same number.
+      const receiptNumber = await feeRepository.getNextReceiptNumber(schoolId);
+      const payment = await feeRepository.createFeePayment({
+        schoolId,
+        receiptNumber,
+        studentFeeAssignmentId: assignmentId,
+        amount,
+        paymentMode,
+        referenceNo: data.referenceNo || '',
+        transactionDate: data.transactionDate || new Date(),
+        status: 'SUCCESS',
+        notes: data.notes || '',
+      });
+      created.push(payment);
+
       // Update StudentFeeAssignment
       assignment.paidAmount += amount;
       assignment.updateStatus();
       await assignment.save({ session });
 
       // Generate Receipt
-      const receiptCount = await feeRepository.countReceiptsInSchool(schoolId);
-      const receiptNumber = `REC-${new Date().getFullYear()}-${String(receiptCount + 1).padStart(5, '0')}`;
-
       const receipt = await feeRepository.createReceipt({
         schoolId,
         receiptNumber,
@@ -113,9 +119,7 @@ export const feePaymentService = {
         remainingDue: assignment.getDueAmount(),
         paymentDate: data.transactionDate || new Date(),
       });
-
-      // Link receipt to payment
-      await feeRepository.createFeePayment({ ...payment.toObject(), receiptId: receipt._id });
+      created.push(receipt);
 
       // Create Finance Income transaction
       // First, get or create the "Fee Collection" income category
@@ -142,8 +146,9 @@ export const feePaymentService = {
         feePaymentId: payment._id,
         receiptId: receipt._id,
       });
+      created.push(financeTransaction);
 
-      // Link finance transaction to payment
+      // Link receipt and finance transaction to payment
       payment.receiptId = receipt._id;
       payment.financeTransactionId = financeTransaction._id;
       await payment.save({ session });
@@ -158,6 +163,7 @@ export const feePaymentService = {
       };
     } catch (error) {
       await session.abortTransaction();
+      await Promise.all(created.map((doc) => doc.deleteOne().catch(() => {})));
       throw error;
     } finally {
       await session.endSession();

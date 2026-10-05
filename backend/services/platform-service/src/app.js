@@ -1,6 +1,7 @@
 import './config/timezone.js';
 import express from 'express';
 import morgan from 'morgan';
+import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import { env } from './config/env.js';
 import { errorHandler } from './config/errorHandler.js';
@@ -20,6 +21,9 @@ const isProd = env.nodeEnv === 'production';
 app.set('trust proxy', 1);
 app.use(securityHeaders({ isProd }));
 app.use(morgan(env.nodeEnv === 'development' ? 'dev' : 'combined'));
+// JSON lists (students, timetable, lookups) shrink ~85-90% gzipped. Images in
+// /uploads are already compressed formats and are skipped by content type.
+app.use(compression());
 
 // P2: mutations are the abuse surface (brute force, enumeration, duplicate
 // financial writes). Generous for reads, tight for writes; login routes keep

@@ -378,6 +378,16 @@ export default function SubscriptionPlans() {
           setCancelAtPeriodEnd(true);
         }
       }
+      // A checkout that was paid but not confirmed before the tab was closed
+      // is picked up here on the next visit.
+      if (!hasPlan && ['created', 'authenticated'].includes(subRes?.data?.status)) {
+        const synced = await schoolSubscriptionApi.sync().catch(() => null);
+        if (synced?.data?.hasFullAccess) {
+          await refreshUser?.();
+          const fresh = await schoolSubscriptionApi.get().catch(() => null);
+          if (fresh?.data) setRecurringSub(fresh.data);
+        }
+      }
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Unable to load plans.');
     } finally {
@@ -394,6 +404,8 @@ export default function SubscriptionPlans() {
       // eslint-disable-next-line no-await-in-loop
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
       try {
+        // The backend asks Razorpay directly, so activation does not wait on the webhook.
+        await schoolSubscriptionApi.sync().catch(() => {});
         // eslint-disable-next-line no-await-in-loop
         const res = await schoolPortalApi.me();
         if (res?.user?.hasPlan) return res.user;
@@ -528,7 +540,8 @@ export default function SubscriptionPlans() {
   const activePlanType =
     subscription?.planType ||
     user?.subscription?.planType ||
-    (recurringSub?.billingInterval === 'yearly' ? 'Yearly' : 'Monthly');
+    recurringSub?.plan?.planType ||
+    'Monthly';
 
   const activeStartedAt =
     recurringSub?.currentPeriodStart ||

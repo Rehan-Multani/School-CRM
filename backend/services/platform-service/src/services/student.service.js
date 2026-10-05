@@ -6,6 +6,7 @@ import {
   toStudentPhotoPublicPath,
   toStudentDocumentPublicPath,
 } from '../utils/upload.utils.js';
+import { normalizeMobile } from '../utils/mobile.js';
 
 const STUDENT_STATUSES = ['ACTIVE', 'INACTIVE'];
 const GENDERS = ['MALE', 'FEMALE', 'OTHER'];
@@ -30,6 +31,13 @@ function parseDate(value, label) {
   if (!value) return null;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) throw new AppError(`${label} must be a valid date`, 400);
+  return date;
+}
+
+// A date of birth cannot be in the future.
+function parseBirthDate(value) {
+  const date = parseDate(value, 'Date of birth');
+  if (date && date.getTime() > Date.now()) throw new AppError('Date of birth cannot be in the future', 400);
   return date;
 }
 
@@ -62,11 +70,12 @@ function buildStudentPayload(payload) {
     firstName: requireText(payload.firstName, 'First name'),
     lastName: optionalText(payload.lastName),
     gender: payload.gender ? ensureOption(payload.gender, GENDERS, 'Gender') : 'OTHER',
-    dateOfBirth: parseDate(payload.dateOfBirth, 'Date of birth'),
+    dateOfBirth: parseBirthDate(payload.dateOfBirth),
     email: optionalText(payload.email).toLowerCase(),
-    phone: optionalText(payload.phone),
+    phone: normalizeMobile(payload.phone, 'Student phone', { required: false }),
     parentName: requireText(payload.parentName, 'Parent name'),
-    parentPhone: requireText(payload.parentPhone, 'Parent phone'),
+    // The parent signs in to the app with this number, so it must be a real one.
+    parentPhone: normalizeMobile(payload.parentPhone, 'Parent phone'),
     address: optionalText(payload.address),
     status: payload.status ? ensureOption(payload.status, STUDENT_STATUSES, 'Status') : 'ACTIVE',
   };
@@ -81,8 +90,32 @@ function isTruthyFlag(value) {
 }
 
 export class StudentService {
-  async listStudents(schoolId, filters) {
-    const students = await studentRepository.listStudents(schoolId, filters);
+  /**
+   * One page of students plus the counts the Students page shows on its cards.
+   * The counts ignore the search box and the status filter, so the cards stay
+   * put while the admin types or switches status.
+   */
+  async listStudentsPage(schoolId, filters = {}) {
+    const limit = Math.min(100, Math.max(1, parseInt(filters.limit, 10) || 20));
+    const page = Math.max(1, parseInt(filters.page, 10) || 1);
+    const scope = { academicYearId: filters.academicYearId, classId: filters.classId, sectionId: filters.sectionId };
+    const [data, total, all, active, inactive, withdrawn] = await Promise.all([
+      this.listStudents(schoolId, filters, { skip: (page - 1) * limit, limit }),
+      studentRepository.countStudents(schoolId, filters),
+      studentRepository.countStudents(schoolId, scope),
+      studentRepository.countStudents(schoolId, { ...scope, status: 'ACTIVE' }),
+      studentRepository.countStudents(schoolId, { ...scope, status: 'INACTIVE' }),
+      studentRepository.countWithdrawnStudents(schoolId, scope),
+    ]);
+    return {
+      data,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) || 1 },
+      stats: { total: all, active, inactive, withdrawn },
+    };
+  }
+
+  async listStudents(schoolId, filters, paging = null) {
+    const students = await studentRepository.listStudents(schoolId, filters, paging);
     const ids = students.map((student) => student._id);
     const enrollments = await studentRepository.listEnrollmentsForStudents(schoolId, ids, filters);
 
@@ -231,11 +264,11 @@ export class StudentService {
     if (payload.firstName !== undefined) update.firstName = requireText(payload.firstName, 'First name');
     if (payload.lastName !== undefined) update.lastName = optionalText(payload.lastName);
     if (payload.gender !== undefined) update.gender = ensureOption(payload.gender, GENDERS, 'Gender');
-    if (payload.dateOfBirth !== undefined) update.dateOfBirth = parseDate(payload.dateOfBirth, 'Date of birth');
+    if (payload.dateOfBirth !== undefined) update.dateOfBirth = parseBirthDate(payload.dateOfBirth);
     if (payload.email !== undefined) update.email = optionalText(payload.email).toLowerCase();
-    if (payload.phone !== undefined) update.phone = optionalText(payload.phone);
+    if (payload.phone !== undefined) update.phone = normalizeMobile(payload.phone, 'Student phone', { required: false });
     if (payload.parentName !== undefined) update.parentName = requireText(payload.parentName, 'Parent name');
-    if (payload.parentPhone !== undefined) update.parentPhone = requireText(payload.parentPhone, 'Parent phone');
+    if (payload.parentPhone !== undefined) update.parentPhone = normalizeMobile(payload.parentPhone, 'Parent phone');
     if (payload.address !== undefined) update.address = optionalText(payload.address);
     if (payload.status !== undefined) update.status = ensureOption(payload.status, STUDENT_STATUSES, 'Status');
     if (files.photo) update.photo = toStudentPhotoPublicPath(files.photo.filename);

@@ -203,6 +203,15 @@ class HRRepository {
     return LeaveRequest.create({ ...data, schoolId });
   }
 
+  // Applies the change only while the request is still in one of `fromStatuses`.
+  async transitionLeaveRequest(schoolId, id, fromStatuses, data) {
+    return LeaveRequest.findOneAndUpdate({ schoolId, _id: id, status: { $in: fromStatuses } }, { $set: data }, { new: true });
+  }
+
+  async leaveRequestExists(schoolId, id) {
+    return LeaveRequest.exists({ schoolId, _id: id });
+  }
+
   async updateLeaveRequest(schoolId, id, data) {
     return LeaveRequest.findOneAndUpdate({ schoolId, _id: id }, { $set: data }, { new: true });
   }

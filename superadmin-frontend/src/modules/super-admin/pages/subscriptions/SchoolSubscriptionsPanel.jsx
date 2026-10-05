@@ -730,7 +730,7 @@ export default function SchoolSubscriptionsPanel() {
                             {inr(r.totalAmount)}
                           </span>
                           <span className="ml-0.5 text-[11px] font-medium text-slate-400">
-                            /{planInterval === 'yearly' ? 'yr' : 'mo'}
+                            /{planInterval === 'yearly' ? 'yr' : planInterval === 'weekly' ? 'wk' : 'mo'}
                           </span>
                         </td>
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -10,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import { Button, Input } from '../components/ui';
 import { PlatformLogo } from '../components/Logos';
 import OtpSignIn from '../components/OtpSignIn';
+import RoleSegment from '../components/RoleSegment';
 import TopInsetBackdrop from '../components/TopInsetBackdrop';
 import { devCredentials } from '../lib/devCredentials';
 import { toast } from '../lib/notify';
@@ -115,23 +117,7 @@ export default function Login() {
           <Text style={styles.title}>Sign in</Text>
           <Text style={styles.subtitle}>Select your role to access your account</Text>
 
-          <View style={styles.segment}>
-            {ROLE_LIST.map((r) => {
-              const active = r.key === roleKey;
-              return (
-                <Pressable
-                  key={r.key}
-                  onPress={() => switchRole(r.key)}
-                  style={[styles.segItem, active && styles.segItemActive]}
-                  accessibilityRole="tab"
-                  accessibilityState={{ selected: active }}
-                >
-                  <Ionicons name={r.icon} size={17} color={active ? t.primary : t.textMuted} />
-                  <Text style={[styles.segText, active && styles.segTextActive]}>{r.label}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          <RoleSegment roles={ROLE_LIST} value={roleKey} onChange={(key) => switchRole(key)} style={styles.segment} />
 
           {roleMismatch ? (
             <View style={styles.mismatchBanner}>
@@ -154,74 +140,77 @@ export default function Login() {
             </View>
           ) : null}
 
-          {role.auth === 'otp' ? (
-            // Keyed by role so switching tab starts a clean OTP flow.
-            <OtpSignIn
-              key={roleKey}
-              role={role}
-              initialMobile={identifier}
-              onSwitchRole={(nextRole, currentMobile) => switchRole(nextRole, currentMobile)}
-              onFocusInput={(offset = 170) => scrollToInput(offset)}
-            />
-          ) : (
-            <>
-              <Input
-                label={role.identifierLabel}
-                icon={role.identifierKeyboard === 'email-address' ? 'mail-outline' : 'person-outline'}
-                value={identifier}
-                onChangeText={(v) => {
-                  setIdentifier(v);
-                  if (roleMismatch) setRoleMismatch(null);
-                }}
-                onFocus={() => scrollToInput(170)}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType={role.identifierKeyboard}
-                placeholder={`Enter your ${role.identifierLabel.toLowerCase()}`}
-                returnKeyType="next"
-                onSubmitEditing={() => passwordRef.current?.focus()}
+          {/* Keyed by role so the form fades in on every role switch. */}
+          <Animated.View key={roleKey} entering={FadeIn.duration(220)}>
+            {role.auth === 'otp' ? (
+              // Keyed by role so switching tab starts a clean OTP flow.
+              <OtpSignIn
+                key={roleKey}
+                role={role}
+                initialMobile={identifier}
+                onSwitchRole={(nextRole, currentMobile) => switchRole(nextRole, currentMobile)}
+                onFocusInput={(offset = 170) => scrollToInput(offset)}
               />
-              <Input
-                ref={passwordRef}
-                label="Password"
-                icon="lock-closed-outline"
-                value={password}
-                onChangeText={(v) => {
-                  setPassword(v);
-                  if (roleMismatch) setRoleMismatch(null);
-                }}
-                onFocus={() => scrollToInput(230)}
-                secureTextEntry
-                autoCapitalize="none"
-                placeholder="Enter your password"
-                returnKeyType="go"
-                onSubmitEditing={onSubmit}
-                style={{ marginBottom: spacing.sm }}
-              />
+            ) : (
+              <>
+                <Input
+                  label={role.identifierLabel}
+                  icon={role.identifierKeyboard === 'email-address' ? 'mail-outline' : 'person-outline'}
+                  value={identifier}
+                  onChangeText={(v) => {
+                    setIdentifier(v);
+                    if (roleMismatch) setRoleMismatch(null);
+                  }}
+                  onFocus={() => scrollToInput(170)}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType={role.identifierKeyboard}
+                  placeholder={`Enter your ${role.identifierLabel.toLowerCase()}`}
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                />
+                <Input
+                  ref={passwordRef}
+                  label="Password"
+                  icon="lock-closed-outline"
+                  value={password}
+                  onChangeText={(v) => {
+                    setPassword(v);
+                    if (roleMismatch) setRoleMismatch(null);
+                  }}
+                  onFocus={() => scrollToInput(230)}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  placeholder="Enter your password"
+                  returnKeyType="go"
+                  onSubmitEditing={onSubmit}
+                  style={{ marginBottom: spacing.sm }}
+                />
 
-              <Button title="Sign in" loadingTitle="Signing in..." onPress={onSubmit} loading={loading} style={{ marginTop: spacing.xs }} />
-            </>
-          )}
+                <Button title="Sign in" loadingTitle="Signing in..." onPress={onSubmit} loading={loading} style={{ marginTop: spacing.xs }} />
+              </>
+            )}
 
-          {role.auth === 'password' ? (
-            <View style={styles.helpRow}>
-              <Text style={styles.help}>Trouble signing in?</Text>
-              <Pressable
-                onPress={() =>
-                  router.push({ pathname: '/forgot-password', params: { role: roleKey, identifier: identifier.trim() } })
-                }
-                hitSlop={8}
-                accessibilityRole="link"
-              >
-                <Text style={styles.helpLink}>Forgot password?</Text>
-              </Pressable>
-            </View>
-          ) : (
-            <View style={styles.helpRow}>
-              <Text style={styles.help}>Need help?</Text>
-              <Text style={styles.help}>Please contact your school office</Text>
-            </View>
-          )}
+            {role.auth === 'password' ? (
+              <View style={styles.helpRow}>
+                <Text style={styles.help}>Trouble signing in?</Text>
+                <Pressable
+                  onPress={() =>
+                    router.push({ pathname: '/forgot-password', params: { role: roleKey, identifier: identifier.trim() } })
+                  }
+                  hitSlop={8}
+                  accessibilityRole="link"
+                >
+                  <Text style={styles.helpLink}>Forgot password?</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View style={styles.helpRow}>
+                <Text style={styles.help}>Need help?</Text>
+                <Text style={styles.help}>Please contact your school office</Text>
+              </View>
+            )}
+          </Animated.View>
         </View>
 
         <View style={styles.footer}>
@@ -280,24 +269,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: '800', color: t.text, letterSpacing: 0.2, textAlign: 'center' },
   subtitle: { fontSize: font.md, color: t.textMuted, marginTop: spacing.xs, marginBottom: spacing.xl, textAlign: 'center' },
 
-  segment: {
-    flexDirection: 'row',
-    backgroundColor: t.surfaceAlt,
-    borderRadius: radius.md + 2,
-    padding: 4,
-    marginBottom: spacing.xl,
-  },
-  segItem: { flex: 1, alignItems: 'center', paddingVertical: 8, borderRadius: radius.md, gap: 3 },
-  segItemActive: {
-    backgroundColor: t.surface,
-    shadowColor: '#0A1A3F',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
-  },
-  segText: { fontSize: font.sm, fontWeight: '600', color: t.textMuted },
-  segTextActive: { color: t.primary, fontWeight: '700' },
+  segment: { marginBottom: spacing.xl },
 
   forgot: { alignSelf: 'flex-end', paddingVertical: 4, marginBottom: spacing.lg },
   forgotText: { color: t.primary, fontSize: font.md, fontWeight: '700' },

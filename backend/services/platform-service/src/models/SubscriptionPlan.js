@@ -5,7 +5,7 @@ const PLAN_TYPES = ['Weekly', 'Monthly', 'Yearly'];
 
 // Recurring (Razorpay-linked) fields, additive — existing plans created before
 // this feature simply have billingInterval='' and are not Razorpay-recurring.
-export const BILLING_INTERVALS = ['monthly', 'yearly'];
+export const BILLING_INTERVALS = ['weekly', 'monthly', 'yearly'];
 export const PLAN_STATUSES = ['active', 'inactive', 'archived'];
 
 const subscriptionPlanSchema = new mongoose.Schema(

@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { AppError } from '../../../shared/AppError.js';
 import { academicRepository } from '../repositories/academic.repository.js';
+import { normalizeMobile } from '../utils/mobile.js';
 import { Student } from '../models/Student.js';
 import { Parent } from '../models/Parent.js';
 import { ParentStudent, PARENT_RELATIONSHIPS } from '../models/ParentStudent.js';
@@ -332,6 +333,31 @@ async function assertYear(schoolId, academicYearId) {
   return year;
 }
 
+// Checks only what the request actually sent, so editing an unrelated field of
+// an older record never trips over its stored contact details.
+async function validateTeacherContact(schoolId, data, payload, selfId = null) {
+  if (payload.mobileNumber !== undefined || payload.phone !== undefined) {
+    const digits = normalizeMobile(data.mobileNumber, 'Mobile number');
+    data.mobileNumber = digits;
+    data.phone = digits;
+  }
+  if (payload.email !== undefined && data.email) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) throw new AppError('Email must be a valid email address', 400);
+    // Teachers sign in with their email, so two teachers cannot share one.
+    const clash = await academicRepository.findTeacherByEmail(schoolId, data.email, selfId);
+    if (clash) throw new AppError('Another teacher already uses this email', 409);
+  }
+}
+
+// A class belongs to an academic year. Use the one asked for, else the school's
+// current year, so "Add class" works without the admin picking a year first.
+async function resolveClassYearId(schoolId, academicYearId) {
+  if (academicYearId) return (await assertYear(schoolId, academicYearId))._id;
+  const current = await academicRepository.findCurrentYear(schoolId);
+  if (!current) throw new AppError('Create an academic year and set it as current before adding classes', 400);
+  return current._id;
+}
+
 async function assertClass(schoolId, classId) {
   const cls = await academicRepository.findClassById(schoolId, classId);
   if (!cls) throw new AppError('Class not found', 404);
@@ -530,10 +556,12 @@ export class AcademicService {
     const code = requireText(payload.code || name.replace(/\s+/g, '-'), 'Class code').toUpperCase();
     const numericOrder = Number(payload.numericOrder) || 0;
     const status = payload.status ? ensureOption(payload.status, ENTITY_STATUSES, 'Status') : 'ACTIVE';
+    const academicYearId = await resolveClassYearId(schoolId, payload.academicYearId);
 
     try {
       const cls = await academicRepository.createClass({
         schoolId,
+        academicYearId,
         name,
         code,
         numericOrder,
@@ -577,11 +605,13 @@ export class AcademicService {
   async seedDefaultClasses(schoolId) {
     const { total } = await academicRepository.listClasses(schoolId, { limit: 1 });
     if (total > 0) return { message: 'Classes already exist', created: 0 };
+    const academicYearId = await resolveClassYearId(schoolId);
 
     const created = await Promise.all(
       DEFAULT_CLASSES.map((item) =>
         academicRepository.createClass({
           schoolId,
+          academicYearId,
           ...item,
           description: '',
           status: 'ACTIVE',
@@ -718,6 +748,8 @@ export class AcademicService {
   async createSection(schoolId, payload) {
     const academicYearId = payload.academicYearId;
     const classId = payload.classId;
+    if (!academicYearId) throw new AppError('Academic year is required', 400);
+    if (!classId) throw new AppError('Class is required', 400);
     const year = await assertYear(schoolId, academicYearId);
     if (year.status === 'ARCHIVED') throw new AppError('Cannot create sections in an archived academic year', 400);
     await assertClass(schoolId, classId);
@@ -830,6 +862,7 @@ export class AcademicService {
     if (!Number.isFinite(passingMarks) || passingMarks < 0) {
       throw new AppError('Passing marks must be zero or more', 400);
     }
+    if (passingMarks > maxMarks) throw new AppError('Passing marks cannot be more than maximum marks', 400);
 
     try {
       const subject = await academicRepository.createSubject({
@@ -851,7 +884,7 @@ export class AcademicService {
   }
 
   async updateSubject(schoolId, id, payload) {
-    await assertSubject(schoolId, id);
+    const existing = await assertSubject(schoolId, id);
     const update = {};
     if (payload.name !== undefined) update.name = requireText(payload.name, 'Subject name');
     if (payload.code !== undefined) update.code = requireText(payload.code, 'Subject code').toUpperCase();
@@ -860,6 +893,11 @@ export class AcademicService {
     }
     if (payload.maxMarks !== undefined) update.maxMarks = Number(payload.maxMarks);
     if (payload.passingMarks !== undefined) update.passingMarks = Number(payload.passingMarks);
+    const nextMax = update.maxMarks ?? existing.maxMarks;
+    const nextPassing = update.passingMarks ?? existing.passingMarks;
+    if (!Number.isFinite(nextMax) || nextMax < 1) throw new AppError('Maximum marks must be at least 1', 400);
+    if (!Number.isFinite(nextPassing) || nextPassing < 0) throw new AppError('Passing marks must be zero or more', 400);
+    if (nextPassing > nextMax) throw new AppError('Passing marks cannot be more than maximum marks', 400);
     if (payload.description !== undefined) update.description = optionalText(payload.description);
     if (payload.status !== undefined) update.status = ensureOption(payload.status, ENTITY_STATUSES, 'Status');
 
@@ -883,15 +921,25 @@ export class AcademicService {
     if (filters.sectionId) await assertSection(schoolId, filters.sectionId);
 
     const items = await academicRepository.listAllSectionSubjects(schoolId, filters);
-    const data = await Promise.all(
-      items.map(async (item) => {
-        const [subject, teacher, section, schoolClass, academicYear] = await Promise.all([
-          academicRepository.findSubjectById(schoolId, item.subjectId),
-          item.teacherId ? academicRepository.findTeacherById(schoolId, item.teacherId) : null,
-          academicRepository.findSectionById(schoolId, item.sectionId),
-          academicRepository.findClassById(schoolId, item.classId),
-          academicRepository.findYearById(schoolId, item.academicYearId),
-        ]);
+    // One query per related collection, not five per row.
+    const idsOf = (field) => [...new Set(items.map((item) => item[field]?.toString()).filter(Boolean))];
+    const byId = (docs) => new Map(docs.map((doc) => [doc._id.toString(), doc]));
+    const [subjects, teachers, sections, classes, years] = (
+      await Promise.all([
+        academicRepository.findSubjectsByIds(schoolId, idsOf('subjectId')),
+        academicRepository.findTeachersByIds(schoolId, idsOf('teacherId')),
+        academicRepository.findSectionsByIds(schoolId, idsOf('sectionId')),
+        academicRepository.findClassesByIds(schoolId, idsOf('classId')),
+        academicRepository.findYearsByIds(schoolId, idsOf('academicYearId')),
+      ])
+    ).map(byId);
+
+    const data = items.map((item) => {
+        const subject = subjects.get(item.subjectId?.toString());
+        const teacher = item.teacherId ? teachers.get(item.teacherId.toString()) : null;
+        const section = sections.get(item.sectionId?.toString());
+        const schoolClass = classes.get(item.classId?.toString());
+        const academicYear = years.get(item.academicYearId?.toString());
         return {
           ...item.toPublicJSON(),
           subject: subject ? subject.toPublicJSON() : null,
@@ -920,8 +968,7 @@ export class AcademicService {
               }
             : null,
         };
-      })
-    );
+    });
     return data;
   }
 
@@ -1030,6 +1077,7 @@ export class AcademicService {
       if (!teacherPayload.employeeId) throw new AppError('Employee ID is required', 400);
       if (!teacherPayload.joiningDate) throw new AppError('Joining date is required', 400);
       if (!teacherPayload.qualifications.length) throw new AppError('Qualification is required', 400);
+      await validateTeacherContact(schoolId, teacherPayload, { ...payload, mobileNumber: teacherPayload.mobileNumber });
       teacherPayload.documents = mergeDocumentUploads(payload.documentsKeep, null, files);
       await applyTeacherLoginProvisioning(teacherPayload, payload);
       const teacher = await academicRepository.createTeacher({
@@ -1054,6 +1102,7 @@ export class AcademicService {
   async updateTeacher(schoolId, id, payload, files = {}) {
     const existing = await assertTeacher(schoolId, id);
     const update = sanitizeTeacherPayload(payload, existing);
+    await validateTeacherContact(schoolId, update, payload, existing._id);
     const photo = files.photo || null;
     const shouldRemovePhoto = isTruthyFlag(payload.removePhoto);
     if (photo) update.profilePhoto = toTeacherPhotoPublicPath(photo.filename);

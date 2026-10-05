@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
+import compression from 'compression';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -43,6 +44,7 @@ app.use(cors({
   credentials: true,
 }));
 app.use(morgan('combined'));
+app.use(compression());
 app.use(express.json({ limit: '5mb' }));
 
 // Static route for uploads (ephemeral in Vercel /tmp)

@@ -35,6 +35,26 @@ class SchoolSubscriptionRepository {
     return SchoolSubscription.findOne({ schoolId }).sort({ createdAt: -1 }).populate('planId').populate('pendingPlanId');
   }
 
+  // For the access gate. A checkout that was opened but never paid (`created`)
+  // is not a subscription yet: it must not grant access, and it must not hide
+  // the subscription the school had before it.
+  findForAccess(schoolId) {
+    return SchoolSubscription.findOne({ schoolId, status: { $ne: 'created' } })
+      .sort({ createdAt: -1 })
+      .populate('planId')
+      .populate('pendingPlanId');
+  }
+
+  // The checkout the school most recently opened and that Razorpay has not
+  // reported as live yet.
+  findPendingCheckoutForSchool(schoolId) {
+    return SchoolSubscription.findOne({
+      schoolId,
+      status: { $in: ['created', 'authenticated'] },
+      razorpaySubscriptionId: { $ne: '' },
+    }).sort({ createdAt: -1 });
+  }
+
   create(data) {
     return SchoolSubscription.create(data);
   }
@@ -141,7 +161,7 @@ class SchoolSubscriptionRepository {
 
   // ---- dashboard aggregation ----
   async stats() {
-    const [byStatus, mrrAgg, arrAgg, failedCount, cancelAtPeriodEndCount] = await Promise.all([
+    const [byStatus, revenueAgg, failedCount, cancelAtPeriodEndCount] = await Promise.all([
       SchoolSubscription.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]),
       SchoolSubscription.aggregate([
         { $match: { status: 'active', cancelAtPeriodEnd: { $ne: true } } },
@@ -149,23 +169,20 @@ class SchoolSubscriptionRepository {
           $lookup: { from: 'subscriptionplans', localField: 'planId', foreignField: '_id', as: 'plan' },
         },
         { $unwind: '$plan' },
-        { $match: { 'plan.billingInterval': 'monthly' } },
-        { $group: { _id: null, total: { $sum: '$totalAmount' } } },
-      ]),
-      SchoolSubscription.aggregate([
-        { $match: { status: 'active', cancelAtPeriodEnd: { $ne: true } } },
-        {
-          $lookup: { from: 'subscriptionplans', localField: 'planId', foreignField: '_id', as: 'plan' },
-        },
-        { $unwind: '$plan' },
-        { $match: { 'plan.billingInterval': 'yearly' } },
-        { $group: { _id: null, total: { $sum: '$totalAmount' } } },
+        { $group: { _id: '$plan.billingInterval', total: { $sum: '$totalAmount' } } },
       ]),
       SchoolSubscription.countDocuments({ status: 'halted' }),
       SchoolSubscription.countDocuments({ status: 'active', cancelAtPeriodEnd: true }),
     ]);
     const statusMap = {};
     byStatus.forEach((s) => (statusMap[s._id] = s.count));
+
+    // What is billed per cycle, by billing interval.
+    const revenue = {};
+    revenueAgg.forEach((r) => (revenue[r._id] = r.total));
+    const weekly = revenue.weekly || 0;
+    const monthly = revenue.monthly || 0;
+    const yearly = revenue.yearly || 0;
 
     const cancelledCount = (statusMap.cancelled || 0) + cancelAtPeriodEndCount;
     const activeCount = Math.max(0, (statusMap.active || 0) - cancelAtPeriodEndCount);
@@ -174,8 +191,9 @@ class SchoolSubscriptionRepository {
 
     return {
       byStatus: statusMap,
-      mrr: mrrAgg[0]?.total || 0,
-      arr: (arrAgg[0]?.total || 0) + (mrrAgg[0]?.total || 0) * 12,
+      // Weekly plans bill 52 times a year; yearly plans count toward ARR only, as before.
+      mrr: Math.round((monthly + (weekly * 52) / 12) * 100) / 100,
+      arr: yearly + monthly * 12 + weekly * 52,
       pastDue: statusMap.halted || 0,
       failedPayments: failedCount,
     };

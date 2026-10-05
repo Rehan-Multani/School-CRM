@@ -1,4 +1,5 @@
 import { AppError } from '../../../shared/AppError.js';
+import { normalizeMobile } from '../utils/mobile.js';
 import { admissionRepository } from '../repositories/admission.repository.js';
 import { ADMISSION_STATUSES, ADMISSION_SOURCES, ADMISSION_GENDERS } from '../models/Admission.js';
 import { AcademicYear } from '../models/AcademicYear.js';
@@ -60,7 +61,8 @@ class AdmissionService {
     const applicantName = (payload.applicantName || '').trim();
     if (!applicantName) throw new AppError('Applicant name is required', 400);
     if (!payload.guardianName?.trim()) throw new AppError('Guardian name is required', 400);
-    if (!payload.phone?.trim()) throw new AppError('Guardian phone is required', 400);
+    // Becomes the student's parent phone (the parent's app login) on approval.
+    payload = { ...payload, phone: normalizeMobile(payload.phone, 'Guardian phone') };
 
     const dup = await admissionRepository.findDuplicate(schoolId, {
       phone: payload.phone,
@@ -124,6 +126,7 @@ class AdmissionService {
     textFields.forEach((f) => {
       if (payload[f] !== undefined) patch[f] = String(payload[f] || '').trim();
     });
+    if (patch.phone !== undefined) patch.phone = normalizeMobile(patch.phone, 'Guardian phone');
     if (payload.email !== undefined) patch.email = String(payload.email || '').trim().toLowerCase();
     if (payload.gender !== undefined) patch.gender = pickEnum(payload.gender, ADMISSION_GENDERS, existing.gender);
     if (payload.dob !== undefined) patch.dob = payload.dob ? new Date(payload.dob) : null;

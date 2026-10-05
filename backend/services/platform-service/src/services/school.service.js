@@ -11,7 +11,7 @@ import { subscriptionRepository } from '../repositories/subscription.repository.
 import { billingService } from './billing.service.js';
 import { billingRepository } from '../repositories/billing.repository.js';
 import { planEndDate, resolveSubscriptionStatus } from '../utils/subscription.utils.js';
-import { schoolSubscriptionService } from './schoolSubscription.service.js';
+import { schoolSubscriptionService, assertPlanUsable } from './schoolSubscription.service.js';
 import { schoolSubscriptionRepository } from '../repositories/schoolSubscription.repository.js';
 import { razorpaySubscriptionService } from './razorpaySubscription.service.js';
 import { normalizeIndianMobile } from '../utils/mobile.js';
@@ -1014,7 +1014,7 @@ export class SchoolService {
           subscription: {
             planId: plan?._id?.toString() || (recentSub.planId ? String(recentSub.planId) : ''),
             planName: plan?.name || 'School Plan',
-            planType: plan?.billingInterval === 'yearly' ? 'Yearly' : 'Monthly',
+            planType: plan?.planType || 'Monthly',
             price: plan?.price || recentSub.totalAmount || 0,
             features: plan?.features || [],
             startedAt: recentSub.currentPeriodStart ? new Date(recentSub.currentPeriodStart).toISOString() : null,
@@ -1093,7 +1093,7 @@ export class SchoolService {
    * here, and the plan is only granted once the webhook confirms the mandate
    * actually charged (see grantSchoolPlanIfNeeded in razorpayWebhook.service.js).
    * If the plan has no razorpayPlanId yet, schoolSubscriptionService lazily
-   * creates one (Monthly/Yearly only — Weekly plans can't be recurring).
+   * creates one (Weekly, Monthly or Yearly).
    */
   async initiateSubscriptionCheckout(schoolId, planId, req) {
     console.log(`[subscription-flow] checkout requested — school=${schoolId} plan=${planId}`);
@@ -1125,6 +1125,9 @@ export class SchoolService {
         };
       }
       // Switched plan before finishing checkout — abandon the stale attempt and start fresh.
+      // Check the new plan first: if it cannot be subscribed to (e.g. it was
+      // deactivated), the request fails here and the pending attempt stays resumable.
+      await assertPlanUsable(planId);
       console.log(`[subscription-flow] plan switched mid-checkout — school=${schoolId} cancelling stale razorpaySubscriptionId=${existing.razorpaySubscriptionId}`);
       await razorpaySubscriptionService.cancelSubscription(existing.razorpaySubscriptionId, { atCycleEnd: false }).catch((err) => {
         console.error(`[subscription-flow] failed to cancel stale razorpaySubscriptionId=${existing.razorpaySubscriptionId} on plan switch (school=${schoolId}): ${err?.message} — it will keep showing on Razorpay's side even though we're marking it cancelled locally`);

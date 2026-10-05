@@ -13,6 +13,7 @@ import { academicPortalApi, feePortalApi, schoolPortalApi } from '../../../../sh
 import { Camera, Edit3, Eye, ImagePlus, Loader2, Plus, Trash2, UserCheck, UserCircle2, UserX, Wallet, X } from 'lucide-react';
 import { SkeletonTable } from '../../components/ui/SkeletonLoader';
 import { formatCurrency } from '../../utils/formatters';
+import { exportToCSV } from '../../../../shared/lib/exportHelpers';
 
 const inputClass =
   'h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-slate-800 dark:bg-slate-950';
@@ -137,6 +138,11 @@ export const StudentManagement = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [students, setStudents] = useState([]);
+  // The list is fetched one page at a time; search and paging happen on the server.
+  const [pager, setPager] = useState({ page: 1, pageSize: 10, search: '' });
+  const [total, setTotal] = useState(0);
+  const [serverStats, setServerStats] = useState({ total: 0, active: 0, inactive: 0, withdrawn: 0 });
+  const [loadedOnce, setLoadedOnce] = useState(false);
   const [years, setYears] = useState([]);
   const [classes, setClasses] = useState([]);
   const [sections, setSections] = useState([]);
@@ -258,13 +264,6 @@ export const StudentManagement = () => {
 
   const editParam = searchParams.get('edit');
 
-  useEffect(() => {
-    if (!editParam || !students.length) return;
-    const target = students.find((student) => student.id === editParam);
-    if (target) openEditModal(target);
-    setSearchParams({}, { replace: true });
-  }, [editParam, students, setSearchParams]);
-
   const loadReferenceData = useCallback(async () => {
     const [yearResult, classResult, sectionResult] = await Promise.all([
       academicPortalApi.years({ limit: 100 }),
@@ -284,41 +283,57 @@ export const StudentManagement = () => {
     }));
   }, []);
 
+  const filterParams = useCallback(() => {
+    const params = {};
+    if (filters.academicYearId) params.academicYearId = filters.academicYearId;
+    if (filters.classId) params.classId = filters.classId;
+    if (filters.sectionId) params.sectionId = filters.sectionId;
+    if (filters.status) params.status = filters.status;
+    if (pager.search) params.search = pager.search;
+    return params;
+  }, [filters, pager.search]);
+
   const loadStudents = useCallback(async () => {
     setLoading(true);
     try {
-      const params = {};
-      if (filters.academicYearId) params.academicYearId = filters.academicYearId;
-      if (filters.classId) params.classId = filters.classId;
-      if (filters.sectionId) params.sectionId = filters.sectionId;
-      if (filters.status) params.status = filters.status;
-      const result = await schoolPortalApi.students(params);
+      const result = await schoolPortalApi.students({ ...filterParams(), page: pager.page, limit: pager.pageSize });
       setStudents(result.data || []);
+      setTotal(result.pagination?.total ?? (result.data || []).length);
+      if (result.stats) setServerStats(result.stats);
     } catch (error) {
       showToast(apiMessage(error, 'Unable to load students'), 'error');
     } finally {
       setLoading(false);
+      setLoadedOnce(true);
     }
-  }, [filters, showToast]);
+  }, [filterParams, pager.page, pager.pageSize, showToast]);
+
+  // A changed filter starts again from the first page.
+  const updateFilters = useCallback((updater) => {
+    setFilters(updater);
+    setPager((prev) => ({ ...prev, page: 1 }));
+  }, []);
 
   useEffect(() => {
-    Promise.all([loadReferenceData(), loadStudents()]).catch((error) => {
+    loadReferenceData().catch((error) => {
       showToast(apiMessage(error, 'Unable to initialise student management'), 'error');
-      setLoading(false);
     });
-  }, [loadReferenceData, loadStudents, showToast]);
+  }, [loadReferenceData, showToast]);
 
-  const stats = useMemo(() => {
-    const active = students.filter((item) => item.status === 'ACTIVE').length;
-    const inactive = students.filter((item) => item.status === 'INACTIVE').length;
-    const withdrawn = students.filter((item) => item.enrollment?.status === 'WITHDRAWN').length;
-    return [
-      { label: 'Total Students', value: students.length },
-      { label: 'Active', value: active },
-      { label: 'Inactive', value: inactive },
-      { label: 'Withdrawn', value: withdrawn },
-    ];
-  }, [students]);
+  useEffect(() => {
+    loadStudents();
+  }, [loadStudents]);
+
+  // Counts come from the server, for the selected year / class / section.
+  const stats = useMemo(
+    () => [
+      { label: 'Total Students', value: serverStats.total },
+      { label: 'Active', value: serverStats.active },
+      { label: 'Inactive', value: serverStats.inactive },
+      { label: 'Withdrawn', value: serverStats.withdrawn },
+    ],
+    [serverStats]
+  );
 
   const resetForm = () => {
     if (photoPreview.startsWith('blob:')) {
@@ -377,6 +392,13 @@ export const StudentManagement = () => {
       setSaving(false);
     }
   };
+
+  useEffect(() => {
+    if (!editParam) return;
+    // The student may not be on the page currently shown; the modal loads by id.
+    openEditModal({ id: editParam });
+    setSearchParams({}, { replace: true });
+  }, [editParam, setSearchParams]);
 
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0];
@@ -569,8 +591,8 @@ export const StudentManagement = () => {
     navigate(`/school-admin/students/${student.id}`);
   };
 
-  const tableRows = useMemo(() => {
-    return students.map((student) => ({
+  const toTableRows = (list) =>
+    list.map((student) => ({
       ...student,
       name: student.name || [student.firstName, student.lastName].filter(Boolean).join(' '),
       className: student.enrollment?.class?.name || 'â',
@@ -580,7 +602,18 @@ export const StudentManagement = () => {
       guardianPhone: student.parentPhone || student.phone || 'â',
       photoUrl: buildStudentPhotoUrl(student.photo),
     }));
-  }, [students]);
+
+  const tableRows = useMemo(() => toTableRows(students), [students]);
+
+  // Export covers every student matching the filters, not just the page on screen.
+  const handleExport = async () => {
+    try {
+      const result = await schoolPortalApi.students(filterParams());
+      exportToCSV(toTableRows(result.data || []), 'students.csv');
+    } catch (error) {
+      showToast(apiMessage(error, 'Unable to export students'), 'error');
+    }
+  };
 
   const columns = [
     {
@@ -682,7 +715,7 @@ export const StudentManagement = () => {
           <select
             value={filters.academicYearId}
             onChange={(e) =>
-              setFilters((prev) => ({ ...prev, academicYearId: e.target.value, classId: '', sectionId: '' }))
+              updateFilters((prev) => ({ ...prev, academicYearId: e.target.value, classId: '', sectionId: '' }))
             }
             className={inputClass}
           >
@@ -698,7 +731,7 @@ export const StudentManagement = () => {
           <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Class</label>
           <select
             value={filters.classId}
-            onChange={(e) => setFilters((prev) => ({ ...prev, classId: e.target.value, sectionId: '' }))}
+            onChange={(e) => updateFilters((prev) => ({ ...prev, classId: e.target.value, sectionId: '' }))}
             className={inputClass}
           >
             <option value="">All classes</option>
@@ -713,7 +746,7 @@ export const StudentManagement = () => {
           <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Section</label>
           <select
             value={filters.sectionId}
-            onChange={(e) => setFilters((prev) => ({ ...prev, sectionId: e.target.value }))}
+            onChange={(e) => updateFilters((prev) => ({ ...prev, sectionId: e.target.value }))}
             className={inputClass}
           >
             <option value="">All sections</option>
@@ -734,7 +767,7 @@ export const StudentManagement = () => {
           <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Status</label>
           <select
             value={filters.status}
-            onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
+            onChange={(e) => updateFilters((prev) => ({ ...prev, status: e.target.value }))}
             className={inputClass}
           >
             <option value="">All statuses</option>
@@ -744,9 +777,9 @@ export const StudentManagement = () => {
         </div>
       </div>
 
-      {loading ? (
+      {!loadedOnce ? (
         <SkeletonTable rows={8} columns={6} />
-      ) : students.length === 0 ? (
+      ) : serverStats.total === 0 && !pager.search && !filters.status ? (
         <EmptyState
           title="No students found"
           description="Start by adding a student record and mapping them to the correct academic year, class, and section."
@@ -760,7 +793,14 @@ export const StudentManagement = () => {
         <DataTable
           columns={columns}
           data={tableRows}
-          defaultPageSize={5}
+          loading={loading}
+          server={{
+            total,
+            page: pager.page,
+            pageSize: pager.pageSize,
+            onChange: setPager,
+            onExport: handleExport,
+          }}
           onRowClick={handleView}
           searchPlaceholder="Search by student, admission number, parent, or email..."
           emptyMessage="No students match the current filters."

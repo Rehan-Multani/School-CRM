@@ -83,8 +83,8 @@ function normalizePayload(payload, createdBy) {
 function mapPlanTypeToInterval(planType) {
   if (planType === 'Yearly') return 'yearly';
   if (planType === 'Monthly') return 'monthly';
-  return ''; // Weekly has no Razorpay recurring equivalent (period supports daily/weekly/monthly/yearly, but
-  // this product intentionally only offers monthly/yearly recurring per the business requirement).
+  if (planType === 'Weekly') return 'weekly';
+  return ''; // Razorpay's plan `period` also has daily/quarterly; this product does not offer them.
 }
 
 export class SubscriptionService {
@@ -116,7 +116,7 @@ export class SubscriptionService {
       // Recovery / explicit linkage path — trust only after fetching it back from Razorpay.
       const existing = await razorpaySubscriptionService.fetchPlan(String(payload.razorpayPlanId).trim());
       normalized.razorpayPlanId = existing.id;
-      normalized.billingInterval = existing.period === 'yearly' ? 'yearly' : 'monthly';
+      normalized.billingInterval = BILLING_INTERVALS.includes(existing.period) ? existing.period : 'monthly';
       normalized.billingIntervalCount = existing.interval || 1;
       normalized.trialDays = Number(payload?.trialDays) || 0;
     } else if (payload?.makeRecurring !== false) {
@@ -207,7 +207,7 @@ export class SubscriptionService {
 
     if (wantsToEnableRecurring) {
       const interval = mapPlanTypeToInterval(next.planType || existing.planType);
-      if (!interval) throw new AppError('Only Monthly or Yearly plans can be made recurring', 400);
+      if (!interval) throw new AppError('Only Weekly, Monthly or Yearly plans can be made recurring', 400);
       const rzpPlan = await razorpaySubscriptionService.createPlan({
         interval,
         intervalCount: 1,

@@ -25,7 +25,7 @@ async function assertSchoolUsable(schoolId) {
  * Lazily creates the matching Razorpay recurring Plan the first time anyone
  * tries to subscribe to it, so Super Admin doesn't have to pre-toggle
  * recurring billing on every plan before it's usable for onboarding.
- * Weekly plans are excluded per business decision (see subscription.service.js).
+ * Weekly, Monthly and Yearly plans all map to a Razorpay plan period.
  */
 async function assertPlanUsable(planId) {
   const plan = await subscriptionRepository.findById(planId);
@@ -36,7 +36,7 @@ async function assertPlanUsable(planId) {
     if (!interval) {
       console.log(`[subscription-flow] plan "${plan.name}" (${plan.planType}) cannot be recurring — no interval mapping`);
       throw new AppError(
-        'This plan does not support recurring billing — only Monthly or Yearly plans can be subscribed to. Ask your Super Admin to adjust it.',
+        'This plan does not support recurring billing — only Weekly, Monthly or Yearly plans can be subscribed to. Ask your Super Admin to adjust it.',
         400
       );
     }

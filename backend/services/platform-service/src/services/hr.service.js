@@ -156,6 +156,10 @@ function normalizeSchoolUser(user) {
   };
 }
 
+// Text from a request body: anything that is not a string counts as empty, so a
+// wrong-typed field fails validation instead of crashing the request.
+const text = (value) => (typeof value === 'string' ? value.trim() : '');
+
 class HRService {
   // ==========================================
   // DASHBOARD
@@ -301,15 +305,16 @@ class HRService {
   }
 
   async createEmployee(schoolId, payload = {}) {
-    const employeeType = (payload.employeeType || 'STAFF').toUpperCase();
-    const name = payload.name || `${payload.firstName || ''} ${payload.lastName || ''}`.trim();
+    const employeeType = (text(payload.employeeType) || 'STAFF').toUpperCase();
+    const name = text(payload.name) || `${text(payload.firstName)} ${text(payload.lastName)}`.trim();
     if (!name) throw new AppError('Employee name is required', 400);
 
-    const email = (payload.email || '').trim().toLowerCase();
+    const email = text(payload.email).toLowerCase();
     if (!email) throw new AppError('Employee email is required', 400);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new AppError('Employee email must be a valid email address', 400);
 
-    const employeeId = (payload.employeeId || `${employeeType === 'TEACHER' ? 'TCH' : 'STF'}-${Date.now().toString().slice(-4)}`).trim();
-    const status = (payload.status || 'PENDING_APPROVAL').toUpperCase();
+    const employeeId = text(payload.employeeId) || `${employeeType === 'TEACHER' ? 'TCH' : 'STF'}-${Date.now().toString().slice(-4)}`;
+    const status = (text(payload.status) || 'PENDING_APPROVAL').toUpperCase();
 
     if (employeeType === 'TEACHER') {
       const existing = await Teacher.findOne({ schoolId, $or: [{ email }, { employeeId }] });
@@ -562,6 +567,7 @@ class HRService {
 
   async updateEmployeeStatus(schoolId, id, status) {
     const validStatus = ['ACTIVE', 'INACTIVE', 'PENDING_APPROVAL', 'PENDING', 'REJECTED', 'ON_LEAVE', 'SUSPENDED'];
+    status = text(status);
     if (!validStatus.includes(status.toUpperCase())) {
       throw new AppError('Invalid status', 400);
     }
@@ -705,7 +711,7 @@ class HRService {
   }
 
   async createDepartment(schoolId, payload = {}) {
-    const name = (payload.name || '').trim();
+    const name = text(payload.name);
     if (!name) throw new AppError('Department name is required', 400);
 
     const existing = await hrRepository.findDepartmentByName(schoolId, name);
@@ -742,7 +748,7 @@ class HRService {
   }
 
   async createDesignation(schoolId, payload = {}) {
-    const title = (payload.title || '').trim();
+    const title = text(payload.title);
     if (!title) throw new AppError('Designation title is required', 400);
 
     const existing = await hrRepository.findDesignationByTitle(schoolId, title);
@@ -805,36 +811,42 @@ class HRService {
     return leave.toPublicJSON();
   }
 
+  // A leave request is decided once: only a PENDING one can be approved or
+  // rejected, and a request that is already rejected/cancelled cannot be cancelled again.
+  async _moveLeave(schoolId, id, fromStatuses, data, refusal) {
+    const leave = await hrRepository.transitionLeaveRequest(schoolId, id, fromStatuses, data);
+    if (leave) return leave;
+    if (!(await hrRepository.leaveRequestExists(schoolId, id))) throw new AppError('Leave request not found', 404);
+    throw new AppError(refusal, 409);
+  }
+
   async approveLeave(schoolId, id, approverName = 'HR Manager') {
-    const leave = await hrRepository.updateLeaveRequest(schoolId, id, {
+    const leave = await this._moveLeave(schoolId, id, ['PENDING'], {
       status: 'APPROVED',
       approvedBy: approverName,
       approvedAt: new Date(),
-    });
-    if (!leave) throw new AppError('Leave request not found', 404);
+    }, 'Only a pending leave request can be approved');
     const json = leave.toPublicJSON();
     pushEvents.leaveDecided(schoolId, json).catch(() => {});
     return json;
   }
 
   async rejectLeave(schoolId, id, reason = '', rejectorName = 'HR Manager') {
-    const leave = await hrRepository.updateLeaveRequest(schoolId, id, {
+    const leave = await this._moveLeave(schoolId, id, ['PENDING'], {
       status: 'REJECTED',
       rejectedBy: rejectorName,
       rejectedAt: new Date(),
       rejectionReason: reason,
-    });
-    if (!leave) throw new AppError('Leave request not found', 404);
+    }, 'Only a pending leave request can be rejected');
     const json = leave.toPublicJSON();
     pushEvents.leaveDecided(schoolId, json).catch(() => {});
     return json;
   }
 
   async cancelLeave(schoolId, id) {
-    const leave = await hrRepository.updateLeaveRequest(schoolId, id, {
+    const leave = await this._moveLeave(schoolId, id, ['PENDING', 'APPROVED'], {
       status: 'CANCELLED',
-    });
-    if (!leave) throw new AppError('Leave request not found', 404);
+    }, 'This leave request is already closed');
     return leave.toPublicJSON();
   }
 
@@ -1182,8 +1194,11 @@ class HRService {
     }
 
     const updateData = {};
-    if (title !== undefined) updateData.title = title.trim();
-    if (description !== undefined) updateData.description = description.trim();
+    if (title !== undefined) {
+      if (!text(title)) throw new AppError('Title must be text', 400);
+      updateData.title = text(title);
+    }
+    if (description !== undefined) updateData.description = text(description);
     if (priority !== undefined) updateData.priority = priority;
 
     const updated = await PlatformNotification.findOneAndUpdate(

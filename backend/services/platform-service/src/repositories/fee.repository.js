@@ -273,6 +273,17 @@ export class FeeRepository {
       .sort({ createdAt: 1 });
   }
 
+  // The whole-structure assignment a student already holds for a year, if any.
+  findStructureAssignment(schoolId, studentId, academicYearId, feeStructureId) {
+    return StudentFeeAssignment.findOne({
+      schoolId: toObjectId(schoolId),
+      studentId: toObjectId(studentId),
+      academicYearId: toObjectId(academicYearId),
+      feeStructureId: toObjectId(feeStructureId),
+      feeStructureItemId: null,
+    });
+  }
+
   findAssignmentById(schoolId, id) {
     return StudentFeeAssignment.findOne({ _id: toObjectId(id), schoolId: toObjectId(schoolId) })
       .populate('studentId')
@@ -343,6 +354,16 @@ export class FeeRepository {
         .limit(safeLimit),
       FeeInvoice.countDocuments(query),
     ]).then(([items, total]) => ({ items, total, page: safePage, limit: safeLimit }));
+  }
+
+  // A live (not cancelled) invoice the student already has for this billing period.
+  findInvoiceForPeriod(schoolId, studentId, periodLabel) {
+    return FeeInvoice.findOne({
+      schoolId: toObjectId(schoolId),
+      studentId: toObjectId(studentId),
+      periodLabel,
+      status: { $ne: 'CANCELLED' },
+    }).select('_id invoiceNumber');
   }
 
   findInvoiceById(schoolId, id) {

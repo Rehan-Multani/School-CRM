@@ -21,6 +21,7 @@ import { ExamResult } from '../models/ExamResult.js';
 import { Event } from '../models/Event.js';
 import { Homework } from '../models/Homework.js';
 import { StudentAttendance } from '../models/StudentAttendance.js';
+import { StudentEnrollment } from '../models/StudentEnrollment.js';
 
 export const schoolDashboardService = {
   async getDashboardSummary(schoolId) {
@@ -50,7 +51,21 @@ export const schoolDashboardService = {
     const targetObjId = mongoose.isValidObjectId(targetId) ? targetId : new mongoose.Types.ObjectId();
     const schoolQuery = { schoolId: targetObjId };
 
-    // 1. Core Counts
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const currentMonthIdx = now.getMonth();
+    const trendMonths = [];
+    for (let i = 6; i >= 0; i--) {
+      trendMonths.push({
+        name: months[(currentMonthIdx - i + 12) % 12],
+        from: new Date(now.getFullYear(), currentMonthIdx - i, 1),
+        to: new Date(now.getFullYear(), currentMonthIdx - i + 1, 1),
+      });
+    }
+    const sumAmount = (match) =>
+      FeePayment.aggregate([{ $match: match }, { $group: { _id: null, total: { $sum: { $ifNull: ['$amount', 0] } } } }]);
+
+    // Every figure below is independent of the others, so they are fetched in
+    // one parallel wave — the page waits for the slowest query, not their sum.
     const [
       totalStudents,
       totalTeachers,
@@ -64,6 +79,22 @@ export const schoolDashboardService = {
       totalVehicles,
       activeTransportStudents,
       totalExams,
+      todayStaffAttendance,
+      todayPaid,
+      monthPaid,
+      pendingAgg,
+      maleStudents,
+      femaleStudents,
+      classes,
+      strengthAgg,
+      trendCounts,
+      recentStudents,
+      recentPayments,
+      recentIssues,
+      recentAllocations,
+      evRows,
+      hwAgg,
+      saAgg,
     ] = await Promise.all([
       Student.countDocuments({ ...schoolQuery, status: 'ACTIVE' }),
       Teacher.countDocuments({ ...schoolQuery, status: 'ACTIVE' }),
@@ -77,10 +108,80 @@ export const schoolDashboardService = {
       Vehicle.countDocuments({ ...schoolQuery, status: 'ACTIVE' }),
       StudentTransportAssignment.countDocuments({ ...schoolQuery, status: 'ACTIVE' }),
       Exam.countDocuments({ ...schoolQuery, status: { $in: ['ACTIVE', 'SCHEDULED', 'IN_PROGRESS'] } }),
+      // Staff attendance today
+      StaffAttendance.findOne({ ...schoolQuery, date: todayStr }).lean(),
+      // Fee collection today & this month, and what is still owed — summed in the database
+      sumAmount({ ...schoolQuery, createdAt: { $gte: startOfToday } }),
+      sumAmount({ ...schoolQuery, createdAt: { $gte: startOfMonth } }),
+      FeeInvoice.aggregate([
+        { $match: { ...schoolQuery, status: { $in: ['PENDING', 'PARTIAL', 'OVERDUE'] } } },
+        {
+          $group: {
+            _id: null,
+            total: {
+              $sum: {
+                $cond: [
+                  { $ne: [{ $ifNull: ['$balanceAmount', 0] }, 0] },
+                  '$balanceAmount',
+                  { $ifNull: ['$totalAmount', 0] },
+                ],
+              },
+            },
+          },
+        },
+      ]),
+      // Gender ratio
+      Student.countDocuments({ ...schoolQuery, gender: { $regex: /^m/i } }),
+      Student.countDocuments({ ...schoolQuery, gender: { $regex: /^f/i } }),
+      // Class-wise strength: the first 8 classes, with one grouped count for all of them
+      SchoolClass.find({ ...schoolQuery, status: 'ACTIVE' }).sort({ numericOrder: 1, name: 1 }).limit(8).lean(),
+      // (a student's class lives on the enrollment, not on the Student record)
+      StudentEnrollment.aggregate([{ $match: { ...schoolQuery, status: 'ACTIVE' } }, { $group: { _id: '$classId', count: { $sum: 1 } } }]),
+      // Admissions trend (last 7 months)
+      Promise.all(
+        trendMonths.map((m) => Student.countDocuments({ ...schoolQuery, createdAt: { $gte: m.from, $lt: m.to } }))
+      ),
+      // Recent activity feed
+      Student.find({ schoolId }).sort({ createdAt: -1 }).limit(3).lean(),
+      FeePayment.find({ schoolId }).sort({ createdAt: -1 }).limit(3).lean(),
+      LibraryIssue.find({ schoolId }).sort({ createdAt: -1 }).limit(2).populate('bookId', 'title').lean(),
+      HostelAllocation.find({ schoolId }).sort({ createdAt: -1 }).limit(2).populate('studentId', 'firstName lastName').populate('roomId', 'roomNumber').lean(),
+      // Upcoming events (next 5, not cancelled)
+      Event.find({ schoolId: targetObjId, manualStatus: '', startAt: { $gte: startOfToday } })
+        .sort({ startAt: 1 })
+        .limit(5)
+        .lean()
+        .catch(() => []),
+      // Homework KPIs
+      Homework.aggregate([
+        { $match: { schoolId: targetObjId } },
+        {
+          $group: {
+            _id: null,
+            active: { $sum: { $cond: [{ $eq: ['$status', 'ASSIGNED'] }, 1, 0] } },
+            totalStudents: { $sum: '$totalStudents' },
+            submitted: { $sum: '$submittedCount' },
+          },
+        },
+      ]).catch(() => []),
+      // Student attendance rate (today)
+      StudentAttendance.aggregate([
+        { $match: { schoolId: targetObjId, date: todayStr } },
+        { $unwind: '$entries' },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            present: {
+              $sum: {
+                $cond: [{ $in: ['$entries.status', ['PRESENT', 'LATE', 'HALF_DAY']] }, 1, 0],
+              },
+            },
+          },
+        },
+      ]).catch(() => []),
     ]);
 
-    // 2. Attendance Metrics (Staff Attendance from DB)
-    const todayStaffAttendance = await StaffAttendance.findOne({ ...schoolQuery, date: todayStr }).lean();
     let staffPresentCount = 0;
     let staffTotalCount = totalTeachers + totalStaff;
     if (todayStaffAttendance?.records?.length) {
@@ -89,67 +190,22 @@ export const schoolDashboardService = {
     }
     const staffAttendanceRate = staffTotalCount > 0 ? Math.round((staffPresentCount / staffTotalCount) * 100) : 0;
 
-    // 3. Financial Metrics (Fee collection today & month, pending invoices)
-    const [todayPayments, monthPayments, feeInvoices] = await Promise.all([
-      FeePayment.find({ ...schoolQuery, createdAt: { $gte: startOfToday } }).lean(),
-      FeePayment.find({ ...schoolQuery, createdAt: { $gte: startOfMonth } }).lean(),
-      FeeInvoice.find({ ...schoolQuery, status: { $in: ['PENDING', 'PARTIAL', 'OVERDUE'] } }).select('balanceAmount totalAmount paidAmount').lean(),
-    ]);
-
-    const collectedToday = todayPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
-    const collectedMonth = monthPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
-    const pendingFees = feeInvoices.reduce((sum, inv) => sum + (inv.balanceAmount || inv.totalAmount || 0), 0);
-
-    // 4. Gender Ratio & Distribution (Real data only)
-    const [maleStudents, femaleStudents] = await Promise.all([
-      Student.countDocuments({ ...schoolQuery, gender: { $regex: /^m/i } }),
-      Student.countDocuments({ ...schoolQuery, gender: { $regex: /^f/i } }),
-    ]);
+    const collectedToday = todayPaid[0]?.total || 0;
+    const collectedMonth = monthPaid[0]?.total || 0;
+    const pendingFees = pendingAgg[0]?.total || 0;
 
     const genderDistribution = (totalStudents > 0) ? [
       { name: 'Male', count: maleStudents },
       { name: 'Female', count: femaleStudents },
     ] : [];
 
-    // 5. Class-wise student strength (Real DB data only)
-    const classes = await SchoolClass.find({ ...schoolQuery, status: 'ACTIVE' }).sort({ numericOrder: 1, name: 1 }).limit(8).lean();
-    const classStrength = await Promise.all(
-      classes.map(async (c) => {
-        const count = await Student.countDocuments({ ...schoolQuery, classId: c._id, status: 'ACTIVE' });
-        return {
-          class: c.name || `Class ${c.grade}`,
-          strength: count,
-        };
-      })
-    );
+    const strengthByClass = new Map(strengthAgg.map((row) => [String(row._id), row.count]));
+    const classStrength = classes.map((c) => ({
+      class: c.name || `Class ${c.grade}`,
+      strength: strengthByClass.get(String(c._id)) || 0,
+    }));
 
-    // 6. Admissions Trend (Real monthly grouping from Student collection)
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const currentMonthIdx = now.getMonth();
-    const admissionsTrend = [];
-    for (let i = 6; i >= 0; i--) {
-      const targetMonthDate = new Date(now.getFullYear(), currentMonthIdx - i, 1);
-      const nextMonthDate = new Date(now.getFullYear(), currentMonthIdx - i + 1, 1);
-      const mName = months[(currentMonthIdx - i + 12) % 12];
-      
-      const count = await Student.countDocuments({
-        ...schoolQuery,
-        createdAt: { $gte: targetMonthDate, $lt: nextMonthDate },
-      });
-
-      admissionsTrend.push({
-        month: mName,
-        admissions: count,
-      });
-    }
-
-    // 7. Recent Activities Feed (from real records)
-    const [recentStudents, recentPayments, recentIssues, recentAllocations] = await Promise.all([
-      Student.find({ schoolId }).sort({ createdAt: -1 }).limit(3).lean(),
-      FeePayment.find({ schoolId }).sort({ createdAt: -1 }).limit(3).lean(),
-      LibraryIssue.find({ schoolId }).sort({ createdAt: -1 }).limit(2).populate('bookId', 'title').lean(),
-      HostelAllocation.find({ schoolId }).sort({ createdAt: -1 }).limit(2).populate('studentId', 'firstName lastName').populate('roomId', 'roomNumber').lean(),
-    ]);
+    const admissionsTrend = trendMonths.map((m, i) => ({ month: m.name, admissions: trendCounts[i] }));
 
     const recentActivities = [];
 
@@ -193,77 +249,21 @@ export const schoolDashboardService = {
       });
     });
 
-    // Upcoming events (next 5, not cancelled)
-    let upcomingEvents = [];
-    try {
-      const evRows = await Event.find({
-        schoolId: targetObjId,
-        manualStatus: '',
-        startAt: { $gte: startOfToday },
-      })
-        .sort({ startAt: 1 })
-        .limit(5)
-        .lean();
-      upcomingEvents = evRows.map((e) => ({
-        id: String(e._id),
-        title: e.title,
-        category: e.category,
-        startAt: e.startAt,
-        endAt: e.endAt,
-        venue: e.venue || '',
-      }));
-    } catch {
-      upcomingEvents = [];
-    }
+    const upcomingEvents = evRows.map((e) => ({
+      id: String(e._id),
+      title: e.title,
+      category: e.category,
+      startAt: e.startAt,
+      endAt: e.endAt,
+      venue: e.venue || '',
+    }));
 
-    // Homework KPIs
-    let activeHomework = 0;
-    let homeworkSubmissionRate = 0;
-    try {
-      const hwAgg = await Homework.aggregate([
-        { $match: { schoolId: targetObjId } },
-        {
-          $group: {
-            _id: null,
-            active: { $sum: { $cond: [{ $eq: ['$status', 'ASSIGNED'] }, 1, 0] } },
-            totalStudents: { $sum: '$totalStudents' },
-            submitted: { $sum: '$submittedCount' },
-          },
-        },
-      ]);
-      const h = hwAgg[0];
-      if (h) {
-        activeHomework = h.active;
-        homeworkSubmissionRate =
-          h.totalStudents > 0 ? Math.round((h.submitted / h.totalStudents) * 100) : 0;
-      }
-    } catch {
-      activeHomework = 0;
-    }
+    const h = hwAgg[0];
+    const activeHomework = h ? h.active : 0;
+    const homeworkSubmissionRate = h && h.totalStudents > 0 ? Math.round((h.submitted / h.totalStudents) * 100) : 0;
 
-    // Student attendance rate (today)
-    let studentAttendanceRate = 0;
-    try {
-      const saAgg = await StudentAttendance.aggregate([
-        { $match: { schoolId: targetObjId, date: todayStr } },
-        { $unwind: '$entries' },
-        {
-          $group: {
-            _id: null,
-            total: { $sum: 1 },
-            present: {
-              $sum: {
-                $cond: [{ $in: ['$entries.status', ['PRESENT', 'LATE', 'HALF_DAY']] }, 1, 0],
-              },
-            },
-          },
-        },
-      ]);
-      const sa = saAgg[0];
-      if (sa && sa.total > 0) studentAttendanceRate = Math.round((sa.present / sa.total) * 100);
-    } catch {
-      studentAttendanceRate = 0;
-    }
+    const sa = saAgg[0];
+    const studentAttendanceRate = sa && sa.total > 0 ? Math.round((sa.present / sa.total) * 100) : 0;
 
     return {
       kpi: {

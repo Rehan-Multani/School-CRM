@@ -23,6 +23,12 @@ function cleanupStudentUploadFiles(files) {
 
 export async function listStudents(req, res, next) {
   try {
+    // Paged only when the caller asks for a page; other screens still get the full list.
+    if (req.query.page !== undefined) {
+      const result = await studentService.listStudentsPage(schoolId(req), req.query);
+      res.json({ success: true, ...result });
+      return;
+    }
     const data = await studentService.listStudents(schoolId(req), req.query);
     res.json({ success: true, data });
   } catch (error) {

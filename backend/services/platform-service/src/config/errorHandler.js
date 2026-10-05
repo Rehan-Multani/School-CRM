@@ -1,5 +1,17 @@
 import { env } from './env.js';
 
+// A request body field of the wrong type (a number or object where text is
+// expected) makes string handling throw, e.g. "payload.name.trim is not a
+// function". That is the caller's mistake, so it is answered with a 400 rather
+// than a 500. Only write requests are covered, and the error is still logged.
+const TEXT_METHODS = 'trim|split|toUpperCase|toLowerCase|replace|startsWith|includes|match|slice|padStart';
+const INPUT_SHAPE_RE = new RegExp(
+  `\\.(${TEXT_METHODS}) is not a function|Cannot read properties of (undefined|null) \\(reading '(${TEXT_METHODS})'\\)`
+);
+function isInputShapeError(err, req) {
+  return err instanceof TypeError && req.method !== 'GET' && INPUT_SHAPE_RE.test(err.message || '');
+}
+
 export function errorHandler(err, req, res, next) {
   if (err?.code === 'LIMIT_FILE_SIZE') {
     res.status(400).json({
@@ -17,7 +29,12 @@ export function errorHandler(err, req, res, next) {
     ? { statusCode: 400, message: 'Invalid identifier in request', code: 'INVALID_ID' }
     : err?.code === 11000
       ? { statusCode: 409, message: 'This record already exists', code: 'DUPLICATE' }
-      : null;
+      : err?.name === 'ValidationError' && err?.errors
+        ? // A Mongoose schema rule rejected the input (missing/invalid field).
+          { statusCode: 400, message: 'Some fields are missing or invalid', code: 'VALIDATION_ERROR' }
+        : isInputShapeError(err, req)
+          ? { statusCode: 400, message: 'Some fields are missing or invalid', code: 'VALIDATION_ERROR' }
+          : null;
   const statusCode = known?.statusCode || err.statusCode || 500;
   // `expose` = http-errors' own "safe for clients" flag (body-parser 400/413).
   const safe = err.isOperational || (err.expose === true && statusCode < 500);

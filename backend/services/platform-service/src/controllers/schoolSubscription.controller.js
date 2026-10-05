@@ -1,6 +1,7 @@
 import { schoolSubscriptionService } from '../services/schoolSubscription.service.js';
 import { razorpaySubscriptionService } from '../services/razorpaySubscription.service.js';
 import { subscriptionAccessService } from '../services/subscriptionAccess.service.js';
+import { confirmPendingCheckout } from '../services/subscriptionSync.service.js';
 import { AppError } from '../../../shared/AppError.js';
 
 function actorFrom(req, source) {
@@ -139,6 +140,19 @@ export async function getMyEntitlement(req, res, next) {
         features: entitlement.features,
       },
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Called by the Plans page after the Razorpay checkout closes, so the school is
+// let in as soon as Razorpay has the payment — not only when the webhook lands.
+export async function syncMySubscription(req, res, next) {
+  try {
+    const schoolId = schoolAdminSchoolId(req);
+    await confirmPendingCheckout(schoolId);
+    const entitlement = await subscriptionAccessService.getEntitlement(schoolId);
+    res.json({ success: true, data: { state: entitlement.state, hasFullAccess: entitlement.hasFullAccess } });
   } catch (error) {
     next(error);
   }

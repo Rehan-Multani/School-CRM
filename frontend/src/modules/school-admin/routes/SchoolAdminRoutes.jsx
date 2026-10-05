@@ -1,58 +1,66 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Dashboard } from '../pages/Dashboard';
-import { SchoolConfig } from '../pages/school-config/SchoolConfig';
-import { RolesAndPermissions } from '../pages/roles/RolesAndPermissions';
-import { UserManagement } from '../pages/users/UserManagement';
-import UserDetail from '../pages/users/UserDetail';
-import { AdmissionManagement } from '../pages/admissions/AdmissionManagement';
-import AcademicIndex from '../pages/academics/AcademicIndex';
-import AcademicYearsIndex from '../pages/academics/AcademicYearsIndex';
-import AcademicYearDetail from '../pages/academics/AcademicYearDetail';
-import ClassesIndex from '../pages/academics/ClassesIndex';
-import SubjectsIndex from '../pages/academics/SubjectsIndex';
-import SectionDetail from '../pages/academics/SectionDetail';
-import { SubjectAssignments } from '../pages/academics/SubjectAssignments';
-import { ClassTeachers } from '../pages/academics/ClassTeachers';
-import { AttendanceHub } from '../pages/attendance/AttendanceHub';
-import { ExamManagement } from '../pages/exams/ExamManagement';
-import { ExamDetail } from '../pages/exams/ExamDetail';
-import { FeeManagement } from '../pages/fees/FeeManagement';
-import { FeeHeadsIndex } from '../pages/fees/FeeHeadsIndex';
-import { FeeStructuresIndex } from '../pages/fees/FeeStructuresIndex';
-import { FeeStructureDetail } from '../pages/fees/FeeStructureDetail';
-import { StudentManagement } from '../pages/students/StudentManagement';
-import StudentDetail from '../pages/students/StudentDetail';
-import { TeacherManagement } from '../pages/teachers/TeacherManagement';
-import TeacherDetail from '../pages/teachers/TeacherDetail';
-import { HomeworkMonitor } from '../pages/homework/HomeworkMonitor';
-import { CommunicationHub } from '../pages/communication/CommunicationHub';
-import NotificationsIndex from '../pages/notifications/NotificationsIndex';
-import { TransportManagement } from '../pages/transport/TransportManagement';
-import { HostelManagement } from '../pages/hostel/HostelManagement';
-import { LibraryDashboard } from '../pages/library/LibraryDashboard';
-import { LibraryBooks } from '../pages/library/LibraryBooks';
-import { LibraryCategories } from '../pages/library/LibraryCategories';
-import { LibraryRules } from '../pages/library/LibraryRules';
-import { LibraryReports } from '../pages/library/LibraryReports';
-import { HRAndPayroll } from '../pages/hr/HRAndPayroll';
-import { DepartmentManagement } from '../pages/hr/DepartmentManagement';
-import { DesignationManagement } from '../pages/hr/DesignationManagement';
-import { PerformanceReviews } from '../pages/hr/PerformanceReviews';
-import { InventoryManagement } from '../pages/inventory/InventoryManagement';
-import { EventsManagement } from '../pages/events/EventsManagement';
-import { ReportsHub } from '../pages/reports/ReportsHub';
-import { AuditLogs } from '../pages/audit/AuditLogs';
-import { Support } from '../pages/support/Support';
-import { Settings } from '../pages/settings/Settings';
-import { SafePickup } from '../pages/settings/SafePickup';
-import { SafePickupHistory } from '../pages/settings/SafePickupHistory';
-import { SafePickup as SafePickupOperations } from '../pages/safe-pickup/SafePickup';
-import { SafePickupHistory as SafePickupOperationsHistory } from '../pages/safe-pickup/SafePickupHistory';
-import SubscriptionPlans from '../pages/plans/SubscriptionPlans';
+const Dashboard = lazy(() => import('../pages/Dashboard').then((m) => ({ default: m.Dashboard })));
+const SchoolConfig = lazy(() => import('../pages/school-config/SchoolConfig').then((m) => ({ default: m.SchoolConfig })));
+const RolesAndPermissions = lazy(() => import('../pages/roles/RolesAndPermissions').then((m) => ({ default: m.RolesAndPermissions })));
+const UserManagement = lazy(() => import('../pages/users/UserManagement').then((m) => ({ default: m.UserManagement })));
+const UserDetail = lazy(() => import('../pages/users/UserDetail'));
+const AdmissionManagement = lazy(() => import('../pages/admissions/AdmissionManagement').then((m) => ({ default: m.AdmissionManagement })));
+const AcademicIndex = lazy(() => import('../pages/academics/AcademicIndex'));
+const AcademicYearsIndex = lazy(() => import('../pages/academics/AcademicYearsIndex'));
+const AcademicYearDetail = lazy(() => import('../pages/academics/AcademicYearDetail'));
+const ClassesIndex = lazy(() => import('../pages/academics/ClassesIndex'));
+const SubjectsIndex = lazy(() => import('../pages/academics/SubjectsIndex'));
+const SectionDetail = lazy(() => import('../pages/academics/SectionDetail'));
+const SubjectAssignments = lazy(() => import('../pages/academics/SubjectAssignments').then((m) => ({ default: m.SubjectAssignments })));
+const ClassTeachers = lazy(() => import('../pages/academics/ClassTeachers').then((m) => ({ default: m.ClassTeachers })));
+const AttendanceHub = lazy(() => import('../pages/attendance/AttendanceHub').then((m) => ({ default: m.AttendanceHub })));
+const ExamManagement = lazy(() => import('../pages/exams/ExamManagement').then((m) => ({ default: m.ExamManagement })));
+const ExamDetail = lazy(() => import('../pages/exams/ExamDetail').then((m) => ({ default: m.ExamDetail })));
+const FeeManagement = lazy(() => import('../pages/fees/FeeManagement').then((m) => ({ default: m.FeeManagement })));
+const FeeHeadsIndex = lazy(() => import('../pages/fees/FeeHeadsIndex').then((m) => ({ default: m.FeeHeadsIndex })));
+const FeeStructuresIndex = lazy(() => import('../pages/fees/FeeStructuresIndex').then((m) => ({ default: m.FeeStructuresIndex })));
+const FeeStructureDetail = lazy(() => import('../pages/fees/FeeStructureDetail').then((m) => ({ default: m.FeeStructureDetail })));
+const StudentManagement = lazy(() => import('../pages/students/StudentManagement').then((m) => ({ default: m.StudentManagement })));
+const StudentDetail = lazy(() => import('../pages/students/StudentDetail'));
+const TeacherManagement = lazy(() => import('../pages/teachers/TeacherManagement').then((m) => ({ default: m.TeacherManagement })));
+const TeacherDetail = lazy(() => import('../pages/teachers/TeacherDetail'));
+const HomeworkMonitor = lazy(() => import('../pages/homework/HomeworkMonitor').then((m) => ({ default: m.HomeworkMonitor })));
+const CommunicationHub = lazy(() => import('../pages/communication/CommunicationHub').then((m) => ({ default: m.CommunicationHub })));
+const NotificationsIndex = lazy(() => import('../pages/notifications/NotificationsIndex'));
+const TransportManagement = lazy(() => import('../pages/transport/TransportManagement').then((m) => ({ default: m.TransportManagement })));
+const HostelManagement = lazy(() => import('../pages/hostel/HostelManagement').then((m) => ({ default: m.HostelManagement })));
+const LibraryDashboard = lazy(() => import('../pages/library/LibraryDashboard').then((m) => ({ default: m.LibraryDashboard })));
+const LibraryBooks = lazy(() => import('../pages/library/LibraryBooks').then((m) => ({ default: m.LibraryBooks })));
+const LibraryCategories = lazy(() => import('../pages/library/LibraryCategories').then((m) => ({ default: m.LibraryCategories })));
+const LibraryRules = lazy(() => import('../pages/library/LibraryRules').then((m) => ({ default: m.LibraryRules })));
+const LibraryReports = lazy(() => import('../pages/library/LibraryReports').then((m) => ({ default: m.LibraryReports })));
+const HRAndPayroll = lazy(() => import('../pages/hr/HRAndPayroll').then((m) => ({ default: m.HRAndPayroll })));
+const DepartmentManagement = lazy(() => import('../pages/hr/DepartmentManagement').then((m) => ({ default: m.DepartmentManagement })));
+const DesignationManagement = lazy(() => import('../pages/hr/DesignationManagement').then((m) => ({ default: m.DesignationManagement })));
+const PerformanceReviews = lazy(() => import('../pages/hr/PerformanceReviews').then((m) => ({ default: m.PerformanceReviews })));
+const InventoryManagement = lazy(() => import('../pages/inventory/InventoryManagement').then((m) => ({ default: m.InventoryManagement })));
+const EventsManagement = lazy(() => import('../pages/events/EventsManagement').then((m) => ({ default: m.EventsManagement })));
+const ReportsHub = lazy(() => import('../pages/reports/ReportsHub').then((m) => ({ default: m.ReportsHub })));
+const AuditLogs = lazy(() => import('../pages/audit/AuditLogs').then((m) => ({ default: m.AuditLogs })));
+const Support = lazy(() => import('../pages/support/Support').then((m) => ({ default: m.Support })));
+const Settings = lazy(() => import('../pages/settings/Settings').then((m) => ({ default: m.Settings })));
+const SafePickup = lazy(() => import('../pages/settings/SafePickup').then((m) => ({ default: m.SafePickup })));
+const SafePickupHistory = lazy(() => import('../pages/settings/SafePickupHistory').then((m) => ({ default: m.SafePickupHistory })));
+const SafePickupOperations = lazy(() => import('../pages/safe-pickup/SafePickup').then((m) => ({ default: m.SafePickup })));
+const SafePickupOperationsHistory = lazy(() => import('../pages/safe-pickup/SafePickupHistory').then((m) => ({ default: m.SafePickupHistory })));
+const SubscriptionPlans = lazy(() => import('../pages/plans/SubscriptionPlans'));
+
+// Shown in the content area while a page's code is being downloaded.
+const PageLoader = () => (
+  <div className="flex min-h-[40vh] items-center justify-center">
+    <div className="h-8 w-8 animate-spin rounded-full border-t-2 border-indigo-500" />
+  </div>
+);
 
 export const SchoolAdminRoutes = () => {
   return (
+    <Suspense fallback={<PageLoader />}>
     <Routes>
       <Route path="plans" element={<SubscriptionPlans />} />
       <Route path="dashboard" element={<Dashboard />} />
@@ -108,6 +116,7 @@ export const SchoolAdminRoutes = () => {
       <Route path="safe-pickup/history" element={<SafePickupOperationsHistory />} />
       <Route path="*" element={<Navigate to="dashboard" replace />} />
     </Routes>
+    </Suspense>
   );
 };
 export default SchoolAdminRoutes;

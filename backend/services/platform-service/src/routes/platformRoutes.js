@@ -115,6 +115,7 @@ import {
   listSubscriptionHistory,
   getMySubscription,
   getMyEntitlement,
+  syncMySubscription,
   checkoutMySubscription,
   changeMySubscriptionPlan,
   cancelMySubscription,
@@ -1243,6 +1244,7 @@ router.get('/school-subscriptions/:id/history', requireSuperAdmin, listSubscript
 router.get('/school-portal/subscription/checkout-info', requireSchoolAdmin, getSubscriptionCheckoutInfo);
 router.get('/school-portal/subscription', requireSchoolAdmin, getMySubscription);
 router.get('/school-portal/subscription/entitlement', requireSchoolAdmin, getMyEntitlement);
+router.post('/school-portal/subscription/sync', requireSchoolAdmin, syncMySubscription);
 router.post('/school-portal/subscription/checkout', requireSchoolAdmin, checkoutMySubscription);
 router.post('/school-portal/subscription/change-plan', requireSchoolAdmin, changeMySubscriptionPlan);
 router.post('/school-portal/subscription/cancel', requireSchoolAdmin, cancelMySubscription);

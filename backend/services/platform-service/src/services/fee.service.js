@@ -529,6 +529,10 @@ export class FeeService {
     const structure = await feeRepository.findStructureByClassAndYear(schoolId, classId, academicYearId);
     if (!structure) throw new AppError('Fee structure not found for this class and academic year', 404);
 
+    // Assigning the same structure twice would double the student's dues.
+    const existing = await feeRepository.findStructureAssignment(schoolId, studentId, academicYearId, structure._id);
+    if (existing) throw new AppError('This fee structure is already assigned to the student for this academic year', 409);
+
     const assignment = await feeRepository.createAssignment({
       schoolId,
       studentId,
@@ -708,6 +712,12 @@ export class FeeService {
       discountAmount: (a.discountAmount || 0) + (a.concessionAmount || 0),
       finalAmount: a.finalAmount !== undefined ? a.finalAmount : ((a.originalAmount || 0) - (a.discountAmount || 0)),
     }));
+
+    // One invoice per student per period — a second one would bill the same fees twice.
+    const duplicate = await feeRepository.findInvoiceForPeriod(schoolId, studentId, periodLabel);
+    if (duplicate) {
+      throw new AppError(`An invoice (${duplicate.invoiceNumber}) already exists for this student for "${periodLabel}"`, 409);
+    }
 
     const totalAmount = items.reduce((sum, item) => sum + item.finalAmount, 0);
     const invoiceNumber = await feeRepository.getNextInvoiceNumber(schoolId);
