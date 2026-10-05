@@ -13,12 +13,16 @@ export function requirePrincipal(req, res, next) {
     }
 
     const payload = verifyToken(token, env.jwtSecret);
-    if (payload.role !== 'Principal') {
-      throw new AppError('Access denied: Principal privileges required', 403);
+    // The School Admin panel shares these routes with the Principal panel
+    // (dashboard, students, users, exams, timetable, …), so both roles pass.
+    const role = (payload.role || '').toUpperCase();
+    if (role !== 'PRINCIPAL' && role !== 'SCHOOLADMIN') {
+      throw new AppError('Access denied: Principal or School Admin privileges required', 403);
     }
 
     req.user = payload;
-    req.schoolId = payload.schoolId || payload.sub;
+    // A School Admin token carries the school in `sub`; a Principal's in `schoolId`.
+    req.schoolId = role === 'SCHOOLADMIN' ? payload.sub || payload.schoolId : payload.schoolId || payload.sub;
     enforceSubscriptionAccess(req, res, next);
   } catch (error) {
     if (error instanceof AppError) {

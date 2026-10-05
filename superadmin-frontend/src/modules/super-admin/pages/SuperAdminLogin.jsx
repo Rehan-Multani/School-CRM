@@ -22,7 +22,7 @@ const HIGHLIGHTS = [
 ];
 
 const inputClass =
-  'h-12 w-full rounded-xl border border-slate-700/80 bg-slate-950/80 pl-11 pr-3 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition hover:border-slate-600 focus:border-indigo-500 focus:bg-slate-950 focus:ring-4 focus:ring-indigo-500/15 disabled:cursor-not-allowed disabled:opacity-60';
+  'h-12 w-full rounded-xl border border-slate-300 bg-white pl-11 pr-3 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none transition duration-150 hover:border-slate-400 focus:border-indigo-600 focus:bg-white focus:ring-4 focus:ring-indigo-500/15 disabled:cursor-not-allowed disabled:opacity-60 shadow-2xs';
 
 export default function SuperAdminLogin() {
   const [email, setEmail] = useState('superadmin@gmail.com');
@@ -36,6 +36,17 @@ export default function SuperAdminLogin() {
 
   useEffect(() => {
     document.title = 'Super Admin Login | School CRM';
+    // Ensure Super Admin Login page is presented in clean light version
+    const root = window.document.documentElement;
+    const hadDark = root.classList.contains('dark');
+    root.classList.remove('dark');
+
+    return () => {
+      // Restore dark mode if previously set when leaving login
+      if (hadDark && localStorage.getItem('super_admin_theme') === 'dark') {
+        root.classList.add('dark');
+      }
+    };
   }, []);
 
   const handleLoginSubmit = async (e) => {
@@ -58,72 +69,78 @@ export default function SuperAdminLogin() {
   };
 
   return (
-    <div className="dark h-dvh overflow-hidden bg-slate-950 text-slate-100 lg:grid lg:grid-cols-2">
-      <section className="relative hidden h-full items-center justify-center overflow-hidden px-10 lg:flex">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(79,70,229,0.22),_transparent_58%)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(14,165,233,0.10),_transparent_48%)]" />
+    <div className="min-h-dvh h-dvh overflow-hidden bg-slate-50 text-slate-900 selection:bg-indigo-500 selection:text-white lg:grid lg:grid-cols-2">
+      {/* Left Brand Showcase (Desktop) */}
+      <section className="relative hidden h-full items-center justify-center overflow-hidden border-r border-slate-200/80 bg-gradient-to-br from-indigo-50/70 via-slate-50 to-blue-50/50 px-10 lg:flex">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(99,102,241,0.12),_transparent_60%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_rgba(14,165,233,0.08),_transparent_50%)]" />
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.16]"
+          className="pointer-events-none absolute inset-0 opacity-[0.35]"
           style={{
             backgroundImage:
-              'linear-gradient(rgba(148,163,184,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.18) 1px, transparent 1px)',
-            backgroundSize: '56px 56px',
+              'linear-gradient(rgba(148,163,184,0.16) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.16) 1px, transparent 1px)',
+            backgroundSize: '48px 48px',
           }}
         />
 
         <div className="relative z-10 flex w-full max-w-md flex-col items-center text-center">
-          <span className="mb-4 rounded-full border border-indigo-400/20 bg-indigo-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-300">
+          <span className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50/90 px-3.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-indigo-700 shadow-2xs">
             Platform Console
           </span>
-          <div className="rounded-3xl bg-slate-900/50 p-2.5 ring-1 ring-white/10 shadow-[0_0_80px_rgba(79,70,229,0.28)]">
-            <BrandLogo className="h-40 w-40 rounded-[1.15rem]" />
+          <div className="rounded-3xl bg-white p-3 ring-1 ring-slate-200/80 shadow-[0_16px_40px_-10px_rgba(79,70,229,0.14),0_2px_8px_rgba(0,0,0,0.04)]">
+            <BrandLogo className="h-36 w-36 rounded-2xl" />
           </div>
-          <h1 className="mt-5 text-3xl font-semibold tracking-tight text-white">School CRM</h1>
-          <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-400">
+          <h1 className="mt-6 text-3xl font-bold tracking-tight text-slate-900">School CRM</h1>
+          <p className="mt-2 max-w-sm text-sm leading-relaxed text-slate-600">
             One place to create schools, control subscriptions, and run the platform.
           </p>
-          <ul className="mt-6 w-full space-y-2.5 text-left">
+          <ul className="mt-7 w-full space-y-2.5 text-left">
             {HIGHLIGHTS.map(({ icon: Icon, text }) => (
               <li
                 key={text}
-                className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/[0.03] px-3.5 py-2.5"
+                className="flex items-start gap-3.5 rounded-xl border border-slate-200/90 bg-white/80 backdrop-blur-sm px-4 py-3 shadow-2xs transition duration-200 hover:border-indigo-200 hover:bg-white hover:shadow-xs"
               >
-                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-300">
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-indigo-100 bg-indigo-50 text-indigo-600">
                   <Icon className="h-4 w-4" />
                 </span>
-                <span className="text-sm text-slate-300">{text}</span>
+                <span className="text-sm font-medium text-slate-700">{text}</span>
               </li>
             ))}
           </ul>
         </div>
       </section>
 
-      <section className="relative flex h-full items-center justify-center overflow-hidden border-slate-800 bg-slate-950 px-4 lg:border-l">
-        <div className="w-full max-w-[400px]">
-          <div className="mb-5 flex flex-col items-center text-center">
-            <BrandLogo className="mb-3 h-11 w-11 rounded-xl ring-1 ring-white/10" />
-            <h2 className="text-2xl font-semibold tracking-tight text-white">Welcome back</h2>
-            <p className="mt-1.5 text-sm text-slate-400">Sign in with your super admin account</p>
+      {/* Right Login Form */}
+      <section className="relative flex h-full items-center justify-center overflow-y-auto bg-slate-50/40 px-4 py-10 lg:bg-white">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(99,102,241,0.04),_transparent_50%)]" />
+
+        <div className="relative z-10 w-full max-w-[420px]">
+          <div className="mb-6 flex flex-col items-center text-center">
+            <div className="mb-3.5 flex h-14 w-14 items-center justify-center rounded-2xl bg-white ring-1 ring-slate-200/80 shadow-xs">
+              <BrandLogo className="h-9 w-9 rounded-lg" />
+            </div>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900">Welcome back</h2>
+            <p className="mt-1.5 text-sm text-slate-500">Sign in with your super admin account</p>
           </div>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/75 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-7 shadow-[0_12px_36px_-6px_rgba(15,23,42,0.07),0_2px_8px_rgba(0,0,0,0.04)]">
             {error && (
               <div
                 role="alert"
-                className="mb-5 flex items-start gap-2.5 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3.5 py-3 text-sm text-rose-300"
+                className="mb-5 flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50/90 px-3.5 py-3 text-sm text-rose-700 shadow-2xs"
               >
-                <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
-                <span>{error}</span>
+                <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-rose-600" />
+                <span className="font-medium">{error}</span>
               </div>
             )}
 
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label htmlFor="sa-email" className="block text-sm font-medium text-slate-300">
-                  Email
+                <label htmlFor="sa-email" className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                  Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                  <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <input
                     id="sa-email"
                     type="email"
@@ -143,11 +160,11 @@ export default function SuperAdminLogin() {
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor="sa-password" className="block text-sm font-medium text-slate-300">
+                <label htmlFor="sa-password" className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                  <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <input
                     id="sa-password"
                     type={showPassword ? 'text' : 'password'}
@@ -165,7 +182,7 @@ export default function SuperAdminLogin() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((open) => !open)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition hover:bg-slate-800 hover:text-slate-200"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -173,12 +190,16 @@ export default function SuperAdminLogin() {
                 </div>
               </div>
 
-              <Button type="submit" className="mt-2 h-12 w-full gap-2 text-sm font-semibold" disabled={loading}>
+              <Button
+                type="submit"
+                className="mt-3 h-12 w-full gap-2 text-sm font-semibold shadow-md shadow-indigo-500/20"
+                disabled={loading}
+              >
                 {loading ? (
                   'Signing in...'
                 ) : (
                   <>
-                    Sign in
+                    Sign in to Console
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}
@@ -186,8 +207,9 @@ export default function SuperAdminLogin() {
             </form>
           </div>
 
-          <p className="mt-4 text-center text-[11px] tracking-wide text-slate-500">
-            Authorized personnel only · Encrypted sign-in
+          <p className="mt-5 text-center text-xs text-slate-400 flex items-center justify-center gap-1.5">
+            <ShieldCheck className="h-3.5 w-3.5 text-indigo-500" />
+            <span>Authorized personnel only · Encrypted sign-in</span>
           </p>
         </div>
       </section>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useParentAuth } from '../context/ParentAuthContext';
-import { GraduationCap, ArrowRight, ShieldAlert, Eye, EyeOff, LayoutGrid } from 'lucide-react';
+import { useParentTheme } from '../context/ParentThemeContext';
+import { GraduationCap, ArrowRight, ShieldAlert, Eye, EyeOff, LayoutGrid, Sun, Moon } from 'lucide-react';
 
 export const ParentLogin = () => {
   const [email, setEmail] = useState('rajesh.sharma@gmail.com');
@@ -10,6 +11,7 @@ export const ParentLogin = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useParentAuth();
+  const { theme, toggleTheme } = useParentTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -77,7 +79,16 @@ export const ParentLogin = () => {
       </div>
 
       {/* Right Panel – Login Form */}
-      <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-10">
+      <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-10 relative">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="absolute top-4 right-4 z-20 inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition shadow-xs"
+        >
+          {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
+
         {/* Mobile brand */}
         <div className="lg:hidden flex items-center gap-3 mb-8">
           <div className="p-2.5 bg-primary/10 rounded-2xl text-primary">

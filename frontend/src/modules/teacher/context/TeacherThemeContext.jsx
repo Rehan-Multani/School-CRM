@@ -1,6 +1,7 @@
-import React, { createContext, useState, useContext, useLayoutEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, useLayoutEffect, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { usePanelAccent } from '../../../shared/theme/usePanelAccent';
+import { getSharedTheme, setSharedTheme, subscribeSharedTheme } from '../../../shared/theme/themeSync';
 import '../styles/theme.css';
 
 const TeacherThemeContext = createContext();
@@ -24,30 +25,43 @@ export const TeacherThemeProvider = ({ children }) => {
     pathname: location.pathname,
   });
 
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('teacher-theme') || 'light';
-  });
+  const [theme, setTheme] = useState(() => (getSharedTheme() ? 'dark' : 'light'));
+
+  useEffect(() => {
+    return subscribeSharedTheme((isDark) => {
+      setTheme(isDark ? 'dark' : 'light');
+    });
+  }, []);
 
   useLayoutEffect(() => {
     if (isTeacher) {
-      applyThemeClass(theme === 'dark');
-      localStorage.setItem('teacher-theme', theme);
+      const activeTheme = getSharedTheme() ? 'dark' : 'light';
+      if (activeTheme !== theme) {
+        setTheme(activeTheme);
+      }
+      applyThemeClass(activeTheme === 'dark');
     }
   }, [isTeacher, theme]);
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => {
       const next = prev === 'light' ? 'dark' : 'light';
-      if (isTeacher) applyThemeClass(next === 'dark');
+      setSharedTheme(next === 'dark');
       return next;
     });
-  }, [isTeacher]);
+  }, []);
+
+  const handleSetTheme = useCallback((nextTheme) => {
+    setTheme(nextTheme);
+    setSharedTheme(nextTheme === 'dark');
+  }, []);
 
   return (
-    <TeacherThemeContext.Provider value={{ theme, setTheme, toggleTheme, primaryColor, setAccentColor: setPrimaryColor }}>
+    <TeacherThemeContext.Provider value={{ theme, setTheme: handleSetTheme, toggleTheme, primaryColor, setAccentColor: setPrimaryColor }}>
       {children}
     </TeacherThemeContext.Provider>
   );
 };
 
 export const useTeacherTheme = () => useContext(TeacherThemeContext);
+

@@ -1,6 +1,7 @@
-import React, { createContext, useState, useContext, useLayoutEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, useLayoutEffect, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { usePanelAccent } from '../../../shared/theme/usePanelAccent';
+import { getSharedTheme, setSharedTheme, subscribeSharedTheme } from '../../../shared/theme/themeSync';
 import '../styles/theme.css';
 
 const LibrarianThemeContext = createContext();
@@ -8,10 +9,8 @@ const LibrarianThemeContext = createContext();
 function applyThemeClass(isDark) {
   if (isDark) {
     document.documentElement.classList.add('dark');
-    localStorage.setItem('librarian_darkMode', 'true');
   } else {
     document.documentElement.classList.remove('dark');
-    localStorage.setItem('librarian_darkMode', 'false');
   }
 }
 
@@ -27,24 +26,31 @@ export const LibrarianThemeProvider = ({ children }) => {
     pathname: location.pathname,
   });
 
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('librarian_darkMode');
-    return saved ? JSON.parse(saved) : false;
-  });
+  const [darkMode, setDarkMode] = useState(getSharedTheme);
+
+  useEffect(() => {
+    return subscribeSharedTheme((isDark) => {
+      setDarkMode(isDark);
+    });
+  }, []);
 
   useLayoutEffect(() => {
     if (isLibrarian) {
-      applyThemeClass(darkMode);
+      const activeTheme = getSharedTheme();
+      if (activeTheme !== darkMode) {
+        setDarkMode(activeTheme);
+      }
+      applyThemeClass(activeTheme);
     }
   }, [isLibrarian, darkMode]);
 
   const toggleDarkMode = useCallback(() => {
     setDarkMode((prev) => {
       const next = !prev;
-      if (isLibrarian) applyThemeClass(next);
+      setSharedTheme(next);
       return next;
     });
-  }, [isLibrarian]);
+  }, []);
 
   return (
     <LibrarianThemeContext.Provider
@@ -62,3 +68,4 @@ export const useLibrarianTheme = () => {
   }
   return context;
 };
+

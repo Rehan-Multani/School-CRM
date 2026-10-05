@@ -18,6 +18,7 @@ import { RouteStop } from '../src/models/RouteStop.js';
 import { StudentTransportAssignment } from '../src/models/StudentTransportAssignment.js';
 import { TransportDailyStatus } from '../src/models/TransportDailyStatus.js';
 import { SchoolSubscription } from '../src/models/SchoolSubscription.js';
+import { School } from '../src/models/School.js';
 import { userService } from '../src/services/user.service.js';
 import { todayStr } from '../src/utils/transportTime.js';
 
@@ -309,18 +310,25 @@ describe('Transport manager edges · tenancy and the paywall', () => {
     expect(adminMark.body.code).toBe('TRANSPORT_FORBIDDEN');
   });
 
-  it('an expired subscription blocks the buses but not the account', async () => {
+  it('an expired subscription blocks the buses and new sign-ins, but not the signed-in account', async () => {
+    // Expiry also ends the plan mirrored on the school record (webhook / cron).
+    await School.updateOne({ _id: ctx.b.schoolId }, { $set: { subscriptionPlan: '', 'subscription.status': 'Expired' } });
     const sub = await SchoolSubscription.create({ schoolId: ctx.b.schoolId, planId: new mongoose.Types.ObjectId(), status: 'expired' });
 
     expect((await get('/overview', tokenB)).status).toBe(402);
     expect((await get('/fleet', tokenB)).status).toBe(402);
     expect((await mark('post', 'pickup', ctx.b.studentId, undefined, tokenB)).status).toBe(402);
     expect(await TransportDailyStatus.countDocuments({ studentId: ctx.b.studentId })).toBe(0);
-    // Still able to sign in, see who they are, and sign out.
-    expect((await login({ identifier: EMAIL_B, password: PASSWORD })).status).toBe(200);
+    // No new sign-in while the school has no plan; the reason is stated.
+    const blocked = await login({ identifier: EMAIL_B, password: PASSWORD });
+    expect(blocked.status).toBe(403);
+    expect(blocked.body.code).toBe('SCHOOL_SUBSCRIPTION_INACTIVE');
+    // Someone already signed in can still see who they are.
     expect((await get('/me', tokenB)).status).toBe(200);
 
     await SchoolSubscription.deleteOne({ _id: sub._id });
+    await School.updateOne({ _id: ctx.b.schoolId }, { $set: { subscriptionPlan: 'Test Plan', 'subscription.status': 'Active' } });
+    expect((await login({ identifier: EMAIL_B, password: PASSWORD })).status).toBe(200);
     expect((await get('/overview', tokenB)).status).toBe(200);
   });
 });

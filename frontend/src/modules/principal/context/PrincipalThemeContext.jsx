@@ -1,6 +1,7 @@
-import React, { createContext, useState, useContext, useLayoutEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, useLayoutEffect, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { usePanelAccent } from '../../../shared/theme/usePanelAccent';
+import { getSharedTheme, setSharedTheme, subscribeSharedTheme } from '../../../shared/theme/themeSync';
 import '../styles/theme.css';
 
 const PrincipalThemeContext = createContext();
@@ -8,10 +9,8 @@ const PrincipalThemeContext = createContext();
 function applyThemeClass(isDark) {
   if (isDark) {
     document.documentElement.classList.add('dark');
-    localStorage.setItem('principal-theme', 'dark');
   } else {
     document.documentElement.classList.remove('dark');
-    localStorage.setItem('principal-theme', 'light');
   }
 }
 
@@ -26,24 +25,31 @@ export const PrincipalThemeProvider = ({ children }) => {
     pathname: location.pathname,
   });
 
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('principal-theme');
-    return saved ? saved === 'dark' : false;
-  });
+  const [darkMode, setDarkMode] = useState(getSharedTheme);
+
+  useEffect(() => {
+    return subscribeSharedTheme((isDark) => {
+      setDarkMode(isDark);
+    });
+  }, []);
 
   useLayoutEffect(() => {
     if (isPrincipal) {
-      applyThemeClass(darkMode);
+      const activeTheme = getSharedTheme();
+      if (activeTheme !== darkMode) {
+        setDarkMode(activeTheme);
+      }
+      applyThemeClass(activeTheme);
     }
   }, [isPrincipal, darkMode]);
 
   const toggleTheme = useCallback(() => {
     setDarkMode((prev) => {
       const next = !prev;
-      if (isPrincipal) applyThemeClass(next);
+      setSharedTheme(next);
       return next;
     });
-  }, [isPrincipal]);
+  }, []);
 
   return (
     <PrincipalThemeContext.Provider value={{ darkMode, toggleTheme, primaryColor, setAccentColor: setPrimaryColor }}>
@@ -54,3 +60,4 @@ export const PrincipalThemeProvider = ({ children }) => {
 
 export const usePrincipalTheme = () => useContext(PrincipalThemeContext);
 export default PrincipalThemeContext;
+

@@ -1,6 +1,7 @@
-import React, { createContext, useState, useContext, useLayoutEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, useLayoutEffect, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { usePanelAccent } from '../../../shared/theme/usePanelAccent';
+import { getSharedTheme, setSharedTheme, subscribeSharedTheme } from '../../../shared/theme/themeSync';
 import '../styles/theme.css';
 
 const AccountantThemeContext = createContext();
@@ -8,10 +9,8 @@ const AccountantThemeContext = createContext();
 function applyThemeClass(isDark) {
   if (isDark) {
     document.documentElement.classList.add('dark');
-    localStorage.setItem('accountant-theme', 'dark');
   } else {
     document.documentElement.classList.remove('dark');
-    localStorage.setItem('accountant-theme', 'light');
   }
 }
 
@@ -26,24 +25,31 @@ export const AccountantThemeProvider = ({ children }) => {
     pathname: location.pathname,
   });
 
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('accountant-theme');
-    return saved ? saved === 'dark' : false;
-  });
+  const [darkMode, setDarkMode] = useState(getSharedTheme);
+
+  useEffect(() => {
+    return subscribeSharedTheme((isDark) => {
+      setDarkMode(isDark);
+    });
+  }, []);
 
   useLayoutEffect(() => {
     if (isAccountant) {
-      applyThemeClass(darkMode);
+      const activeTheme = getSharedTheme();
+      if (activeTheme !== darkMode) {
+        setDarkMode(activeTheme);
+      }
+      applyThemeClass(activeTheme);
     }
   }, [isAccountant, darkMode]);
 
   const toggleTheme = useCallback(() => {
     setDarkMode((prev) => {
       const next = !prev;
-      if (isAccountant) applyThemeClass(next);
+      setSharedTheme(next);
       return next;
     });
-  }, [isAccountant]);
+  }, []);
 
   return (
     <AccountantThemeContext.Provider value={{ darkMode, toggleTheme, primaryColor, setAccentColor: setPrimaryColor }}>
@@ -54,3 +60,4 @@ export const AccountantThemeProvider = ({ children }) => {
 
 export const useAccountantTheme = () => useContext(AccountantThemeContext);
 export default AccountantThemeContext;
+

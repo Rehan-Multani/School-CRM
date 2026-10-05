@@ -35,6 +35,14 @@ async function setRecurring(schoolId, fields) {
 }
 
 const adminLogin = (email) => request(app).post('/school-auth/login').send({ email, password: 'Admin@123' });
+// The login endpoints are rate limited, so the School Admin signs in once and
+// each check re-reads its state from /school-portal/me — which is also what the
+// panel does on every page load.
+let adminToken;
+const adminGet = (path) => request(app).get(path).set(auth(adminToken));
+const adminState = async () => (await adminGet('/school-portal/me')).body.user;
+// Admin-only routes that are not on the gate's exempt list.
+const GATED = ['/school-portal/academic/classes', '/school-portal/academic/teachers', '/school-portal/academic/years', '/school-portal/fees/heads'];
 const teacherLogin = (slug) => request(app).post('/school-portal/auth/teacher-login').send({ identifier: `teacher@${slug}.edu`, password: 'Passw0rd!' });
 
 beforeAll(async () => {
@@ -62,15 +70,15 @@ describe('School with NO plan', () => {
     expect(res.status).toBe(200);
     expect(res.body.user.hasPlan).toBe(false);
     expect(res.body.user.subscriptionState).toBe('none');
+    adminToken = res.body.token;
   });
 
   it('the School Admin reaches the Plans endpoints but nothing else', async () => {
-    const token = (await adminLogin('admin@schoolb.edu')).body.token;
-    expect((await request(app).get('/school-portal/me').set(auth(token))).status).toBe(200);
-    expect((await request(app).get('/school-portal/plans').set(auth(token))).status).toBe(200);
+    expect((await adminGet('/school-portal/me')).status).toBe(200);
+    expect((await adminGet('/school-portal/plans')).status).toBe(200);
 
-    for (const path of ['/school-portal/students', '/school-portal/classes', '/school-portal/teachers', '/school-portal/dashboard']) {
-      const res = await request(app).get(path).set(auth(token));
+    for (const path of GATED) {
+      const res = await adminGet(path);
       expect(res.status, path).toBe(402);
       expect(res.body.code, path).toBe('SUBSCRIPTION_REQUIRED');
       expect(res.body.message).toBe('Your school does not have a plan yet. Please choose a plan to continue.');
@@ -79,9 +87,8 @@ describe('School with NO plan', () => {
 
   it('a plan NAME alone is not a plan (unpaid / never activated)', async () => {
     await setManualPlan(ctx.b.schoolId, { subscriptionPlan: 'Growth Plan', 'subscription.status': 'Pending Payment' });
-    const res = await adminLogin('admin@schoolb.edu');
-    expect(res.body.user.hasPlan).toBe(false);
-    expect((await request(app).get('/school-portal/students').set(auth(res.body.token))).status).toBe(402);
+    expect((await adminState()).hasPlan).toBe(false);
+    expect((await adminGet(GATED[0])).status).toBe(402);
     await noPlan(ctx.b.schoolId);
   });
 
@@ -118,7 +125,6 @@ describe('School with NO plan', () => {
   it('the other school, which has a plan, is untouched', async () => {
     expect((await teacherLogin('schoola')).status).toBe(200);
     expect((await request(app).get('/school-portal/teacher/dashboard').set(auth(ctx.a.token))).status).toBe(200);
-    expect((await adminLogin('admin@schoola.edu')).body.user.hasPlan).toBe(true);
   });
 });
 
@@ -126,13 +132,13 @@ describe('Manual plan (activated without autopay)', () => {
   it('works while Active and its end date is ahead', async () => {
     await setRecurring(ctx.b.schoolId, null);
     await setManualPlan(ctx.b.schoolId, { subscriptionPlan: 'Growth Plan', 'subscription.status': 'Active', 'subscription.endsAt': new Date(Date.now() + 30 * DAY) });
-    expect((await adminLogin('admin@schoolb.edu')).body.user.subscriptionState).toBe('manual');
+    expect((await adminState()).subscriptionState).toBe('manual');
     expect((await teacherLogin('schoolb')).status).toBe(200);
   });
 
   it('locks the school the moment its end date passes', async () => {
     await setManualPlan(ctx.b.schoolId, { 'subscription.endsAt': new Date(Date.now() - HOUR) });
-    expect((await adminLogin('admin@schoolb.edu')).body.user.hasPlan).toBe(false);
+    expect((await adminState()).hasPlan).toBe(false);
     expect((await teacherLogin('schoolb')).status).toBe(403);
   });
 });
@@ -142,18 +148,19 @@ describe('Autopay (recurring) subscription', () => {
 
   it('active → everything works', async () => {
     await setRecurring(ctx.b.schoolId, { status: 'active', currentPeriodStart: new Date(Date.now() - DAY), currentPeriodEnd: new Date(Date.now() + 29 * DAY) });
-    const admin = await adminLogin('admin@schoolb.edu');
-    expect(admin.body.user.hasPlan).toBe(true);
-    expect(admin.body.user.subscriptionState).toBe('active');
-    expect((await request(app).get('/school-portal/students').set(auth(admin.body.token))).status).toBe(200);
+    const admin = await adminState();
+    expect(admin.hasPlan).toBe(true);
+    expect(admin.subscriptionState).toBe('active');
+    for (const path of GATED) expect((await adminGet(path)).status, path).toBe(200);
     expect((await teacherLogin('schoolb')).status).toBe(200);
   });
 
   it('admin cancels → keeps working until the end of the paid period', async () => {
     await setRecurring(ctx.b.schoolId, { status: 'active', cancelAtPeriodEnd: true, currentPeriodStart: new Date(Date.now() - 20 * DAY), currentPeriodEnd: new Date(Date.now() + 10 * DAY) });
-    const admin = await adminLogin('admin@schoolb.edu');
-    expect(admin.body.user.hasPlan).toBe(true);
-    expect(admin.body.user.subscriptionState).toBe('cancelled_pending');
+    const admin = await adminState();
+    expect(admin.hasPlan).toBe(true);
+    expect(admin.subscriptionState).toBe('cancelled_pending');
+    expect((await adminGet(GATED[0])).status).toBe(200);
     expect((await teacherLogin('schoolb')).status).toBe(200);
   });
 
@@ -162,15 +169,16 @@ describe('Autopay (recurring) subscription', () => {
     // The stale plan name is still on the school record, as it is until the cron clears it.
     await setManualPlan(ctx.b.schoolId, { subscriptionPlan: 'Gate Test Plan', 'subscription.status': 'Active', 'subscription.endsAt': new Date(Date.now() - HOUR) });
 
+    // A fresh login still works for the admin — and lands on Plans only.
     const admin = await adminLogin('admin@schoolb.edu');
     expect(admin.status).toBe(200);
     expect(admin.body.user.hasPlan).toBe(false);
     expect(admin.body.user.subscriptionState).toBe('expired');
 
-    const blocked = await request(app).get('/school-portal/students').set(auth(admin.body.token));
+    const blocked = await adminGet(GATED[0]);
     expect(blocked.status).toBe(402);
     expect(blocked.body.code).toBe('SUBSCRIPTION_EXPIRED');
-    expect((await request(app).get('/school-portal/plans').set(auth(admin.body.token))).status).toBe(200);
+    expect((await adminGet('/school-portal/plans')).status).toBe(200);
 
     const teacher = await teacherLogin('schoolb');
     expect(teacher.status).toBe(403);
@@ -180,19 +188,19 @@ describe('Autopay (recurring) subscription', () => {
 
   it('a failed payment keeps the school working during the grace period', async () => {
     await setRecurring(ctx.b.schoolId, { status: 'halted', currentPeriodEnd: new Date(Date.now() - DAY), gracePeriodEndsAt: new Date(Date.now() + 3 * DAY) });
-    expect((await adminLogin('admin@schoolb.edu')).body.user.subscriptionState).toBe('grace_period');
+    expect((await adminState()).subscriptionState).toBe('grace_period');
     expect((await teacherLogin('schoolb')).status).toBe(200);
   });
 
   it('expired after the grace period → locked', async () => {
     await setRecurring(ctx.b.schoolId, { status: 'expired', currentPeriodEnd: new Date(Date.now() - 10 * DAY), gracePeriodEndsAt: new Date(Date.now() - DAY) });
-    expect((await adminLogin('admin@schoolb.edu')).body.user.hasPlan).toBe(false);
+    expect((await adminState()).hasPlan).toBe(false);
     expect((await teacherLogin('schoolb')).status).toBe(403);
   });
 
   it('buying again unlocks everything at once', async () => {
     await setRecurring(ctx.b.schoolId, { status: 'active', currentPeriodStart: new Date(), currentPeriodEnd: new Date(Date.now() + 30 * DAY) });
-    expect((await adminLogin('admin@schoolb.edu')).body.user.hasPlan).toBe(true);
+    expect((await adminState()).hasPlan).toBe(true);
     expect((await teacherLogin('schoolb')).status).toBe(200);
     expect((await request(app).get('/school-portal/teacher/dashboard').set(auth(ctx.b.token))).status).toBe(200);
   });

@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useStudentAuth } from '../context/StudentAuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { Card } from '../components/ui/Card';
-import { GraduationCap, ArrowRight, ShieldAlert, LayoutGrid } from 'lucide-react';
+import { GraduationCap, ArrowRight, ShieldAlert, LayoutGrid, Sun, Moon } from 'lucide-react';
 
 export const StudentLogin = () => {
   const [studentId, setStudentId] = useState('STU108902');
   const [password, setPassword] = useState('password123');
   const [error, setError] = useState('');
   const { login } = useStudentAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,7 +37,16 @@ export const StudentLogin = () => {
 
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-slate-50 dark:bg-slate-950 p-4">
-      <Card className="w-full max-w-md p-8 shadow-premium border border-border">
+      <Card className="w-full max-w-md p-8 shadow-premium border border-border relative">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          className="absolute top-4 right-4 z-20 inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition shadow-xs"
+        >
+          {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
+
         {/* Brand */}
         <div className="flex flex-col items-center text-center mb-6">
           <div className="p-3.5 bg-indigo-500/10 rounded-2xl text-blue-600 dark:text-blue-400 mb-3">

@@ -1,6 +1,7 @@
-import React, { createContext, useState, useContext, useLayoutEffect, useCallback } from 'react';
+import React, { createContext, useState, useContext, useLayoutEffect, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { usePanelAccent } from '../../../shared/theme/usePanelAccent';
+import { getSharedTheme, setSharedTheme, subscribeSharedTheme } from '../../../shared/theme/themeSync';
 import '../styles/theme.css';
 
 const ThemeContext = createContext();
@@ -24,30 +25,43 @@ export const ThemeProvider = ({ children }) => {
     pathname: location.pathname,
   });
 
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('student-theme') || 'light';
-  });
+  const [theme, setTheme] = useState(() => (getSharedTheme() ? 'dark' : 'light'));
+
+  useEffect(() => {
+    return subscribeSharedTheme((isDark) => {
+      setTheme(isDark ? 'dark' : 'light');
+    });
+  }, []);
 
   useLayoutEffect(() => {
     if (isStudent) {
-      applyThemeClass(theme === 'dark');
-      localStorage.setItem('student-theme', theme);
+      const activeTheme = getSharedTheme() ? 'dark' : 'light';
+      if (activeTheme !== theme) {
+        setTheme(activeTheme);
+      }
+      applyThemeClass(activeTheme === 'dark');
     }
   }, [isStudent, theme]);
 
   const toggleTheme = useCallback(() => {
     setTheme((prev) => {
       const next = prev === 'light' ? 'dark' : 'light';
-      if (isStudent) applyThemeClass(next === 'dark');
+      setSharedTheme(next === 'dark');
       return next;
     });
-  }, [isStudent]);
+  }, []);
+
+  const handleSetTheme = useCallback((nextTheme) => {
+    setTheme(nextTheme);
+    setSharedTheme(nextTheme === 'dark');
+  }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, primaryColor, setAccentColor: setPrimaryColor }}>
+    <ThemeContext.Provider value={{ theme, setTheme: handleSetTheme, toggleTheme, primaryColor, setAccentColor: setPrimaryColor }}>
       {children}
     </ThemeContext.Provider>
   );
 };
 
 export const useTheme = () => useContext(ThemeContext);
+

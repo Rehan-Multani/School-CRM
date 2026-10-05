@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, useLayoutEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { usePanelAccent } from '../../../shared/theme/usePanelAccent';
+import { getSharedTheme, setSharedTheme, subscribeSharedTheme } from '../../../shared/theme/themeSync';
 import '../styles/theme.css';
 
 const HRThemeContext = createContext();
@@ -8,10 +9,8 @@ const HRThemeContext = createContext();
 function applyThemeClass(isDark) {
   if (isDark) {
     document.documentElement.classList.add('dark');
-    localStorage.setItem('hr-theme', 'dark');
   } else {
     document.documentElement.classList.remove('dark');
-    localStorage.setItem('hr-theme', 'light');
   }
 }
 
@@ -27,24 +26,31 @@ export const HRThemeProvider = ({ children }) => {
     pathname: location.pathname,
   });
 
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('hr-theme');
-    return saved ? saved === 'dark' : false;
-  });
+  const [darkMode, setDarkMode] = useState(getSharedTheme);
+
+  useEffect(() => {
+    return subscribeSharedTheme((isDark) => {
+      setDarkMode(isDark);
+    });
+  }, []);
 
   useLayoutEffect(() => {
     if (isHR) {
-      applyThemeClass(darkMode);
+      const activeTheme = getSharedTheme();
+      if (activeTheme !== darkMode) {
+        setDarkMode(activeTheme);
+      }
+      applyThemeClass(activeTheme);
     }
   }, [isHR, darkMode]);
 
   const toggleTheme = useCallback(() => {
     setDarkMode((prev) => {
       const next = !prev;
-      if (isHR) applyThemeClass(next);
+      setSharedTheme(next);
       return next;
     });
-  }, [isHR]);
+  }, []);
 
   const toggleDarkMode = toggleTheme;
 
@@ -59,3 +65,4 @@ export const HRThemeProvider = ({ children }) => {
 
 export const useHRTheme = () => useContext(HRThemeContext);
 export default HRThemeContext;
+
