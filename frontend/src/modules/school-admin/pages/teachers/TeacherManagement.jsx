@@ -10,7 +10,7 @@ import { academicPortalApi, hrApi } from '../../../../shared/api/client';
 import { EmptyState } from '../academics/components/AcademicUi';
 import { apiMessage } from '../academics/utils';
 import { sanitizeMobileInput, isValid10DigitMobile } from '../../../../shared/utils/mobileValidation';
-import { Ban, Camera, Eye, ImagePlus, Loader2, Pencil, Plus, Power, Trash2, UserCheck, UserCircle2, Users, X } from 'lucide-react';
+import { Ban, Camera, Eye, EyeOff, ImagePlus, KeyRound, Loader2, Pencil, Plus, Power, Trash2, UserCheck, UserCircle2, Users, X } from 'lucide-react';
 import { SkeletonTable } from '../../components/ui/SkeletonLoader';
 
 const inputClass =
@@ -137,6 +137,10 @@ export const TeacherManagement = () => {
   const [photoPreview, setPhotoPreview] = useState('');
   const [removePhoto, setRemovePhoto] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [passwordTarget, setPasswordTarget] = useState(null);
+  const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
   const photoInputRef = useRef(null);
@@ -347,6 +351,36 @@ export const TeacherManagement = () => {
     }
   };
 
+  const closePasswordModal = () => {
+    setPasswordTarget(null);
+    setPasswordForm({ newPassword: '', confirmPassword: '' });
+    setShowPassword(false);
+  };
+
+  const handlePasswordSave = async (e) => {
+    e.preventDefault();
+    if (!passwordTarget) return;
+    const newPassword = passwordForm.newPassword.trim();
+    if (newPassword.length < 8) {
+      showToast('Password must be at least 8 characters', 'error');
+      return;
+    }
+    if (newPassword !== passwordForm.confirmPassword.trim()) {
+      showToast('Passwords do not match', 'error');
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      await academicPortalApi.setTeacherPassword(passwordTarget.id, newPassword);
+      showToast(`Password changed for ${passwordTarget.name || passwordTarget.fullName}`, 'success');
+      closePasswordModal();
+    } catch (error) {
+      showToast(apiMessage(error, 'Unable to change password'), 'error');
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0];
     event.target.value = '';
@@ -530,6 +564,14 @@ export const TeacherManagement = () => {
               title={`Edit ${row.name}`}
             >
               <Pencil className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setPasswordTarget(row)}
+              className="rounded-full p-1.5 text-indigo-500 transition hover:bg-indigo-50 dark:hover:bg-indigo-950/50 cursor-pointer"
+              title={`Change password for ${row.name}`}
+            >
+              <KeyRound className="h-4 w-4" />
             </button>
             {!isPending && (
               <button
@@ -846,6 +888,65 @@ export const TeacherManagement = () => {
             </button>
             <button type="submit" disabled={saving} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
               {saving ? 'Saving...' : editingTeacher ? 'Update Teacher' : 'Save Teacher'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        isOpen={Boolean(passwordTarget)}
+        onClose={closePasswordModal}
+        title="Change Password"
+        size="sm"
+      >
+        <form onSubmit={handlePasswordSave} className="space-y-4">
+          <p className="text-xs text-slate-500">
+            Set a new app login password for{' '}
+            <span className="font-bold text-slate-700 dark:text-slate-200">{passwordTarget?.name || passwordTarget?.fullName}</span>
+            {passwordTarget?.employeeId ? ` (${passwordTarget.employeeId})` : ''}. The teacher will be signed out of all devices and must log in with the new password.
+          </p>
+          <div>
+            <label className="mb-1 block text-xs font-bold text-slate-500">New Password *</label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                className={`${inputClass} pr-11`}
+                value={passwordForm.newPassword}
+                onChange={(e) => setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))}
+                placeholder="Minimum 8 characters"
+                minLength={8}
+                autoComplete="new-password"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-bold text-slate-500">Confirm Password *</label>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              className={inputClass}
+              value={passwordForm.confirmPassword}
+              onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+              placeholder="Re-enter new password"
+              minLength={8}
+              autoComplete="new-password"
+              required
+            />
+          </div>
+          <div className="flex justify-end gap-2 border-t border-slate-100 pt-4">
+            <button type="button" onClick={closePasswordModal} className="rounded-xl px-4 py-2 text-xs font-semibold">
+              Cancel
+            </button>
+            <button type="submit" disabled={savingPassword} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">
+              {savingPassword ? 'Saving...' : 'Change Password'}
             </button>
           </div>
         </form>

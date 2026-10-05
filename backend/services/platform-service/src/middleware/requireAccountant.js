@@ -2,8 +2,9 @@ import { AppError } from '../../../shared/AppError.js';
 import { verifyToken } from '../../../shared/generateToken.js';
 import { env } from '../config/env.js';
 import { enforceSubscriptionAccess } from './requireSubscription.js';
+import { assertStaffAccountActive } from './staffAccount.js';
 
-export function requireAccountant(req, res, next) {
+export async function requireAccountant(req, res, next) {
   try {
     const header = req.headers.authorization || '';
     const token = header.startsWith('Bearer ') ? header.slice(7) : '';
@@ -17,6 +18,9 @@ export function requireAccountant(req, res, next) {
     if (role !== 'ACCOUNTANT' && role !== 'SCHOOLADMIN') {
       throw new AppError('Access denied: Accountant or School Admin privileges required', 403);
     }
+
+    // A deleted or deactivated staff member loses access immediately.
+    await assertStaffAccountActive(payload);
 
     req.user = payload;
     enforceSubscriptionAccess(req, res, next);

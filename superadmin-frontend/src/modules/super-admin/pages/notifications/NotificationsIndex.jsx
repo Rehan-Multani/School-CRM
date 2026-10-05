@@ -63,18 +63,18 @@ function deliveryBadge(item) {
     return null;
   }
   if (item.delivery.skippedReason) {
-    if (/firebase.*not configured/i.test(item.delivery.skippedReason)) {
+    if (/firebase.*not configured/i.test(item.delivery.skippedReason) || /push.*not configured/i.test(item.delivery.skippedReason)) {
       return null;
     }
-    return { variant: "warning", label: item.delivery.skippedReason };
+    return { variant: "warning", label: item.delivery.skippedReason.replace(/firebase/gi, 'Push service') };
   }
   if (item.delivery.success > 0) {
     return {
       variant: "success",
-      label: `Firebase · ${item.delivery.success} sent`,
+      label: `${item.delivery.success} sent`,
     };
   }
-  return { variant: "danger", label: "Firebase · no devices reached" };
+  return { variant: "danger", label: "No devices reached" };
 }
 
 export default function NotificationsIndex() {
@@ -165,7 +165,7 @@ export default function NotificationsIndex() {
           Platform Notifications
         </h1>
         <p className="text-xs text-slate-400">
-          Send Firebase push notifications to school Principals and School
+          Send push notifications to school Principals and School
           Admins, and force logout mobile-app users.
         </p>
       </div>

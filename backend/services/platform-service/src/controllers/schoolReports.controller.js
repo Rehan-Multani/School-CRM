@@ -19,11 +19,9 @@ export async function getSchoolReportsSummary(req, res, next) {
 
 export async function getCategoryReportData(req, res, next) {
   try {
-    const result = await schoolReportsService.getCategoryReport(
-      schoolId(req),
-      req.query?.category || 'students',
-      req.query
-    );
+    // `category` picks the report; it must not leak into the report's own filters.
+    const { category, ...filters } = req.query || {};
+    const result = await schoolReportsService.getCategoryReport(schoolId(req), category || 'students', filters);
     res.json({
       success: true,
       data: result.data,

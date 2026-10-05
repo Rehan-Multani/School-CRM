@@ -74,11 +74,11 @@ export const NAVIGATION_ITEMS = [
   { name: 'Books', path: '/school-admin/library/books', icon: Library, category: 'Library' },
   { name: 'Categories', path: '/school-admin/library/categories', icon: FolderTree, category: 'Library' },
   { name: 'Rules', path: '/school-admin/library/rules', icon: SlidersHorizontal, category: 'Library' },
-  { name: 'Reports', path: '/school-admin/library/reports', icon: BookMarked, category: 'Library' },
+  { name: 'Library Reports', path: '/school-admin/library/reports', icon: BookMarked, category: 'Library' },
 
   // SYSTEM
   { name: 'Notifications', path: '/school-admin/notifications', icon: Bell, category: 'System' },
-  { name: 'Reports Hub', path: '/school-admin/reports', icon: BarChart3, category: 'System' },
+  { name: 'School Reports', path: '/school-admin/reports', icon: BarChart3, category: 'System' },
   { name: 'Help & Support', path: '/school-admin/support', icon: LifeBuoy, category: 'System' },
   { name: 'Student Safe Pickup', path: '/school-admin/settings/safe-pickup', icon: Shield, category: 'System' },
   { name: 'Settings', path: '/school-admin/settings', icon: Settings, category: 'System' }

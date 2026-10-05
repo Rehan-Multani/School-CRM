@@ -762,7 +762,7 @@ router.post('/school-portal/academic/teachers', requireSchoolAdminOrPrincipal, u
 router.get('/school-portal/academic/teachers/:id', requireSchoolAdminOrPrincipal, getTeacher);
 router.patch('/school-portal/academic/teachers/:id', requireSchoolAdminOrPrincipal, uploadTeacherFiles, convertTeacherImages, updateTeacher);
 router.patch('/school-portal/academic/teachers/:id/status', requireSchoolAdminOrPrincipal, updateTeacherStatus);
-router.post('/school-portal/academic/teachers/:id/set-password', requirePrincipal, validateObjectId('id'), setTeacherPassword);
+router.post('/school-portal/academic/teachers/:id/set-password', requireSchoolAdminOrPrincipal, validateObjectId('id'), setTeacherPassword);
 router.delete('/school-portal/academic/teachers/:id', requireSchoolAdminOrPrincipal, deleteTeacher);
 
 // Class timetable (admin-side CRUD; teachers read it via /school-portal/teacher/timetable)

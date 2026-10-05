@@ -1,4 +1,6 @@
 import { userService } from '../services/user.service.js';
+import { clearStaffAccountCache } from '../middleware/staffAccount.js';
+import { AppError } from '../../../shared/AppError.js';
 import { collectSchoolUserUploadFiles } from '../middleware/uploadSchoolUser.js';
 import { deleteUploadedFile } from '../utils/upload.utils.js';
 import { auditLogService } from '../services/auditLog.service.js';
@@ -65,9 +67,19 @@ export async function updateUser(req, res, next) {
   }
 }
 
+// Staff manage each other from this screen; nobody may lock themselves out of
+// it by deactivating or deleting the account they are signed in with.
+function assertNotOwnAccount(req, action) {
+  if (req.user?.sub && String(req.user.sub) === String(req.params.id)) {
+    throw new AppError(`You cannot ${action} the account you are signed in with`, 400);
+  }
+}
+
 export async function updateUserStatus(req, res, next) {
   try {
+    if (String(req.body?.status || '').toUpperCase() !== 'ACTIVE') assertNotOwnAccount(req, 'deactivate');
     const data = await userService.updateUserStatus(schoolId(req), req.params.id, req.body.status);
+    clearStaffAccountCache(req.params.id);
     res.json({ success: true, data, message: 'User status updated' });
   } catch (error) {
     next(error);
@@ -94,7 +106,9 @@ export async function sendUserCredentials(req, res, next) {
 
 export async function deleteUser(req, res, next) {
   try {
+    assertNotOwnAccount(req, 'delete');
     const result = await userService.deleteUser(schoolId(req), req.params.id);
+    clearStaffAccountCache(req.params.id);
     res.json({ success: true, message: result.message });
   } catch (error) {
     next(error);

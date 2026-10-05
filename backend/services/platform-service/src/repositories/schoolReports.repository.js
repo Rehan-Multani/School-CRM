@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { Student } from '../models/Student.js';
+import { StudentEnrollment } from '../models/StudentEnrollment.js';
 import { Teacher } from '../models/Teacher.js';
 import { SchoolUser } from '../models/SchoolUser.js';
 import { FeeInvoice } from '../models/FeeInvoice.js';
@@ -17,13 +18,45 @@ import { SupportTicket } from '../models/SupportTicket.js';
 import { Homework } from '../models/Homework.js';
 import { escapeRegex, sanitizePagination } from '../../../shared/sanitize.js';
 
+// Invoices that still have money owed on them.
+const OUTSTANDING_INVOICE_STATUSES = ['PENDING', 'PARTIALLY_PAID', 'OVERDUE'];
+
 export class SchoolReportsRepository {
+  // Class, section and roll number live on the enrollment, not on the Student.
+  // Returns studentId -> { className, sectionName, rollNumber }, preferring the
+  // ACTIVE enrollment and falling back to the most recent one.
+  async getEnrollmentMap(schoolId, studentIds = []) {
+    const ids = [...new Set(studentIds.filter(Boolean).map(String))];
+    if (!ids.length) return new Map();
+
+    const enrollments = await StudentEnrollment.find({ schoolId, studentId: { $in: ids } })
+      .populate('classId', 'name')
+      .populate('sectionId', 'name')
+      .sort({ enrollmentDate: -1, createdAt: -1 })
+      .lean();
+
+    const map = new Map();
+    for (const e of enrollments) {
+      const key = String(e.studentId);
+      const current = map.get(key);
+      if (current && (current.isActive || e.status !== 'ACTIVE')) continue;
+      map.set(key, {
+        className: e.classId?.name || '',
+        sectionName: e.sectionId?.name || '',
+        rollNumber: e.rollNumber || '',
+        isActive: e.status === 'ACTIVE',
+      });
+    }
+    return map;
+  }
+
   async getSummary(schoolId) {
     const sId = new mongoose.Types.ObjectId(schoolId);
 
     const [
       studentsCount,
-      staffCount,
+      schoolUsersCount,
+      teachersCount,
       feeInvoicesCount,
       libraryCount,
       hostelCount,
@@ -34,6 +67,7 @@ export class SchoolReportsRepository {
     ] = await Promise.all([
       Student.countDocuments({ schoolId }),
       SchoolUser.countDocuments({ schoolId }),
+      Teacher.countDocuments({ schoolId }),
       FeeInvoice.countDocuments({ schoolId }),
       LibraryBook.countDocuments({ schoolId }),
       HostelAllocation.countDocuments({ schoolId, status: 'ACTIVE' }),
@@ -50,7 +84,7 @@ export class SchoolReportsRepository {
     ]);
 
     const duesAgg = await FeeInvoice.aggregate([
-      { $match: { schoolId: sId, status: { $in: ['PENDING', 'PARTIAL', 'OVERDUE'] } } },
+      { $match: { schoolId: sId, status: { $in: OUTSTANDING_INVOICE_STATUSES } } },
       {
         $group: {
           _id: null,
@@ -61,7 +95,8 @@ export class SchoolReportsRepository {
 
     return {
       studentsCount,
-      staffCount,
+      // Staff are split across SchoolUser and Teacher, as in the HR module.
+      staffCount: schoolUsersCount + teachersCount,
       feeInvoicesCount,
       libraryCount,
       hostelCount,
@@ -78,15 +113,14 @@ export class SchoolReportsRepository {
   async getStudentsReport(schoolId, query = {}) {
     const filter = { schoolId };
     if (query.status && query.status !== 'ALL') filter.status = query.status;
-    if (query.className && query.className !== 'ALL') filter.className = query.className;
     if (query.search) {
       const safe = escapeRegex(query.search.trim());
       filter.$or = [
         { firstName: { $regex: safe, $options: 'i' } },
         { lastName: { $regex: safe, $options: 'i' } },
         { admissionNumber: { $regex: safe, $options: 'i' } },
-        { rollNumber: { $regex: safe, $options: 'i' } },
-        { guardianName: { $regex: safe, $options: 'i' } },
+        { parentName: { $regex: safe, $options: 'i' } },
+        { parentPhone: { $regex: safe, $options: 'i' } },
       ];
     }
 
@@ -99,15 +133,16 @@ export class SchoolReportsRepository {
 
     const [items, total] = await Promise.all([
       Student.find(filter)
-        .select('admissionNumber firstName lastName className sectionName gender rollNumber phone guardianName guardianPhone status dateOfBirth bloodGroup')
-        .sort({ className: 1, rollNumber: 1 })
+        .select('admissionNumber firstName lastName gender phone parentName parentPhone status')
+        .sort({ firstName: 1, lastName: 1 })
         .skip(skip)
         .limit(limit)
         .lean(),
       Student.countDocuments(filter),
     ]);
 
-    return { items, total, page, limit };
+    const enrollments = await this.getEnrollmentMap(schoolId, items.map((s) => s._id));
+    return { items, total, page, limit, enrollments };
   }
 
   // 2. Fee Payments
@@ -117,12 +152,12 @@ export class SchoolReportsRepository {
     if (query.status && query.status !== 'ALL') filter.status = query.status;
 
     if (query.startDate || query.endDate) {
-      filter.createdAt = {};
-      if (query.startDate) filter.createdAt.$gte = new Date(query.startDate);
+      filter.paymentDate = {};
+      if (query.startDate) filter.paymentDate.$gte = new Date(query.startDate);
       if (query.endDate) {
         const end = new Date(query.endDate);
         end.setHours(23, 59, 59, 999);
-        filter.createdAt.$lte = end;
+        filter.paymentDate.$lte = end;
       }
     }
 
@@ -135,31 +170,34 @@ export class SchoolReportsRepository {
 
     const [items, total, statsAgg] = await Promise.all([
       FeePayment.find(filter)
-        .populate('studentId', 'firstName lastName admissionNumber className sectionName')
-        .sort({ createdAt: -1 })
+        .populate('studentId', 'firstName lastName admissionNumber')
+        .sort({ paymentDate: -1, createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean(),
       FeePayment.countDocuments(filter),
+      // Same filter as the rows, so the total always matches what is listed.
       FeePayment.aggregate([
-        { $match: { schoolId: new mongoose.Types.ObjectId(schoolId) } },
+        { $match: { ...filter, schoolId: new mongoose.Types.ObjectId(schoolId) } },
         { $group: { _id: null, totalAmount: { $sum: '$amount' } } },
       ]),
     ]);
 
+    const enrollments = await this.getEnrollmentMap(schoolId, items.map((p) => p.studentId?._id));
     return {
       items,
       total,
       page,
       limit,
+      enrollments,
       stats: { totalCollected: statsAgg[0]?.totalAmount || 0 },
     };
   }
 
   // 3. Fee Dues / Outstanding
   async getFeeDuesReport(schoolId, query = {}) {
-    const filter = { schoolId, status: { $in: ['PENDING', 'PARTIAL', 'OVERDUE'] } };
-    if (query.status && query.status !== 'ALL') filter.status = query.status;
+    const filter = { schoolId, status: { $in: OUTSTANDING_INVOICE_STATUSES } };
+    if (OUTSTANDING_INVOICE_STATUSES.includes(query.status)) filter.status = query.status;
 
     const { page, limit, skip } = sanitizePagination({
       page: query.page,
@@ -170,14 +208,14 @@ export class SchoolReportsRepository {
 
     const [items, total, statsAgg] = await Promise.all([
       FeeInvoice.find(filter)
-        .populate('studentId', 'firstName lastName admissionNumber className sectionName parentPhone phone')
+        .populate('studentId', 'firstName lastName admissionNumber parentPhone phone')
         .sort({ dueDate: 1 })
         .skip(skip)
         .limit(limit)
         .lean(),
       FeeInvoice.countDocuments(filter),
       FeeInvoice.aggregate([
-        { $match: { schoolId: new mongoose.Types.ObjectId(schoolId), status: { $in: ['PENDING', 'PARTIAL', 'OVERDUE'] } } },
+        { $match: { ...filter, schoolId: new mongoose.Types.ObjectId(schoolId) } },
         {
           $group: {
             _id: null,
@@ -188,11 +226,13 @@ export class SchoolReportsRepository {
       ]),
     ]);
 
+    const enrollments = await this.getEnrollmentMap(schoolId, items.map((inv) => inv.studentId?._id));
     return {
       items,
       total,
       page,
       limit,
+      enrollments,
       stats: {
         totalDue: statsAgg[0]?.totalDueAmount || 0,
         defaultersCount: statsAgg[0]?.totalInvoicesCount || 0,
@@ -201,8 +241,9 @@ export class SchoolReportsRepository {
   }
 
   // 4. Staff Attendance
+  // StaffAttendance holds one row per employee per day; the report is one row per day.
   async getStaffAttendanceReport(schoolId, query = {}) {
-    const filter = { schoolId };
+    const filter = { schoolId: new mongoose.Types.ObjectId(schoolId) };
     if (query.startDate || query.endDate) {
       filter.date = {};
       if (query.startDate) filter.date.$gte = query.startDate;
@@ -216,12 +257,29 @@ export class SchoolReportsRepository {
       defaultLimit: 50,
     });
 
-    const [items, total] = await Promise.all([
-      StaffAttendance.find(filter).sort({ date: -1 }).skip(skip).limit(limit).lean(),
-      StaffAttendance.countDocuments(filter),
+    const countOf = (status) => ({ $sum: { $cond: [{ $eq: ['$status', status] }, 1, 0] } });
+    const [items, days] = await Promise.all([
+      StaffAttendance.aggregate([
+        { $match: filter },
+        {
+          $group: {
+            _id: '$date',
+            marked: { $sum: 1 },
+            present: countOf('PRESENT'),
+            absent: countOf('ABSENT'),
+            onLeave: countOf('LEAVE'),
+            halfDay: countOf('HALF_DAY'),
+            holiday: countOf('HOLIDAY'),
+          },
+        },
+        { $sort: { _id: -1 } },
+        { $skip: skip },
+        { $limit: limit },
+      ]),
+      StaffAttendance.distinct('date', filter),
     ]);
 
-    return { items, total, page, limit };
+    return { items, total: days.length, page, limit };
   }
 
   // 5. Performance Reviews
@@ -251,7 +309,7 @@ export class SchoolReportsRepository {
       PerformanceReview.find(filter).sort({ reviewDate: -1 }).skip(skip).limit(limit).lean(),
       PerformanceReview.countDocuments(filter),
       PerformanceReview.aggregate([
-        { $match: { schoolId: new mongoose.Types.ObjectId(schoolId) } },
+        { $match: { ...filter, schoolId: new mongoose.Types.ObjectId(schoolId) } },
         {
           $group: {
             _id: null,
@@ -278,7 +336,8 @@ export class SchoolReportsRepository {
   async getPayrollReport(schoolId, query = {}) {
     const filter = { schoolId };
     if (query.payrollMonth && query.payrollMonth !== 'ALL') filter.payrollMonth = query.payrollMonth;
-    if (query.paymentStatus && query.paymentStatus !== 'ALL') filter.paymentStatus = query.paymentStatus;
+    const paymentStatus = query.paymentStatus || query.status;
+    if (paymentStatus && paymentStatus !== 'ALL') filter.paymentStatus = paymentStatus;
     if (query.department && query.department !== 'ALL') filter.department = query.department;
 
     const { page, limit, skip } = sanitizePagination({
@@ -292,7 +351,7 @@ export class SchoolReportsRepository {
       Payroll.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
       Payroll.countDocuments(filter),
       Payroll.aggregate([
-        { $match: { schoolId: new mongoose.Types.ObjectId(schoolId) } },
+        { $match: { ...filter, schoolId: new mongoose.Types.ObjectId(schoolId) } },
         {
           $group: {
             _id: null,
@@ -330,7 +389,7 @@ export class SchoolReportsRepository {
 
     const [items, total] = await Promise.all([
       HostelAllocation.find(filter)
-        .populate('studentId', 'firstName lastName rollNumber className sectionName')
+        .populate('studentId', 'firstName lastName admissionNumber')
         .populate('hostelId', 'name type')
         .populate('roomId', 'roomNumber floorNumber')
         .populate('bedId', 'bedCode')
@@ -341,7 +400,8 @@ export class SchoolReportsRepository {
       HostelAllocation.countDocuments(filter),
     ]);
 
-    return { items, total, page, limit };
+    const enrollments = await this.getEnrollmentMap(schoolId, items.map((a) => a.studentId?._id));
+    return { items, total, page, limit, enrollments };
   }
 
   // 8. Transport
@@ -357,10 +417,9 @@ export class SchoolReportsRepository {
 
     const [items, total] = await Promise.all([
       StudentTransportAssignment.find(filter)
-        .populate('studentId', 'firstName lastName rollNumber className sectionName')
-        .populate('routeId', 'routeName routeCode')
-        .populate('pickupStopId', 'stopName pickupTime')
-        .populate('dropStopId', 'stopName dropTime')
+        .populate('studentId', 'firstName lastName admissionNumber')
+        .populate('routeId', 'routeName')
+        .populate('stopId', 'stopName pickupTime dropTime')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -368,13 +427,24 @@ export class SchoolReportsRepository {
       StudentTransportAssignment.countDocuments(filter),
     ]);
 
-    return { items, total, page, limit };
+    const enrollments = await this.getEnrollmentMap(schoolId, items.map((a) => a.studentId?._id));
+    return { items, total, page, limit, enrollments };
   }
 
   // 9. Library
   async getLibraryReport(schoolId, query = {}) {
     const filter = { schoolId };
-    if (query.category && query.category !== 'ALL') filter.category = query.category;
+    // `query.category` is the report category ("library"), so the book
+    // category filter has its own name.
+    if (query.bookCategory && query.bookCategory !== 'ALL') filter.category = query.bookCategory;
+    if (query.search) {
+      const safe = escapeRegex(query.search.trim());
+      filter.$or = [
+        { title: { $regex: safe, $options: 'i' } },
+        { author: { $regex: safe, $options: 'i' } },
+        { bookCode: { $regex: safe, $options: 'i' } },
+      ];
+    }
 
     const { page, limit, skip } = sanitizePagination({
       page: query.page,
@@ -387,7 +457,7 @@ export class SchoolReportsRepository {
       LibraryBook.find(filter).sort({ title: 1 }).skip(skip).limit(limit).lean(),
       LibraryBook.countDocuments(filter),
       LibraryBook.aggregate([
-        { $match: { schoolId: new mongoose.Types.ObjectId(schoolId) } },
+        { $match: { ...filter, schoolId: new mongoose.Types.ObjectId(schoolId) } },
         {
           $group: {
             _id: null,
@@ -426,17 +496,29 @@ export class SchoolReportsRepository {
       defaultLimit: 100,
     });
 
-    const [items, total] = await Promise.all([
-      SchoolUser.find(filter)
-        .select('fullName email phone designation department role status createdAt')
-        .sort({ fullName: 1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      SchoolUser.countDocuments(filter),
+    if (query.search) {
+      const safe = escapeRegex(query.search.trim());
+      filter.$or = [
+        { name: { $regex: safe, $options: 'i' } },
+        { email: { $regex: safe, $options: 'i' } },
+        { employeeId: { $regex: safe, $options: 'i' } },
+      ];
+    }
+
+    // Staff are split across two collections (as in the HR module), so the
+    // merged list is sorted and paged in memory — a school's staff is small.
+    const fields = 'employeeId name email phone designation department status';
+    const { role, ...teacherFilter } = filter;
+    const [users, teachers] = await Promise.all([
+      SchoolUser.find(filter).select(`${fields} role`).lean(),
+      !role || role === 'TEACHER' ? Teacher.find(teacherFilter).select(fields).lean() : [],
     ]);
 
-    return { items, total, page, limit };
+    const all = [...users, ...teachers.map((t) => ({ ...t, role: 'TEACHER' }))].sort((a, b) =>
+      String(a.name || '').localeCompare(String(b.name || ''))
+    );
+
+    return { items: all.slice(skip, skip + limit), total: all.length, page, limit };
   }
 
   // 11. Examinations & Results
@@ -482,7 +564,8 @@ export class SchoolReportsRepository {
 
   // 12. Support Tickets
   async getSupportReport(schoolId, query = {}) {
-    const filter = { schoolId };
+    // On a ticket `schoolId` is the school's code; the School _id is in `school`.
+    const filter = { school: schoolId };
     if (query.status && query.status !== 'ALL') filter.status = query.status;
     if (query.priority && query.priority !== 'ALL') filter.priority = query.priority;
 

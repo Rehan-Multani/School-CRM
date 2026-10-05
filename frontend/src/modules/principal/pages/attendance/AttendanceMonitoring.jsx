@@ -67,9 +67,11 @@ export const AttendanceMonitoring = () => {
   const staffColumns = useMemo(
     () => [
       { key: 'Date', title: 'Date', sortable: true },
-      { key: 'Total Staff', title: 'Total Staff', align: 'center' },
-      { key: 'Present Count', title: 'Present', align: 'center', render: (v) => <span className="font-bold text-emerald-600">{v}</span> },
-      { key: 'Absent Count', title: 'Absent', align: 'center', render: (v) => <span className="font-bold text-rose-600">{v}</span> },
+      { key: 'Staff Marked', title: 'Staff Marked', align: 'center' },
+      { key: 'Present', title: 'Present', align: 'center', render: (v) => <span className="font-bold text-emerald-600">{v}</span> },
+      { key: 'Absent', title: 'Absent', align: 'center', render: (v) => <span className="font-bold text-rose-600">{v}</span> },
+      { key: 'On Leave', title: 'On Leave', align: 'center' },
+      { key: 'Half Day', title: 'Half Day', align: 'center' },
       { key: 'Attendance %', title: 'Attendance %' },
     ],
     []

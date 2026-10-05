@@ -34,18 +34,18 @@ function deliveryLabel(item) {
     return null;
   }
   if (item.delivery?.skippedReason) {
-    if (/firebase.*not configured/i.test(item.delivery.skippedReason)) {
+    if (/firebase.*not configured/i.test(item.delivery.skippedReason) || /push.*not configured/i.test(item.delivery.skippedReason)) {
       return null;
     }
     return {
       tone: 'amber',
-      text: item.delivery.skippedReason,
+      text: item.delivery.skippedReason.replace(/firebase/gi, 'Push service'),
     };
   }
   if (item.delivery?.success > 0) {
     return {
       tone: 'emerald',
-      text: `Firebase sent to ${item.delivery.success} device(s)`,
+      text: `Sent to ${item.delivery.success} device(s)`,
     };
   }
   return {
@@ -161,15 +161,15 @@ export const Notifications = () => {
     <div className="space-y-6 pb-10">
       <PageHeader
         title="Notifications"
-        subtitle="Send Firebase notifications to selected audiences. Only checked audience groups with registered devices will receive the push."
+        subtitle="Send push notifications to selected audiences. Only checked audience groups with registered devices will receive the notification."
       />
 
       <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <Smartphone className={`h-4 w-4 ${firebaseConfigured ? 'text-emerald-500' : 'text-amber-500'}`} />
-        <span className={firebaseConfigured ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}>
+        <Smartphone className={`h-4 w-4 ${firebaseConfigured ? 'text-emerald-500' : 'text-slate-400'}`} />
+        <span className={firebaseConfigured ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-600 dark:text-slate-400'}>
           {firebaseConfigured
-            ? 'Firebase is configured. Push will go to registered devices.'
-            : 'Firebase is not configured. Notification history will be saved, but push will not be delivered.'}
+            ? 'Push notification service is active. Alerts will go to registered devices.'
+            : 'Push notification service is currently inactive. Notification history will be saved.'}
         </span>
       </div>
 

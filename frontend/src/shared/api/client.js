@@ -114,6 +114,36 @@ function blockOnSubscription402(client) {
 }
 blockOnSubscription402(apiClient);
 
+// Staff panels (Principal / HR / Accountant / Librarian): a 401 means the
+// session is over — the token expired, or the account was deactivated or
+// removed. Clear that panel's session and send the user to its login page
+// instead of leaving them on a page where every request fails.
+function signOutOn401(client, { panel, tokenKey, userKey }) {
+  client.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      const url = error.config?.url || '';
+      const path = typeof window !== 'undefined' ? window.location.pathname : '';
+      const loginPath = `/${panel}/login`;
+      if (
+        error.response?.status === 401 &&
+        path.startsWith(`/${panel}/`) && // not when the School Admin panel borrows this client
+        path !== loginPath &&
+        !url.endsWith('/password') // "current password is incorrect" is also a 401
+      ) {
+        try {
+          localStorage.removeItem(tokenKey);
+          localStorage.removeItem(userKey);
+        } catch {
+          /* localStorage unavailable */
+        }
+        window.location.assign(loginPath);
+      }
+      return Promise.reject(error);
+    }
+  );
+}
+
 const refreshClient = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
@@ -406,6 +436,8 @@ export const academicPortalApi = {
     schoolAdminClient.patch(`/platform/school-portal/academic/teachers/${id}`, payload, studentRequestConfig(payload)).then((r) => r.data),
   updateTeacherStatus: (id, status) =>
     schoolAdminClient.patch(`/platform/school-portal/academic/teachers/${id}/status`, { status }).then((r) => r.data),
+  setTeacherPassword: (id, newPassword) =>
+    schoolAdminClient.post(`/platform/school-portal/academic/teachers/${id}/set-password`, { newPassword }).then((r) => r.data),
   deleteTeacher: (id) => schoolAdminClient.delete(`/platform/school-portal/academic/teachers/${id}`).then((r) => r.data),
 };
 
@@ -598,6 +630,7 @@ const librarianClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 blockOnSubscription402(librarianClient);
+signOutOn401(librarianClient, { panel: 'librarian', tokenKey: 'librarian_token', userKey: 'librarian_user' });
 
 librarianClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('librarian_token') || localStorage.getItem('school_admin_token');
@@ -675,6 +708,7 @@ const hrClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 blockOnSubscription402(hrClient);
+signOutOn401(hrClient, { panel: 'hr', tokenKey: 'hr_token', userKey: 'hr_user' });
 
 hrClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('hr_token') || localStorage.getItem('school_admin_token');
@@ -787,6 +821,7 @@ const principalClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 blockOnSubscription402(principalClient);
+signOutOn401(principalClient, { panel: 'principal', tokenKey: 'principal_token', userKey: 'principal-user' });
 
 principalClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('principal_token') || localStorage.getItem('school_admin_token');
@@ -855,6 +890,8 @@ export const principalAcademicApi = {
     principalClient.patch(`/platform/school-portal/academic/teachers/${id}`, payload, studentRequestConfig(payload)).then((r) => r.data),
   updateTeacherStatus: (id, status) =>
     principalClient.patch(`/platform/school-portal/academic/teachers/${id}/status`, { status }).then((r) => r.data),
+  setTeacherPassword: (id, newPassword) =>
+    principalClient.post(`/platform/school-portal/academic/teachers/${id}/set-password`, { newPassword }).then((r) => r.data),
   deleteTeacher: (id) => principalClient.delete(`/platform/school-portal/academic/teachers/${id}`).then((r) => r.data),
 };
 
@@ -1118,6 +1155,7 @@ const accountantClient = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 blockOnSubscription402(accountantClient);
+signOutOn401(accountantClient, { panel: 'accountant', tokenKey: 'accountant_token', userKey: 'accountant-user' });
 
 accountantClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('accountant_token') || localStorage.getItem('school_admin_token');

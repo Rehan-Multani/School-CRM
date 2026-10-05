@@ -254,13 +254,20 @@ class LibraryRepository {
       filter.bookId = { $in: bookIds };
     }
 
+    // Only issues that carry a fine (the Fine report).
+    if (String(query.hasFine) === 'true') {
+      filter.fineAmount = { $gt: 0 };
+    }
+
     if (query.startDate || query.endDate) {
-      filter.issueDate = {};
-      if (query.startDate) filter.issueDate.$gte = new Date(query.startDate);
+      // The Return report filters on when the book came back, not when it went out.
+      const dateField = query.dateField === 'returnDate' ? 'returnDate' : 'issueDate';
+      filter[dateField] = {};
+      if (query.startDate) filter[dateField].$gte = new Date(query.startDate);
       if (query.endDate) {
         const end = new Date(query.endDate);
         end.setHours(23, 59, 59, 999);
-        filter.issueDate.$lte = end;
+        filter[dateField].$lte = end;
       }
     }
 

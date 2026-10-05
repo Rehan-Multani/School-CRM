@@ -19,7 +19,8 @@ export const exportToCSV = (data, filename = 'export.csv') => {
   }
 
   // Create blob and trigger download
-  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  // The BOM makes Excel read the file as UTF-8 (otherwise ₹ and Hindi names garble).
+  const blob = new Blob(['﻿' + csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.setAttribute('href', url);

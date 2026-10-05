@@ -72,7 +72,7 @@ export const FeeMonitoring = () => {
   const monthlyCollections = useMemo(() => {
     const buckets = new Map();
     payments.forEach((p) => {
-      const d = parseInDate(p['Transaction Date']);
+      const d = parseInDate(p['Payment Date']);
       if (!d) return;
       const key = `${d.getFullYear()}-${d.getMonth()}`;
       buckets.set(key, (buckets.get(key) || 0) + parseAmount(p['Amount Paid']));
@@ -93,7 +93,8 @@ export const FeeMonitoring = () => {
   const duesByClass = useMemo(() => {
     const buckets = new Map();
     dues.forEach((d) => {
-      const cls = (d.Class || 'Unknown').split(' - ')[0] || 'Unknown';
+      // The report sends a dash for a student with no enrollment.
+      const cls = (!d.Class || d.Class === '—' ? 'Unknown' : d.Class).split(' - ')[0] || 'Unknown';
       buckets.set(cls, (buckets.get(cls) || 0) + parseAmount(d['Pending Due']));
     });
     return Array.from(buckets.entries())

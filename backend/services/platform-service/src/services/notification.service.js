@@ -4,6 +4,7 @@ import { DEVICE_ROLES } from '../models/DeviceToken.js';
 import { getFirebaseMessaging, isFirebaseConfigured } from '../config/firebase.js';
 import { notificationRepository } from '../repositories/notification.repository.js';
 import { schoolRepository } from '../repositories/school.repository.js';
+import { schoolSlugOf } from '../utils/schoolSlug.js';
 
 const SCHOOL_ID_ALIASES = {
   'SCH-2026-09': 'greenfield-public-school',
@@ -73,7 +74,7 @@ async function sendViaFirebase(tokens, title, body) {
       attempted: 0,
       success: 0,
       failed: 0,
-      skippedReason: 'Firebase is not configured on the server',
+      skippedReason: 'Push notification service is not configured on the server',
       invalidTokens: [],
     };
   }
@@ -84,7 +85,7 @@ async function sendViaFirebase(tokens, title, body) {
       attempted: 0,
       success: 0,
       failed: 0,
-      skippedReason: 'No principal or school-admin devices are registered yet',
+      skippedReason: 'No devices are registered yet for the selected recipients',
       invalidTokens: [],
     };
   }
@@ -161,9 +162,17 @@ export class NotificationService {
       return [];
     }
 
+    // Notifications are stored under the school slug; a staff token only has the _id.
+    const ids = schoolIdVariants(schoolId);
+    for (const id of [...ids]) {
+      if (!mongoose.isValidObjectId(id)) continue;
+      const slug = await schoolSlugOf(id);
+      if (slug) ids.push(...schoolIdVariants(slug));
+    }
+
     const items = await notificationRepository.inbox({
       role: normalizedRole,
-      schoolIds: schoolIdVariants(schoolId),
+      schoolIds: [...new Set(ids)],
       userId: typeof userId === 'string' ? userId.trim() : '',
     });
     return items.map((item) => item.toPublicJSON());
@@ -176,10 +185,16 @@ export class NotificationService {
       return { registered: false, reason: 'Unsupported role' };
     }
 
+    // Staff tokens carry the school's _id; devices are keyed by the school slug.
+    const rawSchoolId = typeof payload?.schoolId === 'string' ? payload.schoolId.trim() : '';
+    const schoolId = mongoose.isValidObjectId(rawSchoolId)
+      ? (await schoolSlugOf(rawSchoolId)) || rawSchoolId
+      : rawSchoolId;
+
     await notificationRepository.upsertDevice({
       token,
       role,
-      schoolId: typeof payload?.schoolId === 'string' ? payload.schoolId.trim() : '',
+      schoolId,
       userId: typeof payload?.userId === 'string' ? payload.userId.trim() : '',
     });
 
@@ -196,9 +211,8 @@ export class NotificationService {
 
     let school = null;
     if (schoolId) {
-      if (!mongoose.isValidObjectId(schoolId)) {
-        throw new AppError('School not found', 404);
-      }
+      // A School Admin token carries the school's public id (e.g. "SCH-2026-09"),
+      // a Principal's the Mongo _id — findById resolves either.
       school = await schoolRepository.findById(schoolId);
       if (!school) {
         throw new AppError('School not found', 404);
@@ -211,7 +225,8 @@ export class NotificationService {
 
     const devices = await notificationRepository.findTokens({
       roles: audiences,
-      schoolIds: schoolIdVariants(school?.schoolId || ''),
+      // Older rows from the shared /device-tokens route sit under the school _id.
+      schoolIds: school ? [...schoolIdVariants(school.schoolId || ''), String(school._id)] : [],
       userIds: recipientRefIds.length ? recipientRefIds : undefined,
     });
     const tokens = devices.map((device) => device.token);
