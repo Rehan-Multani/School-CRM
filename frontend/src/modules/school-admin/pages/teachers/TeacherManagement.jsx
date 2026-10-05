@@ -460,7 +460,6 @@ export const TeacherManagement = () => {
   };
 
   const columns = [
-    { header: '#', key: 'serial' },
     {
       header: 'Teacher',
       key: 'name',
