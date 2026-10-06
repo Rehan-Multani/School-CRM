@@ -1,5 +1,5 @@
 # Local release APK (no Expo/EAS cloud). Run from app/:  powershell -File scripts/build-release-local.ps1
-# Builds in C:m-buildpp (a short-path copy) because of the Windows 260-char path limit.
+# Builds in a short-path copy (see $build below) because of the Windows 260-char path limit.
 # Output: android/app/build/outputs/apk/release/app-release.apk -> copied to dist-apk/school-crm-<version>.apk
 $ErrorActionPreference = 'Stop'
 $app = Split-Path -Parent $PSScriptRoot
@@ -9,7 +9,7 @@ $app = Split-Path -Parent $PSScriptRoot
 # and mix roots), so build in a real short-path copy and bring the APK back.
 $build = 'C:\crm-build\app'
 New-Item -ItemType Directory -Force $build | Out-Null
-robocopy $app $build /MIR /NFL /NDL /NJH /NJS /NP /XD android dist-apk .expo | Out-Null
+robocopy $app $build /MIR /NFL /NDL /NJH /NJS /NP /XD (Join-Path $app 'android') (Join-Path $app 'dist-apk') (Join-Path $app '.expo') | Out-Null
 if ($LASTEXITCODE -ge 8) { throw "robocopy failed ($LASTEXITCODE)" }
 Set-Location $build
 try {
