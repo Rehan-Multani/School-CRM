@@ -1,8 +1,18 @@
 # Local release APK (no Expo/EAS cloud). Run from app/:  powershell -File scripts/build-release-local.ps1
+# Builds in C:m-buildpp (a short-path copy) because of the Windows 260-char path limit.
 # Output: android/app/build/outputs/apk/release/app-release.apk -> copied to dist-apk/school-crm-<version>.apk
 $ErrorActionPreference = 'Stop'
 $app = Split-Path -Parent $PSScriptRoot
-Set-Location $app
+
+# Windows' 260-character path limit breaks the native (CMake/ninja) build for deep
+# node_modules paths. A drive alias (subst) does not work (tools resolve the real path
+# and mix roots), so build in a real short-path copy and bring the APK back.
+$build = 'C:\crm-build\app'
+New-Item -ItemType Directory -Force $build | Out-Null
+robocopy $app $build /MIR /NFL /NDL /NJH /NJS /NP /XD android dist-apk .expo | Out-Null
+if ($LASTEXITCODE -ge 8) { throw "robocopy failed ($LASTEXITCODE)" }
+Set-Location $build
+try {
 
 if (-not $env:JAVA_HOME) { $env:JAVA_HOME = (Get-ChildItem "$env:USERPROFILE\.jdks" -Directory | Where-Object Name -like 'jdk-17*' | Select-Object -First 1).FullName }
 $env:Path = "$env:JAVA_HOME\bin;$env:Path"
@@ -51,6 +61,9 @@ Pop-Location
 if ($code) { throw 'gradle assembleRelease failed' }
 
 $version = (Get-Content app.json -Raw | ConvertFrom-Json).expo.version
-New-Item -ItemType Directory -Force dist-apk | Out-Null
-Copy-Item android/app/build/outputs/apk/release/app-release.apk "dist-apk/school-crm-$version.apk" -Force
-Write-Host "Built dist-apk/school-crm-$version.apk"
+New-Item -ItemType Directory -Force "$app\dist-apk" | Out-Null
+Copy-Item android/app/build/outputs/apk/release/app-release.apk "$app\dist-apk\school-crm-$version.apk" -Force
+Write-Host "Built $app\dist-apk\school-crm-$version.apk"
+} finally {
+  Set-Location $env:USERPROFILE
+}
