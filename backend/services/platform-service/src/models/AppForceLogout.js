@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-export const APP_ROLES = ['TEACHER', 'STUDENT', 'PARENT', 'TRANSPORT'];
+export const APP_ROLES = ['TEACHER', 'STUDENT', 'PARENT', 'TRANSPORT', 'PRINCIPAL'];
 
 /**
  * One row per "force logout" an administrator triggered for the mobile app.

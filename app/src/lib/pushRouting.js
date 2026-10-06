@@ -33,6 +33,11 @@ const ROUTES = {
     default: () => '/parent/notices',
   },
   TRANSPORT: { default: () => '/transport' },
+  PRINCIPAL: {
+    leave: () => '/principal/leave',
+    meeting: () => '/principal/meetings',
+    default: () => '/principal/notifications',
+  },
 };
 
 export function routeForLink(role, link) {

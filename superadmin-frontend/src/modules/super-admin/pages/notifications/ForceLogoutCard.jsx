@@ -15,6 +15,7 @@ const ROLES = [
   { id: 'STUDENT', label: 'Students' },
   { id: 'PARENT', label: 'Parents' },
   { id: 'TRANSPORT', label: 'Transport managers' },
+  { id: 'PRINCIPAL', label: 'Principals' },
 ];
 const roleLabel = (id) => ROLES.find((r) => r.id === id)?.label || id;
 

@@ -19,6 +19,7 @@ const KEPT = {
   STUDENT: 'Your enrolment, attendance, results and fee records',
   PARENT: "Your children's records and fee payments",
   TRANSPORT: 'Your staff record, and the pickup and drop history you recorded',
+  PRINCIPAL: 'Your staff record and everything the school holds. Your login ends on the web panel too',
 };
 
 function ModalDangerButton({ title, icon, onPress, loading, disabled, style }) {

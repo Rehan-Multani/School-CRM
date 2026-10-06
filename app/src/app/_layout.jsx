@@ -47,6 +47,9 @@ function RootNavigator() {
         <Stack.Protected guard={role === 'TRANSPORT'}>
           <Stack.Screen name="transport" />
         </Stack.Protected>
+        <Stack.Protected guard={role === 'PRINCIPAL'}>
+          <Stack.Screen name="principal" />
+        </Stack.Protected>
       </Stack>
     </>
   );

@@ -25,6 +25,8 @@ const ROLES = {
   // The Transport Manager is staff (SchoolUser, role TRANSPORT): only the app
   // login goes — the HR / payroll record and its status are the school's.
   TRANSPORT: { Model: SchoolUser, deviceRole: 'transport', label: 'Transport manager', filter: { role: 'TRANSPORT' } },
+  // Principal: same staff-account handling as the Transport Manager.
+  PRINCIPAL: { Model: SchoolUser, deviceRole: 'principal', label: 'Principal', filter: { role: 'PRINCIPAL' } },
 };
 
 export async function deleteAppAccount(role, schoolId, userId, { password } = {}) {
@@ -45,7 +47,7 @@ export async function deleteAppAccount(role, schoolId, userId, { password } = {}
     if (!ok) throw new AppError('Password is incorrect', 401, 'CURRENT_PASSWORD_INVALID');
   }
 
-  if (role === 'TRANSPORT') {
+  if (role === 'TRANSPORT' || role === 'PRINCIPAL') {
     // updateOne, not save(): an older staff record may not pass today's
     // validators, and deleting your account must not fail on that.
     await SchoolUser.updateOne(

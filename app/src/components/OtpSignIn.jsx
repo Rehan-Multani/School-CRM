@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { otpLoginApi } from '../api/otpLogin';
+import { ROLES } from '../api/roles';
 import { Button, Input } from './ui';
 import { toast } from '../lib/notify';
 import { brandTheme as t, font, radius, spacing } from '../theme';
@@ -77,13 +78,7 @@ export default function OtpSignIn({ role, initialMobile, onFocusInput, onSwitchR
             >
               <Text style={styles.switchButtonText}>
                 Switch to{' '}
-                {roleMismatch.suggestedRole === 'TRANSPORT'
-                  ? 'Transport'
-                  : roleMismatch.suggestedRole === 'TEACHER'
-                    ? 'Teacher'
-                    : roleMismatch.suggestedRole === 'PARENT'
-                      ? 'Parent'
-                      : 'Student'}
+                {ROLES[roleMismatch.suggestedRole]?.label || 'the right role'}
               </Text>
               <Ionicons name="arrow-forward" size={14} color="#FFFFFF" />
             </Pressable>

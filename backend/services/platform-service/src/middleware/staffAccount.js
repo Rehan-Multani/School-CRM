@@ -21,11 +21,9 @@ export function clearStaffAccountCache(userId) {
   else cache.clear();
 }
 
-async function isActive(userId, schoolId) {
-  const user = await SchoolUser.findById(userId).select('status schoolId').lean();
-  if (!user || user.status !== 'ACTIVE') return false;
-  // The token's school must still be the account's school.
-  return !schoolId || String(user.schoolId) === String(schoolId);
+// The account's live state; the checks that depend on the caller's token run per call below.
+async function loadAccount(userId) {
+  return SchoolUser.findById(userId).select('status schoolId tokenVersion').lean();
 }
 
 export async function assertStaffAccountActive(payload) {
@@ -35,12 +33,22 @@ export async function assertStaffAccountActive(payload) {
 
   let hit = cache.get(userId);
   if (!hit || Date.now() - hit.at >= TTL_MS) {
-    hit = { at: Date.now(), promise: isActive(userId, payload.schoolId) };
+    hit = { at: Date.now(), promise: loadAccount(userId) };
     cache.set(userId, hit);
     hit.promise.catch(() => cache.delete(userId));
   }
-  if (!(await hit.promise)) {
+  const user = await hit.promise;
+  // The token's school must still be the account's school.
+  const active =
+    user && user.status === 'ACTIVE' && (!payload.schoolId || String(user.schoolId) === String(payload.schoolId));
+  if (!active) {
     cache.delete(userId);
     throw new AppError('This account is no longer active. Please contact your school administrator.', 401);
+  }
+  // Tokens that carry `tv` (the Principal's) end when the account's tokenVersion moves on:
+  // password change, force logout, app account delete.
+  if (payload.tv !== undefined && payload.tv !== (user.tokenVersion || 0)) {
+    cache.delete(userId);
+    throw new AppError('Session expired, please log in again', 401);
   }
 }

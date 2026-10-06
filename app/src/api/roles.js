@@ -1,4 +1,4 @@
-// One app, four flows. Each role's login/me/logout endpoints and home route.
+// One app, five flows. Each role's login/me/logout endpoints and home route.
 // The fourth flow is the Transport Manager — a staff account that runs the
 // school's buses (backend transportManager.routes.js). Drivers do not sign in.
 // `auth` is how the role signs in: 'password' (teacher / transport manager:
@@ -58,6 +58,21 @@ export const ROLES = {
     identifierLabel: 'Email',
     identifierKeyboard: 'email-address',
   },
+  // The Principal signs in with the same email / employee ID + password as the web
+  // panel. The web and app share every /school-portal route behind requirePrincipal.
+  PRINCIPAL: {
+    key: 'PRINCIPAL',
+    icon: 'ribbon-outline',
+    label: 'Principal',
+    home: '/principal',
+    auth: 'password',
+    loginPath: '/school-portal/auth/principal-login',
+    mePath: '/school-portal/principal/me',
+    logoutPath: '/school-portal/principal/auth/logout',
+    deleteAccountPath: '/school-portal/principal/account/delete',
+    identifierLabel: 'Email / Employee ID',
+    identifierKeyboard: 'default',
+  },
 };
 
-export const ROLE_LIST = [ROLES.TEACHER, ROLES.STUDENT, ROLES.PARENT, ROLES.TRANSPORT];
+export const ROLE_LIST = [ROLES.TEACHER, ROLES.STUDENT, ROLES.PARENT, ROLES.TRANSPORT, ROLES.PRINCIPAL];

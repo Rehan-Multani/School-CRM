@@ -19,6 +19,10 @@ dotenv.config();
 
 const app = express();
 
+// Behind nginx / Passenger: trust one proxy hop so req.ip and the rate limiters
+// use the real client IP from X-Forwarded-For (same as the service apps).
+app.set('trust proxy', 1);
+
 // Ensure upload folders exist (in /tmp/uploads for Vercel)
 ensureUploadDirs();
 

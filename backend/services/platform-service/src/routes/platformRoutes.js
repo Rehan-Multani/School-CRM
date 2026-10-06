@@ -485,6 +485,8 @@ import {
   getPrincipalProfile,
   updatePrincipalProfile,
   changePrincipalPassword,
+  principalLogout,
+  principalDeleteAccount,
 } from '../controllers/principal.controller.js';
 import {
   accountantLogin,
@@ -623,6 +625,9 @@ router.post('/school-portal/auth/principal-login', loginRateLimiter, principalLo
 router.get('/school-portal/principal/me', requirePrincipal, getPrincipalProfile);
 router.patch('/school-portal/principal/profile', requirePrincipal, uploadSchoolUserFiles, convertSchoolUserImages, updatePrincipalProfile);
 router.patch('/school-portal/principal/password', requirePrincipal, changePrincipalPassword);
+// Mobile app (Principal tab)
+router.post('/school-portal/principal/auth/logout', requirePrincipal, principalLogout);
+router.post('/school-portal/principal/account/delete', requirePrincipal, principalDeleteAccount);
 router.post('/school-auth/accountant-login', loginRateLimiter, accountantLogin);
 router.post('/school-portal/auth/accountant-login', loginRateLimiter, accountantLogin);
 router.get('/school-portal/accountant/profile', requireAccountant, getAccountantProfile);

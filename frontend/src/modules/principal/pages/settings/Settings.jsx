@@ -203,7 +203,9 @@ export const Settings = () => {
 
     setSavingPassword(true);
     try {
-      await principalAuthApi.changePassword({ currentPassword, newPassword });
+      const res = await principalAuthApi.changePassword({ currentPassword, newPassword });
+      // The password change ended the old token; keep this session signed in with the fresh one.
+      if (res?.token) localStorage.setItem('principal_token', res.token);
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');

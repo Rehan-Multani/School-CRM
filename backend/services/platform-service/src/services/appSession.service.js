@@ -33,6 +33,7 @@ const ROLE = {
   PARENT: { Model: Parent, filter: {}, deviceRole: 'parent' },
   // The transport manager is a staff account; other SchoolUser roles are web-only.
   TRANSPORT: { Model: SchoolUser, filter: { role: 'TRANSPORT' }, deviceRole: 'transport' },
+  PRINCIPAL: { Model: SchoolUser, filter: { role: 'PRINCIPAL' }, deviceRole: 'principal' },
 };
 
 const DEFAULT_MESSAGE = 'You have been signed out by the administrator. Please sign in again.';

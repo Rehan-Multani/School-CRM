@@ -9,6 +9,7 @@ import { AppError } from '../../../shared/AppError.js';
 export const ROLE_LABELS = {
   TEACHER: 'Teacher',
   TRANSPORT: 'Transport Manager',
+  PRINCIPAL: 'Principal',
   STUDENT: 'Student',
   PARENT: 'Parent',
 };
@@ -55,6 +56,16 @@ export async function detectRoleForIdentifier(attemptedRole, identifier) {
       status: { $ne: 'DELETED' },
     });
     if (isStaffTeacher) return 'TEACHER';
+  }
+
+  // 1b. Check PRINCIPAL
+  if (attemptedRole !== 'PRINCIPAL') {
+    const isPrincipal = await SchoolUser.exists({
+      role: 'PRINCIPAL',
+      $or: [{ email: lower }, { employeeId: idRegex }],
+      status: { $ne: 'DELETED' },
+    });
+    if (isPrincipal) return 'PRINCIPAL';
   }
 
   // 2. Check TRANSPORT
