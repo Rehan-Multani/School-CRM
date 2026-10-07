@@ -20,6 +20,7 @@
  *   9000022222                   Aarav Mehta  — student, Class 10-A, roll 1
  *   9000011111                   Rajiv Mehta  — parent of Aarav (10-A) and Anaya (9-A)
  *   transport.demo@example.com   Vikram Rathore — transport manager: 2 routes, today half picked up
+ *   principal.demo@example.com   Anita Verma — principal (app Principal tab + web /principal)
  *   teacher.empty@example.com    Nisha Rao    — no classes (empty states)
  *   9000033333                   Ishaan Gupta — student, Class 8-A, which has no timetable/work/results
 =======
@@ -340,6 +341,13 @@ async function seed(M) {
     { schoolId: S, parentId: parent._id, studentId: demoStudent._id, relationship: 'FATHER', isPrimary: true, status: 'ACTIVE' },
     { schoolId: S, parentId: parent._id, studentId: siblingStudent._id, relationship: 'FATHER', isPrimary: false, status: 'ACTIVE' },
   ]);
+
+  // ---- principal: the app's 5th role (same /school-portal routes as the web Principal panel)
+  await M.SchoolUser.create({
+    schoolId: S, employeeId: 'DEMO-PR-01', firstName: 'Anita', lastName: 'Verma', name: 'Anita Verma',
+    email: 'principal.demo@example.com', passwordHash: hash, role: 'PRINCIPAL', phone: '9000066666',
+    designation: 'Principal', department: 'Administration', status: 'ACTIVE', joiningDate: new Date('2022-04-01'),
+  });
 
   // ---- transport: manager login, 2 buses with drivers, 2 routes, riders, and a part-done day
   const manager = await M.SchoolUser.create({
@@ -836,7 +844,7 @@ async function main() {
     const started = Date.now();
     const stats = await seed(M);
     console.log(`Demo school created in ${((Date.now() - started) / 1000).toFixed(1)}s`, stats);
-    console.log(`Password logins (${PASSWORD}): admin@app-demo.example.com (admin panel), teacher.demo@example.com, transport.demo@example.com, teacher.empty@example.com`);
+    console.log(`Password logins (${PASSWORD}): admin@app-demo.example.com (admin panel), teacher.demo@example.com, transport.demo@example.com, principal.demo@example.com, teacher.empty@example.com`);
     console.log('Mobile + OTP logins (the OTP is printed in the platform-service log): student 9000022222, parent 9000011111, student (empty) 9000033333');
   } finally {
     await mongoose.disconnect();
