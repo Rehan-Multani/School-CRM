@@ -9,6 +9,8 @@ export const ROLES = {
   TEACHER: {
     key: 'TEACHER',
     icon: 'easel-outline',
+    solidIcon: 'desktop',
+    color: '#2563EB',
     label: 'Teacher',
     home: '/teacher',
     auth: 'password',
@@ -22,6 +24,8 @@ export const ROLES = {
   STUDENT: {
     key: 'STUDENT',
     icon: 'school-outline',
+    solidIcon: 'school',
+    color: '#16A34A',
     label: 'Student',
     home: '/student',
     auth: 'otp',
@@ -35,6 +39,8 @@ export const ROLES = {
   PARENT: {
     key: 'PARENT',
     icon: 'people-outline',
+    solidIcon: 'people',
+    color: '#F97316',
     label: 'Parent',
     home: '/parent',
     auth: 'otp',
@@ -48,6 +54,8 @@ export const ROLES = {
   TRANSPORT: {
     key: 'TRANSPORT',
     icon: 'bus-outline',
+    solidIcon: 'bus',
+    color: '#7C3AED',
     label: 'Transport',
     home: '/transport',
     auth: 'password',
@@ -63,6 +71,8 @@ export const ROLES = {
   PRINCIPAL: {
     key: 'PRINCIPAL',
     icon: 'ribbon-outline',
+    solidIcon: 'ribbon',
+    color: '#2563EB',
     label: 'Principal',
     home: '/principal',
     auth: 'password',

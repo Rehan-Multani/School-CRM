@@ -1,37 +1,31 @@
-import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useEffect } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, {
-  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import GlassSurface from './GlassSurface';
-import { useLiquidSlide } from '../lib/useLiquidSlide';
-import { alpha, brandTheme as t, font, radius } from '../theme';
+import { alpha, brandTheme as t, font, radius, spacing } from '../theme';
 
-// Role selector for the pre-auth screens (login, forgot password). One glass thumb
-// slides between the roles over a brand-tinted track, stretching mid-flight, instead
-// of each item switching its own background on and off.
+// Role selector for the pre-auth screens (login, forgot password). Each role is its
+// own card with a colour-coded icon badge; the active card is lifted with a brand
+// border + soft tint, matching the app's sign-in design.
 
-const PAD = 4;
-const BORDER = 1;
 export const SEGMENT_SPRING = { damping: 20, stiffness: 240, mass: 0.8 };
 
-function SegmentItem({ role, active, onPress }) {
+function RoleCard({ role, active, onPress }) {
   const focus = useSharedValue(active ? 1 : 0);
 
   useEffect(() => {
     focus.set(withSpring(active ? 1 : 0, SEGMENT_SPRING));
   }, [active, focus]);
 
-  const contentStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: 1 + focus.get() * 0.04 }],
+  const cardStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: 1 + focus.get() * 0.03 }],
   }));
-  const textStyle = useAnimatedStyle(() => ({
-    color: interpolateColor(focus.get(), [0, 1], [t.textMuted, t.primary]),
-  }));
+
+  const accent = role.color || t.primary;
 
   return (
     <Pressable
@@ -40,41 +34,28 @@ function SegmentItem({ role, active, onPress }) {
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
     >
-      <Animated.View style={[styles.itemContent, contentStyle]}>
-        <Ionicons name={role.icon} size={17} color={active ? t.primary : t.textMuted} />
-        <Animated.Text style={[styles.text, active && styles.textActive, textStyle]}>{role.label}</Animated.Text>
+      <Animated.View
+        style={[styles.card, active && styles.cardActive, cardStyle]}
+      >
+        <View style={[styles.badge, { backgroundColor: alpha(accent, 0.14) }]}>
+          <Ionicons name={role.solidIcon || role.icon} size={18} color={accent} />
+        </View>
+        <Text
+          style={[styles.text, active && styles.textActive]}
+          numberOfLines={1}
+        >
+          {role.label}
+        </Text>
       </Animated.View>
     </Pressable>
   );
 }
 
 export default function RoleSegment({ roles, value, onChange, style }) {
-  const [width, setWidth] = useState(0);
-  const index = Math.max(0, roles.findIndex((r) => r.key === value));
-  const itemWidth = width > 0 ? (width - (PAD + BORDER) * 2) / roles.length : 0;
-  const { position, stretch } = useLiquidSlide(index, SEGMENT_SPRING);
-
-  const thumbStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: position.get() * itemWidth },
-      { scaleX: 1 + stretch.get() * 0.16 },
-      { scaleY: 1 - stretch.get() * 0.07 },
-    ],
-  }));
-
   return (
-    <View
-      style={[styles.segment, style]}
-      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
-      accessibilityRole="tablist"
-    >
-      {itemWidth > 0 ? (
-        <Animated.View pointerEvents="none" style={[styles.thumb, { width: itemWidth }, thumbStyle]}>
-          <GlassSurface radius={radius.md} fill="rgba(255,255,255,0.86)" interactive style={styles.thumbGlass} />
-        </Animated.View>
-      ) : null}
+    <View style={[styles.segment, style]} accessibilityRole="tablist">
       {roles.map((r) => (
-        <SegmentItem key={r.key} role={r} active={r.key === value} onPress={() => onChange(r.key)} />
+        <RoleCard key={r.key} role={r} active={r.key === value} onPress={() => onChange(r.key)} />
       ))}
     </View>
   );
@@ -83,21 +64,31 @@ export default function RoleSegment({ roles, value, onChange, style }) {
 const styles = StyleSheet.create({
   segment: {
     flexDirection: 'row',
-    backgroundColor: alpha(t.primary, 0.08),
-    borderWidth: BORDER,
-    borderColor: alpha(t.primary, 0.1),
+    gap: 6,
+  },
+  item: { flex: 1 },
+  card: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: spacing.md,
+    paddingHorizontal: 2,
     borderRadius: radius.md + 2,
-    padding: PAD,
+    borderWidth: 1.5,
+    borderColor: alpha(t.text, 0.08),
+    backgroundColor: t.surface,
   },
-  thumb: {
-    position: 'absolute',
-    top: PAD,
-    bottom: PAD,
-    left: PAD,
+  cardActive: {
+    borderColor: t.primary,
+    backgroundColor: alpha(t.primary, 0.06),
   },
-  thumbGlass: { flex: 1 },
-  item: { flex: 1, paddingVertical: 8, borderRadius: radius.md },
-  itemContent: { alignItems: 'center', gap: 3 },
-  text: { fontSize: font.sm, fontWeight: '600', color: t.textMuted },
-  textActive: { fontWeight: '700' },
+  badge: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  text: { fontSize: 10.5, fontWeight: '600', color: t.textMuted, letterSpacing: -0.1 },
+  textActive: { fontWeight: '700', color: t.text },
 });
