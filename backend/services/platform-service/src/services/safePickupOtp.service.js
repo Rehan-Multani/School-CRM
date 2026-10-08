@@ -11,11 +11,19 @@ import { env } from '../config/env.js';
  * ever calls generate / hash / verify — so swapping in a real SMS provider is a
  * config change, not a code change.
  *
- * The plaintext OTP is never logged, returned by an API, or stored. Only a
- * bcrypt hash is persisted, and it is nulled the moment a session leaves the
- * active state.
+ * The plaintext OTP is never logged. A bcrypt hash is what verification uses.
+ * An AES-GCM encrypted copy is kept ONLY so the guardian's own parent app can
+ * display the code (it is also sent by SMS); it is returned by no teacher/admin
+ * API, and both copies are nulled the moment a session leaves the active state.
  */
 const BCRYPT_ROUNDS = 10;
+
+// Key for the parent-visible copy of the OTP: derived from the server's JWT
+// secret (always present, never in the DB) unless a dedicated key is set.
+function cipherKey() {
+  const base = process.env.SAFE_PICKUP_CIPHER_KEY || env.jwtSecret;
+  return crypto.createHash('sha256').update(`safe-pickup-otp|${base}`).digest();
+}
 
 class SafePickupOtpService {
   get config() {
@@ -30,6 +38,27 @@ class SafePickupOtpService {
     }
     const max = 10 ** len;
     return String(crypto.randomInt(0, max)).padStart(len, '0');
+  }
+
+  /** AES-256-GCM → "v1.<iv>.<tag>.<ciphertext>" (base64url). */
+  encryptOtp(otp) {
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv('aes-256-gcm', cipherKey(), iv);
+    const ct = Buffer.concat([cipher.update(String(otp), 'utf8'), cipher.final()]);
+    return ['v1', iv.toString('base64url'), cipher.getAuthTag().toString('base64url'), ct.toString('base64url')].join('.');
+  }
+
+  /** @returns {string|null} the OTP, or null if missing / tampered / wrong key. */
+  decryptOtp(payload) {
+    try {
+      const [v, iv, tag, ct] = String(payload || '').split('.');
+      if (v !== 'v1' || !iv || !tag || !ct) return null;
+      const d = crypto.createDecipheriv('aes-256-gcm', cipherKey(), Buffer.from(iv, 'base64url'));
+      d.setAuthTag(Buffer.from(tag, 'base64url'));
+      return Buffer.concat([d.update(Buffer.from(ct, 'base64url')), d.final()]).toString('utf8');
+    } catch {
+      return null;
+    }
   }
 
   async hashOtp(otp) {

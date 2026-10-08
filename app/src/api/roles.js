@@ -20,6 +20,7 @@ export const ROLES = {
     deleteAccountPath: '/school-portal/teacher/account/delete',
     identifierLabel: 'Employee ID / Email',
     identifierKeyboard: 'default',
+    otpChannel: 'EMAIL',
   },
   STUDENT: {
     key: 'STUDENT',
@@ -35,6 +36,7 @@ export const ROLES = {
     deleteAccountPath: '/school-portal/student/account/delete',
     identifierLabel: 'Mobile Number',
     identifierKeyboard: 'phone-pad',
+    otpChannel: 'SMS',
   },
   PARENT: {
     key: 'PARENT',
@@ -50,6 +52,7 @@ export const ROLES = {
     deleteAccountPath: '/school-portal/parent/account/delete',
     identifierLabel: 'Mobile Number',
     identifierKeyboard: 'phone-pad',
+    otpChannel: 'SMS',
   },
   TRANSPORT: {
     key: 'TRANSPORT',
@@ -65,6 +68,7 @@ export const ROLES = {
     deleteAccountPath: '/school-portal/transport-manager/account/delete',
     identifierLabel: 'Email',
     identifierKeyboard: 'email-address',
+    otpChannel: 'EMAIL',
   },
   // The Principal signs in with the same email / employee ID + password as the web
   // panel. The web and app share every /school-portal route behind requirePrincipal.
@@ -82,6 +86,7 @@ export const ROLES = {
     deleteAccountPath: '/school-portal/principal/account/delete',
     identifierLabel: 'Email / Employee ID',
     identifierKeyboard: 'default',
+    otpChannel: 'EMAIL',
   },
 };
 

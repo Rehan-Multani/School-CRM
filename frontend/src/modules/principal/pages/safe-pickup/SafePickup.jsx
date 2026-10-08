@@ -35,6 +35,8 @@ export const SafePickup = () => {
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [otpSessionId, setOtpSessionId] = useState(null);
+  // Set when the pickup for this student was already in progress (HTTP 409).
+  const [resumeInfo, setResumeInfo] = useState(null);
 
   // Reference data for filters
   const [classes, setClasses] = useState([]);
@@ -119,13 +121,33 @@ export const SafePickup = () => {
       });
 
       if (response?.data) {
+        setResumeInfo(null);
         setOtpSessionId(response.data?.id);
         setShowOtpModal(true);
         setSuccess('OTP sent to registered guardian');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send OTP');
+      const body = err.response?.data;
+      if (err.response?.status === 409 && body?.code === 'PICKUP_ALREADY_ACTIVE' && body?.data?.sessionId) {
+        // Not a failure: a pickup is already running for this student. Open it so
+        // the OTP the parent already received can be entered (or resent / cancelled).
+        setResumeInfo(body.data);
+        setOtpSessionId(body.data.sessionId);
+        setShowOtpModal(true);
+        return;
+      }
+      setError(body?.message || 'Failed to send OTP');
     }
+  };
+
+  const handleOtpCancelled = () => {
+    setShowOtpModal(false);
+    setSelectedStudent(null);
+    setOtpSessionId(null);
+    setResumeInfo(null);
+    setSuccess('Pickup cancelled. You can start a new pickup for this student.');
+    setTimeout(() => setSuccess(''), 4000);
+    loadStudents();
   };
 
   const handleOtpVerified = async () => {
@@ -434,12 +456,15 @@ export const SafePickup = () => {
           <OtpVerificationModal
             student={selectedStudent}
             sessionId={otpSessionId}
+            resumeInfo={resumeInfo}
+            onCancelled={handleOtpCancelled}
             isPrincipal={true}
             onVerified={handleOtpVerified}
             onClose={() => {
               setShowOtpModal(false);
               setSelectedStudent(null);
               setOtpSessionId(null);
+              setResumeInfo(null);
             }}
           />
         )}

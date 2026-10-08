@@ -44,6 +44,10 @@ const studentPickupSessionSchema = new mongoose.Schema(
     status: { type: String, enum: PICKUP_STATUSES, default: 'PENDING', index: true },
 
     otpHash: { type: String, default: '', select: false }, // bcrypt; cleared on terminal/verified
+    // AES-256-GCM copy of the OTP so the PARENT app can show the code the parent
+    // was also sent by SMS. Never serialised by toPublicJSON (teacher/admin never
+    // see it); cleared together with otpHash. See safePickupOtp.service.
+    otpCipher: { type: String, default: '', select: false },
     otpExpiresAt: { type: Date, default: null },
     otpAttempts: { type: Number, default: 0 },
     maxOtpAttempts: { type: Number, default: 5 },
@@ -88,6 +92,13 @@ studentPickupSessionSchema.index(
   { teacherId: 1, idempotencyKey: 1 },
   { unique: true, partialFilterExpression: { idempotencyKey: { $type: 'string' } } }
 );
+
+// Every code path that retires the OTP does `session.otpHash = ''`; the readable
+// copy must die with it, whichever path that is.
+studentPickupSessionSchema.pre('save', function clearCipherWithHash(next) {
+  if (this.isModified('otpHash') && !this.otpHash) this.otpCipher = '';
+  next();
+});
 
 studentPickupSessionSchema.methods.toPublicJSON = function toPublicJSON() {
   const now = Date.now();

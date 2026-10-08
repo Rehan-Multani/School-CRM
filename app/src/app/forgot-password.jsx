@@ -37,10 +37,12 @@ export default function ForgotPassword() {
   const [confirm, setConfirm] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
   const confirmRef = useRef(null);
 
+  const [serverChannel, setServerChannel] = useState('');
+
   const role = ROLES[roleKey];
+  const isEmail = (serverChannel || role.otpChannel) === 'EMAIL';
 
   // Resend countdown.
   useEffect(() => {
@@ -71,7 +73,7 @@ export default function ForgotPassword() {
       setOtpLength(data.otpLength || 6);
       setResendIn(data.resendIn || 30);
       setOtp(data.otp || (__DEV__ ? '123456' : ''));
-      setNotice(data.message);
+      setServerChannel(data.channel === 'EMAIL' || data.channel === 'SMS' ? data.channel : '');
       setStep(1);
     });
   };
@@ -106,6 +108,7 @@ export default function ForgotPassword() {
   const switchRole = (key) => {
     if (key === roleKey) return;
     setRoleKey(key);
+    setServerChannel('');
     setIdentifier('');
     setError('');
   };
@@ -164,7 +167,11 @@ export default function ForgotPassword() {
           {step === 0 ? (
             <>
               <Text style={styles.title}>Find your account</Text>
-              <Text style={styles.subtitle}>We will send an OTP to your registered mobile number.</Text>
+              <Text style={styles.subtitle}>
+                {role.otpChannel === 'EMAIL'
+                  ? 'We will send an OTP to your registered email address.'
+                  : 'We will send an OTP to your registered mobile number.'}
+              </Text>
 
               <RoleSegment roles={ROLE_LIST} value={roleKey} onChange={(key) => switchRole(key)} style={styles.segment} />
 
@@ -189,7 +196,12 @@ export default function ForgotPassword() {
           {step === 1 ? (
             <>
               <Text style={styles.title}>Enter OTP</Text>
-              <Text style={styles.subtitle}>{notice}</Text>
+              <Text style={[styles.subtitle, isEmail && { marginBottom: spacing.xs }]}>
+                {isEmail
+                  ? `Enter the ${otpLength}-digit OTP sent to your email`
+                  : `Enter the ${otpLength}-digit OTP sent to your mobile number`}
+              </Text>
+              {isEmail ? <Text style={[styles.subtitle, { marginTop: 0 }]}>Check your inbox and spam folder.</Text> : null}
               <View style={styles.idChip}>
                 <Ionicons name={role.icon} size={15} color={t.primary} />
                 <Text style={styles.idChipText} numberOfLines={1}>
@@ -211,7 +223,7 @@ export default function ForgotPassword() {
               <Button title="Verify OTP" icon="shield-checkmark-outline" onPress={verifyOtp} loading={loading} loadingTitle="Verifying OTP..." />
 
               <View style={styles.resendRow}>
-                <Text style={styles.muted}>Didn't get it?</Text>
+                <Text style={styles.muted}>Didn&apos;t get it?</Text>
                 {resendIn > 0 ? (
                   <Text style={styles.muted}>Resend in {resendIn}s</Text>
                 ) : (

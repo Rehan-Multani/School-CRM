@@ -7,6 +7,7 @@ import { useParent } from '../../../context/ParentContext';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { parentApi } from '../../../api/parent';
 import { useAsync } from '../../../lib/useAsync';
+import { useActivePickup } from '../../../lib/useActivePickup';
 import { fmtDate, fmtHM, withPrefix } from '../../../lib/format';
 import { fileUrl } from '../../../lib/links';
 import { Card } from '../../../components/ui';
@@ -37,6 +38,12 @@ export default function ParentHome() {
   const { child, children, selectChild, reloadChildren, refreshUnread } = useParent();
   const childId = child?.childId;
 
+  // Pickup OTP banner: one light request per poll, only while this tab is focused.
+  // It covers ALL children — a pickup for a child who is not the selected one
+  // must still be announced (tapping switches to that child).
+  const livePickups = useActivePickup(() => parentApi.activePickups(), [], 15000);
+  const readyPickups = (Array.isArray(livePickups) ? livePickups : []).filter((p) => p.otp);
+
   const overview = useAsync(() => parentApi.overview(), [], { refetchOnFocus: true, cacheKey: 'parent.overview' });
   const dash = useAsync(() => parentApi.dashboard(childId), [childId], { refetchOnFocus: true, cacheKey: 'parent.dashboard' });
 
@@ -66,6 +73,31 @@ export default function ParentHome() {
         </SchoolHeader>
 
         <View style={styles.body}>
+          {readyPickups.map((p) => (
+            <Pressable
+              key={p.id}
+              onPress={() => {
+                selectChild(p.childId);
+                router.push('/parent/pickup');
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={`Pickup OTP is ready${p.studentName ? ` for ${p.studentName}` : ''}. Tap to view.`}
+            >
+              <Card style={styles.pickupCard}>
+                <View style={[styles.dueIcon, { backgroundColor: alpha(theme.primary, theme.isDark ? 0.2 : 0.12) }]}>
+                  <Ionicons name="shield-checkmark" size={22} color={theme.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.dueTitle}>Pickup OTP is ready</Text>
+                  <Text style={styles.muted} numberOfLines={1}>
+                    {p.studentName ? `${p.studentName} · tap to view` : 'Tap to view'}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+              </Card>
+            </Pressable>
+          ))}
+
           {user?.mustResetPassword ? (
             <Pressable onPress={() => router.push('/parent/profile/change-password')}>
               <Card style={[styles.banner, { borderColor: theme.warning }]}>
@@ -261,6 +293,7 @@ const makeStyles = (t) =>
   StyleSheet.create({
     body: { paddingHorizontal: spacing.lg, marginTop: spacing.md },
     banner: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderWidth: 1, marginBottom: spacing.lg },
+    pickupCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginBottom: spacing.lg },
     bannerText: { flex: 1, color: t.text, fontSize: font.md, fontWeight: '600' },
     kidsScroll: { marginHorizontal: -spacing.lg, marginBottom: spacing.md },
     kids: { paddingHorizontal: spacing.lg, paddingVertical: spacing.xs, gap: spacing.md },

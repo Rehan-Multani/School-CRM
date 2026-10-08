@@ -149,6 +149,44 @@ const fmtDay = (ymd) => {
 };
 
 export const pushEvents = {
+  /**
+   * Safe pickup → the child's parents (push + in-app notification, deep link to
+   * the pickup screen where the OTP is shown). `kind`: STARTED | OTP_RESENT |
+   * COMPLETED | CANCELLED. The OTP itself is NEVER put in a push (lock screens).
+   * Respects the parent's "pickup" notification setting. `by` = who acted.
+   */
+  async pickup(schoolId, session, kind, by = '') {
+    const name = session?.studentName || 'your child';
+    const who = by ? ` by ${by}` : '';
+    const rel = session?.pickupPersonRelationship ? ` (${session.pickupPersonRelationship})` : '';
+    const text = {
+      STARTED: {
+        title: `Safe pickup started · ${name}`,
+        body: `A pickup was started${who}. Open the app to see your OTP and give it only to the staff at the school gate.`,
+      },
+      OTP_RESENT: {
+        title: `New pickup OTP · ${name}`,
+        body: `A new OTP was issued${who}. The old one no longer works. Open the app to see it.`,
+      },
+      COMPLETED: {
+        title: `Pickup completed · ${name}`,
+        body: session?.pickupPersonName ? `${name} was handed over to ${session.pickupPersonName}${rel}.` : `${name} was handed over safely.`,
+      },
+      CANCELLED: {
+        title: `Pickup cancelled · ${name}`,
+        body: 'The pickup request was cancelled and its OTP is no longer valid.',
+      },
+    }[kind];
+    if (!text || !session?.studentId) return null;
+    return notifyUsers({
+      schoolId,
+      ...text,
+      pref: 'pickup',
+      link: { type: 'pickup', id: session._id },
+      recipients: { parent: await parentsOf(schoolId, [String(session.studentId)]) },
+    });
+  },
+
   async homeworkAssigned(schoolId, hw) {
     const students = await studentsOfSections(schoolId, [hw.sectionId]);
     return notifyUsers({

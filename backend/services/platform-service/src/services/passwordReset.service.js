@@ -9,13 +9,16 @@ import { Driver } from '../models/Driver.js';
 import { SchoolUser } from '../models/SchoolUser.js';
 import { PasswordResetOtp, PASSWORD_RESET_ROLES } from '../models/PasswordResetOtp.js';
 import { smsService } from './sms.service.js';
+import { sendPasswordResetOtpEmail } from '../config/mailer.js';
 import { toMobileDigits, isValidMobile, mobileVariants } from '../utils/mobile.js';
 import { env } from '../config/env.js';
 
 /**
- * Forgot-password for the mobile-app roles, by OTP to the registered mobile.
+ * Forgot-password by OTP. Delivery channel depends on the role:
+ *   EMAIL (registered email)  TEACHER, PRINCIPAL, TRANSPORT
+ *   SMS   (registered mobile) STUDENT, PARENT, DRIVER
  *
- *   1. POST forgot-password     { role, identifier }        → OTP by SMS
+ *   1. POST forgot-password     { role, identifier }        → OTP by email / SMS
  *   2. POST verify-reset-otp    { role, identifier, otp }   → { resetToken }
  *   3. POST reset-password      { resetToken, newPassword } → password set
  *
@@ -42,6 +45,12 @@ const ERR = {
   RESET_TOKEN_INVALID: 'RESET_TOKEN_INVALID',
   PASSWORD_TOO_SHORT: 'PASSWORD_TOO_SHORT',
 };
+
+// Who gets their OTP by email; everyone else by SMS. Decided by ROLE only, so the
+// answer never reveals anything about an account.
+const EMAIL_ROLES = new Set(['TEACHER', 'PRINCIPAL', 'TRANSPORT']);
+const channelOf = (role) => (EMAIL_ROLES.has(role) ? 'EMAIL' : 'SMS');
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const sha256 = (value) => crypto.createHash('sha256').update(String(value)).digest('hex');
 
@@ -73,6 +82,7 @@ const RESOLVERS = {
       );
     },
     phone: (t) => t.mobileNumber || t.phone,
+    email: (t) => t.account?.loginEmail || t.email,
     canLogin: (t) => isActive(t),
   },
   STUDENT: {
@@ -113,6 +123,7 @@ const RESOLVERS = {
       return findOne(SchoolUser, { role: 'TRANSPORT', email: id }, { role: 'TRANSPORT', employeeId: rx });
     },
     phone: (u) => u.phone,
+    email: (u) => u.email,
     canLogin: (u) => u.status === 'ACTIVE',
   },
   // The Principal app: a staff account (SchoolUser, role PRINCIPAL).
@@ -123,6 +134,7 @@ const RESOLVERS = {
       return findOne(SchoolUser, { role: 'PRINCIPAL', email: id }, { role: 'PRINCIPAL', employeeId: rx });
     },
     phone: (u) => u.phone,
+    email: (u) => u.email,
     canLogin: (u) => u.status === 'ACTIVE',
   },
   DRIVER: {
@@ -150,12 +162,21 @@ function parseIdentifier(identifier) {
   return id;
 }
 
-/** The account a reset may target: exists, unambiguous, active, has a login and a mobile. */
+/**
+ * The account a reset may target: exists, unambiguous, active, has a login and
+ * somewhere to send the OTP — a valid email for EMAIL roles, a valid mobile for
+ * the rest.
+ */
 async function resolveAccount(role, identifier) {
   const resolver = RESOLVERS[role];
   const account = await resolver.find(identifier);
   if (!account || !resolver.canLogin(account)) return null;
   if (!account.passwordHash && !resolver.passwordOptional) return null;
+  if (channelOf(role) === 'EMAIL') {
+    const email = String(resolver.email?.(account) || '').trim().toLowerCase();
+    if (!EMAIL_RE.test(email)) return null;
+    return { account, email };
+  }
   const phone = toMobileDigits(resolver.phone(account));
   if (!isValidMobile(phone)) return null;
   return { account, phone };
@@ -171,8 +192,12 @@ function generateOtp() {
   return String(crypto.randomInt(0, 10 ** OTP_LENGTH)).padStart(OTP_LENGTH, '0');
 }
 
-const genericSent = (extra = {}) => ({
-  message: 'If an account matches, an OTP has been sent to its registered mobile number.',
+const genericSent = (role, extra = {}) => ({
+  message:
+    channelOf(role) === 'EMAIL'
+      ? 'If an account matches, an OTP has been sent to its registered email address.'
+      : 'If an account matches, an OTP has been sent to its registered mobile number.',
+  channel: channelOf(role),
   otpLength: OTP_LENGTH,
   expiresIn: OTP_TTL_SECONDS,
   resendIn: RESEND_COOLDOWN_SECONDS,
@@ -185,8 +210,8 @@ class PasswordResetService {
     const identifier = parseIdentifier(body.identifier);
 
     const match = await resolveAccount(role, identifier);
-    if (!match) return genericSent();
-    const { account, phone } = match;
+    if (!match) return genericSent(role);
+    const { account, phone, email } = match;
 
     const now = new Date();
     let session = await PasswordResetOtp.findOne({
@@ -199,7 +224,7 @@ class PasswordResetService {
     if (session) {
       const elapsed = (now - new Date(session.lastOtpSentAt || session.createdAt)) / 1000;
       // Silent no-op: the answer must look identical to a fresh send.
-      if (elapsed < RESEND_COOLDOWN_SECONDS || session.resendCount >= MAX_RESENDS) return genericSent();
+      if (elapsed < RESEND_COOLDOWN_SECONDS || session.resendCount >= MAX_RESENDS) return genericSent(role);
       session.resendCount += 1;
     } else {
       session = new PasswordResetOtp({ role, accountId: account._id, schoolId: account.schoolId || null });
@@ -212,23 +237,34 @@ class PasswordResetService {
     session.lastOtpSentAt = now;
     await session.save();
 
+    // Deliver on the role's channel. A failed send is logged but the answer stays
+    // the generic one (it must not reveal whether an account exists).
     try {
-      await smsService.sendSms({
-        phone,
-        message: `${otp} is your School CRM password reset OTP. It expires in ${OTP_TTL_SECONDS / 60} minutes. Do not share it with anyone.`,
-        template: 'PASSWORD_RESET_OTP',
-        otp,
-      });
+      if (channelOf(role) === 'EMAIL') {
+        await sendPasswordResetOtpEmail({
+          to: email,
+          name: account.name || [account.firstName, account.lastName].filter(Boolean).join(' ').trim(),
+          otp,
+          minutes: OTP_TTL_SECONDS / 60,
+        });
+      } else {
+        await smsService.sendSms({
+          phone,
+          message: `${otp} is your School CRM password reset OTP. It expires in ${OTP_TTL_SECONDS / 60} minutes. Do not share it with anyone.`,
+          template: 'PASSWORD_RESET_OTP',
+          otp,
+        });
+      }
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error('[password-reset] OTP SMS failed:', error.code || error.message);
+      console.error('[password-reset] OTP delivery failed:', channelOf(role), error.code || error.message);
     }
 
     // Echo the code back ONLY in the explicit fixed-OTP QA mode. A random OTP
     // must reach the user through the SMS alone, even if NODE_ENV is not set to
     // production on some host (with the mock provider it is in the server log).
     const isDev = env.loginOtp?.otpMode === 'static';
-    return genericSent(isDev ? { otp } : {});
+    return genericSent(role, isDev ? { otp } : {});
   }
 
   async verifyOtp(body = {}) {

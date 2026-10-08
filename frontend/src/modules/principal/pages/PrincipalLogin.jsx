@@ -120,7 +120,7 @@ export const PrincipalLogin = () => {
     e.preventDefault();
     setError(null);
     if (otp.length !== otpLength) {
-      setError(`Enter the ${otpLength}-digit OTP sent to your mobile`);
+      setError(`Enter the ${otpLength}-digit OTP sent to your email`);
       return;
     }
     setLoading(true);
@@ -250,8 +250,8 @@ export const PrincipalLogin = () => {
             </h2>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               {view === 'login' && 'Sign in with your principal credentials for institutional leadership'}
-              {view === 'forgot' && 'Enter your login ID and we will send an OTP to your registered mobile'}
-              {view === 'otp' && `Enter the ${otpLength}-digit OTP sent to your registered mobile number`}
+              {view === 'forgot' && 'Enter your login ID and we will send an OTP to your registered email address'}
+              {view === 'otp' && `Enter the ${otpLength}-digit OTP sent to your registered email address`}
               {view === 'reset' && 'Choose a new password for your principal account'}
             </p>
           </div>
@@ -359,7 +359,7 @@ export const PrincipalLogin = () => {
                     />
                   </div>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    If an account matches, an OTP is sent to its registered mobile number.
+                    If an account matches, an OTP is sent to its registered email address.
                   </p>
                 </div>
 
@@ -387,7 +387,7 @@ export const PrincipalLogin = () => {
             {view === 'otp' && (
               <form onSubmit={handleOtpSubmit} className="space-y-4">
                 <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-3 text-sm text-emerald-700 dark:text-emerald-300">
-                  If <span className="font-semibold">{email}</span> is registered, an OTP has been sent to its registered mobile number. It expires in 5 minutes.
+                  If <span className="font-semibold">{email}</span> is registered, an OTP has been sent to its registered email address. It expires in 5 minutes. Check your inbox and spam folder.
                 </div>
 
                 <div className="space-y-1.5">

@@ -13,6 +13,10 @@ import { safePickupOtpService } from './safePickupOtp.service.js';
 import { smsService } from './sms.service.js';
 import { teacherAccessService } from './teacherAccess.service.js';
 import { auditLogService } from './auditLog.service.js';
+import { pushEvents } from './pushEvents.service.js';
+
+// Parent push is best-effort: it must never fail or slow the pickup itself.
+const notifyParents = (session, kind, by) => pushEvents.pickup(session.schoolId, session, kind, by).catch(() => {});
 
 const oid = (v) => new mongoose.Types.ObjectId(String(v));
 const oids = (arr) => [...arr].map(oid);
@@ -371,6 +375,7 @@ class SafePickupService {
         guardianMobile: guardian.mobile,
         status: 'PENDING',
         otpHash,
+        otpCipher: safePickupOtpService.encryptOtp(otp),
         otpExpiresAt: safePickupOtpService.expiryDate(now),
         maxOtpAttempts: safePickupOtpService.config.maxAttempts,
         maxResends: safePickupOtpService.config.maxResends,
@@ -406,6 +411,7 @@ class SafePickupService {
       await session.save();
       safePickupOtpService.debugLogStagingOtp(session._id, otp);
       audit(req, 'PICKUP_OTP_SENT', session);
+      notifyParents(session, 'STARTED', session.teacherName);
     } catch (err) {
       audit(req, 'PICKUP_FAILED', session, { summary: `OTP dispatch failed: ${err.code || err.message}` });
       throw new AppError('Could not send the OTP to the registered guardian. Please try again.', 502, E.OTP_SEND_FAILED);
@@ -485,6 +491,7 @@ class SafePickupService {
 
     const otp = safePickupOtpService.generateOtp();
     session.otpHash = await safePickupOtpService.hashOtp(otp);
+    session.otpCipher = safePickupOtpService.encryptOtp(otp);
     session.otpExpiresAt = safePickupOtpService.expiryDate();
     session.otpAttempts = 0;
     session.resendCount += 1;
@@ -505,6 +512,7 @@ class SafePickupService {
     await session.save();
     safePickupOtpService.debugLogStagingOtp(session._id, otp);
     audit(req, 'PICKUP_RESENT', session, { summary: `OTP resent (${session.resendCount}/${session.maxResends})` });
+    notifyParents(session, 'OTP_RESENT', session.teacherName);
     return this.#publicWithMeta(session);
   }
 
@@ -539,6 +547,7 @@ class SafePickupService {
     audit(req, 'PICKUP_COMPLETED', session, {
       summary: `Handover completed — ${session.studentName} to ${session.pickupPersonName || 'guardian'} (${rel || 'Parent'})`,
     });
+    notifyParents(session, 'COMPLETED', session.teacherName);
     return this.#publicWithMeta(session);
   }
 
@@ -554,6 +563,7 @@ class SafePickupService {
     session.otpHash = '';
     await session.save();
     audit(req, 'PICKUP_CANCELLED', session);
+    notifyParents(session, 'CANCELLED', session.teacherName);
     return this.#publicWithMeta(session);
   }
 

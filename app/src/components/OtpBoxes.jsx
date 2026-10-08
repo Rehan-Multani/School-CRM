@@ -1,115 +1,104 @@
-import { useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, TextInput, View } from 'react-native';
+import { memo, useEffect, useRef, useState } from 'react';
+import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { brandTheme as t, radius, spacing } from '../theme';
 
 /**
- * 6-digit OTP input for pre-auth flows (Login, Forgot Password, Verification).
- * Uses real native TextInputs per box so tapping ANY box immediately opens the
- * native soft keyboard on all Android and iOS devices without touch-swallowing bugs.
+ * 6-digit OTP input for Login, Forgot Password and Pickup Verification.
+ *
+ * ONE real TextInput holds the whole code and sits invisibly on top of the
+ * boxes; the boxes only DISPLAY its digits. The code therefore always has a
+ * single source of truth, so a digit can never go missing or land in the wrong
+ * box (the old design kept one TextInput per box and rebuilt the code with
+ * `join('')`, which dropped empty slots — typed digits vanished). Tapping
+ * anywhere on the boxes focuses the input and opens the keyboard; backspace,
+ * paste and SMS autofill all behave natively.
  */
-export default function OtpBoxes({ value = '', length = 6, onChange, onDone, onFocus, disabled = false }) {
-  const inputs = useRef([]);
-  const [focusedIndex, setFocusedIndex] = useState(-1);
-  const valStr = String(value || '');
+function OtpBoxes({ value = '', length = 6, onChange, onDone, onFocus, disabled = false }) {
+  const inputRef = useRef(null);
+  const onDoneRef = useRef(onDone);
+  const [focused, setFocused] = useState(false);
 
-  // Auto-focus the first unfilled box on screen load
+  // Keep the newest callback so the deferred "done" call below never runs a stale one.
   useEffect(() => {
-    const target = Math.min(valStr.length, length - 1);
-    const id = setTimeout(() => {
-      inputs.current[target]?.focus();
-    }, 250);
+    onDoneRef.current = onDone;
+  }, [onDone]);
+
+  const digits = String(value || '').replace(/\D/g, '').slice(0, length);
+  const activeIndex = Math.min(digits.length, length - 1);
+
+  // Open the keyboard as soon as the screen appears.
+  useEffect(() => {
+    const id = setTimeout(() => inputRef.current?.focus(), 250);
     return () => clearTimeout(id);
   }, []);
 
-  const handleChange = (text, index) => {
-    const cleaned = text.replace(/\D/g, '');
-
-    // 1. Paste / SMS OTP autofill (e.g. "123456")
-    if (cleaned.length > 1) {
-      const fullDigits = cleaned.slice(0, length);
-      onChange?.(fullDigits);
-      const nextFocus = Math.min(fullDigits.length, length - 1);
-      inputs.current[nextFocus]?.focus();
-      if (fullDigits.length === length) {
-        onDone?.();
-      }
-      return;
-    }
-
-    // 2. Single digit typed
-    const chars = (value || '').split('');
-    while (chars.length < index) chars.push('');
-    chars[index] = cleaned;
-    const nextValue = chars.join('').slice(0, length);
-    onChange?.(nextValue);
-
-    if (cleaned && index < length - 1) {
-      inputs.current[index + 1]?.focus();
-    }
-    if (nextValue.length === length && index === length - 1) {
-      onDone?.();
-    }
-  };
-
-  const handleKeyPress = (e, index) => {
-    if (e.nativeEvent.key === 'Backspace') {
-      if (!valStr[index] && index > 0) {
-        const chars = valStr.split('');
-        chars[index - 1] = '';
-        onChange?.(chars.join(''));
-        inputs.current[index - 1]?.focus();
-      }
+  const handleChange = (text) => {
+    const next = String(text || '').replace(/\D/g, '').slice(0, length);
+    onChange?.(next);
+    // Fire once, when the last digit arrives. Deferred so the parent has
+    // re-rendered with the full code before the callback reads it.
+    if (next.length === length && digits.length < length) {
+      setTimeout(() => onDoneRef.current?.(), 0);
     }
   };
 
   return (
-    <View style={styles.otpRow}>
-      {Array.from({ length }).map((_, i) => {
-        const char = valStr[i] || '';
-        const isFocused = focusedIndex === i;
-        const isFilled = Boolean(char);
+    <View style={styles.wrap}>
+      <View style={styles.otpRow} pointerEvents="none">
+        {Array.from({ length }).map((_, i) => {
+          const char = digits[i] || '';
+          return (
+            <View
+              key={i}
+              style={[
+                styles.otpBox,
+                Boolean(char) && styles.otpBoxFilled,
+                focused && !disabled && i === activeIndex && styles.otpBoxActive,
+              ]}
+            >
+              <Text style={styles.digit}>{char}</Text>
+            </View>
+          );
+        })}
+      </View>
 
-        return (
-          <TextInput
-            key={i}
-            ref={(el) => {
-              inputs.current[i] = el;
-            }}
-            value={char}
-            onChangeText={(text) => handleChange(text, i)}
-            onKeyPress={(e) => handleKeyPress(e, i)}
-            onFocus={() => {
-              setFocusedIndex(i);
-              onFocus?.();
-            }}
-            onBlur={() => {
-              if (focusedIndex === i) setFocusedIndex(-1);
-            }}
-            keyboardType="number-pad"
-            textContentType="oneTimeCode"
-            autoComplete={Platform.OS === 'android' ? 'sms-otp' : 'one-time-code'}
-            maxLength={length}
-            selectTextOnFocus
-            editable={!disabled}
-            textAlign="center"
-            style={[
-              styles.otpBox,
-              isFilled && styles.otpBoxFilled,
-              isFocused && styles.otpBoxActive,
-            ]}
-          />
-        );
-      })}
+      <TextInput
+        ref={inputRef}
+        value={digits}
+        onChangeText={handleChange}
+        onFocus={() => {
+          setFocused(true);
+          onFocus?.();
+        }}
+        onBlur={() => setFocused(false)}
+        keyboardType="number-pad"
+        textContentType="oneTimeCode"
+        autoComplete={Platform.OS === 'android' ? 'sms-otp' : 'one-time-code'}
+        maxLength={length}
+        editable={!disabled}
+        caretHidden
+        contextMenuHidden
+        autoCorrect={false}
+        accessibilityLabel={`Enter the ${length}-digit OTP`}
+        style={styles.hiddenInput}
+      />
     </View>
   );
 }
 
+// The screens around it re-render every second (resend countdown); the input must not.
+export default memo(OtpBoxes);
+
 const styles = StyleSheet.create({
+  wrap: {
+    width: '100%',
+    marginTop: spacing.md, // breathing room under the heading / label above
+    marginBottom: spacing.xl,
+  },
   otpRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.xl,
     width: '100%',
   },
   otpBox: {
@@ -119,11 +108,8 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: t.border,
     backgroundColor: t.surfaceAlt,
-    textAlign: 'center',
-    fontSize: 22,
-    fontWeight: '800',
-    color: t.text,
-    padding: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   otpBoxFilled: {
     borderColor: t.primary,
@@ -133,5 +119,19 @@ const styles = StyleSheet.create({
     borderColor: t.primary,
     borderWidth: 2,
     backgroundColor: t.surface,
+  },
+  digit: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: t.text,
+  },
+  // Covers the boxes so any tap focuses it. Nearly (not fully) transparent: a
+  // fully transparent view can stop receiving touches on some Android builds.
+  hiddenInput: {
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.02,
+    color: 'transparent',
+    fontSize: 1,
+    padding: 0,
   },
 });

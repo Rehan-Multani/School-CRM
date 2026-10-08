@@ -152,7 +152,7 @@ export function SafePickup() {
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">{c.name}</p>
                     <p className="truncate text-xs text-slate-400">
-                      {c.sections?.length ? `Sections ${c.sections.join(', ')}` : 'No sections'}
+                      {c.sections?.length ? `Sections ${c.sections.map((sec) => sec?.name ?? sec).join(', ')}` : 'No sections'}
                     </p>
                   </div>
                   <Toggle

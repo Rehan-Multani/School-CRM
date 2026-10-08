@@ -104,7 +104,7 @@ class SafePickupRepository {
         status: { $in: ['PENDING', 'OTP_SENT'] },
         otpExpiresAt: { $lte: now },
       },
-      { $set: { status: 'EXPIRED', expiredAt: now, otpHash: '' } }
+      { $set: { status: 'EXPIRED', expiredAt: now, otpHash: '', otpCipher: '' } }
     );
   }
 

@@ -5,6 +5,7 @@ import { usePortal } from '../../../context/PortalScope';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { useAsync } from '../../../lib/useAsync';
 import { fmtDateTime } from '../../../lib/format';
+import PickupOtpCard from '../../../components/parent/PickupOtpCard';
 import { Card } from '../../../components/ui';
 import { AsyncView, Badge, SectionTitle } from '../../../components/kit';
 import { SkeletonDetail } from '../../../components/Skeleton';
@@ -22,8 +23,8 @@ function Line({ label, value, styles }) {
   );
 }
 
-// One pickup session, read-only (doc 03 §7.5). The OTP itself is never shown
-// here — it only reaches the parent by SMS/push.
+// One pickup session, read-only (doc 03 §7.5). While the OTP is live the
+// backend includes it and it is shown on top (also sent by SMS/push).
 export default function PickupDetail() {
   const { sessionId } = useLocalSearchParams();
   const { api, scopeKey } = usePortal();
@@ -38,6 +39,7 @@ export default function PickupDetail() {
           const st = pickupStatus(p.status);
           return (
             <>
+              <PickupOtpCard session={p} childName={p.studentName} />
               <Card>
                 <View style={styles.row}>
                   <Text style={styles.title}>{p.studentName || 'Pickup'}</Text>

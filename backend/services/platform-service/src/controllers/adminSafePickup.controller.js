@@ -12,6 +12,12 @@ import { safePickupRepository } from '../repositories/safePickup.repository.js';
 import { safePickupOtpService } from '../services/safePickupOtp.service.js';
 import { smsService } from '../services/sms.service.js';
 import { auditLogService } from '../services/auditLog.service.js';
+import { pushEvents } from '../services/pushEvents.service.js';
+
+// Parent push is best-effort: it must never fail or slow the pickup itself.
+// `by` is the acting user's name, or their role ("School Admin" / "Principal").
+const actor = (req) => req.user?.name || (String(req.user?.role || '').toUpperCase() === 'PRINCIPAL' ? 'Principal' : 'School Admin');
+const notifyParents = (req, session, kind) => pushEvents.pickup(session.schoolId, session, kind, actor(req)).catch(() => {});
 
 const oid = (v) => new mongoose.Types.ObjectId(String(v));
 const oids = (arr) => [...arr].map(oid);
@@ -34,6 +40,32 @@ const todayStr = () => {
   const d = new Date();
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 };
+
+/**
+ * "A pickup is already in progress" — 409 with enough detail for the web page to
+ * resume it (verify the OTP the guardian got, resend it, or cancel it) instead of
+ * just showing an error.
+ */
+function inProgress(res, session) {
+  const pub = session.toPublicJSON();
+  return res.status(409).json({
+    success: false,
+    message: 'A pickup verification is already in progress for this student',
+    code: 'PICKUP_ALREADY_ACTIVE',
+    data: {
+      sessionId: String(session._id),
+      status: pub.status,
+      studentName: pub.studentName,
+      className: pub.className,
+      sectionName: pub.sectionName,
+      maskedMobile: pub.maskedMobile,
+      otpSecondsRemaining: pub.otpSecondsRemaining,
+      attemptsRemaining: pub.attemptsRemaining,
+      resendsLeft: safePickupOtpService.resendsLeft(session),
+      resendCooldownSeconds: safePickupOtpService.resendCooldownLeft(session),
+    },
+  });
+}
 
 function audit(req, action, session, extra = {}) {
   auditLogService.record(req, {
@@ -240,11 +272,7 @@ export async function sendSafePickupOtp(req, res, next) {
     // Check active session
     const existing = await safePickupRepository.activeForStudent(oid(schoolId), studentId);
     if (existing) {
-      return res.status(409).json({
-        success: false,
-        message: 'A pickup verification is already in progress for this student',
-        data: { sessionId: String(existing._id) },
-      });
+      return inProgress(res, existing);
     }
 
     // Generate OTP
@@ -274,6 +302,7 @@ export async function sendSafePickupOtp(req, res, next) {
         guardianMobile,
         status: 'PENDING',
         otpHash,
+        otpCipher: safePickupOtpService.encryptOtp(otp),
         otpExpiresAt: safePickupOtpService.expiryDate(now),
         maxOtpAttempts: safePickupOtpService.config.maxAttempts,
         maxResends: safePickupOtpService.config.maxResends,
@@ -285,11 +314,7 @@ export async function sendSafePickupOtp(req, res, next) {
       if (err?.code === 11000) {
         const dupe = await safePickupRepository.activeForStudent(oid(schoolId), studentId);
         if (dupe) {
-          return res.status(409).json({
-            success: false,
-            message: 'A pickup verification is already in progress',
-            data: { sessionId: String(dupe._id) },
-          });
+          return inProgress(res, dupe);
         }
       }
       throw err;
@@ -310,6 +335,7 @@ export async function sendSafePickupOtp(req, res, next) {
       await session.save();
       safePickupOtpService.debugLogStagingOtp(session._id, otp);
       audit(req, 'PICKUP_OTP_SENT', session);
+      notifyParents(req, session, 'STARTED');
     } catch (err) {
       audit(req, 'PICKUP_FAILED', session, { summary: `OTP dispatch failed: ${err.message}` });
       throw new AppError('Could not send OTP to guardian. Please try again', 502, 'OTP_SEND_FAILED');
@@ -397,6 +423,7 @@ export async function verifySafePickupOtp(req, res, next) {
     await session.save();
 
     audit(req, 'PICKUP_COMPLETED', session);
+    notifyParents(req, session, 'COMPLETED');
 
     const result = session.toPublicJSON();
     res.json({
@@ -488,6 +515,99 @@ export async function getSafePickupHistory(req, res, next) {
       data,
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) || 1 },
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** Resend a fresh OTP for a pickup that is already in progress. */
+export async function resendSafePickupOtp(req, res, next) {
+  try {
+    const schoolId = req.schoolId || req.user?.schoolId;
+    if (!schoolId || !mongoose.isValidObjectId(String(schoolId))) {
+      throw new AppError('Invalid school context', 400, E.VALIDATION);
+    }
+    const { sessionId } = req.body || {};
+    if (!sessionId || !mongoose.isValidObjectId(String(sessionId))) {
+      throw new AppError('A valid sessionId is required', 400, E.VALIDATION);
+    }
+    const session = await safePickupRepository.byId(oid(schoolId), sessionId);
+    if (!session) throw new AppError('Pickup session not found', 404, E.NOT_FOUND);
+    if (!['PENDING', 'OTP_SENT'].includes(session.status)) {
+      throw new AppError(`A ${String(session.status).toLowerCase()} pickup cannot get a new OTP. Start a new pickup.`, 409, E.VALIDATION);
+    }
+    const cooldown = safePickupOtpService.resendCooldownLeft(session);
+    if (cooldown > 0) {
+      throw new AppError(`Please wait ${cooldown}s before requesting another OTP.`, 429, E.OTP_RATE_LIMITED);
+    }
+    if (safePickupOtpService.resendsLeft(session) <= 0) {
+      throw new AppError('Resend limit reached. Cancel this pickup and start a new one.', 429, E.OTP_RATE_LIMITED);
+    }
+
+    const otp = safePickupOtpService.generateOtp();
+    session.otpHash = await safePickupOtpService.hashOtp(otp);
+    session.otpCipher = safePickupOtpService.encryptOtp(otp);
+    session.otpExpiresAt = safePickupOtpService.expiryDate();
+    session.otpAttempts = 0;
+    session.resendCount = (session.resendCount || 0) + 1;
+    session.lastOtpSentAt = new Date();
+    session.status = 'OTP_SENT';
+
+    try {
+      await smsService.sendSms({
+        phone: session.guardianMobile,
+        template: 'SAFE_PICKUP_OTP',
+        otp,
+        vars: { student: session.studentName },
+        message: `New pickup verification OTP for ${session.studentName}: ${otp}.`,
+      });
+    } catch (err) {
+      audit(req, 'PICKUP_FAILED', session, { summary: `OTP resend failed: ${err.code || err.message}` });
+      throw new AppError('Could not resend the OTP. Please try again.', 502, 'OTP_SEND_FAILED');
+    }
+    await session.save();
+    safePickupOtpService.debugLogStagingOtp(session._id, otp);
+    audit(req, 'PICKUP_RESENT', session, { summary: `OTP resent (${session.resendCount}/${session.maxResends})` });
+    notifyParents(req, session, 'OTP_RESENT');
+
+    const pub = session.toPublicJSON();
+    res.json({
+      success: true,
+      message: 'A new OTP has been sent to the parent',
+      data: {
+        ...pub,
+        resendsLeft: safePickupOtpService.resendsLeft(session),
+        resendCooldownSeconds: safePickupOtpService.config.resendCooldownSeconds,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** Cancel a pickup that is still in progress so a new one can be started. */
+export async function cancelSafePickup(req, res, next) {
+  try {
+    const schoolId = req.schoolId || req.user?.schoolId;
+    if (!schoolId || !mongoose.isValidObjectId(String(schoolId))) {
+      throw new AppError('Invalid school context', 400, E.VALIDATION);
+    }
+    const { sessionId } = req.body || {};
+    if (!sessionId || !mongoose.isValidObjectId(String(sessionId))) {
+      throw new AppError('A valid sessionId is required', 400, E.VALIDATION);
+    }
+    const session = await safePickupRepository.byId(oid(schoolId), sessionId);
+    if (!session) throw new AppError('Pickup session not found', 404, E.NOT_FOUND);
+    if (['COMPLETED', 'CANCELLED', 'EXPIRED', 'FAILED'].includes(session.status)) {
+      throw new AppError(`A ${String(session.status).toLowerCase()} pickup cannot be cancelled`, 409, E.VALIDATION);
+    }
+    session.status = 'CANCELLED';
+    session.cancelledAt = new Date();
+    session.otpHash = '';
+    await session.save();
+    audit(req, 'PICKUP_CANCELLED', session);
+    notifyParents(req, session, 'CANCELLED');
+    res.json({ success: true, message: 'Pickup cancelled', data: session.toPublicJSON() });
   } catch (error) {
     next(error);
   }

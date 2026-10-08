@@ -358,11 +358,15 @@ export const schoolPortalApi = {
   safePickupStudents: (params) => schoolAdminClient.get('/platform/school-portal/safe-pickup/students', { params }).then((res) => res.data),
   sendSafePickupOtp: (payload) => schoolAdminClient.post('/platform/school-portal/safe-pickup/send-otp', payload).then((res) => res.data),
   verifySafePickupOtp: (payload) => schoolAdminClient.post('/platform/school-portal/safe-pickup/verify-otp', payload).then((res) => res.data),
+  resendSafePickupOtp: (payload) => schoolAdminClient.post('/platform/school-portal/safe-pickup/resend-otp', payload).then((res) => res.data),
+  cancelSafePickup: (payload) => schoolAdminClient.post('/platform/school-portal/safe-pickup/cancel', payload).then((res) => res.data),
   safePickupHistory: (params) => schoolAdminClient.get('/platform/school-portal/safe-pickup/history', { params }).then((res) => res.data),
   principalSafePickupSettings: () => principalClient.get('/platform/school-portal/principal/safe-pickup/settings').then((res) => res.data),
   principalSafePickupStudents: (params) => principalClient.get('/platform/school-portal/principal/safe-pickup/students', { params }).then((res) => res.data),
   principalSendSafePickupOtp: (payload) => principalClient.post('/platform/school-portal/principal/safe-pickup/send-otp', payload).then((res) => res.data),
   principalVerifySafePickupOtp: (payload) => principalClient.post('/platform/school-portal/principal/safe-pickup/verify-otp', payload).then((res) => res.data),
+  principalResendSafePickupOtp: (payload) => principalClient.post('/platform/school-portal/principal/safe-pickup/resend-otp', payload).then((res) => res.data),
+  principalCancelSafePickup: (payload) => principalClient.post('/platform/school-portal/principal/safe-pickup/cancel', payload).then((res) => res.data),
   principalSafePickupHistory: (params) => principalClient.get('/platform/school-portal/principal/safe-pickup/history', { params }).then((res) => res.data),
 };
 
@@ -881,8 +885,8 @@ export const principalAuthApi = {
   updateProfile: (payload) =>
     principalClient.patch('/platform/school-portal/principal/profile', payload, studentRequestConfig(payload)).then((r) => r.data),
   changePassword: (payload) => principalClient.patch('/platform/school-portal/principal/password', payload).then((r) => r.data),
-  // Forgot password — OTP to the registered mobile (public routes, role PRINCIPAL).
-  // 1. forgotPassword → SMS   2. verifyResetOtp → resetToken   3. resetPassword
+  // Forgot password — OTP emailed to the registered address (public routes, role PRINCIPAL).
+  // 1. forgotPassword → email   2. verifyResetOtp → resetToken   3. resetPassword
   forgotPassword: (identifier) =>
     apiClient
       .post('/platform/school-portal/auth/forgot-password', { role: 'PRINCIPAL', identifier: String(identifier || '').trim() })
@@ -890,6 +894,20 @@ export const principalAuthApi = {
   verifyResetOtp: (identifier, otp) =>
     apiClient
       .post('/platform/school-portal/auth/verify-reset-otp', { role: 'PRINCIPAL', identifier: String(identifier || '').trim(), otp })
+      .then((r) => r.data),
+  resetPassword: (resetToken, newPassword) =>
+    apiClient.post('/platform/school-portal/auth/reset-password', { resetToken, newPassword }).then((r) => r.data),
+};
+
+// Teacher forgot-password — OTP is emailed to the registered address (public routes, role TEACHER).
+export const teacherAuthApi = {
+  forgotPassword: (identifier) =>
+    apiClient
+      .post('/platform/school-portal/auth/forgot-password', { role: 'TEACHER', identifier: String(identifier || '').trim() })
+      .then((r) => r.data),
+  verifyResetOtp: (identifier, otp) =>
+    apiClient
+      .post('/platform/school-portal/auth/verify-reset-otp', { role: 'TEACHER', identifier: String(identifier || '').trim(), otp })
       .then((r) => r.data),
   resetPassword: (resetToken, newPassword) =>
     apiClient.post('/platform/school-portal/auth/reset-password', { resetToken, newPassword }).then((r) => r.data),

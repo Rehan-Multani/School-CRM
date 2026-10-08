@@ -47,9 +47,9 @@ import { LineChart } from '../components/ui/Charts/LineChart';
 import { Badge } from '../components/ui/Badge';
 import { DashboardSkeleton } from '../components/ui/SkeletonLoader';
 
-export const pct = (part, whole) => (Number(whole) > 0 ? Math.min(100, Math.round((Number(part) || 0) / Number(whole) * 100)) : 0);
+const pct = (part, whole) => (Number(whole) > 0 ? Math.min(100, Math.round((Number(part) || 0) / Number(whole) * 100)) : 0);
 
-const Dashboard = () => {
+export const Dashboard = () => {
   const { user } = useSchoolAdminAuth();
   const navigate = useNavigate();
 

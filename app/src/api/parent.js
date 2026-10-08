@@ -34,6 +34,9 @@ export const parentApi = {
   markNoticeRead: (noticeId) => api.patch(`${P}/notices/${id(noticeId)}/read`),
   markAllNoticesRead: () => api.patch(`${P}/notices/read-all`),
   events: (params) => api.get(`${P}/events`, params),
+  // Live pickups (with `otp` while valid) for ALL linked children, so a pickup of a
+  // child who is not the selected one is still announced. Poll-only; never cache.
+  activePickups: () => api.get(`${P}/pickup/active`).then((r) => r?.data || []),
   notifications: (params) => api.get(`${P}/notifications`, params),
   unreadCount: () => data(api.get(`${P}/notifications/unread-count`)),
   markNotificationRead: (nId) => api.patch(`${P}/notifications/${id(nId)}/read`),
@@ -91,6 +94,8 @@ export function childApi(childId) {
 
     // ---- safe pickup (read-only history) ----
     pickups: (params) => api.get(`${C}/pickup`, params),
+    // The live session (may carry `otp` while OTP_SENT) or null. Poll-only; never cache.
+    activePickup: () => api.get(`${C}/pickup`, { page: 1, limit: 1 }).then((r) => r.active || null),
     pickup: (sessionId) => data(api.get(`${C}/pickup/${id(sessionId)}`)),
 
     // Notice detail is parent-level, but the shared notice screen reads it from the scope.

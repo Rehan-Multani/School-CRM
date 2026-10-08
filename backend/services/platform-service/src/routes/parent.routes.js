@@ -63,7 +63,7 @@ import {
   listReceipts,
   getReceipt,
 } from '../controllers/parent/parentFees.controller.js';
-import { listPickup, getPickup } from '../controllers/parent/parentPickup.controller.js';
+import { listPickup, getPickup, activePickups } from '../controllers/parent/parentPickup.controller.js';
 import { getTransport, getTransportHistory } from '../controllers/parent/parentTransport.controller.js';
 import {
   listNotices,
@@ -101,6 +101,8 @@ router.patch(`${P}/settings`, requireParent, updateParentSettings);
 
 // ============================ 03 · CHILDREN ============================
 router.get(`${P}/children`, requireParent, listChildren);
+// Live pickups (with the OTP while it is valid) for ALL linked children.
+router.get(`${P}/pickup/active`, requireParent, activePickups);
 
 // ============================ 04 · HOME ============================
 router.get(`${P}/dashboard/overview`, requireParent, getOverview);

@@ -5,6 +5,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useStyles } from '../../../context/ThemeContext';
 import { sectionOptions, useTeacher } from '../../../context/TeacherContext';
 import { ymd } from '../../../lib/format';
+import { useFreshSession } from '../../../lib/useFreshSession';
 import { Button, Card } from '../../../components/ui';
 import { DateField, EmptyState, ErrorView, ListRow, Select } from '../../../components/kit';
 import RefreshableScroll from '../../../components/RefreshableScroll';
@@ -20,6 +21,7 @@ export default function AttendanceHome() {
   const [error, setError] = useState(null);
   const [sectionId, setSectionId] = useState(null);
   const [date, setDate] = useState(ymd());
+  useFreshSession(); // class-teacher sections come from the saved session
 
   useEffect(() => {
     loadSlots().catch(setError);

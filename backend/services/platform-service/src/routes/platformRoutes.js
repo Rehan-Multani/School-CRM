@@ -37,6 +37,8 @@ import {
   sendSafePickupOtp,
   verifySafePickupOtp,
   getSafePickupHistory as getAdminSafePickupHistory,
+  resendSafePickupOtp,
+  cancelSafePickup,
 } from '../controllers/adminSafePickup.controller.js';
 import {
   getServiceInfo,
@@ -753,6 +755,10 @@ router.post('/school-portal/safe-pickup/send-otp', requireSchoolAdmin, requireAd
 router.post('/school-portal/principal/safe-pickup/send-otp', requirePrincipal, requireAdminOrPrincipal, sendSafePickupOtp);
 router.post('/school-portal/safe-pickup/verify-otp', requireSchoolAdmin, requireAdminOrPrincipal, verifySafePickupOtp);
 router.post('/school-portal/principal/safe-pickup/verify-otp', requirePrincipal, requireAdminOrPrincipal, verifySafePickupOtp);
+router.post('/school-portal/safe-pickup/resend-otp', requireSchoolAdmin, requireAdminOrPrincipal, resendSafePickupOtp);
+router.post('/school-portal/principal/safe-pickup/resend-otp', requirePrincipal, requireAdminOrPrincipal, resendSafePickupOtp);
+router.post('/school-portal/safe-pickup/cancel', requireSchoolAdmin, requireAdminOrPrincipal, cancelSafePickup);
+router.post('/school-portal/principal/safe-pickup/cancel', requirePrincipal, requireAdminOrPrincipal, cancelSafePickup);
 router.get('/school-portal/safe-pickup/history', requireSchoolAdmin, requireAdminOrPrincipal, getAdminSafePickupHistory);
 router.get('/school-portal/principal/safe-pickup/history', requirePrincipal, requireAdminOrPrincipal, getAdminSafePickupHistory);
 router.get('/school-portal/principal/safe-pickup/settings', requirePrincipal, requireAdminOrPrincipal, getSafePickupSettings);

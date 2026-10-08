@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useAuth } from '../../../context/AuthContext';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { newIdempotencyKey, teacherApi } from '../../../api/teacher';
@@ -16,7 +16,7 @@ const ATT_TONE = { PRESENT: 'success', ABSENT: 'danger', LATE: 'warning', HALF_D
 // Doc §6.10 — class teachers only, and only when the Super Admin enabled Safe
 // Pickup for the school. Tap a student → OTP goes to the guardian's mobile.
 export default function PickupStudents() {
-  const { user, school } = useAuth();
+  const { user, school, refreshSession } = useAuth();
   const theme = useTheme();
   const styles = useStyles(makeStyles);
   const [q, setQ] = useState('');
@@ -28,6 +28,25 @@ export default function PickupStudents() {
     const t = setTimeout(() => setQuery(q.trim()), 350);
     return () => clearTimeout(t);
   }, [q]);
+
+  // The gates read the saved session, which can be older than the school's
+  // settings (an admin enabled Safe Pickup / made this teacher a class teacher
+  // after login). Re-read `me` every time this screen opens, and until that
+  // answer is in, show a loader instead of a wrong "not enabled" message.
+  const gatesOpen = Boolean(school?.features?.safePickup) && Boolean(user?.isClassTeacher);
+  const [checking, setChecking] = useState(true);
+  useFocusEffect(
+    useCallback(() => {
+      let alive = true;
+      refreshSession()
+        .catch(() => {})
+        .finally(() => alive && setChecking(false));
+      return () => {
+        alive = false;
+      };
+    }, [refreshSession]),
+  );
+  if (!gatesOpen && checking) return <SkeletonList />;
 
   // Two independent gates (doc §6.10) — say exactly which one is closed.
   if (!school?.features?.safePickup) {

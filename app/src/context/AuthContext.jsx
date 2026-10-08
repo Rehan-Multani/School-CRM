@@ -170,18 +170,29 @@ export function AuthProvider({ children }) {
     [session, persist],
   );
 
-  // Pull-to-refresh: re-read `me` (profile + school theme/logo snapshot).
-  const refreshSession = useCallback(async () => {
-    const role = ROLES[session?.role];
+  // Re-read `me` (profile flags such as isClassTeacher, school features / theme /
+  // logo) and keep the session in step with the server. Reads the live session
+  // through a ref, so its identity is stable and screens can call it from
+  // effects without re-running on every session change.
+  const lastSyncRef = useRef(0);
+  // `maxAgeMs`: skip the call when `me` was read that recently (screens that
+  // refresh on every focus pass it, so quick tab switches cost nothing).
+  const refreshSession = useCallback(async ({ maxAgeMs = 0 } = {}) => {
+    const cur = sessionRef.current;
+    const role = ROLES[cur?.role];
     if (!role) return;
+    if (maxAgeMs && Date.now() - lastSyncRef.current < maxAgeMs) return;
     const { data } = await api.get(role.mePath);
+    lastSyncRef.current = Date.now();
+    const latest = sessionRef.current;
+    if (!latest || latest.token !== cur.token) return; // logged out / signed in again meanwhile
     const next = {
-      ...session,
-      user: data.user || session.user,
-      school: data.school ? { ...session.school, ...data.school } : session.school,
+      ...latest,
+      user: data.user || latest.user,
+      school: data.school ? { ...latest.school, ...data.school } : latest.school,
     };
-    if (!sameJson(next, session)) await persist(next);
-  }, [session, persist]);
+    if (!sameJson(next, latest)) await persist(next);
+  }, [persist]);
 
   // An administrator's force logout takes effect on the next request. Ask the
   // server right away when its push arrives, and whenever the app is reopened,
@@ -189,9 +200,10 @@ export function AuthProvider({ children }) {
   const hasSession = Boolean(session);
   useEffect(() => {
     if (!hasSession) return undefined;
+    // Also what keeps flags like "Safe Pickup is enabled" / "class teacher" fresh:
+    // an admin changes them on the web while the app sits in the background.
     const check = () => {
-      const role = ROLES[sessionRef.current?.role];
-      if (role) api.get(role.mePath).catch(() => {});
+      refreshSession().catch(() => {});
     };
     const offPush = onPushReceived((data) => data?.type === 'force_logout' && check());
     const offForeground = onAppForeground(check);
@@ -199,7 +211,7 @@ export function AuthProvider({ children }) {
       offPush();
       offForeground();
     };
-  }, [hasSession]);
+  }, [hasSession, refreshSession]);
 
   // Password change revokes every old token and hands back a fresh one.
   const setToken = useCallback(

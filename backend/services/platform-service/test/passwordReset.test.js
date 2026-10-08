@@ -41,22 +41,7 @@ async function fullReset(role, identifier, newPassword) {
   return { sms, resetToken: v.body.data.resetToken };
 }
 
-describe('App forgot-password (mobile OTP)', () => {
-  it('teacher: OTP → verify → reset, then logs in with the new password', async () => {
-    const { sms, resetToken } = await fullReset('TEACHER', 'teacher@schoola.edu', 'NewTeach@123');
-    expect(sms.lastPhone()).toBe('9999999999');
-
-    const login = await request(app)
-      .post('/school-portal/auth/teacher-login')
-      .send({ identifier: 'teacher@schoola.edu', password: 'NewTeach@123' });
-    expect(login.status).toBe(200);
-
-    // The reset token is single-use.
-    const again = await reset({ resetToken, newPassword: 'Another@123' });
-    expect(again.status).toBe(400);
-    expect(again.body.code).toBe('RESET_TOKEN_INVALID');
-  });
-
+describe('Forgot-password (SMS roles: student, parent, driver)', () => {
   it('student without own phone gets the OTP on the guardian mobile', async () => {
     const { sms } = await fullReset('STUDENT', ctx.a.studentLoginEmail, 'NewStud@123');
     expect(sms.lastPhone()).toBe('9876500000');
@@ -67,7 +52,8 @@ describe('App forgot-password (mobile OTP)', () => {
   });
 
   it('parent resets by phone number', async () => {
-    await fullReset('PARENT', ctx.a.parentPhone, 'NewParent@123');
+    const { sms } = await fullReset('PARENT', ctx.a.parentPhone, 'NewParent@123');
+    expect(sms.spy).toHaveBeenCalled(); // SMS, not email
     const login = await request(app)
       .post('/school-portal/auth/parent-login')
       .send({ identifier: ctx.a.parentPhone, password: 'NewParent@123' });

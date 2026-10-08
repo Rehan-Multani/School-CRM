@@ -7,6 +7,7 @@ import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { useTeacher } from '../../../context/TeacherContext';
 import { teacherApi } from '../../../api/teacher';
 import { useAsync } from '../../../lib/useAsync';
+import { useFreshSession } from '../../../lib/useFreshSession';
 import { fmtHM, withPrefix } from '../../../lib/format';
 import { Card } from '../../../components/ui';
 import { Badge, ErrorView, SectionTitle, StaleNotice, StatCard } from '../../../components/kit';
@@ -36,6 +37,7 @@ export default function TeacherHome() {
     await Promise.all([state.reload({ silent: true }), refreshUnread()]);
   }, [state, refreshUnread]);
 
+  useFreshSession(); // class-teacher sections come from the saved session
   const ctSections = user?.classTeacherSections || [];
 
   const quick = [

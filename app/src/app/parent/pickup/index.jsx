@@ -1,9 +1,12 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
+import { useParent } from '../../../context/ParentContext';
 import { usePortal } from '../../../context/PortalScope';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { fmtDateTime } from '../../../lib/format';
+import { useActivePickup } from '../../../lib/useActivePickup';
+import PickupOtpCard from '../../../components/parent/PickupOtpCard';
 import { Badge, EmptyState } from '../../../components/kit';
 import PagedList from '../../../components/PagedList';
 import { isActivePickup, pickupStatus } from '../../../components/parent/pickupStatus';
@@ -16,17 +19,31 @@ export default function PickupHistory() {
   const { api, base, scopeKey } = usePortal();
   const theme = useTheme();
   const styles = useStyles(makeStyles);
+  const { child } = useParent();
+  // Live OTP: polled while focused, kept in state only (not part of the cached list).
+  const active = useActivePickup(() => api.activePickup(), [scopeKey]);
   return (
     <PagedList
       deps={[scopeKey]}
       cacheKey="parent.pickups"
-      fetchPage={(page) => api.pickups({ page, limit: 20 })}
+      fetchPage={(page) =>
+        api.pickups({ page, limit: 20 }).then((r) => ({
+          ...r,
+          // the OTP must never reach the persisted list cache
+          data: (r.data || []).map(({ otp: _otp, ...rest }) => rest),
+        }))
+      }
       contentContainerStyle={{ paddingTop: spacing.lg }}
       ListHeaderComponent={
-        <View style={[styles.info, { backgroundColor: alpha(theme.primary, theme.isDark ? 0.18 : 0.08), borderColor: alpha(theme.primary, 0.25) }]}>
-          <Ionicons name="shield-checkmark-outline" size={20} color={theme.primary} />
-          <Text style={styles.infoText}>When a teacher starts a pickup you get an OTP by SMS. Share it only with the teacher at the school gate.</Text>
-        </View>
+        <>
+          {active?.otp ? <PickupOtpCard session={active} childName={child?.name} /> : null}
+          {active?.otp ? null : (
+            <View style={[styles.info, { backgroundColor: alpha(theme.primary, theme.isDark ? 0.18 : 0.08), borderColor: alpha(theme.primary, 0.25) }]}>
+              <Ionicons name="shield-checkmark-outline" size={20} color={theme.primary} />
+              <Text style={styles.infoText}>When the school starts a pickup you get an OTP by SMS and the same OTP appears here. Share it only with the staff member at the school gate.</Text>
+            </View>
+          )}
+        </>
       }
       ListEmptyComponent={<EmptyState icon="shield-checkmark-outline" title="No pickups yet" message="Pickups verified by OTP at the school gate will appear here." />}
       renderItem={({ item }) => {

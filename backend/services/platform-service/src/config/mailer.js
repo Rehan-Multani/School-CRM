@@ -96,3 +96,51 @@ export async function sendSchoolResetEmail({ to, schoolName, resetUrl }) {
 
   return true;
 }
+
+const escapeHtml = (v) =>
+  String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+/**
+ * Password-reset OTP by email (teacher / principal / transport manager).
+ * Returns true when handed to the SMTP server, false when SMTP is not
+ * configured (the code is then printed to the dev console, never in production).
+ * Throws on an SMTP failure so the caller can log it.
+ */
+export async function sendPasswordResetOtpEmail({ to, name, otp, minutes = 5 }) {
+  const subject = 'Your School Sarthi password reset OTP';
+  const greeting = name ? `Hello ${name},` : 'Hello,';
+  const text = [
+    greeting,
+    '',
+    `Your OTP to reset your password is ${otp}.`,
+    `It is valid for ${minutes} minutes. Do not share it with anyone.`,
+    '',
+    'If you did not request this, you can ignore this email — your password stays unchanged.',
+  ].join('\n');
+
+  const html = `
+    <div style="font-family:Segoe UI,Arial,sans-serif;max-width:560px;margin:0 auto;color:#0f172a">
+      <h2 style="margin-bottom:8px">Password reset</h2>
+      <p>${escapeHtml(greeting)}</p>
+      <p>Use this OTP to reset your School Sarthi password:</p>
+      <p style="font-size:32px;font-weight:800;letter-spacing:8px;margin:16px 0">${escapeHtml(otp)}</p>
+      <p style="color:#64748b;font-size:13px">It is valid for ${escapeHtml(minutes)} minutes. Do not share it with anyone. If you did not request this, ignore this email — your password stays unchanged.</p>
+    </div>
+  `;
+
+  if (!isSmtpConfigured()) {
+    if (env.nodeEnv !== 'production') {
+      console.log(`[dev email] To: ${to}\n${text}`);
+    }
+    return false;
+  }
+
+  await transporter().sendMail({
+    from: env.smtp.from || env.smtp.user,
+    to,
+    subject,
+    text,
+    html,
+  });
+  return true;
+}

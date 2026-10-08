@@ -20,7 +20,10 @@ export function ParentProvider({ children: content }) {
   const { session } = useAuth();
   // Login returns `children[]`; it is kept on the session so a cold start can
   // paint before /children answers.
-  const [kids, setKids] = useState(() => session?.extra?.children || null);
+  // A cached EMPTY list is not trusted (a student may have been linked since):
+  // treat it as "not loaded yet" so the loader shows until /children answers,
+  // instead of flashing "No student is linked".
+  const [kids, setKids] = useState(() => (session?.extra?.children?.length ? session.extra.children : null));
   const [selectedId, setSelectedId] = useState(null);
   const [childrenError, setChildrenError] = useState(null);
   const [unread, setUnread] = useState(0);
