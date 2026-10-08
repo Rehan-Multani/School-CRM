@@ -1,3 +1,4 @@
+import { devOtp } from '../lib/devCredentials';
 import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
@@ -49,7 +50,8 @@ export default function OtpSignIn({ role, initialMobile, onFocusInput, onSwitchR
           otpLength: data.otpLength || 6,
           resendIn: data.resendIn || 30,
           notice: data.message || '',
-          devOtp: __DEV__ ? (data.otp || '123456') : '',
+          // QA static mode echoes the code; a prefilled demo number gets its demo OTP.
+          devOtp: data.otp || devOtp(role.key, mobile),
         },
       });
     } catch (err) {

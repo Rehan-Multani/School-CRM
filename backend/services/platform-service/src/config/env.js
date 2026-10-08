@@ -87,6 +87,16 @@ export const env = {
   loginOtp: {
     otpMode: UNDER_TEST_RUNNER ? 'static' : (process.env.LOGIN_OTP_MODE || (NODE_ENV === 'production' ? 'random' : 'static')).toLowerCase(),
     staticOtp: process.env.LOGIN_STATIC_OTP || '123456',
+    // Demo accounts: ONLY these exact mobile numbers sign in with the fixed
+    // `demoOtp` (no SMS is sent); every other number gets a random OTP by SMS.
+    // Empty by default = feature off. e.g. LOGIN_DEMO_NUMBERS=9000011111
+    demoNumbers: UNDER_TEST_RUNNER
+      ? []
+      : String(process.env.LOGIN_DEMO_NUMBERS || '')
+          .split(',')
+          .map((n) => n.replace(/\D/g, '').slice(-10))
+          .filter((n) => n.length === 10),
+    demoOtp: String(process.env.LOGIN_DEMO_OTP || '123456'),
   },
   smsProvider: UNDER_TEST_RUNNER ? 'mock' : (process.env.SMS_PROVIDER || 'mock').toLowerCase(),
   // Real SMS delivery (SMS_PROVIDER=smsgatewayhub). India DLT: the sender header,

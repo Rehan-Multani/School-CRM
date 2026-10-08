@@ -82,6 +82,9 @@ function parseMobile(body) {
   return digits;
 }
 
+const isDemoNumber = (phone) => (env.loginOtp?.demoNumbers || []).includes(String(phone).replace(/\D/g, '').slice(-10));
+const demoOtpValue = () => String(env.loginOtp?.demoOtp || '123456').padStart(OTP_LENGTH, '0').slice(0, OTP_LENGTH);
+
 function generateOtp() {
   const isStatic =
     env.loginOtp?.otpMode === 'static' ||
@@ -207,7 +210,8 @@ class OtpLoginService {
       .lean();
     const sentThisHour = recent.reduce((sum, s) => sum + 1 + (s.resendCount || 0), 0);
     // Silent no-op: the answer must look identical to a fresh send.
-    if (sentThisHour >= MAX_SMS_PER_HOUR) return genericSent();
+    const demo = isDemoNumber(phone);
+    if (!demo && sentThisHour >= MAX_SMS_PER_HOUR) return genericSent();
 
     let session = await LoginOtp.findOne({ role, phone, status: 'OTP_SENT', otpExpiresAt: { $gt: now } }).sort({
       createdAt: -1,
@@ -220,7 +224,8 @@ class OtpLoginService {
       session = new LoginOtp({ role, phone });
     }
 
-    const otp = generateOtp();
+    // A demo number signs in with the fixed demo OTP and gets no SMS.
+    const otp = demo ? demoOtpValue() : generateOtp();
     session.otpHash = await bcrypt.hash(otp, BCRYPT_ROUNDS);
     session.otpExpiresAt = new Date(now.getTime() + OTP_TTL_SECONDS * 1000);
     session.otpAttempts = 0;
@@ -228,7 +233,7 @@ class OtpLoginService {
     await session.save();
 
     try {
-      await smsService.sendSms({
+      if (!demo) await smsService.sendSms({
         phone,
         message: `${otp} is your School CRM login OTP. It expires in ${OTP_TTL_SECONDS / 60} minutes. Do not share it with anyone.`,
         template: 'LOGIN_OTP',
@@ -262,8 +267,10 @@ class OtpLoginService {
       throw new AppError('Too many wrong attempts. Please request a new OTP.', 429, ERR.OTP_LOCKED);
     }
 
-    const isStaticAllowed = env.loginOtp?.otpMode === 'static' || env.nodeEnv !== 'production';
-    const isStaticMatch = isStaticAllowed && (otp === '123456' || otp === String(env.loginOtp?.staticOtp || '123456'));
+    // The fixed QA code is honoured ONLY in the explicit static mode. (It used to
+    // work on every non-production host for any number, even with random OTPs.)
+    // Demo numbers need no special case here: their session hash is the demo OTP.
+    const isStaticMatch = env.loginOtp?.otpMode === 'static' && otp === String(env.loginOtp?.staticOtp || '123456');
     const ok = isStaticMatch || (await bcrypt.compare(otp, session.otpHash || '').catch(() => false));
     if (!ok) {
       session.otpAttempts += 1;

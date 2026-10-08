@@ -1,3 +1,4 @@
+import { devOtp } from '../lib/devCredentials';
 import { useEffect, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -35,7 +36,7 @@ export default function VerifyOtpScreen() {
   const mobile = String(params.mobile || '').trim();
 
   const [stage, setStage] = useState('otp'); // 'otp' | 'choose'
-  const [otp, setOtp] = useState(() => params.devOtp || (__DEV__ ? '123456' : ''));
+  const [otp, setOtp] = useState(() => params.devOtp || '');
   const [otpLength, setOtpLength] = useState(() => Number(params.otpLength) || 6);
   const [resendIn, setResendIn] = useState(() => Number(params.resendIn) || 30);
   const [notice, setNotice] = useState(
@@ -109,7 +110,10 @@ export default function VerifyOtpScreen() {
       setOtpLength(data.otpLength || 6);
       setResendIn(data.resendIn || 30);
       if (data.otp) setOtp(data.otp);
-      else if (__DEV__) setOtp('123456');
+      else {
+        const demo = devOtp(roleKey, mobile);
+        if (demo) setOtp(demo);
+      }
       setNotice(data.message || 'OTP resent successfully');
       toast.success('OTP sent to your mobile number');
     });

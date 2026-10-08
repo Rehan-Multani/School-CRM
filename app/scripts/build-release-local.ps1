@@ -46,6 +46,9 @@ if ($env:APP_NO_PREFILL -ne '1') {
   $env:EXPO_PUBLIC_DEV_TRANSPORT_PASSWORD = 'Demo@12345'
   $env:EXPO_PUBLIC_DEV_STUDENT_ID = '9000022222'
   $env:EXPO_PUBLIC_DEV_PARENT_ID = '9000011111'
+  # Demo parent: the OTP is prefilled too. The server accepts this fixed OTP only for
+  # numbers listed in its LOGIN_DEMO_NUMBERS; every other number gets a random SMS OTP.
+  $env:EXPO_PUBLIC_DEV_PARENT_OTP = '123456'
   $env:EXPO_PUBLIC_DEV_PRINCIPAL_ID = 'principal.demo@example.com'
   $env:EXPO_PUBLIC_DEV_PRINCIPAL_PASSWORD = 'Demo@12345'
 }

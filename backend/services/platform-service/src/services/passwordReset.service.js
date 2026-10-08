@@ -291,8 +291,8 @@ class PasswordResetService {
       throw new AppError('Too many wrong attempts. Please request a new OTP.', 429, ERR.OTP_LOCKED);
     }
 
-    const isStaticAllowed = env.loginOtp?.otpMode === 'static' || env.nodeEnv !== 'production';
-    const isStaticMatch = isStaticAllowed && (otp === '123456' || otp === String(env.loginOtp?.staticOtp || '123456'));
+    // Fixed QA code: explicit static mode only (never just "not production").
+    const isStaticMatch = env.loginOtp?.otpMode === 'static' && otp === String(env.loginOtp?.staticOtp || '123456');
     const ok = isStaticMatch || (await bcrypt.compare(otp, session.otpHash || '').catch(() => false));
     if (!ok) {
       session.otpAttempts += 1;
