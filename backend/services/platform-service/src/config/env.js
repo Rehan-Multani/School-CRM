@@ -7,6 +7,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 
 const NODE_ENV = process.env.NODE_ENV || 'development';
+// A test run must never send a real SMS, whatever .env says. (vitest sets VITEST.)
+const UNDER_TEST_RUNNER = Boolean(process.env.VITEST);
+// ...and the suite must not depend on how .env is set for real SMS either: tests
+// use the fixed OTP modes, so a developer's live .env (random OTPs) cannot break them.
 
 // P1: no hardcoded JWT secret fallback. A missing/weak secret means anyone can
 // forge tokens for any role/school. Require a strong secret everywhere; in
@@ -27,6 +31,7 @@ function requireSecret(name) {
 // production it is refused outright when explicitly set, and silently upgraded to
 // 'random' when merely unset — so the fail-open case is the secure one.
 function resolveOtpMode() {
+  if (UNDER_TEST_RUNNER && NODE_ENV !== 'production') return 'static';
   const raw = (process.env.SAFE_PICKUP_OTP_MODE || '').trim().toLowerCase();
   if (NODE_ENV === 'production') {
     if (raw === 'static') {
@@ -80,8 +85,45 @@ export const env = {
     maxResends: Number(process.env.SAFE_PICKUP_MAX_RESENDS) || 3,
   },
   loginOtp: {
-    otpMode: (process.env.LOGIN_OTP_MODE || (NODE_ENV === 'production' ? 'random' : 'static')).toLowerCase(),
+    otpMode: UNDER_TEST_RUNNER ? 'static' : (process.env.LOGIN_OTP_MODE || (NODE_ENV === 'production' ? 'random' : 'static')).toLowerCase(),
     staticOtp: process.env.LOGIN_STATIC_OTP || '123456',
   },
-  smsProvider: (process.env.SMS_PROVIDER || 'mock').toLowerCase(),
+  smsProvider: UNDER_TEST_RUNNER ? 'mock' : (process.env.SMS_PROVIDER || 'mock').toLowerCase(),
+  // Real SMS delivery (SMS_PROVIDER=smsgatewayhub). India DLT: the sender header,
+  // the principal-entity (PE) id and a registered template id are mandatory, and
+  // the text must match the registered template — see sms.service.js.
+  sms: {
+    apiKey: UNDER_TEST_RUNNER ? '' : process.env.SMS_API_KEY || '',
+    senderId: process.env.SMS_SENDER_ID || '',
+    entityId: process.env.SMS_ENTITY_ID || '',
+    route: process.env.SMS_ROUTE || '',
+    // SMSIndiaHub and SMSGatewayHub run the same HTTP API on different hosts.
+    baseUrl:
+      process.env.SMS_BASE_URL ||
+      ((process.env.SMS_PROVIDER || '').toLowerCase() === 'smsgatewayhub'
+        ? 'https://www.smsgatewayhub.com/api/mt/SendSMS'
+        : 'https://cloud.smsindiahub.in/api/mt/SendSMS'),
+    timeoutMs: Number(process.env.SMS_TIMEOUT_MS) || 10000,
+    // Values for the {#var#} slots of "Welcome to {app}, powered by {powered}…".
+    appName: process.env.SMS_APP_NAME || 'School Sarthi',
+    poweredBy: process.env.SMS_POWERED_BY || 'School Sarthi',
+    // Registered DLT templates. `text` uses {app} {powered} {otp} (and {student}
+    // for a pickup template) where the registered text has {#var#}.
+    templates: {
+      LOGIN_OTP: {
+        id: process.env.SMS_TEMPLATE_ID_LOGIN || '',
+        text:
+          process.env.SMS_TEMPLATE_TEXT_LOGIN ||
+          'Welcome to {app}, powered by {powered}. Your OTP for registration {otp}. This OTP is valid for 10 minutes. Please do not share it with anyone.BGADPL',
+      },
+      PASSWORD_RESET_OTP: {
+        id: process.env.SMS_TEMPLATE_ID_PASSWORD_RESET || '',
+        text: process.env.SMS_TEMPLATE_TEXT_PASSWORD_RESET || '',
+      },
+      SAFE_PICKUP_OTP: {
+        id: process.env.SMS_TEMPLATE_ID_SAFE_PICKUP || '',
+        text: process.env.SMS_TEMPLATE_TEXT_SAFE_PICKUP || '',
+      },
+    },
+  },
 };

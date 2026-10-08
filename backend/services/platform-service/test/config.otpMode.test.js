@@ -26,7 +26,7 @@ function readOtpMode(extraEnv) {
     {
       cwd: serviceRoot,
       encoding: 'utf8',
-      env: { ...process.env, JWT_SECRET, SAFE_PICKUP_OTP_MODE: '', ...extraEnv },
+      env: { ...process.env, VITEST: '', JWT_SECRET, SAFE_PICKUP_OTP_MODE: '', ...extraEnv },
     }
   ).trim();
 }

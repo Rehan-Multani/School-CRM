@@ -35,7 +35,8 @@ import { subscriptionAccessService } from './subscriptionAccess.service.js';
  */
 
 const OTP_LENGTH = 6;
-const OTP_TTL_SECONDS = 5 * 60;
+// The registered DLT text promises "valid for 10 minutes".
+const OTP_TTL_SECONDS = 10 * 60;
 const SELECT_TOKEN_TTL_SECONDS = 5 * 60;
 const MAX_OTP_ATTEMPTS = 5;
 const RESEND_COOLDOWN_SECONDS = 30;
@@ -231,13 +232,17 @@ class OtpLoginService {
         phone,
         message: `${otp} is your School CRM login OTP. It expires in ${OTP_TTL_SECONDS / 60} minutes. Do not share it with anyone.`,
         template: 'LOGIN_OTP',
+        otp,
       });
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('[otp-login] OTP SMS failed:', error.code || error.message);
     }
 
-    const isDev = env.nodeEnv !== 'production' || env.loginOtp?.otpMode === 'static';
+    // Echo the code back ONLY in the explicit fixed-OTP QA mode. A random OTP
+    // must reach the user through the SMS alone, even if NODE_ENV is not set to
+    // production on some host (with the mock provider it is in the server log).
+    const isDev = env.loginOtp?.otpMode === 'static';
     return genericSent(isDev ? { otp } : {});
   }
 

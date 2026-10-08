@@ -302,6 +302,8 @@ export async function sendSafePickupOtp(req, res, next) {
       await smsService.sendSms({
         phone: guardianMobile,
         template: 'SAFE_PICKUP_OTP',
+        otp,
+        vars: { student: session.studentName },
         message: `Pickup request for ${session.studentName} has been initiated. Verification OTP: ${otp}. Do not share with anyone except school staff.`,
       });
       session.status = 'OTP_SENT';

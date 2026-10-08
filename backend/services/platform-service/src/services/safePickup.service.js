@@ -398,6 +398,8 @@ class SafePickupService {
       await smsService.sendSms({
         phone: guardian.mobile,
         template: 'SAFE_PICKUP_OTP',
+        otp,
+        vars: { student: session.studentName },
         message: `Pickup request for ${session.studentName} at your school has been initiated. Verification OTP: ${otp}. Do not share except with the school staff collecting your child.`,
       });
       session.status = 'OTP_SENT';
@@ -493,6 +495,8 @@ class SafePickupService {
       await smsService.sendSms({
         phone: session.guardianMobile,
         template: 'SAFE_PICKUP_OTP',
+        otp,
+        vars: { student: session.studentName },
         message: `New pickup verification OTP for ${session.studentName}: ${otp}.`,
       });
     } catch (err) {
