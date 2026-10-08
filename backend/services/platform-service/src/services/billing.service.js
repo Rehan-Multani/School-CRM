@@ -11,6 +11,7 @@ import { billingRepository } from '../repositories/billing.repository.js';
 import { schoolRepository } from '../repositories/school.repository.js';
 import { subscriptionRepository } from '../repositories/subscription.repository.js';
 import { planEndDate } from '../utils/subscription.utils.js';
+import { applyTax, resolveTaxPercent } from '../utils/subscriptionTax.js';
 
 function requireText(value, label) {
   const text = typeof value === 'string' ? value.trim() : '';
@@ -113,11 +114,13 @@ export class BillingService {
     let planName = optionalText(payload?.planName) || optionalText(school.subscriptionPlan);
     let planType = optionalText(payload?.planType);
     let amount = payload?.amount;
+    let matchedPlan = null;
 
     if (planName) {
       const plans = await subscriptionRepository.list();
       const plan = plans.find((item) => item.name.toLowerCase() === planName.toLowerCase());
       if (plan) {
+        matchedPlan = plan;
         planName = plan.name;
         planType = planType || plan.planType;
         if (amount === '' || amount === null || typeof amount === 'undefined') {
@@ -139,6 +142,10 @@ export class BillingService {
     const status = normalizeStatus(payload?.status, 'Pending');
     const paidNow = status === 'Paid';
 
+    // GST: `amount` is the pre-tax subtotal (plan price); tax/total are derived server-side.
+    const taxPercent = await resolveTaxPercent(matchedPlan);
+    const money = applyTax(normalizeAmount(amount), taxPercent);
+
     const invoice = await billingRepository.create({
       invoiceNumber: await billingRepository.nextInvoiceNumber(),
       school: school._id,
@@ -146,7 +153,11 @@ export class BillingService {
       schoolCode: school.code,
       planName,
       planType: normalizePlanType(planType),
-      amount: normalizeAmount(amount),
+      amount: money.subtotal,
+      subtotal: money.subtotal,
+      taxPercent: money.taxPercent,
+      tax: money.tax,
+      totalAmount: money.totalAmount,
       currency: 'INR',
       status,
       issuedAt,
@@ -207,7 +218,7 @@ export class BillingService {
     return updated.toPublicJSON();
   }
 
-  async refundInvoice(id) {
+  async refundInvoice(id, payload = {}) {
     requireId(id, 'Invoice');
     const invoice = await billingRepository.findById(id);
     if (!invoice) {
@@ -217,9 +228,11 @@ export class BillingService {
       throw new AppError('Only paid invoices can be refunded', 400);
     }
 
+    const reason = optionalText(payload?.reason);
     const updated = await billingRepository.updateById(id, {
       status: 'Refunded',
       refundedAt: new Date(),
+      ...(reason ? { notes: [invoice.notes, `Refund: ${reason}`].filter(Boolean).join('\n') } : {}),
     });
 
     return updated.toPublicJSON();
@@ -283,7 +296,8 @@ export class BillingService {
       throw new AppError('Only unpaid invoices can be collected online', 400);
     }
 
-    const amountPaise = Math.round(Number(invoice.amount) * 100);
+    const chargeable = invoice.totalAmount ?? Number(invoice.amount) + Number(invoice.tax || 0);
+    const amountPaise = Math.round(Number(chargeable) * 100);
     const auth = Buffer.from(`${env.razorpay.keyId}:${env.razorpay.keySecret}`).toString('base64');
     const response = await fetch('https://api.razorpay.com/v1/orders', {
       method: 'POST',

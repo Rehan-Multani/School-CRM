@@ -7,6 +7,7 @@ import { FEE_STRUCTURE_STATUSES } from '../models/FeeStructure.js';
 import { ASSIGNMENT_STATUSES, DISCOUNT_TYPES } from '../models/StudentFeeAssignment.js';
 import { FEE_PAYMENT_METHODS } from '../models/FeePayment.js';
 import { StudentEnrollment } from '../models/StudentEnrollment.js';
+import { feeLedgerService } from './feeLedger.service.js';
 
 const DEFAULT_FEE_HEADS = [
   { name: 'Tuition Fee', code: 'TUITION', category: 'ACADEMIC', description: 'Regular academic tuition fees' },
@@ -529,23 +530,25 @@ export class FeeService {
     const structure = await feeRepository.findStructureByClassAndYear(schoolId, classId, academicYearId);
     if (!structure) throw new AppError('Fee structure not found for this class and academic year', 404);
 
-    // Assigning the same structure twice would double the student's dues.
-    const existing = await feeRepository.findStructureAssignment(schoolId, studentId, academicYearId, structure._id);
-    if (existing) throw new AppError('This fee structure is already assigned to the student for this academic year', 409);
-
-    const assignment = await feeRepository.createAssignment({
+    // Resolve the enrollment so the rows are item-level (what invoices bill).
+    const enrollment = await StudentEnrollment.findOne({
       schoolId,
       studentId,
       academicYearId,
-      classId,
-      feeStructureId: structure._id,
-      totalAmount: structure.totalAmount || 0,
-      discountAmount: 0,
-      paidAmount: 0,
-      status: 'PENDING',
-    });
+      status: 'ACTIVE',
+    }).sort({ createdAt: -1 });
+    if (!enrollment) throw new AppError('No active enrollment found for this student in that academic year', 400);
 
-    return assignment.toPublicJSON();
+    const result = await this.autoAssignStudentFees(schoolId, studentId, {
+      enrollmentId: enrollment._id,
+      classId,
+      academicYearId,
+      optionalFeeHeadIds: payload.optionalFeeHeadIds,
+    });
+    if (result.assignedCount === 0 && result.alreadyAssigned) {
+      throw new AppError('This fee structure is already assigned to the student for this academic year', 409);
+    }
+    return result;
   }
 
   async autoAssignStudentFees(schoolIdRaw, studentIdRaw, payload = {}) {
@@ -567,6 +570,7 @@ export class FeeService {
     }
 
     let assignedCount = 0;
+    let alreadyAssigned = 0;
     for (const item of items) {
       const isOptional = item.isOptional;
       const headIdStr = item.feeHeadId?._id?.toString() || item.feeHeadId?.toString() || '';
@@ -576,6 +580,8 @@ export class FeeService {
         schoolId,
         studentId,
         enrollmentId,
+        academicYearId,
+        classId,
         feeStructureId: structure._id,
         feeStructureItemId: item._id,
         feeHeadId: item.feeHeadId?._id || item.feeHeadId,
@@ -591,15 +597,31 @@ export class FeeService {
         status: 'ACTIVE',
       };
 
+      // Belt and braces with the (student, item) unique index: never create a
+      // second row for the same component.
+      const dup = await feeRepository.findAssignmentByItem(schoolId, studentId, item._id);
+      if (dup) {
+        alreadyAssigned++;
+        continue;
+      }
       try {
         await feeRepository.createAssignment(assignmentData);
         assignedCount++;
-      } catch {
-        // Skip duplicate assignment
+      } catch (err) {
+        // The (student, item) unique index makes a re-run idempotent; anything
+        // else is a real error and must surface.
+        if (err?.code !== 11000) throw err;
+        alreadyAssigned++;
       }
     }
 
-    return { assignedCount, message: `Successfully assigned ${assignedCount} fee components to student` };
+    return {
+      assignedCount,
+      alreadyAssigned,
+      message: assignedCount
+        ? `Successfully assigned ${assignedCount} fee components to student`
+        : 'Fee components were already assigned to this student',
+    };
   }
 
   async updateStudentAssignment(schoolIdRaw, idRaw, payload = {}) {
@@ -621,7 +643,7 @@ export class FeeService {
 
       let discountAmount = 0;
       if (discountType === 'PERCENTAGE') {
-        discountAmount = Math.round((originalAmount * discountValue) / 100);
+        discountAmount = Math.round(originalAmount * discountValue) / 100;
       } else if (discountType === 'FIXED') {
         discountAmount = discountValue;
       }
@@ -698,20 +720,54 @@ export class FeeService {
       throw new AppError('No active enrollment found for this student to generate an invoice against', 400);
     }
 
-    const assignments = await feeRepository.listAssignmentsByEnrollment(schoolId, enrollmentId);
-    const activeAssignments = assignments.filter((a) => a.status === 'ACTIVE' && a.isOptedIn);
+    let assignments = await feeRepository.listAssignmentsByEnrollment(schoolId, enrollmentId);
 
-    if (activeAssignments.length === 0) {
-      throw new AppError('No active fee components assigned to this student', 400);
+    // Students enrolled before a fee structure existed (or created by an
+    // older build) have no assignments yet: assign the class structure now
+    // instead of failing, so the accountant can always raise an invoice.
+    if (assignments.length === 0) {
+      const enrollment = await StudentEnrollment.findOne({ _id: enrollmentId, schoolId }).select('classId academicYearId');
+      if (enrollment?.classId) {
+        await this.autoAssignStudentFees(schoolId, studentId, {
+          enrollmentId,
+          classId: enrollment.classId,
+          academicYearId: enrollment.academicYearId || academicYearId,
+        });
+        assignments = await feeRepository.listAssignmentsByEnrollment(schoolId, enrollmentId);
+      }
     }
 
-    const items = activeAssignments.map((a) => ({
-      feeAssignmentId: a._id,
-      feeHeadName: a.feeHeadName || 'Fee Item',
-      originalAmount: a.originalAmount || a.totalAmount || 0,
-      discountAmount: (a.discountAmount || 0) + (a.concessionAmount || 0),
-      finalAmount: a.finalAmount !== undefined ? a.finalAmount : ((a.originalAmount || 0) - (a.discountAmount || 0)),
-    }));
+    // Billable = opted-in, not waived/cancelled, with something still unpaid.
+    // Assignment-based collections (admin "collect") reduce what an invoice
+    // bills so the same fee is never charged twice.
+    const BILLABLE = ['ACTIVE', 'PENDING', 'PARTIAL'];
+    const activeAssignments = assignments.filter((a) => BILLABLE.includes(a.status) && a.isOptedIn);
+
+    if (activeAssignments.length === 0) {
+      throw new AppError(
+        'No fee components are assigned to this student. Configure a fee structure for the class and academic year first.',
+        400
+      );
+    }
+
+    const r2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
+    const items = activeAssignments
+      .map((a) => {
+        const payable = r2(typeof a.getPayableAmount === 'function' ? a.getPayableAmount() : a.finalAmount);
+        const remaining = Math.max(0, r2(payable - (a.paidAmount || 0)));
+        return {
+          feeAssignmentId: a._id,
+          feeHeadName: a.feeHeadName || 'Fee Item',
+          originalAmount: r2(a.originalAmount || a.totalAmount || 0),
+          discountAmount: r2((a.discountAmount || 0) + (a.concessionAmount || 0)),
+          finalAmount: remaining,
+        };
+      })
+      .filter((it) => it.finalAmount > 0);
+
+    if (items.length === 0) {
+      throw new AppError('All assigned fee components for this student are already paid or fully waived', 400);
+    }
 
     // One invoice per student per period — a second one would bill the same fees twice.
     const duplicate = await feeRepository.findInvoiceForPeriod(schoolId, studentId, periodLabel);
@@ -719,7 +775,7 @@ export class FeeService {
       throw new AppError(`An invoice (${duplicate.invoiceNumber}) already exists for this student for "${periodLabel}"`, 409);
     }
 
-    const totalAmount = items.reduce((sum, item) => sum + item.finalAmount, 0);
+    const totalAmount = r2(items.reduce((sum, item) => sum + item.finalAmount, 0));
     const invoiceNumber = await feeRepository.getNextInvoiceNumber(schoolId);
 
     const created = await feeRepository.createInvoice({
@@ -752,44 +808,38 @@ export class FeeService {
     if (invoice.status === 'PAID') {
       throw new AppError('This invoice has already been paid in full', 400);
     }
+    if (!['PENDING', 'PARTIALLY_PAID', 'OVERDUE'].includes(invoice.status)) {
+      throw new AppError(`An invoice in "${invoice.status}" state cannot accept payments`, 400);
+    }
 
-    const amount = ensureNumber(payload.amount, 'Payment Amount', 1);
-    if (amount > invoice.balanceAmount) {
+    const amount = Math.round(ensureNumber(payload.amount, 'Payment Amount', 0.01) * 100) / 100;
+    if (amount > invoice.balanceAmount + 0.005) {
       throw new AppError(`Payment amount (₹${amount}) exceeds invoice remaining balance (₹${invoice.balanceAmount})`, 400);
     }
 
     const paymentMethod = payload.paymentMethod ? ensureOption(payload.paymentMethod, FEE_PAYMENT_METHODS, 'Payment Method') : 'UPI';
-    const receiptNumber = await feeRepository.getNextReceiptNumber(schoolId);
+    let paymentDate = payload.paymentDate ? new Date(payload.paymentDate) : new Date();
+    if (Number.isNaN(paymentDate.getTime())) throw new AppError('Payment date is invalid', 400);
+    if (paymentDate.getTime() > Date.now() + 24 * 60 * 60 * 1000) {
+      throw new AppError('Payment date cannot be in the future', 400);
+    }
 
-    const payment = await feeRepository.createPayment({
+    // One path for every payment: FeePayment + Receipt + FinanceTransaction,
+    // with an atomic balance guard on the invoice (no overpayment, no double
+    // collection from two concurrent requests).
+    const { payment } = await feeLedgerService.recordPayment({
       schoolId,
-      invoiceId,
-      studentId: invoice.studentId?._id || invoice.studentId,
-      receiptNumber,
+      invoice,
       amount,
       paymentMethod,
-      paymentMode: paymentMethod,
-      paymentReference: optionalText(payload.paymentReference),
-      referenceNo: optionalText(payload.paymentReference),
-      paymentDate: payload.paymentDate ? new Date(payload.paymentDate) : new Date(),
-      transactionDate: payload.paymentDate ? new Date(payload.paymentDate) : new Date(),
+      paymentDate,
+      reference: optionalText(payload.paymentReference),
       remarks: optionalText(payload.remarks),
-      notes: optionalText(payload.remarks),
       collectedBy: collectedBy || optionalText(payload.collectedBy) || 'Accounts Office',
-      status: 'COMPLETED',
     });
 
-    const newPaidAmount = invoice.paidAmount + amount;
-    const newBalanceAmount = Math.max(0, invoice.totalAmount - newPaidAmount);
-    const newStatus = newBalanceAmount <= 0 ? 'PAID' : 'PARTIALLY_PAID';
-
-    await feeRepository.updateInvoice(schoolId, invoiceId, {
-      paidAmount: newPaidAmount,
-      balanceAmount: newBalanceAmount,
-      status: newStatus,
-    });
-
-    return payment.toPublicJSON();
+    const populated = await feeRepository.findPaymentById(schoolId, payment._id);
+    return (populated || payment).toPublicJSON();
   }
 
   async listPayments(schoolIdRaw, query = {}) {

@@ -33,6 +33,25 @@ class TimetableRepository {
     return TimetableEntry.findOneAndDelete({ schoolId: oid(schoolId), _id: oid(id) });
   }
 
+  /** Every ACTIVE slot of these teachers that lives in a different section. */
+  findTeacherClashesOutsideSection(schoolId, sectionId, teacherIds = []) {
+    if (!teacherIds.length) return Promise.resolve([]);
+    return TimetableEntry.find({
+      schoolId: oid(schoolId),
+      sectionId: { $ne: oid(sectionId) },
+      teacherId: { $in: teacherIds.map(oid) },
+      status: 'ACTIVE',
+    }).lean();
+  }
+
+  /** Delete + insert a section's grid (validated by the service beforehand). */
+  async replaceSection(schoolId, sectionId, docs) {
+    await TimetableEntry.deleteMany({ schoolId: oid(schoolId), sectionId: oid(sectionId) });
+    if (!docs.length) return [];
+    const inserted = await TimetableEntry.insertMany(docs, { ordered: true });
+    return inserted.map((d) => d.toObject());
+  }
+
   /** A teacher cannot be in two rooms in the same day+period. */
   findTeacherClash(schoolId, { teacherId, dayOfWeek, periodNumber, excludeId = null }) {
     if (!teacherId) return Promise.resolve(null);

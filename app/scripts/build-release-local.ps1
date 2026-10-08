@@ -23,6 +23,21 @@ $env:APP_RELEASE = '1'
 $env:EXPO_PUBLIC_API_URL = 'https://schoolsarthiapp.com/api/v1'
 $env:NODE_ENV = 'production'
 
+# Internal/demo release: prefill the login form with the demo-school accounts
+# (same values as the `vps` profile in eas.json). Set APP_NO_PREFILL=1 to build
+# a store APK that ships no credentials.
+if ($env:APP_NO_PREFILL -ne '1') {
+  $env:EXPO_PUBLIC_PREFILL_LOGIN = '1'
+  $env:EXPO_PUBLIC_DEV_TEACHER_ID = 'teacher.demo@example.com'
+  $env:EXPO_PUBLIC_DEV_TEACHER_PASSWORD = 'Demo@12345'
+  $env:EXPO_PUBLIC_DEV_TRANSPORT_ID = 'transport.demo@example.com'
+  $env:EXPO_PUBLIC_DEV_TRANSPORT_PASSWORD = 'Demo@12345'
+  $env:EXPO_PUBLIC_DEV_STUDENT_ID = '9000022222'
+  $env:EXPO_PUBLIC_DEV_PARENT_ID = '9000011111'
+  $env:EXPO_PUBLIC_DEV_PRINCIPAL_ID = 'principal.demo@example.com'
+  $env:EXPO_PUBLIC_DEV_PRINCIPAL_PASSWORD = 'Demo@12345'
+}
+
 if (-not (Test-Path 'keystore/keystore.properties')) { throw 'keystore/keystore.properties missing' }
 
 npx expo prebuild --platform android --clean --no-install
@@ -63,7 +78,9 @@ if ($code) { throw 'gradle assembleRelease failed' }
 $version = (Get-Content app.json -Raw | ConvertFrom-Json).expo.version
 New-Item -ItemType Directory -Force "$app\dist-apk" | Out-Null
 Copy-Item android/app/build/outputs/apk/release/app-release.apk "$app\dist-apk\school-crm-$version.apk" -Force
-Write-Host "Built $app\dist-apk\school-crm-$version.apk"
+New-Item -ItemType Directory -Force "$app\..\apk" | Out-Null
+Copy-Item "$app\dist-apk\school-crm-$version.apk" "$app\..\apk\school-crm-$version.apk" -Force
+Write-Host "Built $app\dist-apk\school-crm-$version.apk (copied to apk\)"
 } finally {
   Set-Location $env:USERPROFILE
 }

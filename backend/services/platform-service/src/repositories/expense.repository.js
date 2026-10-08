@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { nextSequence, maxNumericSuffix } from '../models/Counter.js';
 import { Expense } from '../models/Expense.js';
 import { escapeRegex } from '../../../shared/sanitize.js';
 
@@ -63,8 +64,10 @@ export class ExpenseRepository {
 
   async getNextExpenseNumber(schoolId) {
     const year = new Date().getFullYear();
-    const count = await Expense.countDocuments({ schoolId: toObjectId(schoolId) });
-    return `EXP-${year}-${String(count + 1).padStart(5, '0')}`;
+    const seq = await nextSequence(schoolId, `expense-${year}`, () =>
+      maxNumericSuffix(Expense, schoolId, 'expenseNumber', `EXP-${year}`)
+    );
+    return `EXP-${year}-${String(seq).padStart(5, '0')}`;
   }
 
   aggregateTotals(schoolId, { dateFrom, dateTo } = {}) {

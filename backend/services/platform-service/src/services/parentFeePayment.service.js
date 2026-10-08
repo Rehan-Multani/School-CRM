@@ -7,16 +7,13 @@ import { FeeInvoice } from '../models/FeeInvoice.js';
 import { FeePayment } from '../models/FeePayment.js';
 import { Student } from '../models/Student.js';
 import { PARENT_ERR } from '../constants/parentErrorCodes.js';
+import { feeLedgerService } from './feeLedger.service.js';
 
 const oid = (v) => new mongoose.Types.ObjectId(String(v));
 const PAYABLE = ['PENDING', 'PARTIALLY_PAID', 'OVERDUE'];
 
 function paymentsConfigured() {
   return Boolean(env.razorpay?.keyId && env.razorpay?.keySecret);
-}
-
-function receiptNumber() {
-  return `RCPT-${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}`.toUpperCase();
 }
 
 function receiptDTO(payment, invoice) {
@@ -172,42 +169,42 @@ class ParentFeePaymentService {
 
     const amount = Math.round((amountPaise / 100) * 100) / 100;
 
-    let payment;
+    // Same ledger as every other payment: FeePayment (sequential receipt
+    // number) + Receipt + FinanceTransaction. The unique gatewayPaymentId
+    // index is the idempotency gate; a duplicate delivery is rolled back.
+    let result;
     try {
-      payment = await FeePayment.create({
-        schoolId: oid(invoice.schoolId),
-        invoiceId: invoice._id,
-        studentId: oid(invoice.studentId),
-        receiptNumber: receiptNumber(),
+      result = await feeLedgerService.recordPayment({
+        schoolId: invoice.schoolId,
+        invoice,
         amount,
         paymentMethod: 'ONLINE',
-        paymentReference: paymentId,
         paymentDate: new Date(),
-        status: 'COMPLETED',
+        reference: paymentId,
         collectedBy: 'Parent APK (online)',
-        gateway: 'RAZORPAY',
-        gatewayOrderId: orderId,
-        gatewayPaymentId: paymentId,
-        gatewaySignature: '',
-        paidByParentId: notes.parentId && mongoose.isValidObjectId(String(notes.parentId)) ? oid(notes.parentId) : null,
+        gateway: {
+          name: 'RAZORPAY',
+          orderId,
+          paymentId,
+          paidByParentId: notes.parentId && mongoose.isValidObjectId(String(notes.parentId)) ? oid(notes.parentId) : null,
+        },
       });
     } catch (err) {
       if (err?.code === 11000) return { handled: true, alreadyProcessed: true }; // raced with another delivery
       throw err;
     }
 
-    // Re-read the invoice and recompute totals from ALL its completed payments —
-    // avoids drift if a manual payment landed in between.
-    const paid = await FeePayment.aggregate([
-      { $match: { invoiceId: invoice._id, status: 'COMPLETED' } },
-      { $group: { _id: null, total: { $sum: '$amount' } } },
-    ]);
-    const paidAmount = Math.round((paid[0]?.total || 0) * 100) / 100;
-    const balanceAmount = Math.max(0, Math.round((invoice.totalAmount - paidAmount) * 100) / 100);
-    const status = balanceAmount <= 0 ? 'PAID' : 'PARTIALLY_PAID';
-    await FeeInvoice.updateOne({ _id: invoice._id }, { $set: { paidAmount, balanceAmount, status } });
+    // Defensive: recompute from ALL completed payments so a manual payment
+    // that landed in between cannot leave the invoice drifted.
+    const totals = await feeLedgerService.recomputeInvoice(invoice._id);
 
-    return { handled: true, paymentId: String(payment._id), receiptNumber: payment.receiptNumber, invoiceStatus: status };
+    return {
+      handled: true,
+      paymentId: String(result.payment._id),
+      receiptNumber: result.payment.receiptNumber,
+      invoiceStatus: totals?.status || invoice.status,
+      overpaid: result.overpaid || 0,
+    };
   }
 
   /* ------------------------------- receipts ------------------------------- */

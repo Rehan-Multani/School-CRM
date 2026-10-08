@@ -212,21 +212,23 @@ export const useFees = () => {
   };
 };
 
+// Transport details (route, stops, daily pickup/drop) live in the Student mobile
+// app; the web portal only shows whether a route is assigned.
 export const useTransport = () => {
   const { store } = useAppStore();
-  const route = store.transport?.routes?.find(r => r.id === 'RT-002') || store.transport?.routes?.[0];
+  const route = store.transport?.routes?.[0];
 
   return {
-    transport: {
-      routeNo: route?.id || 'RT-002',
-      busNo: route?.vehicleNo || 'DL-01-CD-5678',
-      driverName: route?.driverName || 'Jaspreet Singh',
-      driverPhone: route?.driverPhone || '+91 98765 43210',
-      pickupPoint: 'Dwarka Mor Metro Station (Gate 2)',
-      pickupTime: '07:35 AM',
-      dropTime: '03:45 PM',
-      stops: route?.stops || ['Dwarka Mor', 'Uttam Nagar East', 'Janakpuri West', 'Greenfield Public School']
-    }
+    transport: route
+      ? {
+          routeNo: route.id || '',
+          vehicleNo: route.vehicleNo || '',
+          driverName: route.driverName || '',
+          driverPhone: route.driverPhone || '',
+          pickupPoint: route.pickupPoint || '',
+          stops: route.stops || [],
+        }
+      : null,
   };
 };
 

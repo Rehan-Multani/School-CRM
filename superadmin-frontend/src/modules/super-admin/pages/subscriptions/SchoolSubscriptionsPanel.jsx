@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Button, Badge } from '../../components/ui/Button';
 import { Pulse } from '../../components/ui/SkeletonLoader';
-import { Select } from '../../components/ui/Input';
+import { Input, Select, Textarea } from '../../components/ui/Input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/Dialog';
 import { useSuperAdminNotifications } from '../../context/SuperAdminNotificationContext';
 import { platformSchoolSubscriptionApi, platformSubscriptionApi, platformSchoolApi } from '../../../../shared/api/client';
@@ -30,6 +30,9 @@ import {
   ExternalLink,
   FileText,
   Download,
+  ArrowLeftRight,
+  Wrench,
+  History,
 } from 'lucide-react';
 
 const STATUS_VARIANT = {
@@ -187,6 +190,17 @@ export default function SchoolSubscriptionsPanel() {
   const [cancelTarget, setCancelTarget] = useState(null);
   const [cancelImmediate, setCancelImmediate] = useState(false);
 
+  // Change plan / override / history row actions
+  const [changeTarget, setChangeTarget] = useState(null);
+  const [changeForm, setChangeForm] = useState({ planId: '', schedule: 'auto' });
+  const [overrideTarget, setOverrideTarget] = useState(null);
+  const [overrideForm, setOverrideForm] = useState({ action: 'extend', days: '30', status: 'active', reason: '' });
+  const [historyTarget, setHistoryTarget] = useState(null);
+  const [historyRows, setHistoryRows] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [planNames, setPlanNames] = useState({});
+  const [actionBusy, setActionBusy] = useState(false);
+
   const load = async (page = 1, isManualRefresh = false) => {
     if (isManualRefresh) setRefreshing(true);
     else setLoading(true);
@@ -283,6 +297,96 @@ export default function SchoolSubscriptionsPanel() {
       load(pagination.page);
     } catch (err) {
       addNotification('error', err.response?.data?.message || 'Unable to cancel subscription');
+    }
+  };
+
+  const ensurePlansLoaded = async () => {
+    if (recurringPlans.length) return;
+    try {
+      const plansRes = await platformSubscriptionApi.list();
+      setRecurringPlans((plansRes?.data || []).filter((p) => p.isRecurring && p.status !== 'archived'));
+    } catch {
+      /* select will just be empty */
+    }
+  };
+
+  const openChangePlan = (row) => {
+    setChangeForm({ planId: '', schedule: 'auto' });
+    setChangeTarget(row);
+    ensurePlansLoaded();
+  };
+
+  const submitChangePlan = async (e) => {
+    e.preventDefault();
+    if (!changeTarget || !changeForm.planId) return;
+    setActionBusy(true);
+    try {
+      const schedule = changeForm.schedule === 'auto' ? undefined : changeForm.schedule;
+      const result = await platformSchoolSubscriptionApi.changePlan(changeTarget.id, changeForm.planId, schedule);
+      addNotification('success', result?.message || 'Plan change processed');
+      setChangeTarget(null);
+      load(pagination.page);
+    } catch (err) {
+      addNotification('error', err.response?.data?.message || err.message || 'Unable to change plan');
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  const openOverride = (row) => {
+    setOverrideForm({ action: 'extend', days: '30', status: row.status === 'active' ? 'halted' : 'active', reason: '' });
+    setOverrideTarget(row);
+  };
+
+  const submitOverride = async (e) => {
+    e.preventDefault();
+    if (!overrideTarget) return;
+    const payload = { action: overrideForm.action, reason: overrideForm.reason.trim() };
+    if (overrideForm.action === 'extend') {
+      const days = Number(overrideForm.days);
+      if (!Number.isFinite(days) || days <= 0) {
+        addNotification('error', 'Days must be a positive number');
+        return;
+      }
+      payload.days = Math.floor(days);
+    } else if (overrideForm.action === 'force_status') {
+      payload.status = overrideForm.status;
+    }
+    setActionBusy(true);
+    try {
+      await platformSchoolSubscriptionApi.override(overrideTarget.id, payload);
+      addNotification(
+        'success',
+        overrideForm.action === 'extend'
+          ? `Period extended by ${payload.days} day${payload.days === 1 ? '' : 's'}`
+          : overrideForm.action === 'grant_grace'
+            ? 'Grace period granted'
+            : `Status forced to ${overrideForm.status}`
+      );
+      setOverrideTarget(null);
+      load(pagination.page);
+    } catch (err) {
+      addNotification('error', err.response?.data?.message || err.message || 'Unable to apply override');
+    } finally {
+      setActionBusy(false);
+    }
+  };
+
+  const openHistory = async (row) => {
+    setHistoryTarget(row);
+    setHistoryRows([]);
+    setHistoryLoading(true);
+    try {
+      const [res, plansRes] = await Promise.all([
+        platformSchoolSubscriptionApi.history(row.id, { limit: 50 }),
+        platformSubscriptionApi.list().catch(() => null),
+      ]);
+      setHistoryRows(res?.data || []);
+      if (plansRes?.data) setPlanNames(Object.fromEntries(plansRes.data.map((p) => [p.id, p.name])));
+    } catch (err) {
+      addNotification('error', err.response?.data?.message || 'Unable to load history');
+    } finally {
+      setHistoryLoading(false);
     }
   };
 
@@ -776,6 +880,35 @@ export default function SchoolSubscriptionsPanel() {
                             >
                               <Eye size={13} />
                             </button>
+                            <button
+                              type="button"
+                              title="History"
+                              aria-label="History"
+                              onClick={() => openHistory(r)}
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 bg-white text-slate-500 shadow-2xs transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                            >
+                              <History size={13} />
+                            </button>
+                            {!isCancelled && (
+                              <button
+                                type="button"
+                                title="Change plan"
+                                aria-label="Change plan"
+                                onClick={() => openChangePlan(r)}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 bg-white text-slate-500 shadow-2xs transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400"
+                              >
+                                <ArrowLeftRight size={13} />
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              title="Super Admin override"
+                              aria-label="Super Admin override"
+                              onClick={() => openOverride(r)}
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 bg-white text-slate-500 shadow-2xs transition-all hover:border-amber-300 hover:bg-amber-50 hover:text-amber-600 active:scale-95 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-amber-500/10 dark:hover:text-amber-400"
+                            >
+                              <Wrench size={13} />
+                            </button>
                             {!isCancelled && (
                               <button
                                 type="button"
@@ -945,6 +1078,178 @@ export default function SchoolSubscriptionsPanel() {
             <Button variant="destructive" className="w-full" onClick={doCancel}>
               {cancelImmediate ? 'Cancel Immediately' : 'Schedule Cancellation at Period End'}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* CHANGE PLAN DIALOG */}
+      <Dialog open={Boolean(changeTarget)} onOpenChange={(o) => !o && !actionBusy && setChangeTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                <ArrowLeftRight size={16} />
+              </div>
+              <span>Change plan</span>
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={submitChangePlan} className="mt-3 space-y-4">
+            <div className="rounded-xl border border-slate-200/80 bg-slate-50 p-3 text-xs text-slate-600 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-300">
+              <p className="font-bold text-slate-800 dark:text-slate-100">{changeTarget?.school?.name || changeTarget?.schoolName}</p>
+              <p className="mt-0.5">
+                Current: {changeTarget?.plan?.name || '—'} · {inr(changeTarget?.totalAmount)} · period ends {fmt(changeTarget?.currentPeriodEnd)}
+              </p>
+            </div>
+            <Select
+              label="New plan"
+              value={changeForm.planId}
+              onChange={(e) => setChangeForm((f) => ({ ...f, planId: e.target.value }))}
+              required
+            >
+              <option value="">Select a recurring plan…</option>
+              {recurringPlans
+                .filter((p) => p.id !== changeTarget?.planId)
+                .map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name} — ₹{p.price}/{p.billingInterval}
+                  </option>
+                ))}
+            </Select>
+            <Select
+              label="Apply"
+              value={changeForm.schedule}
+              onChange={(e) => setChangeForm((f) => ({ ...f, schedule: e.target.value }))}
+            >
+              <option value="auto">Automatic (upgrade now, downgrade at period end)</option>
+              <option value="now">Now (prorated by Razorpay)</option>
+              <option value="cycle_end">At period end</option>
+            </Select>
+            <Button type="submit" className="w-full gap-2" disabled={actionBusy || !changeForm.planId}>
+              <ArrowLeftRight className="h-4 w-4" />
+              {actionBusy ? 'Applying…' : 'Change plan'}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* OVERRIDE DIALOG */}
+      <Dialog open={Boolean(overrideTarget)} onOpenChange={(o) => !o && !actionBusy && setOverrideTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600">
+                <Wrench size={16} />
+              </div>
+              <span>Super Admin override</span>
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={submitOverride} className="mt-3 space-y-4">
+            <div className="rounded-xl border border-amber-200/80 bg-amber-50/60 p-3 text-xs text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
+              <p className="font-bold">{overrideTarget?.school?.name || overrideTarget?.schoolName}</p>
+              <p className="mt-0.5">
+                Status: <span className="capitalize">{overrideTarget?.status}</span> · period ends {fmt(overrideTarget?.currentPeriodEnd)}. Local
+                only — Razorpay is not updated.
+              </p>
+            </div>
+            <Select
+              label="Action"
+              value={overrideForm.action}
+              onChange={(e) => setOverrideForm((f) => ({ ...f, action: e.target.value }))}
+            >
+              <option value="extend">Extend period by N days</option>
+              <option value="grant_grace">Grant a grace period</option>
+              <option value="force_status">Force status</option>
+            </Select>
+            {overrideForm.action === 'extend' && (
+              <Input
+                label="Days"
+                type="number"
+                min="1"
+                step="1"
+                value={overrideForm.days}
+                onChange={(e) => setOverrideForm((f) => ({ ...f, days: e.target.value }))}
+                required
+              />
+            )}
+            {overrideForm.action === 'force_status' && (
+              <Select
+                label="Target status"
+                value={overrideForm.status}
+                onChange={(e) => setOverrideForm((f) => ({ ...f, status: e.target.value }))}
+              >
+                {Object.keys(STATUS_VARIANT).map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </Select>
+            )}
+            <Textarea
+              label="Reason"
+              value={overrideForm.reason}
+              onChange={(e) => setOverrideForm((f) => ({ ...f, reason: e.target.value }))}
+              placeholder="Recorded in the subscription history and audit log"
+              className="min-h-[72px]"
+            />
+            <Button type="submit" className="w-full gap-2" disabled={actionBusy}>
+              <Wrench className="h-4 w-4" />
+              {actionBusy ? 'Applying…' : 'Apply override'}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* HISTORY DIALOG */}
+      <Dialog open={Boolean(historyTarget)} onOpenChange={(o) => !o && setHistoryTarget(null)}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-500/10 text-slate-600 dark:text-slate-300">
+                <History size={16} />
+              </div>
+              <span>History · {historyTarget?.school?.name || historyTarget?.schoolName}</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-3 max-h-[60vh] overflow-y-auto">
+            {historyLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Pulse key={i} className="h-10 w-full" />
+                ))}
+              </div>
+            ) : historyRows.length === 0 ? (
+              <p className="py-10 text-center text-xs text-slate-400">No history recorded yet.</p>
+            ) : (
+              <ol className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                {historyRows.map((h, i) => (
+                  <li key={h.id || i} className="flex items-start gap-3 py-2.5 text-xs">
+                    <div className="w-28 shrink-0 text-[10px] font-medium text-slate-400">
+                      {h.createdAt ? new Date(h.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '—'}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-bold capitalize text-slate-800 dark:text-slate-100">
+                        {String(h.action || '').replace(/_/g, ' ')}
+                        {(h.fromStatus || h.toStatus) && h.fromStatus !== h.toStatus && (
+                          <span className="ml-2 font-medium normal-case text-slate-400">
+                            {h.fromStatus || '—'} → {h.toStatus || '—'}
+                          </span>
+                        )}
+                      </div>
+                      {(h.fromPlan || h.toPlan) && (
+                        <div className="text-slate-500 dark:text-slate-400">
+                          {planNames[h.fromPlan] || h.fromPlan?.name || '—'} → {planNames[h.toPlan] || h.toPlan?.name || '—'}
+                        </div>
+                      )}
+                      {h.reason && <div className="text-slate-500 dark:text-slate-400">{h.reason}</div>}
+                      <div className="text-[10px] text-slate-400">
+                        {h.performedBy || 'System'}
+                        {h.source ? ` · ${String(h.source).replace(/_/g, ' ')}` : ''}
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            )}
           </div>
         </DialogContent>
       </Dialog>

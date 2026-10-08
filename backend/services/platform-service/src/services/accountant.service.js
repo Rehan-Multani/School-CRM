@@ -3,6 +3,7 @@ import { AppError } from '../../../shared/AppError.js';
 import { FeeInvoice } from '../models/FeeInvoice.js';
 import { FeePayment } from '../models/FeePayment.js';
 import { Expense } from '../models/Expense.js';
+import { FinanceTransaction } from '../models/FinanceTransaction.js';
 import { Student } from '../models/Student.js';
 import { escapeRegex } from '../../../shared/sanitize.js';
 
@@ -20,6 +21,14 @@ function startOfMonth(d = new Date()) {
   const x = new Date(d);
   x.setDate(1);
   x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+// A date-only "to" filter must include that whole day, not stop at 00:00.
+function endOfDay(value) {
+  const x = new Date(value);
+  if (Number.isNaN(x.getTime())) return x;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(value).trim())) x.setHours(23, 59, 59, 999);
   return x;
 }
 
@@ -95,7 +104,12 @@ function shapeInvoiceRow(row) {
     totalAmount: row.totalAmount,
     paidAmount: row.paidAmount,
     discountAmount: (row.items || []).reduce((s, it) => s + (it.discountAmount || 0), 0),
-    fineAmount: 0,
+    fineAmount: row.lateFeeAmount || 0,
+    lateFeeAmount: row.lateFeeAmount || 0,
+    overdueDays: row.overdueDays || 0,
+    installmentNo: row.installmentNo || 1,
+    installmentCount: row.installmentCount || 1,
+    frequency: row.frequency || '',
     pendingAmount: row.balanceAmount,
     rawStatus: row.status,
     status: deriveInvoiceStatus(row),
@@ -340,7 +354,7 @@ export class AccountantService {
     if (query.dateFrom || query.dateTo) {
       match.paymentDate = {};
       if (query.dateFrom) match.paymentDate.$gte = new Date(query.dateFrom);
-      if (query.dateTo) match.paymentDate.$lte = new Date(query.dateTo);
+      if (query.dateTo) match.paymentDate.$lte = endOfDay(query.dateTo);
     }
 
     const postMatch = {};
@@ -390,6 +404,9 @@ export class AccountantService {
       remarks: r.remarks,
       status: r.status,
       collectedBy: r.collectedBy,
+      refundedAmount: r.refundedAmount || 0,
+      overpaidAmount: r.overpaidAmount || 0,
+      refunds: r.refunds || [],
       createdAt: r.createdAt,
     };
   }
@@ -504,7 +521,7 @@ export class AccountantService {
 
     const dateMatch = {};
     if (query.dateFrom) dateMatch.$gte = new Date(query.dateFrom);
-    if (query.dateTo) dateMatch.$lte = new Date(query.dateTo);
+    if (query.dateTo) dateMatch.$lte = endOfDay(query.dateTo);
     const hasDate = Object.keys(dateMatch).length > 0;
 
     const wantIncome = !query.type || query.type === 'ALL' || query.type === 'FEE_PAYMENT' || query.type === 'INCOME';
@@ -585,13 +602,51 @@ export class AccountantService {
       },
     ];
 
+    // Non-fee income (library fines and any other INCOME ledger row that is
+    // not already represented by a FeePayment).
+    const otherIncomePipeline = [
+      {
+        $match: {
+          schoolId: sid,
+          transactionType: 'INCOME',
+          feePaymentId: null,
+          ...(hasDate ? { transactionDate: dateMatch } : {}),
+          ...(query.paymentMethod ? { paymentMode: query.paymentMethod } : {}),
+        },
+      },
+      { $lookup: { from: 'financecategories', localField: 'categoryId', foreignField: '_id', as: 'cat' } },
+      { $unwind: { path: '$cat', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 1,
+          txnType: { $literal: 'OTHER_INCOME' },
+          direction: { $literal: 'CREDIT' },
+          refNumber: '$referenceNo',
+          date: '$transactionDate',
+          amount: '$amount',
+          paymentMethod: '$paymentMode',
+          reference: '$referenceNo',
+          status: { $literal: 'COMPLETED' },
+          createdBy: { $literal: '' },
+          party: '$description',
+          category: { $ifNull: ['$cat.name', 'Other Income'] },
+          note: '$description',
+          createdAt: 1,
+        },
+      },
+    ];
+
     let base;
     if (wantIncome && wantExpense) {
-      base = FeePayment.aggregate([...paymentPipeline, { $unionWith: { coll: 'expenses', pipeline: expensePipeline } }]);
+      base = FeePayment.aggregate([
+        ...paymentPipeline,
+        { $unionWith: { coll: 'financetransactions', pipeline: otherIncomePipeline } },
+        { $unionWith: { coll: 'expenses', pipeline: expensePipeline } },
+      ]);
     } else if (wantExpense) {
       base = Expense.aggregate(expensePipeline);
     } else {
-      base = FeePayment.aggregate(paymentPipeline);
+      base = FeePayment.aggregate([...paymentPipeline, { $unionWith: { coll: 'financetransactions', pipeline: otherIncomePipeline } }]);
     }
 
     const all = await base;
@@ -631,6 +686,19 @@ export class AccountantService {
 
   async getTransaction(schoolId, id, type) {
     const sid = toObjectId(schoolId);
+    if (type === 'OTHER_INCOME') {
+      const txn = await FinanceTransaction.findOne({ _id: id, schoolId: sid }).populate('categoryId', 'name type');
+      if (!txn) throw new AppError('Transaction not found', 404);
+      const pub = txn.toPublicJSON();
+      return {
+        ...pub,
+        type: 'OTHER_INCOME',
+        direction: 'CREDIT',
+        category: txn.categoryId?.name || 'Other Income',
+        transactionId: pub.referenceNo,
+        timeline: [{ label: 'Income recorded', at: pub.createdAt, by: '' }],
+      };
+    }
     if (type === 'EXPENSE') {
       const exp = await Expense.findOne({ _id: id, schoolId: sid });
       if (!exp) throw new AppError('Transaction not found', 404);
@@ -684,7 +752,7 @@ export class AccountantService {
     const sid = toObjectId(schoolId);
     const dateMatch = {};
     if (query.dateFrom) dateMatch.$gte = new Date(query.dateFrom);
-    if (query.dateTo) dateMatch.$lte = new Date(query.dateTo);
+    if (query.dateTo) dateMatch.$lte = endOfDay(query.dateTo);
     const hasDate = Object.keys(dateMatch).length > 0;
 
     switch (category) {

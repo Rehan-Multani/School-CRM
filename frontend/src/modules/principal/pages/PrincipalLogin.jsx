@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { usePrincipalAuth } from '../context/PrincipalAuthContext';
 import { usePrincipalTheme } from '../context/PrincipalThemeContext';
-import { Lock, User, AlertCircle, ArrowRight, ArrowLeft, Eye, EyeOff, Loader2, BookOpen, CheckCircle2, Users, Mail, Award, LayoutGrid, Sun, Moon } from 'lucide-react';
+import { principalAuthApi } from '../../../shared/api/client';
+import { Lock, User, AlertCircle, ArrowRight, ArrowLeft, Eye, EyeOff, Loader2, BookOpen, CheckCircle2, Users, Mail, Award, LayoutGrid, Sun, Moon, KeyRound, ShieldCheck } from 'lucide-react';
 import BrandLogo from '../../../shared/ui/BrandLogo';
 
 export const PrincipalLogin = () => {
@@ -13,14 +14,54 @@ export const PrincipalLogin = () => {
   const [username, setUsername] = useState('principal@greenfield.edu');
   const [password, setPassword] = useState('Password@123');
   const [email, setEmail] = useState('');
-  const [view, setView] = useState('login'); // 'login', 'forgot', 'sent'
+  const [view, setView] = useState('login'); // 'login', 'forgot', 'otp', 'reset'
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Forgot-password (OTP) flow state
+  const [otp, setOtp] = useState('');
+  const [otpLength, setOtpLength] = useState(6);
+  const [resendIn, setResendIn] = useState(0);
+  const [resetToken, setResetToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const timerRef = useRef(null);
+
+  const MIN_PASSWORD_LEN = 8;
 
   useEffect(() => {
     document.title = 'Principal Portal Login | School CRM';
   }, []);
+
+  const resendActive = resendIn > 0;
+  useEffect(() => {
+    if (!resendActive) return undefined;
+    timerRef.current = setInterval(() => setResendIn((s) => (s <= 1 ? 0 : s - 1)), 1000);
+    return () => clearInterval(timerRef.current);
+  }, [resendActive]);
+
+  const apiMessage = (err, fallback) => err?.response?.data?.message || err?.message || fallback;
+
+  const resetFlowState = () => {
+    setOtp('');
+    setResetToken('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setResendIn(0);
+    setError(null);
+  };
+
+  const goTo = (next) => {
+    setError(null);
+    if (next === 'login') {
+      resetFlowState();
+      setEmail('');
+    }
+    setView(next);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,15 +78,93 @@ export const PrincipalLogin = () => {
     }
   };
 
-  const handleForgotSubmit = (e) => {
+  const sendOtp = async () => {
+    const res = await principalAuthApi.forgotPassword(email);
+    const data = res?.data || {};
+    if (data.otpLength) setOtpLength(Number(data.otpLength));
+    setResendIn(Number(data.resendIn) || 30);
+    return data;
+  };
+
+  const handleForgotSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     setLoading(true);
-
-    setTimeout(() => {
+    try {
+      await sendOtp();
+      setOtp('');
+      setView('otp');
+    } catch (err) {
+      setError(apiMessage(err, 'Could not send OTP. Please try again.'));
+    } finally {
       setLoading(false);
-      setView('sent');
-    }, 600);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendIn > 0 || loading) return;
+    setError(null);
+    setLoading(true);
+    try {
+      await sendOtp();
+      setOtp('');
+    } catch (err) {
+      setError(apiMessage(err, 'Could not resend OTP. Please try again.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOtpSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    if (otp.length !== otpLength) {
+      setError(`Enter the ${otpLength}-digit OTP sent to your mobile`);
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await principalAuthApi.verifyResetOtp(email, otp);
+      const token = res?.data?.resetToken;
+      if (!token) throw new Error('Could not verify OTP. Please try again.');
+      setResetToken(token);
+      setView('reset');
+    } catch (err) {
+      setError(apiMessage(err, 'The OTP is invalid or has expired'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    if (newPassword.trim().length < MIN_PASSWORD_LEN) {
+      setError(`Password must be at least ${MIN_PASSWORD_LEN} characters`);
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await principalAuthApi.resetPassword(resetToken, newPassword);
+      setSuccess(res?.message || 'Password updated. You can now sign in with your new password.');
+      setUsername(email);
+      setPassword('');
+      goTo('login');
+    } catch (err) {
+      const code = err?.response?.data?.code;
+      setError(apiMessage(err, 'Could not reset password. Please try again.'));
+      if (code === 'RESET_TOKEN_INVALID') {
+        resetFlowState();
+        setView('forgot');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputClass =
@@ -124,10 +243,16 @@ export const PrincipalLogin = () => {
             </span>
 
             <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              {view === 'login' ? 'Principal Login' : 'Reset Principal Password'}
+              {view === 'login' && 'Principal Login'}
+              {view === 'forgot' && 'Forgot Password'}
+              {view === 'otp' && 'Verify OTP'}
+              {view === 'reset' && 'Set New Password'}
             </h2>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              {view === 'login' ? 'Sign in with your principal credentials for institutional leadership' : 'Reset your principal password'}
+              {view === 'login' && 'Sign in with your principal credentials for institutional leadership'}
+              {view === 'forgot' && 'Enter your login ID and we will send an OTP to your registered mobile'}
+              {view === 'otp' && `Enter the ${otpLength}-digit OTP sent to your registered mobile number`}
+              {view === 'reset' && 'Choose a new password for your principal account'}
             </p>
           </div>
 
@@ -136,6 +261,13 @@ export const PrincipalLogin = () => {
               <div className="flex items-start gap-2.5 rounded-xl border border-rose-500/20 bg-rose-500/10 px-3.5 py-3 text-sm text-rose-600 dark:text-rose-300">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 <span>{error}</span>
+              </div>
+            )}
+
+            {success && view === 'login' && (
+              <div className="flex items-start gap-2.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-3 text-sm text-emerald-700 dark:text-emerald-300">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{success}</span>
               </div>
             )}
 
@@ -162,8 +294,8 @@ export const PrincipalLogin = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        setError(null);
-                        setView('forgot');
+                        setSuccess(null);
+                        goTo('forgot');
                       }}
                       className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-blue-400 dark:hover:text-blue-300 transition"
                     >
@@ -213,66 +345,163 @@ export const PrincipalLogin = () => {
             {view === 'forgot' && (
               <form onSubmit={handleForgotSubmit} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Email Address</label>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Login ID (Email)</label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
                     <input
-                      type="email"
+                      type="text"
                       placeholder="principal@greenfield.edu"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
+                      autoFocus
                       className={inputClass}
                     />
                   </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    If an account matches, an OTP is sent to its registered mobile number.
+                  </p>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition disabled:pointer-events-none disabled:opacity-50"
-                >
+                <button type="submit" disabled={loading} className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition disabled:pointer-events-none disabled:opacity-50">
                   {loading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Sending link...
+                      Sending OTP...
                     </>
                   ) : (
-                    'Send reset link'
+                    <>
+                      Send OTP
+                      <ArrowRight className="h-4 w-4" />
+                    </>
                   )}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setError(null);
-                    setView('login');
-                  }}
-                  className="inline-flex w-full items-center justify-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition"
-                >
+                <button type="button" onClick={() => goTo('login')} className="inline-flex w-full items-center justify-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition">
                   <ArrowLeft className="h-4 w-4" />
                   Back to sign in
                 </button>
               </form>
             )}
 
-            {view === 'sent' && (
-              <div className="space-y-4">
+            {view === 'otp' && (
+              <form onSubmit={handleOtpSubmit} className="space-y-4">
                 <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-3 text-sm text-emerald-700 dark:text-emerald-300">
-                  If <span className="font-semibold">{email}</span> is registered in our database, reset instructions will be sent shortly. Please check your inbox.
+                  If <span className="font-semibold">{email}</span> is registered, an OTP has been sent to its registered mobile number. It expires in 5 minutes.
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setView('login');
-                    setEmail('');
-                  }}
-                  className="inline-flex w-full items-center justify-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to sign in
+
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">One-time password</label>
+                  <div className="relative">
+                    <ShieldCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      placeholder={'•'.repeat(otpLength)}
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, otpLength))}
+                      maxLength={otpLength}
+                      required
+                      autoFocus
+                      className={`${inputClass} tracking-[0.4em] font-semibold`}
+                    />
+                  </div>
+                </div>
+
+                <button type="submit" disabled={loading || otp.length !== otpLength} className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition disabled:pointer-events-none disabled:opacity-50">
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    <>
+                      Verify OTP
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
                 </button>
-              </div>
+
+                <div className="flex items-center justify-between text-xs">
+                  <button type="button" onClick={() => goTo('forgot')} className="inline-flex items-center gap-1.5 font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition">
+                    <ArrowLeft className="h-4 w-4" />
+                    Change login ID
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    disabled={loading || resendIn > 0}
+                    className="font-semibold text-indigo-600 hover:text-indigo-700 dark:text-blue-400 dark:hover:text-blue-300 transition disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {resendIn > 0 ? `Resend OTP in ${resendIn}s` : 'Resend OTP'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {view === 'reset' && (
+              <form onSubmit={handleResetSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">New password</label>
+                  <div className="relative">
+                    <KeyRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      placeholder={`At least ${MIN_PASSWORD_LEN} characters`}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      minLength={MIN_PASSWORD_LEN}
+                      autoComplete="new-password"
+                      required
+                      autoFocus
+                      className={`${inputClass} pr-11`}
+                    />
+                    <button type="button" onClick={() => setShowNewPassword((open) => !open)} className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-200 transition hover:bg-slate-100 dark:hover:bg-slate-800">
+                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Confirm new password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-500" />
+                    <input
+                      type={showNewPassword ? 'text' : 'password'}
+                      placeholder="Re-enter new password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      minLength={MIN_PASSWORD_LEN}
+                      autoComplete="new-password"
+                      required
+                      className={inputClass}
+                    />
+                  </div>
+                  {confirmPassword && newPassword !== confirmPassword && (
+                    <p className="text-[11px] text-rose-600 dark:text-rose-300">Passwords do not match</p>
+                  )}
+                </div>
+
+                <button type="submit" disabled={loading} className="mt-2 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition disabled:pointer-events-none disabled:opacity-50">
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Updating password...
+                    </>
+                  ) : (
+                    <>
+                      Reset Password
+                      <CheckCircle2 className="h-4 w-4" />
+                    </>
+                  )}
+                </button>
+
+                <button type="button" onClick={() => goTo('login')} className="inline-flex w-full items-center justify-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition">
+                  <ArrowLeft className="h-4 w-4" />
+                  Cancel and back to sign in
+                </button>
+              </form>
             )}
           </div>
 

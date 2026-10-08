@@ -47,7 +47,9 @@ import { LineChart } from '../components/ui/Charts/LineChart';
 import { Badge } from '../components/ui/Badge';
 import { DashboardSkeleton } from '../components/ui/SkeletonLoader';
 
-export const Dashboard = () => {
+export const pct = (part, whole) => (Number(whole) > 0 ? Math.min(100, Math.round((Number(part) || 0) / Number(whole) * 100)) : 0);
+
+const Dashboard = () => {
   const { user } = useSchoolAdminAuth();
   const navigate = useNavigate();
 
@@ -144,7 +146,7 @@ export const Dashboard = () => {
 
         <div className="flex items-center gap-2.5">
           <span className="text-xs font-bold text-slate-600 dark:text-slate-400 px-3.5 py-2 bg-slate-100 dark:bg-slate-900 rounded-xl">
-            Session: <strong>{user?.academicSession || '2026-2027'}</strong>
+            Session: <strong>{user?.academicSession || dashboardData?.academicYear?.name || 'Current'}</strong>
           </span>
           <button
             onClick={() => fetchDashboardData(true)}
@@ -164,7 +166,7 @@ export const Dashboard = () => {
           title="Total Students"
           value={kpi.totalStudents.toLocaleString()}
           icon={Users}
-          trend="+5.4%"
+          trend={`${kpi.classesCount} Classes / Sections`}
           trendType="up"
           subtitle="Enrolled Active"
           onClick={() => navigate('/school-admin/students')}
@@ -191,7 +193,7 @@ export const Dashboard = () => {
           title="Fee Collected Today"
           value={`₹${kpi.collectedToday.toLocaleString()}`}
           icon={IndianRupee}
-          trend={`₹${(kpi.collectedMonth / 1000).toFixed(0)}k This Month`}
+          trend={`₹${Number(kpi.collectedMonth || 0).toLocaleString('en-IN')} This Month`}
           trendType="up"
           subtitle="Daily Receipts"
           onClick={() => navigate('/school-admin/fees')}
@@ -279,7 +281,7 @@ export const Dashboard = () => {
             <span className="font-bold text-emerald-600">{kpi.transportStudents} Students</span>
           </div>
           <div className="w-full bg-slate-100 dark:bg-slate-900 h-2 rounded-full overflow-hidden">
-            <div className="bg-emerald-500 h-full rounded-full" style={{ width: '78%' }} />
+            <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${pct(kpi.transportStudents, kpi.totalStudents)}%` }} />
           </div>
         </div>
 
@@ -302,7 +304,7 @@ export const Dashboard = () => {
             <span className="font-bold text-indigo-650">{kpi.issuedBooks} / {kpi.libraryBooks}</span>
           </div>
           <div className="w-full bg-slate-100 dark:bg-slate-900 h-2 rounded-full overflow-hidden">
-            <div className="bg-indigo-650 h-full rounded-full" style={{ width: '42%' }} />
+            <div className="bg-indigo-650 h-full rounded-full" style={{ width: `${pct(kpi.issuedBooks, kpi.libraryBooks)}%` }} />
           </div>
         </div>
 
@@ -325,7 +327,7 @@ export const Dashboard = () => {
             <span className="font-bold text-amber-600">{kpi.upcomingExams} Active</span>
           </div>
           <div className="w-full bg-slate-100 dark:bg-slate-900 h-2 rounded-full overflow-hidden">
-            <div className="bg-amber-500 h-full rounded-full" style={{ width: '65%' }} />
+            <div className="bg-amber-500 h-full rounded-full" style={{ width: `${Math.min(100, (kpi.upcomingExams || 0) * 20)}%` }} />
           </div>
         </div>
       </div>

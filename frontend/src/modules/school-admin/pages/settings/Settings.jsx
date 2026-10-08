@@ -4,9 +4,10 @@ import { Tabs } from '../../components/ui/Tabs';
 import { useToast } from '../../components/ui/Toast';
 import { useSchoolAdminTheme } from '../../context/SchoolAdminThemeContext';
 import { useSchoolAdminAuth } from '../../context/SchoolAdminAuthContext';
-import { schoolPortalApi } from '../../../../shared/api/client';
+import { feePortalApi, schoolPortalApi } from '../../../../shared/api/client';
 import { ACCENT_PRESETS, normalizeHex } from '../../utils/themeColors';
 import {
+  Banknote,
   Check,
   Eye,
   EyeOff,
@@ -28,6 +29,18 @@ const TABS = [
   { id: 'theme', label: 'Theme' },
   { id: 'security', label: 'Security & Password' },
   { id: 'email', label: 'Email Config' },
+  { id: 'feePolicy', label: 'Fee Policy' },
+];
+
+const FEE_POLICY_DEFAULTS = {
+  lateFee: { type: 'NONE', amount: 0, graceDays: 0, maxAmount: 0 },
+  defaultDueDay: 10,
+};
+
+const LATE_FEE_TYPES = [
+  ['NONE', 'No late fee'],
+  ['FLAT', 'Flat amount once overdue'],
+  ['PER_DAY', 'Per day overdue'],
 ];
 
 const DEFAULT_TEMPLATE_BODY =
@@ -120,6 +133,9 @@ export const Settings = () => {
   const [savingBranding, setSavingBranding] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
+  const [savingFeePolicy, setSavingFeePolicy] = useState(false);
+  const [feePolicy, setFeePolicy] = useState(FEE_POLICY_DEFAULTS);
+  const [feePolicyLoaded, setFeePolicyLoaded] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -145,6 +161,29 @@ export const Settings = () => {
 
   useEffect(() => {
     return () => clearTimeout(accentSaveTimer.current);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    feePortalApi
+      .feeSettings()
+      .then((result) => {
+        if (cancelled) return;
+        const d = result?.data || {};
+        setFeePolicy({
+          lateFee: { ...FEE_POLICY_DEFAULTS.lateFee, ...(d.lateFee || {}) },
+          defaultDueDay: d.defaultDueDay ?? FEE_POLICY_DEFAULTS.defaultDueDay,
+        });
+      })
+      .catch((error) => {
+        if (!cancelled) showToast(apiMessage(error, 'Unable to load fee policy'), 'error');
+      })
+      .finally(() => {
+        if (!cancelled) setFeePolicyLoaded(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -277,6 +316,37 @@ export const Settings = () => {
       showToast(apiMessage(error, 'Unable to update password'), 'error');
     } finally {
       setSavingPassword(false);
+    }
+  };
+
+  const handleSaveFeePolicy = async (event) => {
+    event.preventDefault();
+    const dueDay = Number(feePolicy.defaultDueDay);
+    if (!Number.isInteger(dueDay) || dueDay < 1 || dueDay > 28) {
+      showToast('Default due day must be between 1 and 28', 'error');
+      return;
+    }
+    const lf = feePolicy.lateFee;
+    if (lf.type !== 'NONE' && !(Number(lf.amount) > 0)) {
+      showToast('Enter a late fee amount greater than 0', 'error');
+      return;
+    }
+    setSavingFeePolicy(true);
+    try {
+      await feePortalApi.updateFeeSettings({
+        lateFee: {
+          type: lf.type,
+          amount: Number(lf.amount) || 0,
+          graceDays: Number(lf.graceDays) || 0,
+          maxAmount: lf.type === 'PER_DAY' ? Number(lf.maxAmount) || 0 : 0,
+        },
+        defaultDueDay: dueDay,
+      });
+      showToast('Fee policy saved', 'success');
+    } catch (error) {
+      showToast(apiMessage(error, 'Unable to save fee policy'), 'error');
+    } finally {
+      setSavingFeePolicy(false);
     }
   };
 
@@ -699,6 +769,118 @@ export const Settings = () => {
             >
               {savingEmail ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
               Save email config
+            </button>
+          </div>
+        </form>
+      )}
+
+      {activeTab === 'feePolicy' && (
+        <form
+          onSubmit={handleSaveFeePolicy}
+          className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+        >
+          <div className="flex items-start gap-3">
+            <div className="rounded-2xl bg-primary/10 p-2.5 text-primary">
+              <Banknote className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Fee policy</h3>
+              <p className="mt-1 text-xs text-slate-500">
+                Late fee rules applied to overdue invoices and the default due day for scheduled installments.
+              </p>
+            </div>
+          </div>
+
+          {!feePolicyLoaded ? (
+            <SkeletonForm />
+          ) : (
+            <div className="grid max-w-xl gap-4">
+              <div className="space-y-2">
+                <span className="block text-xs font-bold text-slate-600 dark:text-slate-300">Late fee type</span>
+                {LATE_FEE_TYPES.map(([value, label]) => (
+                  <label
+                    key={value}
+                    className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-xs font-semibold dark:border-slate-800 dark:bg-slate-950"
+                  >
+                    <input
+                      type="radio"
+                      name="lateFeeType"
+                      value={value}
+                      checked={feePolicy.lateFee.type === value}
+                      onChange={() => setFeePolicy((p) => ({ ...p, lateFee: { ...p.lateFee, type: value } }))}
+                    />
+                    <span>{label}</span>
+                  </label>
+                ))}
+              </div>
+
+              {feePolicy.lateFee.type !== 'NONE' && (
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field id="lateFeeAmount" label={feePolicy.lateFee.type === 'PER_DAY' ? 'Amount per day (₹)' : 'Flat amount (₹)'}>
+                    <TextInput
+                      id="lateFeeAmount"
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="e.g. 50"
+                      value={feePolicy.lateFee.amount}
+                      onChange={(e) => setFeePolicy((p) => ({ ...p, lateFee: { ...p.lateFee, amount: e.target.value } }))}
+                    />
+                  </Field>
+                  <Field id="lateFeeGrace" label="Grace days after due date">
+                    <TextInput
+                      id="lateFeeGrace"
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="e.g. 5"
+                      value={feePolicy.lateFee.graceDays}
+                      onChange={(e) => setFeePolicy((p) => ({ ...p, lateFee: { ...p.lateFee, graceDays: e.target.value } }))}
+                    />
+                  </Field>
+                  {feePolicy.lateFee.type === 'PER_DAY' && (
+                    <Field id="lateFeeMax" label="Maximum late fee per invoice (₹)" hint="0 means no cap.">
+                      <TextInput
+                        id="lateFeeMax"
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="e.g. 1000"
+                        value={feePolicy.lateFee.maxAmount}
+                        onChange={(e) => setFeePolicy((p) => ({ ...p, lateFee: { ...p.lateFee, maxAmount: e.target.value } }))}
+                      />
+                    </Field>
+                  )}
+                </div>
+              )}
+
+              <Field
+                id="defaultDueDay"
+                label="Default due day of the month (1-28)"
+                hint="Used when generating scheduled installment invoices without an explicit due date."
+              >
+                <TextInput
+                  id="defaultDueDay"
+                  type="number"
+                  min="1"
+                  max="28"
+                  step="1"
+                  value={feePolicy.defaultDueDay}
+                  onChange={(e) => setFeePolicy((p) => ({ ...p, defaultDueDay: e.target.value }))}
+                  className="max-w-xs"
+                />
+              </Field>
+            </div>
+          )}
+
+          <div className="flex justify-end border-t border-slate-100 pt-4 dark:border-slate-800">
+            <button
+              type="submit"
+              disabled={savingFeePolicy || !feePolicyLoaded}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-white hover:bg-primary-hover disabled:opacity-60"
+            >
+              {savingFeePolicy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+              Save fee policy
             </button>
           </div>
         </form>

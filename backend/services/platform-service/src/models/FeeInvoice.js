@@ -40,6 +40,13 @@ const feeInvoiceSchema = new mongoose.Schema(
     notes: { type: String, default: '', trim: true },
     // Last Razorpay order id created for this invoice by the Parent APK "Pay Now".
     lastPaymentOrderId: { type: String, default: '', trim: true },
+    // Schedule (installments): 3 of 12 monthly, 1 of 4 quarterly, 1 of 1 annual.
+    installmentNo: { type: Number, default: 1, min: 1 },
+    installmentCount: { type: Number, default: 1, min: 1 },
+    frequency: { type: String, default: '' },
+    // Late fee applied by the overdue job (already included in totalAmount/items).
+    lateFeeAmount: { type: Number, default: 0, min: 0 },
+    overdueDays: { type: Number, default: 0, min: 0 },
   },
   { timestamps: true }
 );
@@ -80,6 +87,11 @@ feeInvoiceSchema.methods.toPublicJSON = function toPublicJSON() {
     balanceAmount: this.balanceAmount,
     status: this.status,
     notes: this.notes,
+    installmentNo: this.installmentNo || 1,
+    installmentCount: this.installmentCount || 1,
+    frequency: this.frequency || '',
+    lateFeeAmount: this.lateFeeAmount || 0,
+    overdueDays: this.overdueDays || 0,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

@@ -2,6 +2,13 @@ import mongoose from 'mongoose';
 import { AppError } from '../../../shared/AppError.js';
 import { feeRepository } from '../repositories/fee.repository.js';
 
+function endOfDay(value) {
+  const x = new Date(value);
+  if (Number.isNaN(x.getTime())) return x;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(value).trim())) x.setHours(23, 59, 59, 999);
+  return x;
+}
+
 export const financeTransactionService = {
   async listTransactions(schoolIdRaw, query = {}) {
     const schoolId = String(schoolIdRaw);
@@ -16,7 +23,7 @@ export const financeTransactionService = {
     if (query.startDate || query.endDate) {
       filter.transactionDate = {};
       if (query.startDate) filter.transactionDate.$gte = new Date(query.startDate);
-      if (query.endDate) filter.transactionDate.$lte = new Date(query.endDate);
+      if (query.endDate) filter.transactionDate.$lte = endOfDay(query.endDate);
     }
 
     const transactions = await feeRepository.listFinanceTransactions(schoolId, filter);
@@ -38,7 +45,7 @@ export const financeTransactionService = {
 
     const dateRange = {};
     if (query.startDate) dateRange.start = new Date(query.startDate);
-    if (query.endDate) dateRange.end = new Date(query.endDate);
+    if (query.endDate) dateRange.end = endOfDay(query.endDate);
 
     const summary = await feeRepository.getFinanceSummary(schoolId, dateRange);
     

@@ -2,7 +2,6 @@ import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 const Dashboard = lazy(() => import('../pages/Dashboard').then((m) => ({ default: m.Dashboard })));
 const SchoolConfig = lazy(() => import('../pages/school-config/SchoolConfig').then((m) => ({ default: m.SchoolConfig })));
-const RolesAndPermissions = lazy(() => import('../pages/roles/RolesAndPermissions').then((m) => ({ default: m.RolesAndPermissions })));
 const UserManagement = lazy(() => import('../pages/users/UserManagement').then((m) => ({ default: m.UserManagement })));
 const UserDetail = lazy(() => import('../pages/users/UserDetail'));
 const AdmissionManagement = lazy(() => import('../pages/admissions/AdmissionManagement').then((m) => ({ default: m.AdmissionManagement })));
@@ -14,6 +13,7 @@ const SubjectsIndex = lazy(() => import('../pages/academics/SubjectsIndex'));
 const SectionDetail = lazy(() => import('../pages/academics/SectionDetail'));
 const SubjectAssignments = lazy(() => import('../pages/academics/SubjectAssignments').then((m) => ({ default: m.SubjectAssignments })));
 const ClassTeachers = lazy(() => import('../pages/academics/ClassTeachers').then((m) => ({ default: m.ClassTeachers })));
+const TimetableEditor = lazy(() => import('../pages/academics/TimetableEditor'));
 const AttendanceHub = lazy(() => import('../pages/attendance/AttendanceHub').then((m) => ({ default: m.AttendanceHub })));
 const ExamManagement = lazy(() => import('../pages/exams/ExamManagement').then((m) => ({ default: m.ExamManagement })));
 const ExamDetail = lazy(() => import('../pages/exams/ExamDetail').then((m) => ({ default: m.ExamDetail })));
@@ -65,7 +65,6 @@ export const SchoolAdminRoutes = () => {
       <Route path="plans" element={<SubscriptionPlans />} />
       <Route path="dashboard" element={<Dashboard />} />
       <Route path="school-config" element={<SchoolConfig />} />
-      <Route path="roles" element={<RolesAndPermissions />} />
       <Route path="users" element={<UserManagement />} />
       <Route path="users/:userId" element={<UserDetail />} />
       <Route path="admissions" element={<AdmissionManagement />} />
@@ -77,6 +76,7 @@ export const SchoolAdminRoutes = () => {
       <Route path="academics/subjects" element={<SubjectsIndex />} />
       <Route path="academics/subject-assignments" element={<SubjectAssignments />} />
       <Route path="academics/class-teachers" element={<ClassTeachers />} />
+      <Route path="academics/timetable" element={<TimetableEditor />} />
       <Route path="attendance" element={<AttendanceHub />} />
       <Route path="exams" element={<ExamManagement />} />
       <Route path="exams/:examId" element={<ExamDetail />} />

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { nextSequence, maxNumericSuffix } from '../models/Counter.js';
 import { FeeHead } from '../models/FeeHead.js';
 import { FeeStructure } from '../models/FeeStructure.js';
 import { FeeStructureItem } from '../models/FeeStructureItem.js';
@@ -262,6 +263,14 @@ export class FeeRepository {
       .sort({ createdAt: 1 });
   }
 
+  findAssignmentByItem(schoolId, studentId, feeStructureItemId) {
+    return StudentFeeAssignment.findOne({
+      schoolId: toObjectId(schoolId),
+      studentId: toObjectId(studentId),
+      feeStructureItemId: toObjectId(feeStructureItemId),
+    });
+  }
+
   listAssignmentsByStudent(schoolId, studentId) {
     return StudentFeeAssignment.find({
       schoolId: toObjectId(schoolId),
@@ -386,9 +395,10 @@ export class FeeRepository {
 
   async getNextInvoiceNumber(schoolId) {
     const year = new Date().getFullYear();
-    const count = await FeeInvoice.countDocuments({ schoolId: toObjectId(schoolId) });
-    const seq = String(count + 1).padStart(5, '0');
-    return `INV-${year}-${seq}`;
+    const seq = await nextSequence(schoolId, `invoice-${year}`, () =>
+      maxNumericSuffix(FeeInvoice, schoolId, 'invoiceNumber', `INV-${year}`)
+    );
+    return `INV-${year}-${String(seq).padStart(5, '0')}`;
   }
 
   /* ======================== FEE PAYMENTS & RECEIPTS ======================== */
@@ -452,9 +462,10 @@ export class FeeRepository {
 
   async getNextReceiptNumber(schoolId) {
     const year = new Date().getFullYear();
-    const count = await FeePayment.countDocuments({ schoolId: toObjectId(schoolId) });
-    const seq = String(count + 1).padStart(5, '0');
-    return `REC-${year}-${seq}`;
+    const seq = await nextSequence(schoolId, `receipt-${year}`, () =>
+      maxNumericSuffix(FeePayment, schoolId, 'receiptNumber', `REC-${year}`)
+    );
+    return `REC-${year}-${String(seq).padStart(5, '0')}`;
   }
 
   /* ======================== DISCOUNTS ======================== */

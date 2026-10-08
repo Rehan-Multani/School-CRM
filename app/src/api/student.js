@@ -53,6 +53,10 @@ export const studentApi = {
   attendanceSummary: () => data(api.get(`${P}/attendance/summary`)),
   attendanceMonthly: (month) => data(api.get(`${P}/attendance/monthly`, { month })),
 
+  // ---- transport (read-only: route, stop, today's pickup/drop) ----
+  transport: () => data(api.get(`${P}/transport`)),
+  transportHistory: (params) => api.get(`${P}/transport/history`, params),
+
   // ---- exams & results ----
   exams: (params) => api.get(`${P}/exams`, params),
   exam: (examId) => data(api.get(`${P}/exams/${id(examId)}`)),

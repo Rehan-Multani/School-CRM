@@ -14,6 +14,8 @@ import { accountantService } from '../services/accountant.service.js';
 import { academicService } from '../services/academic.service.js';
 import { studentService } from '../services/student.service.js';
 import { notificationService } from '../services/notification.service.js';
+import { feeScheduleService } from '../services/feeSchedule.service.js';
+import { feeLedgerService } from '../services/feeLedger.service.js';
 import { subscriptionAccessService } from '../services/subscriptionAccess.service.js';
 
 // ----------------------------------------------------
@@ -579,6 +581,65 @@ export async function updateAccountantSettings(req, res, next) {
     user.markModified('preferences');
     await user.save();
     res.json({ success: true, data: { preferences: user.preferences }, message: 'Settings saved' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// ===================== FEE SETTINGS / SCHEDULE / LATE FEES (accountant) =====================
+export async function accountantFeeSettings(req, res, next) {
+  try {
+    res.json({ success: true, data: await feeScheduleService.getSettings(accountantSchoolId(req)) });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function accountantUpdateFeeSettings(req, res, next) {
+  try {
+    const data = await feeScheduleService.updateSettings(accountantSchoolId(req), req.body || {});
+    res.json({ success: true, data, message: 'Fee settings saved' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function accountantGenerateSchedule(req, res, next) {
+  try {
+    const data = await feeScheduleService.generateSchedule(accountantSchoolId(req), req.body || {});
+    res.status(201).json({ success: true, data, message: data.message });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function accountantApplyLateFees(req, res, next) {
+  try {
+    const data = await feeScheduleService.applyLateFees(accountantSchoolId(req));
+    res.json({ success: true, data, message: `${data.flipped} invoice(s) marked overdue, late fee applied to ${data.charged}` });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function accountantRefundPayment(req, res, next) {
+  try {
+    const b = req.body || {};
+    const result = await feeLedgerService.refundPayment({
+      schoolId: accountantSchoolId(req),
+      paymentId: req.params.id,
+      amount: b.amount,
+      kind: b.kind,
+      reason: b.reason,
+      method: b.method,
+      reference: b.reference,
+      by: accountantPerformedBy(req),
+    });
+    res.json({
+      success: true,
+      message: `${result.refund.kind === 'CANCEL' ? 'Payment cancelled' : 'Refund recorded'} (₹${result.refund.amount})`,
+      data: { payment: result.payment.toPublicJSON(), refund: result.refund, invoice: result.invoice },
+    });
   } catch (error) {
     next(error);
   }

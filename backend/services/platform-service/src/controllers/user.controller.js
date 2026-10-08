@@ -115,13 +115,4 @@ export async function deleteUser(req, res, next) {
   }
 }
 
-export async function seedUsers(req, res, next) {
-  try {
-    const { seedStaffUsers } = await import('../seedStaffUsers.js');
-    const seeded = await seedStaffUsers();
-    res.json({ success: true, message: `Staff users seeded successfully (${seeded} records)` });
-  } catch (error) {
-    next(error);
-  }
-}
 

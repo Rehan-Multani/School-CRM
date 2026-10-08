@@ -64,7 +64,7 @@ export async function cancelSchoolSubscription(req, res, next) {
 
 export async function changeSchoolSubscriptionPlan(req, res, next) {
   try {
-    const data = await schoolSubscriptionService.changePlan(req.params.id, { newPlanId: req.body?.planId }, actorFrom(req, 'super_admin'));
+    const data = await schoolSubscriptionService.changePlan(req.params.id, { newPlanId: req.body?.planId, schedule: req.body?.schedule }, actorFrom(req, 'super_admin'));
     res.json({ success: true, data, message: 'Plan change processed' });
   } catch (error) {
     next(error);

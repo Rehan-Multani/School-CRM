@@ -28,6 +28,8 @@ const subscriptionPlanSchema = new mongoose.Schema(
       teachers: { type: Number, default: null },
       staff: { type: Number, default: null },
     },
+    // Optional per-plan GST override; null = use platform taxPercent (app-config).
+    taxPercent: { type: Number, default: null, min: 0, max: 100 },
     status: { type: String, enum: PLAN_STATUSES, default: 'active', index: true },
     updatedBy: { type: String, default: '' },
 
@@ -72,6 +74,7 @@ subscriptionPlanSchema.methods.toPublicJSON = function toPublicJSON() {
       teachers: this.limits?.teachers ?? null,
       staff: this.limits?.staff ?? null,
     },
+    taxPercent: this.taxPercent ?? null,
     status: this.status || 'active',
     isRecurring: this.isRecurring(),
     createdBy: this.createdBy,

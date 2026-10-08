@@ -8,6 +8,7 @@ import { connect, disconnect, seed, getApp } from './helpers/setup.js';
 import { signAccessToken } from '../../shared/generateToken.js';
 import { env } from '../src/config/env.js';
 import { DeviceToken } from '../src/models/DeviceToken.js';
+import { APP_ROLES } from '../src/models/AppForceLogout.js';
 
 let app;
 let ctx;
@@ -96,7 +97,7 @@ describe('Force logout', () => {
   });
 
   it('rejects an unknown role or school, and anyone who is not the Super Admin', async () => {
-    expect((await forceLogout({ roles: ['PRINCIPAL'] })).status).toBe(400);
+    expect((await forceLogout({ roles: ['ACCOUNTANT'] })).status).toBe(400);
     expect((await forceLogout({})).status).toBe(400);
     expect((await forceLogout({ roles: 'ALL', schoolId: 'not-a-school' })).status).toBe(404);
     expect((await forceLogout({ roles: 'ALL' }, ctx.a.adminToken)).status).toBe(403);
@@ -118,7 +119,7 @@ describe('Force logout', () => {
     const all = await forceLogout({ roles: 'ALL' });
     expect(all.status).toBe(200);
     expect(all.body.data.schoolId).toBeNull();
-    expect(all.body.data.roles).toEqual(['TEACHER', 'STUDENT', 'PARENT', 'TRANSPORT']);
+    expect(all.body.data.roles).toEqual([...APP_ROLES]);
     expect((await me('student', ctx.b.studentToken)).status).toBe(401);
     expect((await me('teacher', ctx.b.token)).status).toBe(401);
     expect((await notice('PARENT', ctx.b.schoolId)).body.data.message).toMatch(/signed out by the administrator/);

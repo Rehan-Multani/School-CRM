@@ -14,6 +14,18 @@ const TABS = [
   { id: 'notifications', label: 'Notification Preferences' },
   { id: 'security', label: 'Security' },
   { id: 'appearance', label: 'Appearance' },
+  { id: 'feePolicy', label: 'Fee Policy' },
+];
+
+const FEE_POLICY_DEFAULTS = {
+  lateFee: { type: 'NONE', amount: 0, graceDays: 0, maxAmount: 0 },
+  defaultDueDay: 10,
+};
+
+const LATE_FEE_TYPES = [
+  ['NONE', 'No late fee'],
+  ['FLAT', 'Flat amount once overdue'],
+  ['PER_DAY', 'Per day overdue'],
 ];
 
 const splitName = (name = '') => {
@@ -35,6 +47,7 @@ export const Settings = () => {
   });
   const [pw, setPw] = useState({ currentPassword: '', newPassword: '' });
   const [saving, setSaving] = useState(false);
+  const [feePolicy, setFeePolicy] = useState(FEE_POLICY_DEFAULTS);
 
   useEffect(() => {
     accountantAuthApi
@@ -52,6 +65,17 @@ export const Settings = () => {
         const { firstName, lastName } = splitName(user?.name);
         setProfile({ firstName, lastName, phone: user?.phone || '', email: user?.email || '' });
       });
+
+    accountantApi
+      .feeSettings()
+      .then((res) => {
+        const d = res?.data || {};
+        setFeePolicy({
+          lateFee: { ...FEE_POLICY_DEFAULTS.lateFee, ...(d.lateFee || {}) },
+          defaultDueDay: d.defaultDueDay ?? FEE_POLICY_DEFAULTS.defaultDueDay,
+        });
+      })
+      .catch(() => {});
 
     accountantApi
       .settings()
@@ -90,6 +114,28 @@ export const Settings = () => {
     accountantApi
       .updateSettings({ preferences: prefs })
       .then(() => showToast('Settings saved', 'success'))
+      .catch((err) => showToast(err?.response?.data?.message || 'Save failed', 'error'))
+      .finally(() => setSaving(false));
+  };
+
+  const saveFeePolicy = (e) => {
+    e.preventDefault();
+    const dueDay = Number(feePolicy.defaultDueDay);
+    if (!Number.isInteger(dueDay) || dueDay < 1 || dueDay > 28) return showToast('Default due day must be between 1 and 28', 'error');
+    const lf = feePolicy.lateFee;
+    if (lf.type !== 'NONE' && !(Number(lf.amount) > 0)) return showToast('Enter a late fee amount greater than 0', 'error');
+    setSaving(true);
+    accountantApi
+      .updateFeeSettings({
+        lateFee: {
+          type: lf.type,
+          amount: Number(lf.amount) || 0,
+          graceDays: Number(lf.graceDays) || 0,
+          maxAmount: lf.type === 'PER_DAY' ? Number(lf.maxAmount) || 0 : 0,
+        },
+        defaultDueDay: dueDay,
+      })
+      .then(() => showToast('Fee policy saved', 'success'))
       .catch((err) => showToast(err?.response?.data?.message || 'Save failed', 'error'))
       .finally(() => setSaving(false));
   };
@@ -250,6 +296,60 @@ export const Settings = () => {
             </button>
           </div>
         </div>
+      )}
+
+      {tab === 'feePolicy' && (
+        <form onSubmit={saveFeePolicy} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-5 max-w-xl">
+          <div className="space-y-2">
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Late fee</p>
+            {LATE_FEE_TYPES.map(([value, label]) => (
+              <label key={value} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl cursor-pointer">
+                <input
+                  type="radio"
+                  name="lateFeeType"
+                  value={value}
+                  checked={feePolicy.lateFee.type === value}
+                  onChange={() => setFeePolicy((p) => ({ ...p, lateFee: { ...p.lateFee, type: value } }))}
+                />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+
+          {feePolicy.lateFee.type !== 'NONE' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label className="space-y-1 block">
+                <span>{feePolicy.lateFee.type === 'PER_DAY' ? 'Amount per day (₹)' : 'Flat amount (₹)'}</span>
+                <input type="number" min="0" step="1" placeholder="e.g. 50" value={feePolicy.lateFee.amount} onChange={(e) => setFeePolicy((p) => ({ ...p, lateFee: { ...p.lateFee, amount: e.target.value } }))} className={inp} />
+              </label>
+              <label className="space-y-1 block">
+                <span>Grace days after due date</span>
+                <input type="number" min="0" step="1" placeholder="e.g. 5" value={feePolicy.lateFee.graceDays} onChange={(e) => setFeePolicy((p) => ({ ...p, lateFee: { ...p.lateFee, graceDays: e.target.value } }))} className={inp} />
+              </label>
+              {feePolicy.lateFee.type === 'PER_DAY' && (
+                <label className="space-y-1 block">
+                  <span>Maximum late fee per invoice (₹, 0 = no cap)</span>
+                  <input type="number" min="0" step="1" placeholder="e.g. 1000" value={feePolicy.lateFee.maxAmount} onChange={(e) => setFeePolicy((p) => ({ ...p, lateFee: { ...p.lateFee, maxAmount: e.target.value } }))} className={inp} />
+                </label>
+              )}
+            </div>
+          )}
+
+          <div className="space-y-1">
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Invoice due date</p>
+            <label className="space-y-1 block max-w-xs">
+              <span>Default due day of the month (1-28)</span>
+              <input type="number" min="1" max="28" step="1" value={feePolicy.defaultDueDay} onChange={(e) => setFeePolicy((p) => ({ ...p, defaultDueDay: e.target.value }))} className={inp} />
+            </label>
+            <p className="text-[10px] text-slate-400">Used when generating scheduled installment invoices without an explicit due date.</p>
+          </div>
+
+          <div className="flex justify-end">
+            <button type="submit" disabled={saving} className="flex items-center gap-1.5 px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl font-bold disabled:opacity-50">
+              <Save className="w-3.5 h-3.5" /> Save Fee Policy
+            </button>
+          </div>
+        </form>
       )}
 
       <ToastComponent />

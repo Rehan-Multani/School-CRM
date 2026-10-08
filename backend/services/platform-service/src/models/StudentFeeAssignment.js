@@ -32,8 +32,12 @@ const studentFeeAssignmentSchema = new mongoose.Schema(
     feeStructureId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'FeeStructure',
-      required: true,
+      default: null,
     },
+    // Where the component came from: the class structure, or a transport
+    // route / hostel bed assignment (sourceRefId = that assignment's id).
+    source: { type: String, enum: ['STRUCTURE', 'TRANSPORT', 'HOSTEL'], default: 'STRUCTURE', index: true },
+    sourceRefId: { type: mongoose.Schema.Types.ObjectId, default: null },
     feeStructureItemId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'FeeStructureItem',
@@ -82,14 +86,24 @@ const studentFeeAssignmentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-studentFeeAssignmentSchema.index({ schoolId: 1, studentId: 1, feeStructureItemId: 1 });
+// One assignment per student per structure item — running auto-assign twice
+// must not double the dues. Partial: legacy structure-level rows have no item.
+studentFeeAssignmentSchema.index(
+  { schoolId: 1, studentId: 1, feeStructureItemId: 1 },
+  { unique: true, partialFilterExpression: { feeStructureItemId: { $type: 'objectId' } } }
+);
 studentFeeAssignmentSchema.index({ schoolId: 1, enrollmentId: 1 });
 
 studentFeeAssignmentSchema.methods.getPayableAmount = function getPayableAmount() {
+  // Item-level rows snapshot originalAmount and keep finalAmount authoritative —
+  // including 0 for a 100% discount / full concession.
+  if (this.originalAmount !== undefined && this.originalAmount !== null) {
+    return Math.max(0, Number(this.finalAmount) || 0);
+  }
   if (this.finalAmount !== undefined && this.finalAmount > 0) {
     return this.finalAmount;
   }
-  return Math.max(0, (this.totalAmount || 0) - (this.discountAmount || 0));
+  return Math.max(0, (this.totalAmount || 0) - (this.discountAmount || 0) - (this.concessionAmount || 0));
 };
 
 studentFeeAssignmentSchema.methods.getDueAmount = function getDueAmount() {
@@ -135,6 +149,8 @@ studentFeeAssignmentSchema.methods.toPublicJSON = function toPublicJSON() {
     paidAmount: this.paidAmount || 0,
     dueAmount: due,
     isOptedIn: this.isOptedIn,
+    source: this.source || 'STRUCTURE',
+    sourceRefId: this.sourceRefId ? this.sourceRefId.toString() : null,
     status: this.status,
     remarks: this.remarks,
     createdAt: this.createdAt,

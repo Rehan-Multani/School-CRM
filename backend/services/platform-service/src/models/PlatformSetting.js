@@ -30,6 +30,8 @@ const platformSettingSchema = new mongoose.Schema(
       default: 'WeWork Prestige Central, Ground Floor, 36 Infantry Road, Bengaluru 560001, India',
       trim: true,
     },
+    // GST / tax applied to locally generated subscription invoices (percent; 0 = no tax).
+    taxPercent: { type: Number, default: 18, min: 0, max: 100 },
     updatedBy: { type: String, default: null },
   },
   { timestamps: true }
@@ -54,6 +56,7 @@ platformSettingSchema.methods.toPublicJSON = function toPublicJSON() {
       message: this.appUpdateMessage || '',
     },
     logoUrl: this.logo || '',
+    taxPercent: this.taxPercent === null || this.taxPercent === undefined ? 18 : this.taxPercent,
     contact: {
       salesEmail,
       supportEmail,

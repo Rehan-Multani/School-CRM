@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import { AppError } from '../../../shared/AppError.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { deleteUploadedFile } from '../utils/upload.utils.js';
+import { assertCanAdd } from './planLimits.service.js';
 
 const VALID_ROLES = ['TEACHER', 'LIBRARIAN', 'HR', 'ACCOUNTANT', 'TRANSPORT', 'PRINCIPAL'];
 const VALID_STATUSES = ['ACTIVE', 'INACTIVE'];
@@ -52,13 +53,17 @@ class UserService {
   }
 
   async createUser(schoolId, payload = {}, files = {}) {
+    await assertCanAdd(schoolId, 'staff');
     const firstName = requireText(payload.firstName, 'First Name');
     const lastName = optionalText(payload.lastName);
     const email = requireText(payload.email, 'Email Address').toLowerCase();
     const employeeId = requireText(payload.employeeId, 'Employee ID');
     const role = ensureOption(payload.role, VALID_ROLES, 'Role');
-    const rawPassword = payload.password ? String(payload.password).trim() : 'Password@123';
+    const rawPassword = payload.password ? String(payload.password).trim() : '';
 
+    if (!rawPassword) {
+      throw new AppError('Password is required', 400);
+    }
     if (rawPassword.length < 6) {
       throw new AppError('Password must be at least 6 characters long', 400);
     }

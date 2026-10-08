@@ -327,6 +327,30 @@ export const schoolPortalApi = {
   updateStudentStatus: (id, status) =>
     schoolAdminClient.patch(`/platform/school-portal/students/${id}/status`, { status }).then((res) => res.data),
   deleteStudent: (id) => schoolAdminClient.delete(`/platform/school-portal/students/${id}`).then((res) => res.data),
+  // Student lifecycle: promotion, transfer / TC, bulk CSV import
+  promotionPreview: (params) =>
+    schoolAdminClient.get('/platform/school-portal/students/promote/preview', { params }).then((res) => res.data),
+  promoteStudents: (payload) =>
+    schoolAdminClient.post('/platform/school-portal/students/promote', payload).then((res) => res.data),
+  transferStudent: (id, payload) =>
+    schoolAdminClient.post(`/platform/school-portal/students/${id}/transfer`, payload).then((res) => res.data),
+  reactivateStudent: (id) =>
+    schoolAdminClient.post(`/platform/school-portal/students/${id}/reactivate`).then((res) => res.data),
+  transferCertificate: (id) =>
+    schoolAdminClient.get(`/platform/school-portal/students/${id}/transfer-certificate`).then((res) => res.data),
+  studentImportTemplate: () =>
+    schoolAdminClient.get('/platform/school-portal/students/import/template', { responseType: 'blob' }).then((res) => res.data),
+  importStudentsCsv: (file, academicYearId, { dryRun = false } = {}) => {
+    const formData = new FormData();
+    formData.append('academicYearId', academicYearId);
+    formData.append('file', file);
+    return schoolAdminClient
+      .post('/platform/school-portal/students/import', formData, {
+        params: dryRun ? { dryRun: 1 } : undefined,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((res) => res.data);
+  },
   // Safe Pickup APIs
   safePickupSettings: () => schoolAdminClient.get('/platform/school-portal/settings/safe-pickup').then((res) => res.data),
   updateSafePickupClass: (classId, safePickupEnabled) =>
@@ -356,7 +380,6 @@ export const schoolUserApi = {
   sendCredentials: (id) =>
     schoolAdminClient.post(`/platform/school-portal/users/${id}/send-credentials`).then((res) => res.data),
   delete: (id) => schoolAdminClient.delete(`/platform/school-portal/users/${id}`).then((res) => res.data),
-  seed: () => schoolAdminClient.post('/platform/school-portal/users/seed').then((res) => res.data),
 };
 
 export const payrollPortalApi = {
@@ -441,6 +464,18 @@ export const academicPortalApi = {
   deleteTeacher: (id) => schoolAdminClient.delete(`/platform/school-portal/academic/teachers/${id}`).then((r) => r.data),
 };
 
+// Class timetable (School Admin). Entries: { id, sectionId, subjectId, subjectName, teacherId, teacherName,
+// dayOfWeek: 'MON'..'SAT', periodNumber, startTime, endTime, room }.
+export const timetableApi = {
+  list: (params) => schoolAdminClient.get('/platform/school-portal/timetable', { params }).then((r) => r.data),
+  create: (payload) => schoolAdminClient.post('/platform/school-portal/timetable', payload).then((r) => r.data),
+  update: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/timetable/${id}`, payload).then((r) => r.data),
+  remove: (id) => schoolAdminClient.delete(`/platform/school-portal/timetable/${id}`).then((r) => r.data),
+  // Replaces the whole grid of one section: { academicYearId?, periods: [{ dayOfWeek, periodNumber, startTime, endTime, subjectId, teacherId? }] }
+  saveSection: (sectionId, payload) =>
+    schoolAdminClient.put(`/platform/school-portal/timetable/sections/${sectionId}`, payload).then((r) => r.data),
+};
+
 export const feePortalApi = {
   // Fee Heads
   heads: (params) => schoolAdminClient.get('/platform/school-portal/fees/heads', { params }).then((r) => r.data),
@@ -476,6 +511,13 @@ export const feePortalApi = {
   payInvoice: (invoiceId, payload) => schoolAdminClient.post(`/platform/school-portal/fees/invoices/${invoiceId}/pay`, payload).then((r) => r.data),
   payments: (params) => schoolAdminClient.get('/platform/school-portal/fees/payments', { params }).then((r) => r.data),
   getPayment: (id) => schoolAdminClient.get(`/platform/school-portal/fees/payments/${id}`).then((r) => r.data),
+
+  // Installment schedule, fee policy & late fees
+  generateSchedule: (payload) => schoolAdminClient.post('/platform/school-portal/fees/invoices/schedule', payload).then((r) => r.data),
+  feeSettings: () => schoolAdminClient.get('/platform/school-portal/fees/settings').then((r) => r.data),
+  updateFeeSettings: (payload) => schoolAdminClient.put('/platform/school-portal/fees/settings', payload).then((r) => r.data),
+  applyLateFees: () => schoolAdminClient.post('/platform/school-portal/fees/late-fees/apply').then((r) => r.data),
+  refundPayment: (id, payload) => schoolAdminClient.post(`/platform/school-portal/fees/payments/${id}/refund`, payload).then((r) => r.data),
 };
 
 export const platformLegalApi = {
@@ -775,6 +817,8 @@ export const hrApi = {
   getPayroll: (id) => hrClient.get(`/platform/school-portal/hr/payroll/${id}`).then((r) => r.data),
   getSalarySlip: (id) => hrClient.get(`/platform/school-portal/hr/payroll/${id}/slip`).then((r) => r.data),
   updatePayrollStatus: (id, status, payload = {}) => hrClient.patch(`/platform/school-portal/hr/payroll/${id}/status`, { status, ...payload }).then((r) => r.data),
+  disbursePayroll: (id, payload = {}) =>
+    hrClient.patch(`/platform/school-portal/hr/payroll/${id}/status`, { ...payload, status: payload.paymentStatus || payload.status || 'PAID' }).then((r) => r.data),
   releaseAllPayrolls: (month) => hrClient.post('/platform/school-portal/hr/payroll/release', { month }).then((r) => r.data),
   deletePayroll: (id) => hrClient.delete(`/platform/school-portal/hr/payroll/${id}`).then((r) => r.data),
 
@@ -837,6 +881,18 @@ export const principalAuthApi = {
   updateProfile: (payload) =>
     principalClient.patch('/platform/school-portal/principal/profile', payload, studentRequestConfig(payload)).then((r) => r.data),
   changePassword: (payload) => principalClient.patch('/platform/school-portal/principal/password', payload).then((r) => r.data),
+  // Forgot password — OTP to the registered mobile (public routes, role PRINCIPAL).
+  // 1. forgotPassword → SMS   2. verifyResetOtp → resetToken   3. resetPassword
+  forgotPassword: (identifier) =>
+    apiClient
+      .post('/platform/school-portal/auth/forgot-password', { role: 'PRINCIPAL', identifier: String(identifier || '').trim() })
+      .then((r) => r.data),
+  verifyResetOtp: (identifier, otp) =>
+    apiClient
+      .post('/platform/school-portal/auth/verify-reset-otp', { role: 'PRINCIPAL', identifier: String(identifier || '').trim(), otp })
+      .then((r) => r.data),
+  resetPassword: (resetToken, newPassword) =>
+    apiClient.post('/platform/school-portal/auth/reset-password', { resetToken, newPassword }).then((r) => r.data),
 };
 
 export const principalAcademicApi = {
@@ -893,6 +949,10 @@ export const principalAcademicApi = {
   setTeacherPassword: (id, newPassword) =>
     principalClient.post(`/platform/school-portal/academic/teachers/${id}/set-password`, { newPassword }).then((r) => r.data),
   deleteTeacher: (id) => principalClient.delete(`/platform/school-portal/academic/teachers/${id}`).then((r) => r.data),
+};
+
+export const principalTimetableApi = {
+  list: (params) => principalClient.get('/platform/school-portal/timetable', { params }).then((r) => r.data),
 };
 
 export const principalStudentApi = {
@@ -1205,6 +1265,14 @@ export const accountantApi = {
     accountantClient
       .post(`/platform/school-portal/accountant/fees/invoices/${invoiceId}/pay`, payload)
       .then((r) => r.data),
+  generateSchedule: (payload) =>
+    accountantClient.post('/platform/school-portal/accountant/invoices/schedule', payload).then((r) => r.data),
+  feeSettings: () =>
+    accountantClient.get('/platform/school-portal/accountant/fee-settings').then((r) => r.data),
+  updateFeeSettings: (payload) =>
+    accountantClient.put('/platform/school-portal/accountant/fee-settings', payload).then((r) => r.data),
+  applyLateFees: () =>
+    accountantClient.post('/platform/school-portal/accountant/late-fees/apply').then((r) => r.data),
 
   // Fee Structure (read scope)
   feeStructures: (params) =>
@@ -1249,6 +1317,8 @@ export const accountantApi = {
     accountantClient.get('/platform/school-portal/accountant/receipts', { params }).then((r) => r.data),
   getReceipt: (id) =>
     accountantClient.get(`/platform/school-portal/accountant/receipts/${id}`).then((r) => r.data),
+  refundReceipt: (id, payload) =>
+    accountantClient.post(`/platform/school-portal/accountant/receipts/${id}/refund`, payload).then((r) => r.data),
   invoices: (params) =>
     accountantClient.get('/platform/school-portal/accountant/invoices', { params }).then((r) => r.data),
   getInvoice: (id) =>
@@ -1343,26 +1413,6 @@ export const principalHomeworkApi = {
 export const auditApi = {
   list: (params) =>
     schoolAdminClient.get('/platform/school-portal/audit-logs', { params }).then((r) => r.data),
-};
-
-// ===========================================================================
-// ROLES & PERMISSIONS — school-admin
-// ===========================================================================
-export const rolesApi = {
-  catalogue: () =>
-    schoolAdminClient.get('/platform/school-portal/permissions').then((r) => r.data),
-  list: () =>
-    schoolAdminClient.get('/platform/school-portal/roles').then((r) => r.data),
-  get: (id) =>
-    schoolAdminClient.get(`/platform/school-portal/roles/${id}`).then((r) => r.data),
-  create: (payload) =>
-    schoolAdminClient.post('/platform/school-portal/roles', payload).then((r) => r.data),
-  update: (id, payload) =>
-    schoolAdminClient.patch(`/platform/school-portal/roles/${id}`, payload).then((r) => r.data),
-  remove: (id) =>
-    schoolAdminClient.delete(`/platform/school-portal/roles/${id}`).then((r) => r.data),
-  assignUser: (userId, roleId) =>
-    schoolAdminClient.patch(`/platform/school-portal/users/${userId}/role`, { roleId }).then((r) => r.data),
 };
 
 // ===========================================================================

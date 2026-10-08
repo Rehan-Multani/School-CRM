@@ -30,7 +30,7 @@ export const AccountantRoutes = () => {
       {/* Legacy Fallback Redirects */}
       <Route path="discounts" element={<Navigate to="../fee-structure" replace />} />
       <Route path="late-fees" element={<Navigate to="../fee-structure" replace />} />
-      <Route path="refunds" element={<Navigate to="../transactions" replace />} />
+      <Route path="refunds" element={<ReceiptManagement initialStatus="REFUNDED" />} />
       <Route path="student-history" element={<Navigate to="../dues" replace />} />
       <Route path="audit" element={<Navigate to="../transactions" replace />} />
 

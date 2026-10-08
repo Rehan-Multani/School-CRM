@@ -2,6 +2,8 @@ import { AppError } from '../../../shared/AppError.js';
 import { payrollRepository } from '../repositories/payroll.repository.js';
 import { Teacher } from '../models/Teacher.js';
 import { SchoolUser } from '../models/SchoolUser.js';
+import { Payroll } from '../models/Payroll.js';
+import { ledgerLinkageService } from './ledgerLinkage.service.js';
 
 function requireText(value, label) {
   const text = typeof value === 'string' ? value.trim() : '';
@@ -16,6 +18,16 @@ function optionalText(value) {
 function parseMonthString(date = new Date()) {
   const d = new Date(date);
   return d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+}
+
+/** Salary paid → Expense + ledger row. Best-effort: never undoes the disbursement. */
+async function linkPayrollToLedger(schoolId, payroll) {
+  try {
+    await ledgerLinkageService.recordPayrollExpense(schoolId, payroll);
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn('[ledger] payroll expense not recorded for', String(payroll?._id), '-', err?.message || err);
+  }
 }
 
 class PayrollService {
@@ -46,7 +58,7 @@ class PayrollService {
   async createPayroll(schoolId, payload = {}) {
     const employeeRefId = requireText(payload.employeeRefId || payload.employeeId, 'Employee selection');
     const employeeType = (payload.employeeType || 'STAFF').toUpperCase();
-    const payrollMonth = payload.payrollMonth?.trim() || parseMonthString();
+    const payrollMonth = (payload.payrollMonth || payload.month || '').trim() || parseMonthString();
     const payrollDate = payload.payrollDate ? new Date(payload.payrollDate) : new Date();
 
     // Fetch employee snapshot if name or details not fully passed
@@ -61,12 +73,12 @@ class PayrollService {
     if (employeeType === 'TEACHER') {
       const teacher = await Teacher.findOne({ schoolId, _id: employeeRefId });
       if (teacher) {
-        employeeName = employeeName || `${teacher.personalDetails?.firstName || ''} ${teacher.personalDetails?.lastName || ''}`.trim() || 'Teacher';
-        employeeEmail = employeeEmail || teacher.personalDetails?.email || '';
+        employeeName = employeeName || `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim() || teacher.name || 'Teacher';
+        employeeEmail = employeeEmail || teacher.email || '';
         employeeId = employeeId || teacher.employeeId || `TCH-${teacher._id.toString().slice(-4).toUpperCase()}`;
         employeeRole = 'TEACHER';
-        department = department || teacher.employmentDetails?.department || 'Academic';
-        designation = designation || teacher.employmentDetails?.designation || 'Teacher';
+        department = department || teacher.department || 'Academic';
+        designation = designation || teacher.designation || 'Teacher';
         if (!bankDetails.accountNumber && teacher.payroll) {
           bankDetails = {
             accountName: teacher.payroll.accountHolderName || employeeName,
@@ -116,14 +128,12 @@ class PayrollService {
       ? payload.paymentStatus.toUpperCase()
       : 'PROCESSED';
 
-    // If payroll already exists for this employee in this month, update it seamlessly!
-    const existing = await payrollRepository.listPayrolls(schoolId, {
-      month: payrollMonth,
-      search: employeeName,
-    });
-    const alreadyProcessed = existing.items.find(
-      (p) => p.employeeRefId.toString() === employeeRefId && p.payrollMonth === payrollMonth
-    );
+    // If payroll already exists for this employee in this month, update it seamlessly -
+    // unless it is already PAID, in which case the month is locked.
+    const alreadyProcessed = await Payroll.findOne({ schoolId, employeeRefId, payrollMonth });
+    if (alreadyProcessed?.paymentStatus === 'PAID') {
+      throw new AppError(`Payroll for ${payrollMonth} is already paid`, 409);
+    }
     if (alreadyProcessed) {
       const updated = await payrollRepository.updatePayroll(schoolId, alreadyProcessed._id, {
         basicSalary,
@@ -177,6 +187,7 @@ class PayrollService {
       bankDetails,
     });
 
+    await linkPayrollToLedger(schoolId, created);
     return created.toPublicJSON();
   }
 
@@ -196,11 +207,15 @@ class PayrollService {
 
     const updated = await payrollRepository.updatePayroll(schoolId, id, updates);
     if (!updated) throw new AppError('Payroll record not found', 404);
+    await linkPayrollToLedger(schoolId, updated);
     return updated.toPublicJSON();
   }
 
   async releaseAll(schoolId, month) {
     const res = await payrollRepository.releaseAllPayrolls(schoolId, month);
+    // Every record just released becomes a Salary expense in the accountant ledger.
+    const released = await payrollRepository.listReleasedPayrolls(schoolId, month, res.releasedAt);
+    for (const row of released) await linkPayrollToLedger(schoolId, row);
     return {
       success: true,
       modifiedCount: res.modifiedCount,
@@ -209,6 +224,11 @@ class PayrollService {
   }
 
   async deletePayroll(schoolId, id) {
+    const existing = await payrollRepository.findPayrollById(schoolId, id);
+    if (!existing) throw new AppError('Payroll record not found', 404);
+    if (existing.paymentStatus === 'PAID') {
+      throw new AppError(`Payroll for ${existing.payrollMonth} is already paid and cannot be deleted`, 409);
+    }
     const deleted = await payrollRepository.deletePayroll(schoolId, id);
     if (!deleted) throw new AppError('Payroll record not found', 404);
     return { success: true, message: 'Payroll record deleted successfully' };

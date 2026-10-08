@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { AppError } from '../../../shared/AppError.js';
 import { feeRepository } from '../repositories/fee.repository.js';
 import { StudentFeeAssignment } from '../models/StudentFeeAssignment.js';
+import { feeLedgerService } from './feeLedger.service.js';
 
 const PAYMENT_ERR = {
   VALIDATION_ERROR: 'PAYMENT_VALIDATION_ERROR',
@@ -73,101 +74,26 @@ export const feePaymentService = {
       );
     }
 
-    // Use a transaction to ensure consistency
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    // Single ledger path: FeePayment + Receipt + FinanceTransaction, status
+    // COMPLETED (the accountant's reports only count COMPLETED), with
+    // compensation if any step fails.
+    const { payment, receipt, financeTransaction } = await feeLedgerService.recordPayment({
+      schoolId,
+      assignment,
+      amount,
+      paymentMethod: paymentMode,
+      paymentDate: data.transactionDate || new Date(),
+      reference: data.referenceNo || '',
+      remarks: data.notes || '',
+      collectedBy: data.collectedBy || 'Accounts Office',
+    });
 
-    // The payment, receipt and ledger rows are written outside the session, so
-    // they are tracked here and removed again if any later step fails — a
-    // failed collection must not leave a "paid" record behind with the dues unchanged.
-    const created = [];
-
-    try {
-      // One receipt number per payment, from the same sequence the invoice
-      // payments use — the payment and its receipt carry the same number.
-      const receiptNumber = await feeRepository.getNextReceiptNumber(schoolId);
-      const payment = await feeRepository.createFeePayment({
-        schoolId,
-        receiptNumber,
-        studentFeeAssignmentId: assignmentId,
-        amount,
-        paymentMode,
-        referenceNo: data.referenceNo || '',
-        transactionDate: data.transactionDate || new Date(),
-        status: 'SUCCESS',
-        notes: data.notes || '',
-      });
-      created.push(payment);
-
-      // Update StudentFeeAssignment
-      assignment.paidAmount += amount;
-      assignment.updateStatus();
-      await assignment.save({ session });
-
-      // Generate Receipt
-      const receipt = await feeRepository.createReceipt({
-        schoolId,
-        receiptNumber,
-        feePaymentId: payment._id,
-        studentFeeAssignmentId: assignmentId,
-        studentId: assignment.studentId._id,
-        academicYearId: assignment.academicYearId._id,
-        classId: assignment.classId._id,
-        paidAmount: amount,
-        paymentMode,
-        referenceNumber: data.referenceNo || '',
-        remainingDue: assignment.getDueAmount(),
-        paymentDate: data.transactionDate || new Date(),
-      });
-      created.push(receipt);
-
-      // Create Finance Income transaction
-      // First, get or create the "Fee Collection" income category
-      let feeCategory = await feeRepository.findFinanceCategoryByName(schoolId, 'Fee Collection', 'INCOME');
-      if (!feeCategory) {
-        feeCategory = await feeRepository.createFinanceCategory({
-          schoolId,
-          name: 'Fee Collection',
-          type: 'INCOME',
-          description: 'Student fee collection',
-          status: 'ACTIVE',
-        });
-      }
-
-      const financeTransaction = await feeRepository.createFinanceTransaction({
-        schoolId,
-        transactionDate: data.transactionDate || new Date(),
-        transactionType: 'INCOME',
-        categoryId: feeCategory._id,
-        amount,
-        paymentMode,
-        referenceNo: receiptNumber,
-        description: `Fee payment - ${assignment.studentId.firstName} ${assignment.studentId.lastName}`,
-        feePaymentId: payment._id,
-        receiptId: receipt._id,
-      });
-      created.push(financeTransaction);
-
-      // Link receipt and finance transaction to payment
-      payment.receiptId = receipt._id;
-      payment.financeTransactionId = financeTransaction._id;
-      await payment.save({ session });
-
-      await session.commitTransaction();
-
-      return {
-        payment: payment.toPublicJSON(),
-        receipt: receipt.toPublicJSON(),
-        financeTransaction: financeTransaction.toPublicJSON(),
-        updatedAssignment: assignment.toPublicJSON(),
-      };
-    } catch (error) {
-      await session.abortTransaction();
-      await Promise.all(created.map((doc) => doc.deleteOne().catch(() => {})));
-      throw error;
-    } finally {
-      await session.endSession();
-    }
+    return {
+      payment: payment.toPublicJSON(),
+      receipt: receipt.toPublicJSON(),
+      financeTransaction: financeTransaction.toPublicJSON(),
+      updatedAssignment: assignment.toPublicJSON(),
+    };
   },
 
   async listPayments(schoolIdRaw, filter = {}) {

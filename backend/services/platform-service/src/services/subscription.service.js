@@ -70,6 +70,17 @@ function normalizePayload(payload, createdBy) {
     if (!PLAN_STATUSES.includes(payload.status)) throw new AppError('Invalid plan status', 400);
     base.status = payload.status;
   }
+  if (payload?.taxPercent !== undefined) {
+    if (payload.taxPercent === null || payload.taxPercent === '') {
+      base.taxPercent = null;
+    } else {
+      const taxPercent = Number(payload.taxPercent);
+      if (!Number.isFinite(taxPercent) || taxPercent < 0 || taxPercent > 100) {
+        throw new AppError('Tax % must be a number between 0 and 100', 400);
+      }
+      base.taxPercent = Math.round(taxPercent * 100) / 100;
+    }
+  }
   if (payload?.limits !== undefined) {
     base.limits = {
       students: normalizeLimit(payload.limits?.students),

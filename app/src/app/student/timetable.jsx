@@ -7,7 +7,7 @@ import { useAsync } from '../../lib/useAsync';
 import { DAY_LABELS, fmtHM, withPrefix } from '../../lib/format';
 import { AsyncView, Badge, Chip, EmptyState } from '../../components/kit';
 import RefreshableScroll from '../../components/RefreshableScroll';
-import { font, radius, spacing } from '../../theme';
+import { font, mix, radius, spacing } from '../../theme';
 import { alpha } from '../../theme/colors';
 import { SkeletonChips, SkeletonList } from '../../components/Skeleton';
 
@@ -107,7 +107,7 @@ export default function Timetable() {
                             borderWidth: active ? 1.5 : 1,
                           },
                           active && {
-                            backgroundColor: theme.isDark ? alpha(theme.primary, 0.12) : alpha(theme.primary, 0.04),
+                            backgroundColor: mix(theme.surface, theme.primary, theme.isDark ? 0.12 : 0.05),
                           },
                         ]}
                       >

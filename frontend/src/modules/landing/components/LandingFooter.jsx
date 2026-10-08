@@ -72,7 +72,7 @@ export const LandingFooter = () => {
             </li>
             <li>
               <a href="/#features" className={linkClass}>
-                Live GPS Bus Tracking
+                Bus Routes & Pickup Status
               </a>
             </li>
             <li>

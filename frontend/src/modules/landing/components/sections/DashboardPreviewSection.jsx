@@ -155,14 +155,14 @@ export const DashboardPreviewSection = () => {
                 <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                   <span>Fleet On-Time SLA</span>
                   <span className="flex items-center text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                    Live GPS
+                    Daily Status
                   </span>
                 </div>
                 <div className="mt-2 text-2xl font-black text-slate-900 dark:text-white sm:text-3xl">
                   <CountUp target={99.4} decimals={1} suffix="%" />
                 </div>
                 <span className="mt-1 block text-[11px] text-slate-500 dark:text-slate-400">
-                  18 Vehicles Telemetry
+                  18 Vehicles on Route
                 </span>
               </div>
             </div>

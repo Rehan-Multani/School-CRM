@@ -10,6 +10,7 @@ import { Student } from '../models/Student.js';
 import { StudentEnrollment } from '../models/StudentEnrollment.js';
 import { SchoolClass } from '../models/SchoolClass.js';
 import { Section } from '../models/Section.js';
+import { feeScheduleService } from './feeSchedule.service.js';
 import { normalizeMobile as normalizeMobileNumber } from '../utils/mobile.js';
 
 /* The 10-digit rule itself lives in utils/mobile.js — shared with every other
@@ -850,6 +851,20 @@ export const hostelService = {
       throw error;
     }
 
+    // The yearly hostel fee becomes a fee component (billed via invoices / schedule).
+    try {
+      await feeScheduleService.ensureSourceComponent(schoolId, {
+        studentId,
+        source: 'HOSTEL',
+        sourceRefId: created._id,
+        academicYearId: academicYear._id,
+        amount: created.yearlyFeeAmount,
+      });
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn('[fees] hostel fee component not created:', err?.message || err);
+    }
+
     await HostelBed.updateOne(
       { _id: bedId, schoolId },
       { $set: { status: 'OCCUPIED', currentStudentId: studentId, currentAllocationId: created._id } }
@@ -943,6 +958,9 @@ export const hostelService = {
     // student and the bed while the old row stays auditable.
     allocation.status = 'VACATED';
     await allocation.save();
+    await feeScheduleService
+      .cancelSourceComponent(schoolId, { studentId: allocation.studentId?._id || allocation.studentId, source: 'HOSTEL', sourceRefId: allocation._id })
+      .catch(() => {});
     await releaseBed(schoolId, allocation.bedId?._id || allocation.bedId);
 
     const fresh = await hostelRepository.getAllocation(schoolId, allocation._id);

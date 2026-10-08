@@ -5,6 +5,17 @@ import { bookCopyRepository } from '../repositories/bookCopy.repository.js';
 import { libraryReservationRepository } from '../repositories/libraryReservation.repository.js';
 import { libraryTransactionRepository } from '../repositories/libraryTransaction.repository.js';
 import { libraryCategoryRepository } from '../repositories/libraryCategory.repository.js';
+import { ledgerLinkageService } from './ledgerLinkage.service.js';
+
+/** Fine collected → INCOME row in the accountant ledger. Best-effort. */
+async function linkFineToLedger(schoolId, issue, collectedBy) {
+  try {
+    await ledgerLinkageService.recordLibraryFineIncome(schoolId, issue, { collectedBy: collectedBy || 'Librarian' });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn('[ledger] library fine not recorded for', String(issue?._id), '-', err?.message || err);
+  }
+}
 
 const DEFAULT_LIBRARY_CATEGORIES = [
   'Science',
@@ -367,6 +378,35 @@ class LibraryService {
     };
   }
 
+  // Max-books-per-borrower and overdue-block policy checks applied before any new issue.
+  async assertBorrowerCanBorrow(schoolId, settings, borrowerType, borrowerRefId) {
+    const activeBorrowerIssues = await libraryRepository.listIssues(schoolId, {
+      borrowerRefId,
+      status: 'ISSUED',
+    });
+
+    const maxAllowed = borrowerType === 'TEACHER' ? (settings.maxBooksTeacher || 5) : (settings.maxBooksStudent || 3);
+    if (activeBorrowerIssues.total >= maxAllowed) {
+      throw new AppError(
+        `Borrower already has ${activeBorrowerIssues.total} unreturned books (Limit: ${maxAllowed}). Please return an earlier book first.`,
+        400
+      );
+    }
+
+    if (settings.blockIssueOnOverdue) {
+      const overdueIssues = await libraryRepository.listIssues(schoolId, {
+        borrowerRefId,
+        status: 'OVERDUE',
+      });
+      if (overdueIssues.total > 0) {
+        throw new AppError(
+          `Cannot issue a new book: borrower has ${overdueIssues.total} overdue book(s). Please return or clear overdue items first.`,
+          400
+        );
+      }
+    }
+  }
+
   async issueBook(schoolId, payload = {}, performedBy = 'Librarian') {
     const bookId = requireText(payload.bookId, 'Book');
     const borrowerRefId = requireText(payload.borrowerRefId, 'Borrower selection');
@@ -395,33 +435,8 @@ class LibraryService {
       selectedCopy = availableCopies.items[0];
     }
 
-    // 4. Check borrower active unreturned issues vs settings limit
-    const activeBorrowerIssues = await libraryRepository.listIssues(schoolId, {
-      borrowerRefId,
-      status: 'ISSUED',
-    });
-
-    const maxAllowed = borrowerType === 'TEACHER' ? (settings.maxBooksTeacher || 5) : (settings.maxBooksStudent || 3);
-    if (activeBorrowerIssues.total >= maxAllowed) {
-      throw new AppError(
-        `Borrower already has ${activeBorrowerIssues.total} unreturned books (Limit: ${maxAllowed}). Please return an earlier book first.`,
-        400
-      );
-    }
-
-    // 4b. Block new issues if borrower has any overdue books (policy-controlled)
-    if (settings.blockIssueOnOverdue) {
-      const overdueIssues = await libraryRepository.listIssues(schoolId, {
-        borrowerRefId,
-        status: 'OVERDUE',
-      });
-      if (overdueIssues.total > 0) {
-        throw new AppError(
-          `Cannot issue a new book: borrower has ${overdueIssues.total} overdue book(s). Please return or clear overdue items first.`,
-          400
-        );
-      }
-    }
+    // 4. Borrower limit + overdue block (shared with reservation fulfilment)
+    await this.assertBorrowerCanBorrow(schoolId, settings, borrowerType, borrowerRefId);
 
     // 5. Due Date calculation
     const issueDate = payload.issueDate ? new Date(payload.issueDate) : new Date();
@@ -479,14 +494,17 @@ class LibraryService {
     } else if (!settings.fineEnabled) {
       fineAmount = 0;
     } else {
-      // Calculate overdue fine from DB settings
-      const dueDate = new Date(issue.dueDate);
+      // Calculate overdue fine from DB settings. Overdue days are calendar days counted
+      // from the END of the grace period: returning on the effective due date = 0 days,
+      // the next day = 1 day.
+      const startOfDay = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x.getTime(); };
       const graceDays = settings.gracePeriodDays || 0;
-      const effectiveDueDate = new Date(dueDate.getTime() + graceDays * 24 * 60 * 60 * 1000);
+      const effectiveDueDate = new Date(issue.dueDate);
+      effectiveDueDate.setDate(effectiveDueDate.getDate() + graceDays);
+      const diffDays = Math.ceil((startOfDay(returnDate) - startOfDay(effectiveDueDate)) / (1000 * 60 * 60 * 24));
+      const overdueDays = Math.max(0, diffDays);
 
-      if (returnDate > effectiveDueDate) {
-        const diffTime = Math.max(0, returnDate - dueDate);
-        const overdueDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (overdueDays > 0) {
         const calculatedFine = overdueDays * (settings.finePerDay ?? 5);
         fineAmount = Math.min(calculatedFine, settings.maxFineAmount ?? 500);
       } else {
@@ -508,6 +526,7 @@ class LibraryService {
       throw new AppError('This book has already been returned', 409);
     }
 
+    await linkFineToLedger(schoolId, updated, performedBy);
     return updated.toPublicJSON();
   }
 
@@ -547,6 +566,7 @@ class LibraryService {
     }
 
     const updated = await libraryRepository.updateFineStatus(schoolId, issueId, status);
+    await linkFineToLedger(schoolId, updated, 'Librarian');
     return updated.toPublicJSON();
   }
 
@@ -673,6 +693,7 @@ class LibraryService {
     }
 
     const settings = await librarySettingsRepository.getSettings(schoolId);
+    await this.assertBorrowerCanBorrow(schoolId, settings, reservation.borrowerType, reservation.borrowerRefId);
     const issueDate = new Date();
     const defaultDurationDays = reservation.borrowerType === 'TEACHER' ? (settings.issueDaysTeacher || 30) : (settings.issueDaysStudent || 14);
     const durationDays = Number(payload.durationDays) || defaultDurationDays;

@@ -23,6 +23,8 @@ import {
   Printer,
   Receipt,
   RefreshCw,
+  RotateCcw,
+  Ban,
   Search,
   Sparkles,
   TrendingUp,
@@ -30,6 +32,12 @@ import {
   Wallet,
 } from 'lucide-react';
 import { SkeletonTable } from '../../components/ui/SkeletonLoader';
+
+const REFUND_METHODS = ['CASH', 'UPI', 'BANK_TRANSFER', 'CARD', 'ONLINE', 'OTHER'];
+const refundableAmount = (p) => Math.max(0, (Number(p.amount) || 0) - (Number(p.refundedAmount) || 0));
+const canRefund = (p) => p.status === 'COMPLETED' && refundableAmount(p) > 0;
+const paymentBadge = (s) =>
+  s === 'COMPLETED' ? 'success' : s === 'REFUNDED' ? 'secondary' : s === 'CANCELLED' ? 'danger' : 'warning';
 
 const inputClass =
   'h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:border-slate-800 dark:bg-slate-950 dark:text-white';
@@ -72,11 +80,17 @@ export const FeeManagement = () => {
   const [receiptModalOpen, setReceiptModalOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
 
+  // Refund Modal
+  const [refund, setRefund] = useState(null); // { payment, amount, reason, method, reference }
+  const [refunding, setRefunding] = useState(false);
+
   // Generate Invoice Modal
   const [generateModalOpen, setGenerateModalOpen] = useState(false);
   const [students, setStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [generatingSchedule, setGeneratingSchedule] = useState(false);
+  const [applyingLateFees, setApplyingLateFees] = useState(false);
   const [generateForm, setGenerateForm] = useState({
     studentId: '',
     periodLabel: 'Term 1 / Monthly Tuition',
@@ -174,6 +188,103 @@ export const FeeManagement = () => {
       showToast(err.message || 'Failed to generate fee invoice', 'error');
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleGenerateSchedule = async () => {
+    if (!generateForm.studentId) {
+      showToast('Please select a student', 'error');
+      return;
+    }
+    setGeneratingSchedule(true);
+    try {
+      const res = await feePortalApi.generateSchedule({ studentId: generateForm.studentId });
+      showToast(res?.data?.message || res?.message || 'Yearly schedule generated', 'success');
+      setGenerateModalOpen(false);
+      loadInvoices();
+    } catch (err) {
+      showToast(err.message || 'Failed to generate yearly schedule', 'error');
+    } finally {
+      setGeneratingSchedule(false);
+    }
+  };
+
+  const handleApplyLateFees = async () => {
+    if (!window.confirm('Scan all unpaid invoices and apply late fees as per the fee policy?')) return;
+    setApplyingLateFees(true);
+    try {
+      const res = await feePortalApi.applyLateFees();
+      const d = res?.data || {};
+      showToast(
+        `Scanned ${d.scanned ?? 0}, marked overdue ${d.flipped ?? 0}, charged ${d.charged ?? 0} (${formatCurrency(d.chargedAmount || 0)})`,
+        'success'
+      );
+      loadInvoices();
+    } catch (err) {
+      showToast(err.message || 'Failed to apply late fees', 'error');
+    } finally {
+      setApplyingLateFees(false);
+    }
+  };
+
+  const openRefund = (payment) => {
+    setRefund({ payment, amount: String(refundableAmount(payment)), reason: '', method: payment.paymentMethod || 'CASH', reference: '' });
+  };
+
+  const handleRefund = async (e) => {
+    e.preventDefault();
+    if (!refund) return;
+    const amount = Number(refund.amount);
+    const max = refundableAmount(refund.payment);
+    if (!refund.reason.trim()) {
+      showToast('Reason is required', 'error');
+      return;
+    }
+    if (!amount || amount <= 0 || amount > max) {
+      showToast(`Amount must be between 1 and ${formatCurrency(max)}`, 'error');
+      return;
+    }
+    setRefunding(true);
+    try {
+      const res = await feePortalApi.refundPayment(refund.payment.id, {
+        kind: 'REFUND',
+        amount: amount === max ? undefined : amount,
+        reason: refund.reason.trim(),
+        method: refund.method || undefined,
+        reference: refund.reference.trim() || undefined,
+      });
+      showToast(res?.message || `Refunded ${formatCurrency(res?.data?.refund?.amount ?? amount)}`, 'success');
+      setRefund(null);
+      loadPayments();
+      loadInvoices();
+      loadSummaryStats();
+    } catch (err) {
+      showToast(err.message || 'Refund failed', 'error');
+    } finally {
+      setRefunding(false);
+    }
+  };
+
+  const handleCancelPayment = async (payment) => {
+    const reason = window.prompt(
+      `Cancel receipt ${payment.receiptNumber}? This voids the receipt and reverses ${formatCurrency(refundableAmount(payment))} from the invoice.\n\nEnter a reason:`
+    );
+    if (reason === null) return;
+    if (!reason.trim()) {
+      showToast('Reason is required', 'error');
+      return;
+    }
+    setRefunding(true);
+    try {
+      const res = await feePortalApi.refundPayment(payment.id, { kind: 'CANCEL', reason: reason.trim() });
+      showToast(res?.message || 'Payment cancelled', 'success');
+      loadPayments();
+      loadInvoices();
+      loadSummaryStats();
+    } catch (err) {
+      showToast(err.message || 'Cancel failed', 'error');
+    } finally {
+      setRefunding(false);
     }
   };
 
@@ -417,6 +528,15 @@ export const FeeManagement = () => {
               </button>
               <button
                 type="button"
+                onClick={handleApplyLateFees}
+                disabled={applyingLateFees}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100 disabled:opacity-60 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300"
+              >
+                {applyingLateFees ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Clock className="h-3.5 w-3.5" />}
+                Apply late fees now
+              </button>
+              <button
+                type="button"
                 onClick={loadInvoices}
                 className="rounded-xl border border-slate-200 bg-slate-50 p-2 text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300"
                 title="Refresh Invoices"
@@ -479,6 +599,11 @@ export const FeeManagement = () => {
                         </td>
                         <td className="px-3 py-3.5 font-semibold text-slate-600 dark:text-slate-300">
                           {inv.periodLabel}
+                          {Number(inv.installmentCount) > 1 && (
+                            <span className="ml-1.5 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                              {inv.installmentNo}/{inv.installmentCount}
+                            </span>
+                          )}
                         </td>
                         <td className="px-3 py-3.5 font-bold text-slate-900 dark:text-white">
                           {formatCurrency(inv.totalAmount)}
@@ -604,8 +729,13 @@ export const FeeManagement = () => {
                         <td className="px-3 py-3.5 font-mono text-slate-600 dark:text-slate-400">
                           {p.invoiceId?.invoiceNumber || '–'}
                         </td>
-                        <td className="px-3 py-3.5 font-black text-emerald-600">
+                        <td className={`px-3 py-3.5 font-black ${p.status === 'CANCELLED' ? 'text-slate-400 line-through' : 'text-emerald-600'}`}>
                           {formatCurrency(p.amount)}
+                          {Number(p.refundedAmount) > 0 && (
+                            <span className="block text-[10px] font-bold text-rose-500 no-underline">
+                              Refunded {formatCurrency(p.refundedAmount)}
+                            </span>
+                          )}
                         </td>
                         <td className="px-3 py-3.5 text-center">
                           <Badge variant="primary">{p.paymentMethod}</Badge>
@@ -614,20 +744,44 @@ export const FeeManagement = () => {
                           {p.paymentDate ? new Date(p.paymentDate).toLocaleDateString() : '–'}
                         </td>
                         <td className="px-3 py-3.5 text-center">
-                          <Badge variant="success">{p.status}</Badge>
+                          <Badge variant={paymentBadge(p.status)}>{p.status}</Badge>
                         </td>
                         <td className="px-4 py-3.5 text-right">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedPayment(p);
-                              setReceiptModalOpen(true);
-                            }}
-                            className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
-                          >
-                            <Printer className="h-3.5 w-3.5" />
-                            <span>Print Receipt</span>
-                          </button>
+                          <div className="inline-flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedPayment(p);
+                                setReceiptModalOpen(true);
+                              }}
+                              className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+                            >
+                              <Printer className="h-3.5 w-3.5" />
+                              <span>Print Receipt</span>
+                            </button>
+                            {canRefund(p) && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => openRefund(p)}
+                                  disabled={refunding}
+                                  className="inline-flex items-center gap-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-700 hover:bg-amber-100 disabled:opacity-50 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300"
+                                >
+                                  <RotateCcw className="h-3.5 w-3.5" />
+                                  <span>Refund</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleCancelPayment(p)}
+                                  disabled={refunding}
+                                  className="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100 disabled:opacity-50 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300"
+                                >
+                                  <Ban className="h-3.5 w-3.5" />
+                                  <span>Cancel entry</span>
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -667,6 +821,15 @@ export const FeeManagement = () => {
                   <span className="text-slate-400 block text-[10px] uppercase font-bold">Remaining Balance</span>
                   <span className="font-bold text-rose-600">{formatCurrency(selectedInvoice.balanceAmount)}</span>
                 </div>
+                {Number(selectedInvoice.lateFeeAmount) > 0 && (
+                  <div className="mt-2">
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold">Late Fee (included)</span>
+                    <span className="font-bold text-rose-600">
+                      {formatCurrency(selectedInvoice.lateFeeAmount)}
+                      {Number(selectedInvoice.overdueDays) > 0 ? ` · ${selectedInvoice.overdueDays} days overdue` : ''}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -805,8 +968,18 @@ export const FeeManagement = () => {
               Cancel
             </button>
             <button
+              type="button"
+              onClick={handleGenerateSchedule}
+              disabled={generating || generatingSchedule}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-4 py-2 text-xs font-bold text-primary hover:bg-primary/20 disabled:opacity-60"
+              title="Create all installment invoices for the current academic year based on the student's fee structure"
+            >
+              {generatingSchedule ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ListChecks className="h-3.5 w-3.5" />}
+              <span>Generate yearly schedule</span>
+            </button>
+            <button
               type="submit"
-              disabled={generating}
+              disabled={generating || generatingSchedule}
               className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-primary/90"
             >
               {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
@@ -814,6 +987,83 @@ export const FeeManagement = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* REFUND MODAL */}
+      <Modal isOpen={!!refund} onClose={() => (refunding ? null : setRefund(null))} title={`Refund — ${refund?.payment?.receiptNumber || ''}`} size="sm">
+        {refund && (
+          <form onSubmit={handleRefund} className="space-y-4">
+            <p className="text-xs text-slate-500">
+              Paid {formatCurrency(refund.payment.amount)}
+              {Number(refund.payment.refundedAmount) > 0 ? ` • already refunded ${formatCurrency(refund.payment.refundedAmount)}` : ''}
+            </p>
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">
+                Amount * (max {formatCurrency(refundableAmount(refund.payment))})
+              </label>
+              <input
+                type="number"
+                min="1"
+                max={refundableAmount(refund.payment)}
+                required
+                value={refund.amount}
+                onChange={(e) => setRefund((r) => ({ ...r, amount: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">Reason *</label>
+              <input
+                required
+                placeholder="e.g. Duplicate payment"
+                value={refund.reason}
+                onChange={(e) => setRefund((r) => ({ ...r, reason: e.target.value }))}
+                className={inputClass}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">Refund method</label>
+                <select
+                  value={refund.method}
+                  onChange={(e) => setRefund((r) => ({ ...r, method: e.target.value }))}
+                  className={inputClass}
+                >
+                  {REFUND_METHODS.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-bold text-slate-600 dark:text-slate-300">Reference</label>
+                <input
+                  placeholder="UTR / cheque no"
+                  value={refund.reference}
+                  onChange={(e) => setRefund((r) => ({ ...r, reference: e.target.value }))}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setRefund(null)}
+                disabled={refunding}
+                className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-indigo-600"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={refunding}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-amber-700 disabled:opacity-60"
+              >
+                {refunding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+                <span>Refund {formatCurrency(Number(refund.amount) || 0)}</span>
+              </button>
+            </div>
+          </form>
+        )}
       </Modal>
 
       {/* PRINTABLE RECEIPT MODAL */}
@@ -825,7 +1075,7 @@ export const FeeManagement = () => {
           size="md"
         >
           <div className="space-y-4">
-            <div id="fee-receipt-print" className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
+            <div id="fee-receipt-print" className="relative rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950">
               <div className="border-b border-dashed border-slate-200 pb-3 text-center dark:border-slate-800">
                 <h4 className="text-base font-black uppercase text-slate-900 dark:text-white">
                   {schoolName}
@@ -853,7 +1103,11 @@ export const FeeManagement = () => {
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-bold text-slate-400">Status</span>
-                  <div><Badge variant="success">PAID</Badge></div>
+                  <div>
+                    <Badge variant={selectedPayment.status === 'CANCELLED' ? 'danger' : selectedPayment.status === 'REFUNDED' ? 'secondary' : 'success'}>
+                      {selectedPayment.status === 'CANCELLED' ? 'VOID' : selectedPayment.status === 'REFUNDED' ? 'REFUNDED' : 'PAID'}
+                    </Badge>
+                  </div>
                 </div>
               </div>
 
@@ -863,6 +1117,37 @@ export const FeeManagement = () => {
                   {formatCurrency(selectedPayment.amount)}
                 </span>
               </div>
+
+              {Number(selectedPayment.refundedAmount) > 0 && (
+                <div className="mt-2 flex items-center justify-between px-1 text-xs font-bold text-rose-600">
+                  <span>Refunded</span>
+                  <span>{formatCurrency(selectedPayment.refundedAmount)}</span>
+                </div>
+              )}
+              {Array.isArray(selectedPayment.refunds) && selectedPayment.refunds.length > 0 && (
+                <div className="mt-3 space-y-1">
+                  <span className="text-[10px] uppercase font-bold text-slate-400">Refunds / Reversals</span>
+                  <table className="w-full text-xs">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {selectedPayment.refunds.map((rf, i) => (
+                        <tr key={i}>
+                          <td className="py-1.5 font-bold">{rf.kind}</td>
+                          <td className="py-1.5 text-slate-500">{rf.refundedAt ? new Date(rf.refundedAt).toLocaleDateString() : '–'}</td>
+                          <td className="py-1.5 text-slate-500">{rf.reason}</td>
+                          <td className="py-1.5 text-right font-bold text-rose-600">{formatCurrency(rf.amount)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {selectedPayment.status === 'CANCELLED' && (
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                  <span className="rotate-[-20deg] rounded-xl border-4 border-rose-500/50 px-6 py-2 text-4xl font-black uppercase tracking-widest text-rose-500/50">
+                    Void
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end gap-2">

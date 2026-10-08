@@ -11,6 +11,7 @@ import { Student } from '../models/Student.js';
 import { StudentEnrollment } from '../models/StudentEnrollment.js';
 import { SchoolClass } from '../models/SchoolClass.js';
 import { Section } from '../models/Section.js';
+import { feeScheduleService } from './feeSchedule.service.js';
 import { normalizeMobile as normalizeMobileNumber } from '../utils/mobile.js';
 
 const BCRYPT_ROUNDS = 10; // matches every other login provisioning path
@@ -900,6 +901,21 @@ export const transportService = {
       throw error;
     }
 
+    // The yearly transport fee becomes a fee component so it is billed with
+    // the student's invoices / schedule. Best-effort: never blocks the ride.
+    try {
+      await feeScheduleService.ensureSourceComponent(schoolId, {
+        studentId,
+        source: 'TRANSPORT',
+        sourceRefId: created._id,
+        academicYearId: academicYear._id,
+        amount: created.yearlyFeeAmount,
+      });
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn('[fees] transport fee component not created:', err?.message || err);
+    }
+
     const assignment = await transportRepository.getAssignment(schoolId, created._id);
     const meta = await studentMetaMap(schoolId, [studentId]);
     return assignmentView(assignment, meta);
@@ -964,6 +980,9 @@ export const transportService = {
     // for a new assignment while the old row stays auditable.
     assignment.status = 'DISCONTINUED';
     await assignment.save();
+    await feeScheduleService
+      .cancelSourceComponent(schoolId, { studentId: assignment.studentId?._id || assignment.studentId, source: 'TRANSPORT', sourceRefId: assignment._id })
+      .catch(() => {});
 
     const fresh = await transportRepository.getAssignment(schoolId, assignment._id);
     const meta = await studentMetaMap(schoolId, [fresh.studentId?._id]);

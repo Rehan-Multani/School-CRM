@@ -136,12 +136,12 @@ export const PayrollManagement = () => {
       const emp = eligibleEmployees.find((e) => e.id === selectedEmpId);
       const payload = {
         employeeRefId: selectedEmpId,
-        employeeType: emp?.employeeType || 'STAFF',
+        employeeType: emp?.employeeType || emp?.type || 'STAFF',
         employeeId: emp?.employeeId || 'EMP',
         employeeName: emp?.name || 'Staff',
         department: emp?.department || 'General',
         designation: emp?.designation || 'Staff',
-        month: payrollMonth,
+        payrollMonth,
         basicSalary: Number(basicSalary),
         allowances: Number(allowances),
         incentive: Number(incentive),

@@ -60,6 +60,7 @@ import {
   getAttendanceDaily,
   getAttendanceMonthly,
 } from '../controllers/student/studentAttendance.controller.js';
+import { getTransport, getTransportHistory } from '../controllers/student/studentTransport.controller.js';
 import {
   listExams,
   listUpcomingExams,
@@ -163,6 +164,10 @@ router.get(`${S}/materials/:id/download-url`, requireStudent, oid('id'), getMate
 router.get(`${S}/attendance/summary`, requireStudent, getAttendanceSummary);
 router.get(`${S}/attendance/daily`, requireStudent, getAttendanceDaily);
 router.get(`${S}/attendance/monthly`, requireStudent, getAttendanceMonthly);
+
+// ============================ 10b · TRANSPORT (read-only) ============================
+router.get(`${S}/transport`, requireStudent, getTransport);
+router.get(`${S}/transport/history`, requireStudent, getTransportHistory);
 
 // ============================ 11 · EXAMS ============================
 router.get(`${S}/exams`, requireStudent, listExams);

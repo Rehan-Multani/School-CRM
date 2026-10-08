@@ -96,7 +96,7 @@ describe('App forgot-password (mobile OTP)', () => {
   });
 
   it('rejects a bad role', async () => {
-    const res = await forgot({ role: 'PRINCIPAL', identifier: 'x' });
+    const res = await forgot({ role: 'ACCOUNTANT', identifier: 'x' });
     expect(res.status).toBe(400);
   });
 

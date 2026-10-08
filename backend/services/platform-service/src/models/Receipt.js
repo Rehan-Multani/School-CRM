@@ -27,7 +27,12 @@ const receiptSchema = new mongoose.Schema(
     studentFeeAssignmentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'StudentFeeAssignment',
-      required: true,
+      default: null,
+    },
+    invoiceId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'FeeInvoice',
+      default: null,
     },
     studentId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -37,12 +42,12 @@ const receiptSchema = new mongoose.Schema(
     academicYearId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'AcademicYear',
-      required: true,
+      default: null,
     },
     classId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'SchoolClass',
-      required: true,
+      default: null,
     },
     paidAmount: {
       type: Number,
@@ -67,6 +72,8 @@ const receiptSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    status: { type: String, enum: ['ACTIVE', 'VOID'], default: 'ACTIVE' },
+    voidReason: { type: String, default: '', trim: true },
   },
   { timestamps: true }
 );
@@ -80,15 +87,18 @@ receiptSchema.methods.toPublicJSON = function toPublicJSON() {
     id: this._id.toString(),
     receiptNumber: this.receiptNumber,
     feePaymentId: this.feePaymentId.toString(),
-    studentFeeAssignmentId: this.studentFeeAssignmentId.toString(),
-    studentId: this.studentId.toString(),
-    academicYearId: this.academicYearId.toString(),
-    classId: this.classId.toString(),
+    studentFeeAssignmentId: this.studentFeeAssignmentId ? this.studentFeeAssignmentId.toString() : null,
+    invoiceId: this.invoiceId ? this.invoiceId.toString() : null,
+    studentId: this.studentId?._id ? this.studentId._id.toString() : this.studentId?.toString(),
+    academicYearId: this.academicYearId?._id ? this.academicYearId._id.toString() : (this.academicYearId ? this.academicYearId.toString() : null),
+    classId: this.classId?._id ? this.classId._id.toString() : (this.classId ? this.classId.toString() : null),
     paidAmount: this.paidAmount,
     paymentMode: this.paymentMode,
     referenceNumber: this.referenceNumber,
     remainingDue: this.remainingDue,
     paymentDate: this.paymentDate,
+    status: this.status || 'ACTIVE',
+    voidReason: this.voidReason || '',
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

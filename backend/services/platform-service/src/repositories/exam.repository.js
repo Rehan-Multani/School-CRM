@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { AppError } from '../../../shared/AppError.js';
 import { Exam } from '../models/Exam.js';
 import { ExamSubject } from '../models/ExamSubject.js';
 import { ExamSchedule } from '../models/ExamSchedule.js';
@@ -11,6 +12,13 @@ import { Student } from '../models/Student.js';
 import { SchoolClass } from '../models/SchoolClass.js';
 import { Section } from '../models/Section.js';
 import { AcademicYear } from '../models/AcademicYear.js';
+
+/** Explicit finite number (0 included) wins; null/undefined/''/NaN fall back. */
+function finiteOr(value, fallback) {
+  if (value === null || value === undefined || value === '') return fallback;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
+}
 
 function toObjectId(id) {
   if (!id) return null;
@@ -452,7 +460,8 @@ class ExamRepository {
               sectionId: sectionObjId,
               marksObtained: marksVal,
               maxMarks: Number(item.maxMarks) || 100,
-              passingMarks: Number(item.passingMarks) || 33,
+              // An explicit passingMarks of 0 is honoured; only null/undefined/''/NaN falls back.
+              passingMarks: finiteOr(item.passingMarks, 33),
               attendanceStatus: item.attendanceStatus || 'PRESENT',
               remarks: item.remarks || '',
               gradedBy: gradedBy ? toObjectId(gradedBy) : null,
@@ -475,6 +484,11 @@ class ExamRepository {
   }
 
   // ===================== RESULTS CALCULATION =====================
+  async hasCalculatedResults(schoolId, examId) {
+    const existing = await ExamResult.exists({ schoolId: toObjectId(schoolId), examId: toObjectId(examId) });
+    return Boolean(existing);
+  }
+
   async calculateResults(schoolId, examId, { classId, sectionId }) {
     const schoolObjId = toObjectId(schoolId);
     const examObjId = toObjectId(examId);
@@ -525,6 +539,28 @@ class ExamRepository {
       studentMarksMap.get(sId).push(m);
     });
 
+    // 4a. Every enrolled student must have a marks row for every exam subject before
+    // results can be calculated — a missing row must never silently become 0 marks.
+    const missingEntries = [];
+    for (const enr of enrollments) {
+      const s = enr.studentId;
+      const entered = new Set((studentMarksMap.get(s._id.toString()) || []).map((em) => em.subjectId.toString()));
+      for (const es of examSubjects) {
+        const subIdStr = (es.subjectId._id || es.subjectId).toString();
+        if (!entered.has(subIdStr)) {
+          const studentLabel = [s.firstName, s.lastName].filter(Boolean).join(' ') || s.admissionNumber || s._id.toString();
+          missingEntries.push(`${studentLabel} / ${es.subjectName || es.subjectId?.name || subIdStr}`);
+        }
+      }
+    }
+    if (missingEntries.length) {
+      const examples = missingEntries.slice(0, 5).join(', ');
+      throw new AppError(
+        `Marks not entered for ${missingEntries.length} student-subject(s). Enter all marks before calculating results. (e.g. ${examples})`,
+        400
+      );
+    }
+
     // 4. Calculate for each student
     const studentResults = [];
 
@@ -546,19 +582,28 @@ class ExamRepository {
         const markEntry = enteredBySubjId.get(subIdStr);
 
         const maxMarks = markEntry?.maxMarks || es.maxMarks || 100;
-        const passingMarks = markEntry?.passingMarks || es.passingMarks || 33;
+        // An explicit passingMarks of 0 is honoured; only null/undefined falls back.
+        const passingMarks = Number.isFinite(markEntry?.passingMarks)
+          ? markEntry.passingMarks
+          : (Number.isFinite(es.passingMarks) ? es.passingMarks : 33);
         const status = markEntry?.attendanceStatus || 'PRESENT';
         const marksObt = markEntry?.marksObtained !== undefined && markEntry?.marksObtained !== null
           ? markEntry.marksObtained
           : 0;
 
-        studentMaxTotal += maxMarks;
+        // PRESENT: counts toward total/max and pass/fail.
+        // ABSENT: counts toward max and is a failed subject (0 marks).
+        // MEDICAL / EXEMPTED: excluded from max total and never counted as failed.
+        const isExcluded = status !== 'PRESENT' && status !== 'ABSENT';
+        if (!isExcluded) {
+          studentMaxTotal += maxMarks;
+        }
         if (status === 'PRESENT') {
           studentTotal += marksObt;
         }
 
-        const isPassed = status === 'PRESENT' && marksObt >= passingMarks;
-        if (!isPassed && status === 'PRESENT') {
+        const isPassed = isExcluded ? true : (status === 'PRESENT' && marksObt >= passingMarks);
+        if (!isPassed) {
           failedSubjectsCount++;
         }
 
@@ -625,10 +670,25 @@ class ExamRepository {
       });
     }
 
-    // 5. Calculate Class Ranks based on percentage
+    // 5. Class ranks: only PASS/COMPARTMENT students are ranked (FAIL = 0), ranking is
+    // compact over the ranked students and ties on percentage share a rank (1,1,3).
     studentResults.sort((a, b) => b.percentage - a.percentage);
-    studentResults.forEach((sr, index) => {
-      sr.rank = sr.result === 'FAIL' ? 0 : index + 1;
+    let rankedCount = 0;
+    let lastPct = null;
+    let lastRank = 0;
+    studentResults.forEach((sr) => {
+      if (sr.result === 'FAIL') {
+        sr.rank = 0;
+        return;
+      }
+      rankedCount += 1;
+      if (lastPct !== null && sr.percentage === lastPct) {
+        sr.rank = lastRank;
+      } else {
+        sr.rank = rankedCount;
+        lastRank = rankedCount;
+        lastPct = sr.percentage;
+      }
     });
 
     // 6. Bulk upsert into ExamResult

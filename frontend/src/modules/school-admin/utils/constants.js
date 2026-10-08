@@ -45,6 +45,7 @@ export const NAVIGATION_ITEMS = [
   { name: 'Subjects', path: '/school-admin/academics/subjects', icon: BookOpen, category: 'Academic' },
   { name: 'Subject Assignments', path: '/school-admin/academics/subject-assignments', icon: BookOpen, category: 'Academic' },
   { name: 'Class Teachers', path: '/school-admin/academics/class-teachers', icon: UserCheck, category: 'Academic' },
+  { name: 'Timetable', path: '/school-admin/academics/timetable', icon: LayoutGrid, category: 'Academic' },
   { name: 'Attendance', path: '/school-admin/attendance', icon: ClipboardCheck, category: 'Academic' },
   { name: 'Exams & Results', path: '/school-admin/exams', icon: FileSpreadsheet, category: 'Academic' },
   { name: 'Homework Monitor', path: '/school-admin/homework', icon: BookOpen, category: 'Academic' },

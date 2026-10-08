@@ -40,6 +40,7 @@ export const FeeCollection = () => {
 
   const [genForm, setGenForm] = useState({ periodLabel: '', dueDate: '' });
   const [generating, setGenerating] = useState(false);
+  const [generatingSchedule, setGeneratingSchedule] = useState(false);
 
   // Direct student list on load & debounced student search
   useEffect(() => {
@@ -150,6 +151,23 @@ export const FeeCollection = () => {
       })
       .catch((err) => showToast(err?.response?.data?.message || 'Could not generate invoice', 'error'))
       .finally(() => setGenerating(false));
+  };
+
+  const generateSchedule = () => {
+    const enrollment = selected?.enrollment;
+    if (!enrollment?.academicYearId) {
+      return showToast('Student has no active enrollment — cannot generate a schedule', 'error');
+    }
+    if (!window.confirm('Generate all installment invoices for the full academic year for this student?')) return;
+    setGeneratingSchedule(true);
+    accountantApi
+      .generateSchedule({ studentId: selected.id, academicYearId: enrollment.academicYearId })
+      .then((res) => {
+        showToast(res?.data?.message || res?.message || 'Yearly schedule generated', 'success');
+        loadProfile(selected);
+      })
+      .catch((err) => showToast(err?.response?.data?.message || 'Could not generate schedule', 'error'))
+      .finally(() => setGeneratingSchedule(false));
   };
 
   return (
@@ -275,7 +293,10 @@ export const FeeCollection = () => {
                               <Badge variant={invoiceBadge(inv.status)}>{inv.status}</Badge>
                             </div>
                             <p className="text-[10px] text-slate-400 mt-0.5">
-                              {inv.periodLabel} • due {formatDate(inv.dueDate)}
+                              {inv.periodLabel}
+                              {Number(inv.installmentCount) > 1 ? ` (${inv.installmentNo}/${inv.installmentCount})` : ''}
+                              {' '}• due {formatDate(inv.dueDate)}
+                              {Number(inv.lateFeeAmount) > 0 ? ` • late fee ${formatCurrency(inv.lateFeeAmount)}` : ''}
                             </p>
                           </div>
                           <div className="text-right">
@@ -321,7 +342,10 @@ export const FeeCollection = () => {
                     <div className="space-y-1.5">
                       {paidInvoices.map((inv) => (
                         <div key={inv.id} className="flex justify-between text-[11px] font-semibold">
-                          <span className="text-slate-500">{inv.invoiceNumber} • {inv.periodLabel}</span>
+                          <span className="text-slate-500">
+                            {inv.invoiceNumber} • {inv.periodLabel}
+                            {Number(inv.installmentCount) > 1 ? ` (${inv.installmentNo}/${inv.installmentCount})` : ''}
+                          </span>
                           <span className="text-emerald-600">{formatCurrency(inv.totalAmount)}</span>
                         </div>
                       ))}
@@ -442,6 +466,15 @@ export const FeeCollection = () => {
                     className="w-full h-9 rounded-lg border border-violet-300 dark:border-violet-900/50 text-violet-600 dark:text-violet-400 text-xs font-bold disabled:opacity-50 hover:bg-violet-50 dark:hover:bg-violet-950/30"
                   >
                     {generating ? 'Generating…' : 'Generate from active fee assignments'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={generateSchedule}
+                    disabled={generating || generatingSchedule}
+                    title="Create every installment invoice for the academic year based on the student's fee assignments"
+                    className="w-full h-9 rounded-lg bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold disabled:opacity-50"
+                  >
+                    {generatingSchedule ? 'Generating schedule…' : 'Generate full year schedule'}
                   </button>
                 </form>
               </div>

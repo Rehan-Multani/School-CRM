@@ -3,6 +3,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { ServerTable } from '../../components/ui/ServerTable';
 import { Tabs } from '../../components/ui/Tabs';
 import { Badge } from '../../components/ui/Badge';
+import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
 import { useAccountantAuth } from '../../context/AccountantAuthContext';
 import { accountantApi } from '../../../../shared/api/client';
@@ -10,7 +11,7 @@ import { formatCurrency, formatDate } from '../../utils/formatters';
 import { exportToCSV } from '../../../../shared/lib/exportHelpers';
 import { PrintReportModal } from '../../../../shared/components/PrintReportModal';
 import { PAYMENT_METHODS } from '../../utils/constants';
-import { Printer, Download, Search } from 'lucide-react';
+import { Printer, Download, Search, RotateCcw, Ban } from 'lucide-react';
 
 const TABS = [
   { id: 'receipts', label: 'Receipts' },
@@ -19,23 +20,32 @@ const TABS = [
 
 const invoiceBadge = (s) =>
   s === 'PAID' ? 'success' : s === 'PARTIALLY_PAID' ? 'info' : s === 'OVERDUE' ? 'danger' : 'warning';
+const receiptBadge = (s) =>
+  s === 'COMPLETED' ? 'success' : s === 'REFUNDED' ? 'secondary' : s === 'CANCELLED' ? 'danger' : 'warning';
+const RECEIPT_STATUSES = ['COMPLETED', 'REFUNDED', 'CANCELLED'];
+const REFUND_METHODS = ['CASH', 'UPI', 'BANK_TRANSFER', 'CARD', 'ONLINE', 'OTHER'];
 
-export const ReceiptManagement = () => {
+const refundableAmount = (r) => Math.max(0, (Number(r.amount) || 0) - (Number(r.refundedAmount) || 0));
+const canRefund = (r) => r.status === 'COMPLETED' && refundableAmount(r) > 0;
+
+export const ReceiptManagement = ({ initialStatus = '' }) => {
   const { showToast, ToastComponent } = useToast();
   const { user } = useAccountantAuth();
 
   const [tab, setTab] = useState('receipts');
+  const [refund, setRefund] = useState(null); // { row, amount, reason, method, reference }
+  const [refunding, setRefunding] = useState(false);
   const [rows, setRows] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 15, total: 0, totalPages: 1 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [print, setPrint] = useState(null);
 
-  const [filters, setFilters] = useState({ search: '', paymentMethod: '', status: '', page: 1 });
+  const [filters, setFilters] = useState({ search: '', paymentMethod: '', status: initialStatus, page: 1 });
 
   useEffect(() => {
-    setFilters({ search: '', paymentMethod: '', status: '', page: 1 });
-  }, [tab]);
+    setFilters({ search: '', paymentMethod: '', status: tab === 'receipts' ? initialStatus : '', page: 1 });
+  }, [tab, initialStatus]);
 
   useEffect(() => {
     let alive = true;
@@ -44,7 +54,7 @@ export const ReceiptManagement = () => {
     const params = { page: filters.page, limit: 15 };
     if (filters.search) params.search = filters.search;
     if (tab === 'receipts' && filters.paymentMethod) params.paymentMethod = filters.paymentMethod;
-    if (tab === 'invoices' && filters.status) params.status = filters.status;
+    if (filters.status) params.status = filters.status;
 
     const req = tab === 'receipts' ? accountantApi.receipts(params) : accountantApi.invoices(params);
     req
@@ -68,6 +78,52 @@ export const ReceiptManagement = () => {
       .then((res) => setPrint({ kind: 'receipt', data: res?.data || row }))
       .catch(() => setPrint({ kind: 'receipt', data: row }));
   };
+  const reload = () => setFilters((f) => ({ ...f }));
+
+  const openRefund = (row) => {
+    setRefund({ row, amount: String(refundableAmount(row)), reason: '', method: row.paymentMethod || 'CASH', reference: '' });
+  };
+
+  const submitRefund = (e) => {
+    e.preventDefault();
+    if (!refund) return;
+    const amount = Number(refund.amount);
+    const max = refundableAmount(refund.row);
+    if (!refund.reason.trim()) return showToast('Reason is required', 'error');
+    if (!amount || amount <= 0 || amount > max) return showToast(`Amount must be between 1 and ${formatCurrency(max)}`, 'error');
+    setRefunding(true);
+    accountantApi
+      .refundReceipt(refund.row.id, {
+        kind: 'REFUND',
+        amount: amount === max ? undefined : amount,
+        reason: refund.reason.trim(),
+        method: refund.method || undefined,
+        reference: refund.reference.trim() || undefined,
+      })
+      .then((res) => {
+        showToast(res?.message || `Refunded ${formatCurrency(res?.data?.refund?.amount ?? amount)}`, 'success');
+        setRefund(null);
+        reload();
+      })
+      .catch((err) => showToast(err?.response?.data?.message || 'Refund failed', 'error'))
+      .finally(() => setRefunding(false));
+  };
+
+  const cancelEntry = (row) => {
+    const reason = window.prompt(`Cancel receipt ${row.receiptNumber}? This voids the receipt and reverses ${formatCurrency(refundableAmount(row))} from the invoice.\n\nEnter a reason:`);
+    if (reason === null) return;
+    if (!reason.trim()) return showToast('Reason is required', 'error');
+    setRefunding(true);
+    accountantApi
+      .refundReceipt(row.id, { kind: 'CANCEL', reason: reason.trim() })
+      .then((res) => {
+        showToast(res?.message || 'Receipt cancelled', 'success');
+        reload();
+      })
+      .catch((err) => showToast(err?.response?.data?.message || 'Cancel failed', 'error'))
+      .finally(() => setRefunding(false));
+  };
+
   const openInvoice = (row) => {
     accountantApi
       .getInvoice(row.id)
@@ -87,25 +143,56 @@ export const ReceiptManagement = () => {
       { key: 'invoiceNumber', title: 'Invoice', render: (r) => `${r.invoiceNumber || 'ââââââ'}` },
       { key: 'paymentDate', title: 'Date', render: (r) => formatDate(r.paymentDate) },
       { key: 'amount', title: 'Amount', align: 'right', render: (r) => (
-        <span className="font-bold text-emerald-600">{formatCurrency(r.amount)}</span>
+        <div>
+          <span className={`font-bold ${r.status === 'CANCELLED' ? 'text-slate-400 line-through' : 'text-emerald-600'}`}>{formatCurrency(r.amount)}</span>
+          {Number(r.refundedAmount) > 0 && (
+            <p className="text-[10px] font-bold text-rose-500">Refunded {formatCurrency(r.refundedAmount)}</p>
+          )}
+        </div>
       ) },
       { key: 'paymentMethod', title: 'Method' },
       { key: 'status', title: 'Status', render: (r) => (
-        <Badge variant={r.status === 'COMPLETED' ? 'success' : r.status === 'REFUNDED' ? 'warning' : 'danger'}>{r.status}</Badge>
+        <Badge variant={receiptBadge(r.status)}>{r.status}</Badge>
       ) },
       { key: 'actions', title: '', render: (r) => (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            openReceipt(r);
-          }}
-          className="flex items-center gap-1 px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300"
-        >
-          <Printer className="w-3 h-3 text-indigo-600" /> Print
-        </button>
+        <div className="flex items-center justify-end gap-1">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              openReceipt(r);
+            }}
+            className="flex items-center gap-1 px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold text-slate-600 dark:text-slate-300"
+          >
+            <Printer className="w-3 h-3 text-indigo-600" /> Print
+          </button>
+          {canRefund(r) && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openRefund(r);
+                }}
+                disabled={refunding}
+                className="flex items-center gap-1 px-2 py-1 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-lg text-[10px] font-bold text-amber-700 dark:text-amber-300 disabled:opacity-50"
+              >
+                <RotateCcw className="w-3 h-3" /> Refund
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  cancelEntry(r);
+                }}
+                disabled={refunding}
+                className="flex items-center gap-1 px-2 py-1 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/50 rounded-lg text-[10px] font-bold text-rose-700 dark:text-rose-300 disabled:opacity-50"
+              >
+                <Ban className="w-3 h-3" /> Cancel entry
+              </button>
+            </>
+          )}
+        </div>
       ) },
     ],
-    []
+    [refunding]
   );
 
   const invoiceColumns = useMemo(
@@ -173,18 +260,32 @@ export const ReceiptManagement = () => {
           />
         </div>
         {tab === 'receipts' ? (
-          <select
-            value={filters.paymentMethod}
-            onChange={(e) => set({ paymentMethod: e.target.value })}
-            className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
-          >
-            <option value="">All Methods</option>
-            {PAYMENT_METHODS.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
+          <>
+            <select
+              value={filters.paymentMethod}
+              onChange={(e) => set({ paymentMethod: e.target.value })}
+              className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
+            >
+              <option value="">All Methods</option>
+              {PAYMENT_METHODS.map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+            <select
+              value={filters.status}
+              onChange={(e) => set({ status: e.target.value })}
+              className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold"
+            >
+              <option value="">All Statuses</option>
+              {RECEIPT_STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </>
         ) : (
           <select
             value={filters.status}
@@ -219,11 +320,23 @@ export const ReceiptManagement = () => {
           title={`Official Fee Receipt ââââââ ${print.data.receiptNumber}`}
           documentType="Official Fee Receipt"
         >
-          <div className="space-y-6">
+          <div className="space-y-6 relative">
+            {(print.data.status === 'VOID' || print.data.status === 'CANCELLED') && (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <span className="rotate-[-20deg] border-4 border-rose-500/50 rounded-xl px-6 py-2 text-4xl font-black uppercase tracking-widest text-rose-500/50">
+                  Void
+                </span>
+              </div>
+            )}
             <div className="text-center pb-4 border-b border-border">
               <h2 className="text-xl font-black">{user?.schoolName || 'School CRM'}</h2>
               <p className="text-xs text-slate-500">Official Payment Receipt</p>
               <span className="text-xs font-bold text-indigo-600 mt-1 block">{print.data.receiptNumber}</span>
+              {(print.data.status === 'VOID' || print.data.status === 'CANCELLED') && (
+                <span className="mt-1 inline-block text-[10px] font-black uppercase text-rose-600">
+                  Void{print.data.voidReason ? ` — ${print.data.voidReason}` : ''}
+                </span>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-4 text-xs">
               <Row label="Student" value={print.data.studentName} />
@@ -237,6 +350,30 @@ export const ReceiptManagement = () => {
               <span>Amount Settled:</span>
               <span className="text-emerald-600">{formatCurrency(print.data.amount)}</span>
             </div>
+            {Number(print.data.refundedAmount) > 0 && (
+              <div className="flex justify-between text-xs font-bold text-rose-600 px-1">
+                <span>Refunded</span>
+                <span>{formatCurrency(print.data.refundedAmount)}</span>
+              </div>
+            )}
+            {Array.isArray(print.data.refunds) && print.data.refunds.length > 0 && (
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Refunds / Reversals</p>
+                <table className="w-full text-xs">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {print.data.refunds.map((rf, i) => (
+                      <tr key={i}>
+                        <td className="py-1.5 font-bold">{rf.kind}</td>
+                        <td className="py-1.5 text-slate-500">{formatDate(rf.refundedAt)}</td>
+                        <td className="py-1.5 text-slate-500">{[rf.method, rf.reference].filter(Boolean).join(' / ') || '—'}</td>
+                        <td className="py-1.5 text-slate-500">{rf.reason}</td>
+                        <td className="py-1.5 text-right font-bold text-rose-600">{formatCurrency(rf.amount)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
             <div className="flex justify-between pt-8 text-xs font-bold text-slate-400">
               <span>Counter Officer: {print.data.collectedBy || user?.name || 'Accounts Department'}</span>
               <span>Authorized Signature: ________________</span>
@@ -285,6 +422,70 @@ export const ReceiptManagement = () => {
           </div>
         </PrintReportModal>
       )}
+
+      <Modal isOpen={!!refund} onClose={() => (refunding ? null : setRefund(null))} title={`Refund — ${refund?.row?.receiptNumber || ''}`} size="sm">
+        {refund && (
+          <form onSubmit={submitRefund} className="space-y-3 text-xs font-semibold">
+            <p className="text-[11px] text-slate-400">
+              {refund.row.studentName} • paid {formatCurrency(refund.row.amount)}
+              {Number(refund.row.refundedAmount) > 0 ? ` • already refunded ${formatCurrency(refund.row.refundedAmount)}` : ''}
+            </p>
+            <label className="block space-y-1">
+              <span>Amount * (max {formatCurrency(refundableAmount(refund.row))})</span>
+              <input
+                type="number"
+                min="1"
+                max={refundableAmount(refund.row)}
+                required
+                value={refund.amount}
+                onChange={(e) => setRefund((r) => ({ ...r, amount: e.target.value }))}
+                className="w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-bold"
+              />
+            </label>
+            <label className="block space-y-1">
+              <span>Reason *</span>
+              <input
+                required
+                placeholder="e.g. Duplicate payment"
+                value={refund.reason}
+                onChange={(e) => setRefund((r) => ({ ...r, reason: e.target.value }))}
+                className="w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs"
+              />
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block space-y-1">
+                <span>Refund method</span>
+                <select
+                  value={refund.method}
+                  onChange={(e) => setRefund((r) => ({ ...r, method: e.target.value }))}
+                  className="w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-bold"
+                >
+                  {REFUND_METHODS.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="block space-y-1">
+                <span>Reference</span>
+                <input
+                  placeholder="UTR / cheque no"
+                  value={refund.reference}
+                  onChange={(e) => setRefund((r) => ({ ...r, reference: e.target.value }))}
+                  className="w-full h-9 px-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs"
+                />
+              </label>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button type="submit" disabled={refunding} className="flex-1 h-9 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold disabled:opacity-50">
+                {refunding ? 'Processing…' : `Refund ${formatCurrency(Number(refund.amount) || 0)}`}
+              </button>
+              <button type="button" onClick={() => setRefund(null)} disabled={refunding} className="h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500">
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
+      </Modal>
 
       <ToastComponent />
     </div>

@@ -239,9 +239,9 @@ export const ALL_ROLES = [
     iconBg: 'bg-rose-600 text-white',
     icon: HeartHandshake,
     href: '/parent/login',
-    desc: 'Live bus tracking, daily attendance alerts, real-time fee payments with instant receipts, and teacher discussions.',
-    blurb: 'Live bus GPS tracking, attendance alerts, online fee payments, and remarks.',
-    highlights: ['Live GPS tracking', '1-click fee pay', 'Attendance alert'],
+    desc: 'Bus routes, stops & daily pickup/drop status, attendance alerts, real-time fee payments with instant receipts, and teacher discussions.',
+    blurb: 'Bus routes, stops & daily pickup/drop status, attendance alerts, online fee payments, and remarks.',
+    highlights: ['Bus pickup/drop status', '1-click fee pay', 'Attendance alert'],
   },
   {
     id: 'super-admin',
@@ -435,8 +435,8 @@ export const FAQS = [
     a: 'Absolutely. You have total flexibility to define custom academic terms, grading systems (CBSE, ICSE, IB, State Boards), fee categories, scholarships, and custom branding.',
   },
   {
-    q: 'Does it work with existing biometric machines or GPS trackers?',
-    a: 'Yes. School CRM supports universal API webhooks for biometric attendance terminals, RFID turnstiles, and standard vehicle GPS hardware.',
+    q: 'Does it work with existing biometric machines or RFID readers?',
+    a: 'Yes. School CRM supports universal API webhooks for biometric attendance terminals and RFID turnstiles; bus routes, stops and daily pickup/drop status are managed in-app.',
   },
   {
     q: 'How does parent fee payment work?',

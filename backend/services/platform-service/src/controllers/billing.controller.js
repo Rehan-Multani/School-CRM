@@ -59,7 +59,7 @@ export async function markInvoicePaid(req, res, next) {
 
 export async function refundInvoice(req, res, next) {
   try {
-    const data = await billingService.refundInvoice(req.params.id);
+    const data = await billingService.refundInvoice(req.params.id, req.body || {});
 
     res.json({
       success: true,

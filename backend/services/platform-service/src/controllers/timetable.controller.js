@@ -40,3 +40,13 @@ export async function deleteTimetable(req, res, next) {
     next(error);
   }
 }
+
+export async function saveSectionTimetable(req, res, next) {
+  try {
+    const data = await timetableService.saveSectionGrid(schoolId(req), req.params.sectionId, req.body || {});
+    auditLogService.record(req, { module: 'TIMETABLE', action: 'UPDATE', entityType: 'Section', entityId: req.params.sectionId, summary: `Saved timetable grid for section ${req.params.sectionId} (${data.length} periods)` });
+    res.json({ success: true, data, message: 'Timetable saved' });
+  } catch (error) {
+    next(error);
+  }
+}

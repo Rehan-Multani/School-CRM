@@ -793,9 +793,21 @@ class HRService {
     const end = new Date(payload.endDate);
     if (end < start) throw new AppError('End date cannot be before start date', 400);
 
-    const diffTime = Math.abs(end - start);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    const totalDays = Number(payload.totalDays) || diffDays;
+    // totalDays is always computed server-side (inclusive of both ends); the client value is ignored.
+    const startDay = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
+    const endDay = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
+    const totalDays = Math.round((endDay - startDay) / (1000 * 60 * 60 * 24)) + 1;
+
+    const overlapping = await LeaveRequest.findOne({
+      schoolId,
+      employeeRefId: payload.employeeRefId,
+      status: { $in: ['PENDING', 'APPROVED'] },
+      startDate: { $lte: end },
+      endDate: { $gte: start },
+    }).select('_id');
+    if (overlapping) {
+      throw new AppError('This employee already has a pending or approved leave overlapping these dates', 409);
+    }
 
     const settings = await hrRepository.getSettings(schoolId);
     const initialStatus = settings.autoApproveLeaves ? 'APPROVED' : 'PENDING';

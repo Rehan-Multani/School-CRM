@@ -62,14 +62,14 @@ export const BookReturn = () => {
     setRemarks('');
 
     // Calculate fine based on settings
-    const now = new Date();
-    const dueDate = new Date(loan.dueDate);
+    // Mirrors the server rule: calendar days counted from the END of the grace period
+    const startOfDay = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x.getTime(); };
     const graceDays = settings?.gracePeriodDays || 0;
-    const effectiveDueDate = new Date(dueDate.getTime() + graceDays * 24 * 60 * 60 * 1000);
+    const effectiveDueDate = new Date(loan.dueDate);
+    effectiveDueDate.setDate(effectiveDueDate.getDate() + graceDays);
+    const overdueDays = Math.max(0, Math.ceil((startOfDay(new Date()) - startOfDay(effectiveDueDate)) / (1000 * 60 * 60 * 24)));
 
-    if (now > effectiveDueDate) {
-      const diffTime = Math.max(0, now - dueDate);
-      const overdueDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (overdueDays > 0) {
       const finePerDay = settings?.finePerDay ?? 5;
       const maxFine = settings?.maxFineAmount ?? 500;
       const calculated = Math.min(overdueDays * finePerDay, maxFine);

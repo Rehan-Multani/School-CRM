@@ -80,17 +80,6 @@ export const MOCK_FEES = {
   history: []
 };
 
-export const MOCK_TRANSPORT = {
-  vehicleNo: '---',
-  driverName: '---',
-  driverPhone: '---',
-  pickupPoint: '---',
-  dropPoint: '---',
-  pickupTime: '---',
-  dropTime: '---',
-  routeMapUrl: '#'
-};
-
 export const MOCK_HOSTEL = {
   building: '---',
   floor: '---',

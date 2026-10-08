@@ -411,6 +411,8 @@ export const platformSchoolApi = {
   remove: (id) => apiClient.delete(`/platform/schools/${id}`).then((res) => res.data),
   loginAs: (id) => apiClient.post(`/platform/schools/${id}/login-as`).then((res) => res.data),
   getFeatures: (id) => apiClient.get(`/platform/schools/${id}/features`).then((res) => res.data),
+  // Plan usage vs. limits: { students:{used,limit}, teachers:{…}, staff:{…} }
+  usage: (id) => apiClient.get(`/platform/schools/${id}/usage`).then((res) => res.data),
   updateFeatures: (id, payload) =>
     apiClient.patch(`/platform/schools/${id}/features`, payload).then((res) => res.data),
 };
@@ -433,7 +435,9 @@ export const platformSchoolSubscriptionApi = {
   get: (id) => apiClient.get(`/platform/school-subscriptions/${id}`).then((r) => r.data),
   create: (schoolId, payload) => apiClient.post(`/platform/schools/${schoolId}/subscription`, payload).then((r) => r.data),
   cancel: (id, payload) => apiClient.post(`/platform/school-subscriptions/${id}/cancel`, payload).then((r) => r.data),
-  changePlan: (id, planId) => apiClient.post(`/platform/school-subscriptions/${id}/change-plan`, { planId }).then((r) => r.data),
+  // schedule: 'now' | 'cycle_end' (omit = upgrades now, downgrades at period end)
+  changePlan: (id, planId, schedule) =>
+    apiClient.post(`/platform/school-subscriptions/${id}/change-plan`, { planId, ...(schedule ? { schedule } : {}) }).then((r) => r.data),
   override: (id, payload) => apiClient.post(`/platform/school-subscriptions/${id}/override`, payload).then((r) => r.data),
   payments: (id, params) => apiClient.get(`/platform/school-subscriptions/${id}/payments`, { params }).then((r) => r.data),
   invoices: (id, params) => apiClient.get(`/platform/school-subscriptions/${id}/invoices`, { params }).then((r) => r.data),
@@ -463,7 +467,7 @@ export const platformBillingApi = {
     apiClient.post(`/platform/billings/${id}/razorpay-verify`, payload).then((res) => res.data),
   markPaid: (id, payload) =>
     apiClient.patch(`/platform/billings/${id}/pay`, payload).then((res) => res.data),
-  refund: (id) => apiClient.patch(`/platform/billings/${id}/refund`).then((res) => res.data),
+  refund: (id, payload = {}) => apiClient.patch(`/platform/billings/${id}/refund`, payload).then((res) => res.data),
   cancel: (id) => apiClient.patch(`/platform/billings/${id}/cancel`).then((res) => res.data),
 };
 

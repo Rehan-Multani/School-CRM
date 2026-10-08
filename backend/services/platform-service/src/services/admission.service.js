@@ -1,5 +1,5 @@
 import { AppError } from '../../../shared/AppError.js';
-import { normalizeMobile } from '../utils/mobile.js';
+import { normalizeMobile, isValidMobile } from '../utils/mobile.js';
 import { admissionRepository } from '../repositories/admission.repository.js';
 import { ADMISSION_STATUSES, ADMISSION_SOURCES, ADMISSION_GENDERS } from '../models/Admission.js';
 import { AcademicYear } from '../models/AcademicYear.js';
@@ -223,6 +223,16 @@ class AdmissionService {
       sectionId = sections[bestIdx]._id.toString();
     }
 
+    // The guardian phone becomes the parent's app login, so it must be a real
+    // mobile number before a Student record can be created from this applicant.
+    if (!isValidMobile(admission.phone)) {
+      throw new AppError(
+        'Guardian mobile number is required to enrol this applicant. Edit the application and add a valid 10-digit mobile number first.',
+        400
+      );
+    }
+    const parentPhone = normalizeMobile(admission.phone, 'Guardian phone');
+
     const admissionNo = await genAdmissionNo(schoolId);
     const { firstName, lastName } = splitName(admission.applicantName);
 
@@ -236,9 +246,9 @@ class AdmissionService {
       gender: admission.gender,
       dateOfBirth: admission.dob || undefined,
       email: admission.email || undefined,
-      phone: admission.phone || undefined,
+      phone: parentPhone,
       parentName: admission.guardianName || 'Guardian',
-      parentPhone: admission.phone || '0000000000',
+      parentPhone,
       address: admission.address || undefined,
       status: 'ACTIVE',
     });

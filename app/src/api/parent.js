@@ -62,6 +62,10 @@ export function childApi(childId) {
     attendanceSummary: () => data(api.get(`${C}/attendance/summary`)),
     attendanceMonthly: (month) => data(api.get(`${C}/attendance/monthly`, { month })),
 
+    // ---- transport (read-only: route, stop, today's pickup/drop) ----
+    transport: () => data(api.get(`${C}/transport`)),
+    transportHistory: (params) => api.get(`${C}/transport/history`, params),
+
     // ---- exams & results ----
     exams: (params) => api.get(`${C}/exams`, params),
     exam: (examId) => data(api.get(`${C}/exams/${id(examId)}`)),

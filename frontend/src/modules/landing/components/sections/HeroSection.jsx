@@ -67,7 +67,7 @@ export const HeroSection = () => {
               <p className="mt-6 text-base leading-relaxed text-slate-600 dark:text-slate-300 sm:text-lg lg:max-w-xl">
                 One seamless platform bridging administrators, teachers, parents, and students.
                 Automate admissions, daily biometric attendance, exams, real-time fee payments,
-                and live bus GPS – with 9 specialized portals.
+                and bus pickup/drop status – with 9 specialized portals.
               </p>
             </Reveal>
 
@@ -295,7 +295,7 @@ export const HeroSection = () => {
                 <div className="absolute -bottom-6 -left-3 sm:-left-6 z-20 w-44 sm:w-48">
                   <FloatingCard
                     icon={Bus}
-                    title="Transport GPS"
+                    title="Transport"
                     value="18 Buses"
                     trend="All on Route"
                     trendPositive={true}

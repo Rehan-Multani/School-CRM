@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-export const PASSWORD_RESET_ROLES = ['TEACHER', 'STUDENT', 'PARENT', 'TRANSPORT', 'DRIVER'];
+export const PASSWORD_RESET_ROLES = ['TEACHER', 'STUDENT', 'PARENT', 'TRANSPORT', 'PRINCIPAL', 'DRIVER'];
 
 /**
  * Forgot-password OTP for the mobile-app roles (teacher / student / parent /

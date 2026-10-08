@@ -129,6 +129,15 @@ export class PlatformSettingService {
       throw new AppError('Minimum version cannot be higher than the latest version', 400);
     }
 
+    // GST percent for subscription invoices (0 allowed; blank/null leaves it unchanged)
+    if (patch?.taxPercent !== undefined && patch.taxPercent !== null && patch.taxPercent !== '') {
+      const taxPercent = Number(patch.taxPercent);
+      if (!Number.isFinite(taxPercent) || taxPercent < 0 || taxPercent > 100) {
+        throw new AppError('Tax % must be a number between 0 and 100', 400);
+      }
+      update.taxPercent = Math.round(taxPercent * 100) / 100;
+    }
+
     // Public contact details (sales, support, privacy, phone, office address)
     const sourceContact = patch?.contact && typeof patch.contact === 'object' ? patch.contact : {};
 

@@ -10,10 +10,13 @@ import { CountCards, EmptyState } from '../academics/components/AcademicUi';
 import { apiMessage, ENTITY_STATUS_VARIANT } from '../academics/utils';
 import { sanitizeMobileInput, isValid10DigitMobile } from '../../../../shared/utils/mobileValidation';
 import { academicPortalApi, feePortalApi, schoolPortalApi } from '../../../../shared/api/client';
-import { Camera, Edit3, Eye, ImagePlus, Loader2, Plus, Trash2, UserCheck, UserCircle2, UserX, Wallet, X } from 'lucide-react';
+import { ArrowUpRight, Camera, Edit3, Eye, FileUp, ImagePlus, LogOut, Loader2, Plus, Trash2, UserCheck, UserCircle2, UserX, Wallet, X } from 'lucide-react';
 import { SkeletonTable } from '../../components/ui/SkeletonLoader';
 import { formatCurrency } from '../../utils/formatters';
 import { exportToCSV } from '../../../../shared/lib/exportHelpers';
+import { PromoteStudentsModal } from './PromoteStudentsModal';
+import { TransferStudentModal } from './TransferStudentModal';
+import { ImportStudentsModal } from './ImportStudentsModal';
 
 const inputClass =
   'h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-slate-800 dark:bg-slate-950';
@@ -156,6 +159,9 @@ export const StudentManagement = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [promoteOpen, setPromoteOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [transferTarget, setTransferTarget] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
   const [yearClassMap, setYearClassMap] = useState({});
@@ -680,6 +686,14 @@ export const StudentManagement = () => {
           </button>
           <button
             type="button"
+            onClick={() => setTransferTarget(row)}
+            className="rounded-full p-1.5 text-violet-500 transition hover:bg-violet-50 dark:hover:bg-violet-950/50 cursor-pointer"
+            title={row.leaving ? `Leaving details / TC for ${row.name}` : `Transfer / TC for ${row.name}`}
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
             onClick={() => handleDelete(row)}
             className="rounded-full p-1.5 text-rose-500 transition hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer"
             title={`Delete ${row.name}`}
@@ -697,13 +711,29 @@ export const StudentManagement = () => {
         title="Student Management"
         subtitle="Create, update, and monitor student records with enrollment-aware activate and deactivate controls."
         actions={
-          <button
-            type="button"
-            onClick={openCreateModal}
-            className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white"
-          >
-            <Plus className="h-3.5 w-3.5" /> Add Student
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setImportOpen(true)}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 dark:border-slate-700 dark:text-slate-300"
+            >
+              <FileUp className="h-3.5 w-3.5" /> Import CSV
+            </button>
+            <button
+              type="button"
+              onClick={() => setPromoteOpen(true)}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 dark:border-slate-700 dark:text-slate-300"
+            >
+              <ArrowUpRight className="h-3.5 w-3.5" /> Promote students
+            </button>
+            <button
+              type="button"
+              onClick={openCreateModal}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white"
+            >
+              <Plus className="h-3.5 w-3.5" /> Add Student
+            </button>
+          </div>
         }
       />
 
@@ -1176,6 +1206,30 @@ export const StudentManagement = () => {
         message={`Delete ${deleteTarget?.name}? This will remove the student record and enrollment history.`}
         confirmText="Delete Student"
         variant="danger"
+      />
+
+      <PromoteStudentsModal
+        isOpen={promoteOpen}
+        onClose={() => setPromoteOpen(false)}
+        years={years}
+        classes={classes}
+        sections={sections}
+        showToast={showToast}
+        onDone={loadStudents}
+      />
+      <ImportStudentsModal
+        isOpen={importOpen}
+        onClose={() => setImportOpen(false)}
+        years={years}
+        showToast={showToast}
+        onDone={loadStudents}
+      />
+      <TransferStudentModal
+        isOpen={Boolean(transferTarget)}
+        onClose={() => setTransferTarget(null)}
+        student={transferTarget}
+        showToast={showToast}
+        onDone={loadStudents}
       />
 
       <ToastComponent />

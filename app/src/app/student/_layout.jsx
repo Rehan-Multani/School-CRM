@@ -58,6 +58,7 @@ export default function StudentLayout() {
         <Stack.Screen name="report-card" options={{ title: 'Report Card' }} />
         <Stack.Screen name="fees/index" options={{ title: 'Fees' }} />
         <Stack.Screen name="fees/[id]" options={{ title: 'Invoice' }} />
+        <Stack.Screen name="transport/index" options={{ title: 'Transport' }} />
         <Stack.Screen name="leaves/index" options={{ title: 'My Leaves' }} />
         <Stack.Screen name="leaves/form" options={{ title: 'Apply Leave' }} />
         <Stack.Screen name="notice/[id]" options={{ title: 'Notice' }} />

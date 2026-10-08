@@ -53,6 +53,36 @@ const WORKING_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'S
 const STATUS_OPTIONS = ['Active', 'Inactive', 'Trial', 'Suspended'];
 const PAGE_SIZE = 5;
 
+// "412/500 students" under the plan badge. One tiny request per visible row
+// (PAGE_SIZE is 5); a missing limit renders as unlimited.
+function PlanUsageLine({ schoolId }) {
+  const [usage, setUsage] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    setUsage(null);
+    platformSchoolApi
+      .usage(schoolId)
+      .then((res) => alive && setUsage(res?.data || null))
+      .catch(() => alive && setUsage(null));
+    return () => {
+      alive = false;
+    };
+  }, [schoolId]);
+  if (!usage) return null;
+  const parts = ['students', 'teachers', 'staff']
+    .filter((k) => usage[k])
+    .map((k) => `${usage[k].used}/${usage[k].limit ?? '∞'} ${k}`);
+  const over = ['students', 'teachers', 'staff'].some((k) => usage[k]?.limit && usage[k].used >= usage[k].limit);
+  return (
+    <div
+      className={`mt-1 text-[10px] font-medium tabular-nums ${over ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400'}`}
+      title={parts.join(' · ')}
+    >
+      {parts[0]}
+    </div>
+  );
+}
+
 const INDIAN_MOBILE_DIGITS = /^[6-9]\d{9}$/;
 
 function extractMobileDigits(value) {
@@ -1189,6 +1219,7 @@ export default function SchoolsIndex() {
                       ) : (
                         <span className="text-xs text-slate-400">—</span>
                       )}
+                      <PlanUsageLine schoolId={school.id} />
                     </TableCell>
                     <TableCell className="whitespace-nowrap min-w-[90px]">
                       <Badge variant={school.status}>{school.status}</Badge>

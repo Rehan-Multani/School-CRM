@@ -115,6 +115,16 @@ const RESOLVERS = {
     phone: (u) => u.phone,
     canLogin: (u) => u.status === 'ACTIVE',
   },
+  // The Principal app: a staff account (SchoolUser, role PRINCIPAL).
+  PRINCIPAL: {
+    Model: SchoolUser,
+    async find(id) {
+      const rx = new RegExp(`^${escapeRegex(id)}$`, 'i');
+      return findOne(SchoolUser, { role: 'PRINCIPAL', email: id }, { role: 'PRINCIPAL', employeeId: rx });
+    },
+    phone: (u) => u.phone,
+    canLogin: (u) => u.status === 'ACTIVE',
+  },
   DRIVER: {
     Model: Driver,
     async find(id) {

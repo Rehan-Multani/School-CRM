@@ -15,6 +15,19 @@ const studentSchema = new mongoose.Schema(
     parentPhone: { type: String, default: '', trim: true },
     address: { type: String, default: '', trim: true },
     status: { type: String, enum: ['ACTIVE', 'INACTIVE'], default: 'ACTIVE' },
+    // Set by the transfer / leaving flow (studentLifecycle.service); cleared on reactivate.
+    leaving: {
+      type: new mongoose.Schema(
+        {
+          type: { type: String, enum: ['TRANSFERRED', 'WITHDRAWN'], required: true },
+          reason: { type: String, default: '', trim: true },
+          date: { type: Date, default: null },
+          tcNumber: { type: String, default: '', trim: true },
+        },
+        { _id: false }
+      ),
+      default: null,
+    },
     documents: {
       type: mongoose.Schema.Types.Mixed,
       default: () => ({ aadhaar: [], marksheet: [] })
@@ -78,6 +91,9 @@ studentSchema.methods.toPublicJSON = function toPublicJSON() {
     parentPhone: this.parentPhone,
     address: this.address,
     status: this.status,
+    leaving: this.leaving
+      ? { type: this.leaving.type, reason: this.leaving.reason || '', date: this.leaving.date || null, tcNumber: this.leaving.tcNumber || '' }
+      : null,
     documents: this.documents || { aadhaar: [], marksheet: [] },
     account: {
       loginEmail: this.account?.loginEmail || '',

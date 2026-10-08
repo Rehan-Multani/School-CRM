@@ -89,6 +89,7 @@ function ParentShell() {
         <Stack.Screen name="fees/[id]" options={{ title: 'Invoice' }} />
         <Stack.Screen name="fees/receipts" options={{ title: 'Receipts' }} />
         <Stack.Screen name="fees/receipt/[paymentId]" options={{ title: 'Receipt' }} />
+        <Stack.Screen name="transport/index" options={{ title: 'Transport' }} />
         <Stack.Screen name="pickup/index" options={{ title: 'Pickup History' }} />
         <Stack.Screen name="pickup/[sessionId]" options={{ title: 'Pickup' }} />
         <Stack.Screen name="notice/[id]" options={{ title: 'Notice' }} />

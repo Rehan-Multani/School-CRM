@@ -1,5 +1,6 @@
 import { schoolService } from '../services/school.service.js';
 import { auditLogService } from '../services/auditLog.service.js';
+import { getPlanUsage } from '../services/planLimits.service.js';
 
 export async function listSchools(req, res, next) {
   try {
@@ -367,6 +368,26 @@ export async function schoolPortalUpdateConfig(req, res, next) {
       message: 'School configuration updated',
       ...result,
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Plan usage vs. limits (students / teachers / staff) — Super Admin, any school.
+export async function schoolPlanUsage(req, res, next) {
+  try {
+    const data = await getPlanUsage(req.params.id);
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Same, for the signed-in School Admin's own school.
+export async function schoolPortalPlanUsage(req, res, next) {
+  try {
+    const data = await getPlanUsage(req.user?.sub);
+    res.json({ success: true, data });
   } catch (error) {
     next(error);
   }

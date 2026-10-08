@@ -40,7 +40,17 @@ export function invoiceDocumentHtml(inv, sub) {
     ['Subscription', sub?.razorpaySubscriptionId || inv.razorpaySubscriptionId || '—'],
   ];
 
-  const subtotal = Number(inv.amount || 0) - Number(inv.tax || 0);
+  // Local invoices store `amount` as the pre-tax subtotal (+ explicit subtotal/totalAmount);
+  // Razorpay-raised ones store the gross figure in `amount` with `tax` broken out.
+  const tax = Number(inv.tax || 0);
+  const subtotal =
+    inv.subtotal !== null && inv.subtotal !== undefined
+      ? Number(inv.subtotal)
+      : inv.source === 'RAZORPAY_SUBSCRIPTION'
+        ? Number(inv.amount || 0) - tax
+        : Number(inv.amount || 0);
+  const total = inv.totalAmount !== null && inv.totalAmount !== undefined ? Number(inv.totalAmount) : subtotal + tax;
+  const taxLabel = inv.taxPercent !== null && inv.taxPercent !== undefined ? `GST (${inv.taxPercent}%)` : 'Tax';
 
   return `<!doctype html>
 <html>
@@ -91,7 +101,7 @@ export function invoiceDocumentHtml(inv, sub) {
         <div class="doc-type">Subscription invoice</div>
       </div>
       <div>
-        <div class="amount">${escapeHtml(inr(inv.amount))}</div>
+        <div class="amount">${escapeHtml(inr(total))}</div>
         <div style="text-align:right"><span class="status ${inv.status === 'Paid' ? 'paid' : 'due'}">${escapeHtml(inv.status)}</span></div>
       </div>
     </div>
@@ -123,8 +133,8 @@ export function invoiceDocumentHtml(inv, sub) {
 
     <table class="totals">
       <tr><td>Subtotal</td><td>${escapeHtml(inr(subtotal))}</td></tr>
-      ${inv.tax > 0 ? `<tr><td>Tax</td><td>${escapeHtml(inr(inv.tax))}</td></tr>` : ''}
-      <tr class="grand"><td>Total</td><td>${escapeHtml(inr(inv.amount))}</td></tr>
+      <tr><td>${escapeHtml(taxLabel)}</td><td>${escapeHtml(inr(tax))}</td></tr>
+      <tr class="grand"><td>Total</td><td>${escapeHtml(inr(total))}</td></tr>
     </table>
 
     <table class="meta">

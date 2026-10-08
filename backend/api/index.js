@@ -1,5 +1,9 @@
+// Must be the very first import: pins TZ=Asia/Kolkata so "today" (attendance,
+// transport pickup, dashboards) is computed in the schools' timezone.
+import '../services/platform-service/src/config/timezone.js';
 import express from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 import compression from 'compression';
 import mongoose from 'mongoose';
@@ -14,6 +18,10 @@ import { ensureUploadDirs, uploadsRoot } from '../services/platform-service/src/
 import { brandAssetLinks } from '../services/platform-service/src/middleware/brandAssetLinks.js';
 import { errorHandler as authErrorHandler } from '../services/auth-service/src/config/errorHandler.js';
 import { errorHandler as platformErrorHandler } from '../services/platform-service/src/config/errorHandler.js';
+import { requireUploadAccess } from '../services/platform-service/src/middleware/requireUploadAccess.js';
+import { securityHeaders } from '../services/shared/securityHeaders.js';
+import { receiveRazorpayWebhook } from '../services/platform-service/src/controllers/razorpayWebhook.controller.js';
+import { startSubscriptionCronJobs } from '../services/platform-service/src/cron/index.js';
 
 dotenv.config();
 
@@ -22,6 +30,7 @@ const app = express();
 // Behind nginx / Passenger: trust one proxy hop so req.ip and the rate limiters
 // use the real client IP from X-Forwarded-For (same as the service apps).
 app.set('trust proxy', 1);
+app.use(securityHeaders({ isProd: process.env.NODE_ENV === 'production' }));
 
 // Ensure upload folders exist (in /tmp/uploads for Vercel)
 ensureUploadDirs();
@@ -49,13 +58,37 @@ app.use(cors({
 }));
 app.use(morgan('combined'));
 app.use(compression());
-app.use(express.json({ limit: '5mb' }));
 
-// Static route for uploads (ephemeral in Vercel /tmp)
-app.use('/uploads', express.static(uploadsRoot));
+// Same write-side rate limit as platform-service/src/app.js.
+const mutationLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many requests. Please slow down.', code: 'RATE_LIMITED' },
+});
+app.use((req, res, next) => {
+  if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') return next();
+  return mutationLimiter(req, res, next);
+});
 
 // Mongoose Connection Cache
 let cachedConnection = null;
+
+// Subscription background jobs (expiry, grace period, pending plan changes,
+// webhook retry, reconciliation). Each job takes a Mongo CronLock, so multiple
+// Passenger workers do not double-run. Scheduled once the DB is reachable.
+let cronStarted = false;
+function startCronOnce() {
+  if (cronStarted || process.env.DISABLE_CRON === '1') return;
+  cronStarted = true;
+  try {
+    startSubscriptionCronJobs();
+  } catch (error) {
+    cronStarted = false;
+    console.error('[cron] failed to schedule subscription jobs:', error.message);
+  }
+}
 
 async function connectDB() {
   if (cachedConnection && mongoose.connection.readyState === 1) {
@@ -72,6 +105,7 @@ async function connectDB() {
     });
     cachedConnection = conn;
     console.log('MongoDB connected successfully');
+    startCronOnce();
     return conn;
   } catch (error) {
     console.error('MongoDB connection error:', error.message);
@@ -126,6 +160,32 @@ app.use(async (req, res, next) => {
     });
   }
 });
+
+// Razorpay webhook: must see the raw bytes for HMAC verification, so it is
+// mounted BEFORE express.json(). The signature check is the authentication.
+// Mounted on every prefix cPanel may expose so the dashboard URL can be
+// either https://host/api/v1/platform/webhooks/razorpay or /webhooks/razorpay.
+app.post(
+  ['/webhooks/razorpay', '/api/webhooks/razorpay', '/api/v1/platform/webhooks/razorpay', '/v1/platform/webhooks/razorpay'],
+  express.raw({ type: '*/*', limit: '1mb' }),
+  receiveRazorpayWebhook
+);
+
+app.use(express.json({ limit: '1mb' }));
+
+// Uploaded files need a valid platform JWT (header or ?t=), as in the service app.
+app.use(
+  '/uploads',
+  requireUploadAccess,
+  express.static(uploadsRoot, {
+    index: false,
+    dotfiles: 'deny',
+    setHeaders: (res) => {
+      res.set('X-Content-Type-Options', 'nosniff');
+      res.set('Cache-Control', 'private, max-age=300');
+    },
+  })
+);
 
 // Mobile app: school logo as a cacheable link instead of an inline data URI
 app.use(brandAssetLinks);

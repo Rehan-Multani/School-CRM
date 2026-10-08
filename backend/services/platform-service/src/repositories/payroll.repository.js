@@ -130,18 +130,27 @@ class PayrollRepository {
     if (month && month !== 'ALL') {
       filter.payrollMonth = month;
     }
-    return Payroll.updateMany(filter, {
+    const releasedAt = new Date();
+    const res = await Payroll.updateMany(filter, {
       $set: {
         paymentStatus: 'PAID',
-        paymentDate: new Date(),
+        paymentDate: releasedAt,
       },
     });
+    return { modifiedCount: res.modifiedCount, releasedAt };
+  }
+
+  /** Records released by releaseAllPayrolls (same paymentDate stamp). */
+  async listReleasedPayrolls(schoolId, month, releasedAt) {
+    const filter = { schoolId, paymentStatus: 'PAID', paymentDate: releasedAt };
+    if (month && month !== 'ALL') filter.payrollMonth = month;
+    return Payroll.find(filter);
   }
 
   async getEligibleEmployees(schoolId) {
     const [teachers, staff] = await Promise.all([
       Teacher.find({ schoolId, status: 'ACTIVE' })
-        .select('_id employeeId personalDetails employmentDetails payroll status')
+        .select('_id employeeId name firstName lastName email department designation payroll status')
         .lean(),
       SchoolUser.find({ schoolId, status: 'ACTIVE' })
         .select('_id employeeId name firstName lastName email role department designation basicSalary bankDetails status')
@@ -149,18 +158,19 @@ class PayrollRepository {
     ]);
 
     const formattedTeachers = teachers.map((t) => {
-      const name = `${t.personalDetails?.firstName || ''} ${t.personalDetails?.lastName || ''}`.trim() || 'Teacher';
+      const name = `${t.firstName || ''} ${t.lastName || ''}`.trim() || t.name || 'Teacher';
       const basicSalary = Number(t.payroll?.basicSalary) || 35000;
       return {
         id: t._id.toString(),
         type: 'TEACHER',
+        employeeType: 'TEACHER',
         employeeId: t.employeeId || `TCH-${t._id.toString().slice(-4).toUpperCase()}`,
         name,
-        email: t.personalDetails?.email || '',
+        email: t.email || '',
         role: 'TEACHER',
         roleLabel: 'Teacher',
-        department: t.employmentDetails?.department || 'Academic',
-        designation: t.employmentDetails?.designation || 'Teacher',
+        department: t.department || 'Academic',
+        designation: t.designation || 'Teacher',
         basicSalary,
         allowances: Math.round(basicSalary * 0.15), // 15% estimated default
         bankDetails: {
@@ -180,6 +190,7 @@ class PayrollRepository {
       return {
         id: s._id.toString(),
         type: 'STAFF',
+        employeeType: 'STAFF',
         employeeId: s.employeeId || `EMP-${s._id.toString().slice(-4).toUpperCase()}`,
         name,
         email: s.email || '',

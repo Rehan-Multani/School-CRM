@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { feeService } from './fee.service.js';
 import { AppError } from '../../../shared/AppError.js';
 import { studentRepository } from '../repositories/student.repository.js';
 import {
@@ -7,6 +8,7 @@ import {
   toStudentDocumentPublicPath,
 } from '../utils/upload.utils.js';
 import { normalizeMobile } from '../utils/mobile.js';
+import { assertCanAdd } from './planLimits.service.js';
 
 const STUDENT_STATUSES = ['ACTIVE', 'INACTIVE'];
 const GENDERS = ['MALE', 'FEMALE', 'OTHER'];
@@ -195,6 +197,7 @@ export class StudentService {
 
   async createStudent(schoolId, payload, files = {}) {
     if (!mongoose.isValidObjectId(schoolId)) throw new AppError('Invalid school context', 400);
+    await assertCanAdd(schoolId, 'students');
     const [year, cls, section] = await Promise.all([
       assertYear(schoolId, payload.academicYearId),
       assertClass(schoolId, payload.classId),
@@ -223,7 +226,7 @@ export class StudentService {
         documents: docPaths,
       });
 
-      await studentRepository.createEnrollment({
+      const enrollment = await studentRepository.createEnrollment({
         schoolId,
         studentId: student._id,
         academicYearId: payload.academicYearId,
@@ -235,6 +238,11 @@ export class StudentService {
         leavingDate: studentPayload.status === 'INACTIVE' ? new Date() : null,
         enrollmentDate: parseDate(payload.enrollmentDate, 'Enrollment date') || new Date(),
       });
+
+      // Fee structure of the class → this student's fee assignments. Without
+      // these no invoice can be raised. Best-effort: a school with no fee
+      // structure yet must still be able to admit students.
+      await assignClassFees(schoolId, student._id, enrollment);
     } catch (error) {
       if (files.photo) {
         deleteUploadedFile(toStudentPhotoPublicPath(files.photo.filename));
@@ -370,6 +378,13 @@ export class StudentService {
 
       if (Object.keys(enrollmentUpdate).length > 0) {
         await studentRepository.updateEnrollment(schoolId, enrollment._id, enrollmentUpdate);
+        if (enrollmentUpdate.classId || enrollmentUpdate.academicYearId) {
+          await assignClassFees(schoolId, studentId, {
+            _id: enrollment._id,
+            classId: enrollmentUpdate.classId || enrollment.classId,
+            academicYearId: enrollmentUpdate.academicYearId || enrollment.academicYearId,
+          });
+        }
       }
     }
 
@@ -410,6 +425,20 @@ export class StudentService {
       }
     }
     return { message: 'Student deleted successfully' };
+  }
+}
+
+async function assignClassFees(schoolId, studentId, enrollment) {
+  if (!enrollment?.classId || !enrollment?.academicYearId) return;
+  try {
+    await feeService.autoAssignStudentFees(schoolId, studentId, {
+      enrollmentId: enrollment._id,
+      classId: enrollment.classId,
+      academicYearId: enrollment.academicYearId,
+    });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn('[fees] auto-assign skipped for student', String(studentId), '-', err?.message || err);
   }
 }
 

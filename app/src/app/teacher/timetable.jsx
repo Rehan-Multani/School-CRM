@@ -8,7 +8,7 @@ import { useAsync } from '../../lib/useAsync';
 import { DAY_LABELS, fmtHM, withPrefix } from '../../lib/format';
 import { AsyncView, Badge, Chip, EmptyState } from '../../components/kit';
 import RefreshableScroll from '../../components/RefreshableScroll';
-import { font, radius, spacing } from '../../theme';
+import { font, mix, radius, spacing } from '../../theme';
 import { alpha } from '../../theme/colors';
 import { SkeletonChips, SkeletonList } from '../../components/Skeleton';
 
@@ -107,7 +107,7 @@ export default function Timetable() {
                             borderWidth: active ? 1.5 : 1,
                           },
                           active && {
-                            backgroundColor: theme.isDark ? alpha(theme.primary, 0.12) : alpha(theme.primary, 0.04),
+                            backgroundColor: mix(theme.surface, theme.primary, theme.isDark ? 0.12 : 0.05),
                           },
                           pressed && { opacity: 0.85 },
                         ]}
@@ -127,14 +127,20 @@ export default function Timetable() {
                             </View>
                           </View>
 
-                          <Badge label={withPrefix('Class', `${p.className}-${p.sectionName}`)} tone="primary" />
+                          {active ? (
+                            <Badge label="LIVE NOW" tone="success" icon="radio-button-on" />
+                          ) : (
+                            <Badge label={withPrefix('Class', `${p.className}-${p.sectionName}`)} tone="primary" />
+                          )}
                         </View>
 
                         <View style={styles.subjectRow}>
                           <Text style={styles.subjectTitle} numberOfLines={1}>
                             {p.subjectName || 'Period'}
                           </Text>
-                          {active ? <Badge label="LIVE NOW" tone="success" icon="radio-button-on" /> : null}
+                          {active ? (
+                            <Badge label={withPrefix('Class', `${p.className}-${p.sectionName}`)} tone="primary" />
+                          ) : null}
                         </View>
 
                         <View style={styles.cardFooter}>

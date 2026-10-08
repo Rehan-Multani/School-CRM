@@ -58,7 +58,9 @@
         "EXPO_PUBLIC_DEV_TRANSPORT_ID": "transport.demo@example.com",
         "EXPO_PUBLIC_DEV_TRANSPORT_PASSWORD": "Demo@12345",
         "EXPO_PUBLIC_DEV_STUDENT_ID": "9000022222",
-        "EXPO_PUBLIC_DEV_PARENT_ID": "9000011111"
+        "EXPO_PUBLIC_DEV_PARENT_ID": "9000011111",
+        "EXPO_PUBLIC_DEV_PRINCIPAL_ID": "principal.demo@example.com",
+        "EXPO_PUBLIC_DEV_PRINCIPAL_PASSWORD": "Demo@12345"
       }
     }
   }

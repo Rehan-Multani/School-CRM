@@ -4,14 +4,17 @@ import { ServerTable } from '../../components/ui/ServerTable';
 import { Badge } from '../../components/ui/Badge';
 import { accountantApi } from '../../../../shared/api/client';
 import { formatCurrency, formatDate } from '../../utils/formatters';
-import { Search } from 'lucide-react';
+import { useToast } from '../../components/ui/Toast';
+import { Search, Clock } from 'lucide-react';
 
 const STATUS_OPTIONS = ['', 'Paid', 'Partially Paid', 'Pending', 'Overdue'];
 const badgeVariant = (status) =>
   status === 'Paid' ? 'success' : status === 'Overdue' ? 'danger' : status === 'Partially Paid' ? 'info' : 'warning';
 
 export const InstallmentManagement = () => {
+  const { showToast, ToastComponent } = useToast();
   const [rows, setRows] = useState([]);
+  const [applyingLateFees, setApplyingLateFees] = useState(false);
   const [pagination, setPagination] = useState({ page: 1, limit: 15, total: 0, totalPages: 1 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -62,13 +65,18 @@ export const InstallmentManagement = () => {
         </div>
       ) },
       { key: 'className', title: 'Class', render: (r) => [r.className, r.sectionName].filter(Boolean).join(' - ') || '–' },
-      { key: 'periodLabel', title: 'Installment' },
+      { key: 'periodLabel', title: 'Period' },
+      { key: 'installmentNo', title: 'Installment', render: (r) =>
+        Number(r.installmentCount) > 1 ? `${r.installmentNo} of ${r.installmentCount}` : '—' },
+      { key: 'frequency', title: 'Frequency', render: (r) => r.frequency || '—' },
       { key: 'dueDate', title: 'Due Date', render: (r) => formatDate(r.dueDate) },
       { key: 'totalAmount', title: 'Amount', align: 'right', render: (r) => formatCurrency(r.totalAmount) },
       { key: 'paidAmount', title: 'Paid', align: 'right', render: (r) => formatCurrency(r.paidAmount) },
       { key: 'pendingAmount', title: 'Pending', align: 'right', render: (r) => (
         <span className="font-bold">{formatCurrency(r.pendingAmount)}</span>
       ) },
+      { key: 'lateFeeAmount', title: 'Late fee', align: 'right', render: (r) =>
+        Number(r.lateFeeAmount) > 0 ? <span className="font-bold text-rose-600">{formatCurrency(r.lateFeeAmount)}</span> : '—' },
       { key: 'status', title: 'Status', render: (r) => <Badge variant={badgeVariant(r.status)}>{r.status}</Badge> },
     ],
     []
@@ -76,11 +84,39 @@ export const InstallmentManagement = () => {
 
   const set = (patch) => setFilters((f) => ({ ...f, ...patch, page: patch.page ?? 1 }));
 
+  const applyLateFees = () => {
+    if (!window.confirm('Scan all unpaid invoices and apply late fees as per the fee policy?')) return;
+    setApplyingLateFees(true);
+    accountantApi
+      .applyLateFees()
+      .then((res) => {
+        const d = res?.data || {};
+        showToast(
+          `Scanned ${d.scanned ?? 0}, marked overdue ${d.flipped ?? 0}, charged ${d.charged ?? 0} (${formatCurrency(d.chargedAmount || 0)})`,
+          'success'
+        );
+        setFilters((f) => ({ ...f }));
+      })
+      .catch((err) => showToast(err?.response?.data?.message || 'Failed to apply late fees', 'error'))
+      .finally(() => setApplyingLateFees(false));
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Installments"
         subtitle="Installment plans and their collection status across all students."
+        actions={
+          <button
+            type="button"
+            onClick={applyLateFees}
+            disabled={applyingLateFees}
+            className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 text-xs font-bold hover:bg-rose-100 disabled:opacity-50"
+          >
+            <Clock className="w-3.5 h-3.5" />
+            {applyingLateFees ? 'Applying…' : 'Apply late fees now'}
+          </button>
+        }
       />
 
       <div className="flex flex-wrap gap-3">
@@ -127,6 +163,8 @@ export const InstallmentManagement = () => {
         onPageChange={(p) => set({ page: p })}
         emptyMessage="No installments match the current filters."
       />
+
+      <ToastComponent />
     </div>
   );
 };

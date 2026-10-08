@@ -2,7 +2,7 @@ import { AppError } from '../../../shared/AppError.js';
 import { schoolSubscriptionRepository } from '../repositories/schoolSubscription.repository.js';
 import { subscriptionRepository } from '../repositories/subscription.repository.js';
 import { School } from '../models/School.js';
-import { ACTIVE_LIKE_STATUSES } from '../models/SchoolSubscription.js';
+import { ACTIVE_LIKE_STATUSES, SCHOOL_SUBSCRIPTION_STATUSES } from '../models/SchoolSubscription.js';
 import { razorpaySubscriptionService } from './razorpaySubscription.service.js';
 import { notificationService } from './notification.service.js';
 import { auditLogService } from './auditLog.service.js';
@@ -276,7 +276,7 @@ class SchoolSubscriptionService {
   // ---------------------------------------------------------------
   // Plan change (upgrade = now, downgrade = scheduled at cycle end)
   // ---------------------------------------------------------------
-  async changePlan(id, { newPlanId }, actor) {
+  async changePlan(id, { newPlanId, schedule }, actor) {
     const doc = await this.get(id);
     if (!ACTIVE_LIKE_STATUSES.includes(doc.status)) {
       throw new AppError('Only an active/pending subscription can change plans', 400);
@@ -287,7 +287,9 @@ class SchoolSubscriptionService {
       throw new AppError('School is already on this plan', 400);
     }
 
-    const isUpgrade = newPlan.price > currentPlan.price;
+    // Explicit schedule ('now' | 'cycle_end') from the Super Admin wins; otherwise
+    // upgrades apply now and downgrades wait for the period end.
+    const isUpgrade = schedule === 'now' ? true : schedule === 'cycle_end' ? false : newPlan.price > currentPlan.price;
     const scheduleChangeAt = isUpgrade ? 'now' : 'cycle_end';
 
     const rzpSub = await razorpaySubscriptionService.updateSubscriptionPlan(doc.razorpaySubscriptionId, {
@@ -360,19 +362,24 @@ class SchoolSubscriptionService {
   // ---------------------------------------------------------------
   // Super Admin override
   // ---------------------------------------------------------------
-  async adminOverride(id, { action, extendDays, reason }, actor) {
+  async adminOverride(id, { action, extendDays, days: daysInput, status, reason }, actor) {
     const doc = await this.get(id);
     const fromStatus = doc.status;
     if (action === 'extend') {
-      const days = Math.max(1, Number(extendDays) || 0);
-      if (!days) throw new AppError('extendDays must be a positive number', 400);
+      const days = Math.floor(Number(extendDays ?? daysInput) || 0);
+      if (days <= 0) throw new AppError('days must be a positive number', 400);
       doc.currentPeriodEnd = new Date((doc.currentPeriodEnd?.getTime() || Date.now()) + days * 86400000);
       doc.gracePeriodEndsAt = null;
       if (doc.status === 'halted' || doc.status === 'expired') doc.status = 'active';
     } else if (action === 'grant_grace') {
       doc.gracePeriodEndsAt = new Date(Date.now() + GRACE_PERIOD_DAYS * 86400000);
-    } else if (action === 'force_status' && extendDays === undefined) {
-      throw new AppError('force_status requires a target status', 400);
+    } else if (action === 'force_status') {
+      const target = String(status || '').trim().toLowerCase();
+      if (!target) throw new AppError('force_status requires a target status', 400);
+      if (!SCHOOL_SUBSCRIPTION_STATUSES.includes(target)) throw new AppError(`Unknown status "${target}"`, 400);
+      doc.status = target;
+      if (target === 'cancelled') doc.cancelledAt = doc.cancelledAt || new Date();
+      if (target === 'active') doc.gracePeriodEndsAt = null;
     } else {
       throw new AppError('Unknown override action', 400);
     }

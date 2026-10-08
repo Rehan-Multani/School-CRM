@@ -6,6 +6,7 @@ import { normalizeMobile } from '../utils/mobile.js';
 import { Student } from '../models/Student.js';
 import { Parent } from '../models/Parent.js';
 import { ParentStudent, PARENT_RELATIONSHIPS } from '../models/ParentStudent.js';
+import { assertCanAdd } from './planLimits.service.js';
 import {
   deleteMulterFiles,
   deleteUploadedFile,
@@ -1069,6 +1070,7 @@ export class AcademicService {
   }
 
   async createTeacher(schoolId, payload, files = {}) {
+    await assertCanAdd(schoolId, 'teachers');
     const photo = files.photo || null;
     try {
       const teacherPayload = sanitizeTeacherPayload(payload);

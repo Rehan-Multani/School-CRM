@@ -6,7 +6,8 @@ import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
-import { principalAcademicApi } from '../../../../shared/api/client';
+import { principalAcademicApi, principalTimetableApi } from '../../../../shared/api/client';
+import { TimetableGrid } from '../../../../shared/ui/TimetableGrid';
 import { AcademicBreadcrumb, CountCards, EmptyState } from './components/AcademicUi';
 import { apiMessage, ENTITY_STATUS_VARIANT } from './utils';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
@@ -58,6 +59,26 @@ export const SectionDetail = () => {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  const [timetable, setTimetable] = useState([]);
+  const [timetableLoading, setTimetableLoading] = useState(false);
+  useEffect(() => {
+    if (activeTab !== 'timetable' || !sectionId) return undefined;
+    let cancelled = false;
+    setTimetableLoading(true);
+    principalTimetableApi
+      .list({ sectionId })
+      .then((r) => {
+        if (!cancelled) setTimetable(r.data || []);
+      })
+      .catch((error) => showToast(apiMessage(error, 'Unable to load timetable'), 'error'))
+      .finally(() => {
+        if (!cancelled) setTimetableLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, sectionId, showToast]);
 
   const handleAddSubject = async (e) => {
     e.preventDefault();
@@ -217,7 +238,21 @@ export const SectionDetail = () => {
         </div>
       )}
 
-      {['timetable', 'attendance', 'exams'].includes(activeTab) && (
+      {activeTab === 'timetable' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-800 dark:text-white">{sectionLabel} – Weekly Timetable</h3>
+            <span className="text-[11px] text-slate-400">Edited by the School Admin</span>
+          </div>
+          {timetableLoading ? (
+            <p className="text-xs text-slate-400">Loading timetable...</p>
+          ) : (
+            <TimetableGrid entries={timetable} />
+          )}
+        </div>
+      )}
+
+      {['attendance', 'exams'].includes(activeTab) && (
         <EmptyState
           title={`${activeTab.charAt(0).toUpperCase()}${activeTab.slice(1)} module coming soon`}
           description="This tab is reserved for the next phase of academic integrations."

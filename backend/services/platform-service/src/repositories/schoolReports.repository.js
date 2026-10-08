@@ -79,7 +79,7 @@ export class SchoolReportsRepository {
 
     // Financial aggregation
     const feeAgg = await FeePayment.aggregate([
-      { $match: { schoolId: sId } },
+      { $match: { schoolId: sId, status: 'COMPLETED' } },
       { $group: { _id: null, totalCollected: { $sum: '$amount' } } },
     ]);
 

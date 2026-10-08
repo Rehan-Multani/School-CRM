@@ -24,6 +24,7 @@ const QUICK = [
   { icon: 'ribbon-outline', label: 'Results', to: '/parent/results' },
   { icon: 'wallet-outline', label: 'Fees', to: '/parent/fees' },
   { icon: 'shield-checkmark-outline', label: 'Pickup', to: '/parent/pickup' },
+  { icon: 'bus-outline', label: 'Transport', to: '/parent/transport' },
   { icon: 'folder-open-outline', label: 'Material', to: '/parent/materials' },
 ];
 

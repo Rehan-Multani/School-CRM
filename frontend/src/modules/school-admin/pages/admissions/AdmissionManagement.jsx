@@ -9,7 +9,7 @@ import { useToast } from '../../components/ui/Toast';
 import { admissionsApi, academicPortalApi } from '../../../../shared/api/client';
 import { apiMessage } from '../academics/utils';
 import { sanitizeMobileInput, isValid10DigitMobile } from '../../../../shared/utils/mobileValidation';
-import { Eye, FileCheck, UserPlus, IdCard, Printer, RotateCcw, Trash2 } from 'lucide-react';
+import { Eye, FileCheck, UserPlus, IdCard, Printer, RotateCcw, Trash2, Pencil } from 'lucide-react';
 
 const inputCls =
   'w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold outline-none focus:border-primary dark:border-slate-800 dark:bg-slate-900 dark:text-white';
@@ -39,6 +39,34 @@ const emptyOffline = {
   previousSchool: '',
 };
 
+const EDITABLE_STATUSES = ['PENDING_REVIEW', 'WAITING_LIST', 'APPROVED', 'REJECTED'];
+
+function toDateInput(v) {
+  if (!v) return '';
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+}
+
+function formFromAdmission(adm) {
+  return {
+    applicantName: adm.applicantName || '',
+    gender: adm.gender || 'OTHER',
+    dob: toDateInput(adm.dob),
+    appliedClassId: adm.appliedClassId || '',
+    preferredSectionId: adm.preferredSectionId || '',
+    guardianName: adm.guardianName || '',
+    phone: sanitizeMobileInput(adm.phone || ''),
+    email: adm.email || '',
+    address: adm.address || '',
+    previousSchool: adm.previousSchool || '',
+    category: adm.category || 'General',
+  };
+}
+
+function hasValidGuardianPhone(adm) {
+  return isValid10DigitMobile(adm?.phone || '', true);
+}
+
 export const AdmissionManagement = () => {
   const { showToast, ToastComponent } = useToast();
   const [activeTab, setActiveTab] = useState('review');
@@ -57,6 +85,10 @@ export const AdmissionManagement = () => {
   const [offlineSaving, setOfflineSaving] = useState(false);
   const [rejectTarget, setRejectTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [editTarget, setEditTarget] = useState(null);
+  const [editForm, setEditForm] = useState(null);
+  const [editSaving, setEditSaving] = useState(false);
+  const [sections, setSections] = useState([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -81,7 +113,26 @@ export const AdmissionManagement = () => {
       .classes({ limit: 100 })
       .then((r) => setClasses((r.data || []).filter((c) => c.status !== 'INACTIVE')))
       .catch(() => {});
+    academicPortalApi
+      .sections({ limit: 500 })
+      .then((r) => setSections((r.data || []).filter((sec) => sec.status !== 'INACTIVE')))
+      .catch(() => {});
   }, [load]);
+
+  const sectionsForClass = (classId) =>
+    classId
+      ? sections.filter((sec) => String(sec.classId?.id || sec.classId?._id || sec.classId) === String(classId))
+      : [];
+
+  const openEdit = (row) => {
+    setEditTarget(row);
+    setEditForm(formFromAdmission(row));
+  };
+
+  const closeEdit = () => {
+    setEditTarget(null);
+    setEditForm(null);
+  };
 
   const filtered = useMemo(() => {
     if (activeTab === 'review') return rows.filter((r) => r.status === 'PENDING_REVIEW');
@@ -110,9 +161,18 @@ export const AdmissionManagement = () => {
   };
 
   const doApprove = async (row) => {
+    if (!row.appliedClassId) {
+      return showToast('Assign a class to this application (Edit) before approving', 'error');
+    }
+    if (!hasValidGuardianPhone(row)) {
+      return showToast('Guardian mobile number is required to enrol this applicant. Edit the application first.', 'error');
+    }
     setBusyId(row.id);
     try {
-      const res = await admissionsApi.approve(row.id);
+      const res = await admissionsApi.approve(row.id, {
+        classId: row.appliedClassId,
+        sectionId: row.preferredSectionId || undefined,
+      });
       const { admission, student, alreadyEnrolled } = res.data || {};
       if (admission) refreshOne(admission);
       showToast(
@@ -163,6 +223,44 @@ export const AdmissionManagement = () => {
       showToast(apiMessage(err, 'Unable to register offline admission'), 'error');
     } finally {
       setOfflineSaving(false);
+    }
+  };
+
+  const submitEdit = async (e) => {
+    e.preventDefault();
+    if (!editTarget || !editForm) return;
+    if (!editForm.applicantName.trim() || !editForm.guardianName.trim()) {
+      return showToast('Applicant and guardian name are required', 'error');
+    }
+    if (!isValid10DigitMobile(editForm.phone, true)) {
+      return showToast('Guardian phone must be exactly 10 digits', 'error');
+    }
+    const classId = editForm.appliedClassId || '';
+    const cls = classes.find((c) => String(c.id) === String(classId));
+    setEditSaving(true);
+    try {
+      const res = await admissionsApi.update(editTarget.id, {
+        applicantName: editForm.applicantName.trim(),
+        gender: editForm.gender,
+        dob: editForm.dob || null,
+        appliedClassId: classId || null,
+        appliedClassLabel: cls?.name || (classId ? editTarget.appliedClassLabel : ''),
+        preferredSectionId: editForm.preferredSectionId || null,
+        guardianName: editForm.guardianName.trim(),
+        phone: sanitizeMobileInput(editForm.phone),
+        email: editForm.email.trim(),
+        address: editForm.address.trim(),
+        previousSchool: editForm.previousSchool.trim(),
+        category: editForm.category.trim() || 'General',
+      });
+      if (res?.data) refreshOne(res.data);
+      showToast(res?.message || 'Application updated', 'success');
+      closeEdit();
+      load();
+    } catch (err) {
+      showToast(apiMessage(err, 'Unable to update application'), 'error');
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -220,6 +318,14 @@ export const AdmissionManagement = () => {
             >
               <Eye className="h-3.5 w-3.5" /> Review
             </button>
+            {EDITABLE_STATUSES.includes(row.status) && (
+              <button
+                onClick={() => openEdit(row)}
+                className="flex items-center gap-1 text-xs font-bold text-slate-600 hover:underline dark:text-slate-300"
+              >
+                <Pencil className="h-3.5 w-3.5" /> Edit
+              </button>
+            )}
             {(row.status === 'APPROVED' || row.status === 'ENROLLED') && (
               <button
                 onClick={() => {
@@ -340,13 +446,22 @@ export const AdmissionManagement = () => {
 
             {(selectedAdm.status === 'PENDING_REVIEW' || selectedAdm.status === 'WAITING_LIST') && (
               <div className="flex items-center justify-between border-t border-slate-100 pt-4 dark:border-slate-800">
-                <button
-                  onClick={() => setRejectTarget(selectedAdm)}
-                  disabled={busyId === selectedAdm.id}
-                  className="rounded-xl border border-rose-200 px-4 py-2 text-xs font-bold text-rose-600 transition-all hover:bg-rose-50 disabled:opacity-50"
-                >
-                  Reject Candidate
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setRejectTarget(selectedAdm)}
+                    disabled={busyId === selectedAdm.id}
+                    className="rounded-xl border border-rose-200 px-4 py-2 text-xs font-bold text-rose-600 transition-all hover:bg-rose-50 disabled:opacity-50"
+                  >
+                    Reject Candidate
+                  </button>
+                  <button
+                    onClick={() => openEdit(selectedAdm)}
+                    disabled={busyId === selectedAdm.id}
+                    className="flex items-center gap-1 rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 transition-all hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:text-slate-200"
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </button>
+                </div>
                 <div className="flex gap-2">
                   {selectedAdm.status === 'PENDING_REVIEW' && (
                     <button
@@ -359,8 +474,14 @@ export const AdmissionManagement = () => {
                   )}
                   <button
                     onClick={() => doApprove(selectedAdm)}
-                    disabled={busyId === selectedAdm.id || !selectedAdm.appliedClassId}
-                    title={!selectedAdm.appliedClassId ? 'Assign a class first (edit application)' : ''}
+                    disabled={busyId === selectedAdm.id || !selectedAdm.appliedClassId || !hasValidGuardianPhone(selectedAdm)}
+                    title={
+                      !selectedAdm.appliedClassId
+                        ? 'Assign a class first (Edit)'
+                        : !hasValidGuardianPhone(selectedAdm)
+                          ? 'Add a valid 10-digit guardian mobile number first (Edit)'
+                          : ''
+                    }
                     className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white shadow-md transition-all disabled:opacity-50"
                   >
                     {busyId === selectedAdm.id ? 'Processing…' : 'Approve & Create Student'}
@@ -451,6 +572,116 @@ export const AdmissionManagement = () => {
             {offlineSaving ? 'Processing…' : 'Admit Student & Generate Credentials'}
           </button>
         </form>
+      </Modal>
+
+      {/* EDIT MODAL */}
+      <Modal isOpen={Boolean(editTarget && editForm)} onClose={closeEdit} title="Edit Admission Application" size="lg">
+        {editForm && (
+          <form onSubmit={submitEdit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">Candidate Full Name *</label>
+                <input className={inputCls} required value={editForm.applicantName} onChange={(e) => setEditForm({ ...editForm, applicantName: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">Gender</label>
+                <select className={inputCls} value={editForm.gender} onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}>
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">Applying Class *</label>
+                <select
+                  className={inputCls}
+                  value={editForm.appliedClassId}
+                  onChange={(e) => setEditForm({ ...editForm, appliedClassId: e.target.value, preferredSectionId: '' })}
+                >
+                  <option value="">Select class…</option>
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">Preferred Section</label>
+                <select
+                  className={inputCls}
+                  value={editForm.preferredSectionId}
+                  onChange={(e) => setEditForm({ ...editForm, preferredSectionId: e.target.value })}
+                  disabled={!editForm.appliedClassId}
+                >
+                  <option value="">Auto-assign (most free seats)</option>
+                  {sectionsForClass(editForm.appliedClassId).map((sec) => (
+                    <option key={sec.id} value={sec.id}>
+                      {sec.name}
+                      {sec.academicYearName ? ` · ${sec.academicYearName}` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">Date of Birth</label>
+                <input type="date" className={inputCls} value={editForm.dob} onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">Category</label>
+                <input className={inputCls} value={editForm.category} onChange={(e) => setEditForm({ ...editForm, category: e.target.value })} placeholder="General" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">Parent / Guardian Name *</label>
+                <input className={inputCls} required value={editForm.guardianName} onChange={(e) => setEditForm({ ...editForm, guardianName: e.target.value })} />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-500">Guardian Mobile *</label>
+                  {editForm.phone ? (
+                    <span className={`text-[10px] font-bold ${editForm.phone.length === 10 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                      {editForm.phone.length}/10 digits
+                    </span>
+                  ) : null}
+                </div>
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
+                  className={inputCls}
+                  required
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: sanitizeMobileInput(e.target.value) })}
+                  placeholder="9876500000"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">Email</label>
+                <input className={inputCls} value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} placeholder="parent@example.com" />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">Previous School</label>
+                <input className={inputCls} value={editForm.previousSchool} onChange={(e) => setEditForm({ ...editForm, previousSchool: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-500">Address</label>
+              <input className={inputCls} value={editForm.address} onChange={(e) => setEditForm({ ...editForm, address: e.target.value })} placeholder="House no, street, city" />
+            </div>
+            <p className="text-[11px] text-slate-400">
+              The guardian mobile number becomes the parent&apos;s app login when the applicant is enrolled.
+            </p>
+            <button type="submit" disabled={editSaving} className="w-full rounded-xl bg-primary py-2.5 text-xs font-bold text-white shadow-md disabled:opacity-60">
+              {editSaving ? 'Saving…' : 'Save Changes'}
+            </button>
+          </form>
+        )}
       </Modal>
 
       {/* ID CARD MODAL */}

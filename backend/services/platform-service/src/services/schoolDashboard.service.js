@@ -43,8 +43,14 @@ export const schoolDashboardService = {
       }
     }
 
-    const todayStr = new Date().toISOString().split('T')[0];
     const now = new Date();
+    const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const todayStr = ymd(now);
+    const weekDays = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      weekDays.push({ date: ymd(d), day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()] });
+    }
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
@@ -62,7 +68,10 @@ export const schoolDashboardService = {
       });
     }
     const sumAmount = (match) =>
-      FeePayment.aggregate([{ $match: match }, { $group: { _id: null, total: { $sum: { $ifNull: ['$amount', 0] } } } }]);
+      FeePayment.aggregate([
+        { $match: { status: 'COMPLETED', ...match } },
+        { $group: { _id: null, total: { $sum: { $ifNull: ['$amount', 0] } } } },
+      ]);
 
     // Every figure below is independent of the others, so they are fetched in
     // one parallel wave — the page waits for the slowest query, not their sum.
@@ -94,6 +103,9 @@ export const schoolDashboardService = {
       recentAllocations,
       evRows,
       hwAgg,
+      weekAttAgg,
+      feeTrendAgg,
+      examPerfAgg,
       saAgg,
     ] = await Promise.all([
       Student.countDocuments({ ...schoolQuery, status: 'ACTIVE' }),
@@ -109,12 +121,31 @@ export const schoolDashboardService = {
       StudentTransportAssignment.countDocuments({ ...schoolQuery, status: 'ACTIVE' }),
       Exam.countDocuments({ ...schoolQuery, status: { $in: ['ACTIVE', 'SCHEDULED', 'IN_PROGRESS'] } }),
       // Staff attendance today
-      StaffAttendance.findOne({ ...schoolQuery, date: todayStr }).lean(),
+      StaffAttendance.aggregate([
+        { $match: { ...schoolQuery, date: todayStr, status: { $ne: 'HOLIDAY' } } },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            present: {
+              $sum: {
+                $switch: {
+                  branches: [
+                    { case: { $eq: ['$status', 'PRESENT'] }, then: 1 },
+                    { case: { $eq: ['$status', 'HALF_DAY'] }, then: 0.5 },
+                  ],
+                  default: 0,
+                },
+              },
+            },
+          },
+        },
+      ]).catch(() => []),
       // Fee collection today & this month, and what is still owed — summed in the database
-      sumAmount({ ...schoolQuery, createdAt: { $gte: startOfToday } }),
-      sumAmount({ ...schoolQuery, createdAt: { $gte: startOfMonth } }),
+      sumAmount({ ...schoolQuery, paymentDate: { $gte: startOfToday } }),
+      sumAmount({ ...schoolQuery, paymentDate: { $gte: startOfMonth } }),
       FeeInvoice.aggregate([
-        { $match: { ...schoolQuery, status: { $in: ['PENDING', 'PARTIAL', 'OVERDUE'] } } },
+        { $match: { ...schoolQuery, status: { $in: ['PENDING', 'PARTIALLY_PAID', 'OVERDUE'] } } },
         {
           $group: {
             _id: null,
@@ -164,6 +195,39 @@ export const schoolDashboardService = {
           },
         },
       ]).catch(() => []),
+      // Weekly student attendance (last 7 days, % present per day)
+      StudentAttendance.aggregate([
+        { $match: { schoolId: targetObjId, date: { $in: weekDays.map((d) => d.date) } } },
+        { $unwind: '$entries' },
+        {
+          $group: {
+            _id: '$date',
+            total: { $sum: 1 },
+            present: { $sum: { $cond: [{ $in: ['$entries.status', ['PRESENT', 'LATE', 'HALF_DAY']] }, 1, 0] } },
+          },
+        },
+      ]).catch(() => []),
+      // Monthly fee collection (last 7 months, completed payments by payment date)
+      FeePayment.aggregate([
+        { $match: { ...schoolQuery, status: 'COMPLETED', paymentDate: { $gte: trendMonths[0].from } } },
+        {
+          $group: {
+            _id: { y: { $year: { date: '$paymentDate', timezone: process.env.TZ || 'Asia/Kolkata' } }, m: { $month: { date: '$paymentDate', timezone: process.env.TZ || 'Asia/Kolkata' } } },
+            collected: { $sum: '$amount' },
+          },
+        },
+      ]).catch(() => []),
+      // Exam performance: average % of the 6 most recent exams with results
+      ExamResult.aggregate([
+        { $match: { schoolId: targetObjId } },
+        { $group: { _id: '$examId', average: { $avg: '$percentage' }, students: { $sum: 1 }, last: { $max: '$updatedAt' } } },
+        { $sort: { last: -1 } },
+        { $limit: 6 },
+        { $lookup: { from: 'exams', localField: '_id', foreignField: '_id', as: 'exam' } },
+        { $unwind: { path: '$exam', preserveNullAndEmptyArrays: true } },
+        { $project: { _id: 0, name: { $ifNull: ['$exam.name', 'Exam'] }, average: { $round: ['$average', 1] }, students: 1, last: 1 } },
+        { $sort: { last: 1 } },
+      ]).catch(() => []),
       // Student attendance rate (today)
       StudentAttendance.aggregate([
         { $match: { schoolId: targetObjId, date: todayStr } },
@@ -182,12 +246,9 @@ export const schoolDashboardService = {
       ]).catch(() => []),
     ]);
 
-    let staffPresentCount = 0;
-    let staffTotalCount = totalTeachers + totalStaff;
-    if (todayStaffAttendance?.records?.length) {
-      staffPresentCount = todayStaffAttendance.records.filter((r) => r.status === 'PRESENT').length;
-      staffTotalCount = todayStaffAttendance.records.length;
-    }
+    const staffAgg = Array.isArray(todayStaffAttendance) ? todayStaffAttendance[0] : null;
+    const staffPresentCount = staffAgg?.present || 0;
+    const staffTotalCount = staffAgg?.total || 0;
     const staffAttendanceRate = staffTotalCount > 0 ? Math.round((staffPresentCount / staffTotalCount) * 100) : 0;
 
     const collectedToday = todayPaid[0]?.total || 0;
@@ -262,6 +323,17 @@ export const schoolDashboardService = {
     const activeHomework = h ? h.active : 0;
     const homeworkSubmissionRate = h && h.totalStudents > 0 ? Math.round((h.submitted / h.totalStudents) * 100) : 0;
 
+    const weekMap = new Map((weekAttAgg || []).map((r) => [r._id, r]));
+    const weeklyAttendance = weekDays.map((d) => {
+      const r = weekMap.get(d.date);
+      return { day: d.day, date: d.date, attendance: r && r.total > 0 ? Math.round((r.present / r.total) * 100) : 0, marked: Boolean(r) };
+    });
+    const feeMap = new Map((feeTrendAgg || []).map((r) => [`${r._id.y}-${r._id.m}`, r.collected]));
+    const monthlyFeeTrend = trendMonths.map((m) => ({
+      month: m.name,
+      collected: Math.round((feeMap.get(`${m.from.getFullYear()}-${m.from.getMonth() + 1}`) || 0) * 100) / 100,
+    }));
+
     const sa = saAgg[0];
     const studentAttendanceRate = sa && sa.total > 0 ? Math.round((sa.present / sa.total) * 100) : 0;
 
@@ -291,9 +363,9 @@ export const schoolDashboardService = {
         admissionsTrend: admissionsTrend.some((a) => a.admissions > 0) ? admissionsTrend : [],
         classStrength: classStrength.some((c) => c.strength > 0) ? classStrength : [],
         genderDistribution,
-        weeklyAttendance: [],
-        monthlyFeeTrend: [],
-        examPerformance: [],
+        weeklyAttendance: weeklyAttendance.some((d) => d.marked) ? weeklyAttendance : [],
+        monthlyFeeTrend: monthlyFeeTrend.some((m) => m.collected > 0) ? monthlyFeeTrend : [],
+        examPerformance: examPerfAgg || [],
       },
       recentActivities: recentActivities.slice(0, 6),
       upcomingEvents,

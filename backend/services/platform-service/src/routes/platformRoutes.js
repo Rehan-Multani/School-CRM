@@ -86,6 +86,8 @@ import {
   schoolPortalMe,
   schoolPortalPlans,
   schoolPortalSettings,
+  schoolPlanUsage,
+  schoolPortalPlanUsage,
   schoolPortalUpdateBranding,
   schoolPortalUpdateConfig,
   schoolPortalUpdateEmail,
@@ -208,6 +210,16 @@ import {
   updateStudentStatus,
 } from '../controllers/student.controller.js';
 import {
+  promotionPreview,
+  promoteStudents,
+  transferStudent,
+  reactivateStudent,
+  getTransferCertificate,
+  downloadImportTemplate,
+  importStudentsCsv,
+} from '../controllers/studentLifecycle.controller.js';
+import { uploadCsv } from '../middleware/uploadCsv.js';
+import {
   listFeeHeads,
   getFeeHead,
   createFeeHead,
@@ -239,6 +251,11 @@ import {
   listFinanceTransactions,
   getFinanceSummary,
   recordExpense,
+  getFeeSettings,
+  updateFeeSettings,
+  generateFeeSchedule,
+  applyLateFeesNow,
+  refundFeePayment,
 } from '../controllers/fee.controller.js';
 import {
   changeUserPassword,
@@ -246,7 +263,6 @@ import {
   deleteUser,
   getUser,
   listUsers,
-  seedUsers,
   sendUserCredentials,
   updateUser,
   updateUserStatus,
@@ -399,6 +415,7 @@ import {
   createEvent,
   updateEvent,
   deleteEvent,
+  setEventCancelled,
 } from '../controllers/event.controller.js';
 import {
   listHomework,
@@ -524,6 +541,11 @@ import {
   getAccountantReport,
   getAccountantSettings,
   updateAccountantSettings,
+  accountantFeeSettings,
+  accountantUpdateFeeSettings,
+  accountantGenerateSchedule,
+  accountantApplyLateFees,
+  accountantRefundPayment,
 } from '../controllers/accountant.controller.js';
 import {
   hrLogin,
@@ -590,6 +612,7 @@ import {
   createTimetable,
   updateTimetable,
   deleteTimetable,
+  saveSectionTimetable,
 } from '../controllers/timetable.controller.js';
 import { assertSchoolAccess } from '../middleware/assertSchoolAccess.js';
 import { uploadStudentFiles, convertStudentImages } from '../middleware/uploadStudentPhoto.js';
@@ -604,6 +627,7 @@ router.get('/schools', requireSuperAdmin, listSchools);
 router.post('/schools', requireSuperAdmin, createSchool);
 router.put('/schools/:id', requireSuperAdmin, updateSchool);
 router.get('/schools/:id/features', requireSuperAdmin, validateObjectId('id'), getSchoolFeatures);
+router.get('/schools/:id/usage', requireSuperAdmin, validateObjectId('id'), schoolPlanUsage);
 router.patch('/schools/:id/features', requireSuperAdmin, validateObjectId('id'), updateSchoolFeatures);
 router.patch('/schools/:id/status', requireSuperAdmin, updateSchoolStatus);
 router.post('/schools/:id/reset-login', requireSuperAdmin, resetSchoolLogin);
@@ -665,6 +689,7 @@ router.delete('/school-portal/accountant/expenses/:id', requireAccountant, delet
 
 router.get('/school-portal/accountant/receipts', requireAccountant, listAccountantReceipts);
 router.get('/school-portal/accountant/receipts/:id', requireAccountant, getAccountantReceipt);
+router.post('/school-portal/accountant/receipts/:id/refund', requireAccountant, accountantRefundPayment);
 router.get('/school-portal/accountant/invoices', requireAccountant, listAccountantInvoices);
 router.get('/school-portal/accountant/invoices/:id', requireAccountant, getAccountantInvoice);
 
@@ -675,6 +700,10 @@ router.get('/school-portal/accountant/notifications', requireAccountant, listAcc
 
 router.get('/school-portal/accountant/reports/:category', requireAccountant, getAccountantReport);
 
+router.get('/school-portal/accountant/fee-settings', requireAccountant, accountantFeeSettings);
+router.put('/school-portal/accountant/fee-settings', requireAccountant, accountantUpdateFeeSettings);
+router.post('/school-portal/accountant/invoices/schedule', requireAccountant, accountantGenerateSchedule);
+router.post('/school-portal/accountant/late-fees/apply', requireAccountant, accountantApplyLateFees);
 router.get('/school-portal/accountant/settings', requireAccountant, getAccountantSettings);
 router.patch('/school-portal/accountant/settings', requireAccountant, updateAccountantSettings);
 router.post('/school-auth/forgot-password', passwordResetRateLimiter, schoolAdminForgotPassword);
@@ -696,6 +725,7 @@ router.post('/school-portal/select-plan/checkout', requireSchoolAdmin, schoolIni
 router.get('/school-portal/config', requireSchoolAdmin, schoolPortalConfig);
 router.patch('/school-portal/config', requireSchoolAdmin, schoolPortalUpdateConfig);
 router.get('/school-portal/settings', requireSchoolAdmin, schoolPortalSettings);
+router.get('/school-portal/plan-usage', requireSchoolAdmin, schoolPortalPlanUsage);
 router.patch('/school-portal/settings/theme', requireSchoolAdmin, schoolPortalUpdateTheme);
 router.patch('/school-portal/settings/branding', requireSchoolAdmin, schoolPortalUpdateBranding);
 router.patch('/school-portal/settings/password', requireSchoolAdmin, schoolPortalChangePassword);
@@ -773,10 +803,19 @@ router.delete('/school-portal/academic/teachers/:id', requireSchoolAdminOrPrinci
 // Class timetable (admin-side CRUD; teachers read it via /school-portal/teacher/timetable)
 router.get('/school-portal/timetable', requirePrincipal, listTimetable);
 router.post('/school-portal/timetable', requirePrincipal, createTimetable);
+router.put('/school-portal/timetable/sections/:sectionId', requirePrincipal, validateObjectId('sectionId'), saveSectionTimetable);
 router.patch('/school-portal/timetable/:id', requirePrincipal, validateObjectId('id'), updateTimetable);
 router.delete('/school-portal/timetable/:id', requirePrincipal, validateObjectId('id'), deleteTimetable);
 router.get('/school-portal/students', requirePrincipal, listStudents);
 router.post('/school-portal/students', requirePrincipal, uploadStudentFiles, convertStudentImages, createStudent);
+// Student lifecycle: promotion, transfer / TC, bulk CSV import (studentLifecycle.controller)
+router.get('/school-portal/students/promote/preview', requirePrincipal, promotionPreview);
+router.post('/school-portal/students/promote', requirePrincipal, promoteStudents);
+router.get('/school-portal/students/import/template', requirePrincipal, downloadImportTemplate);
+router.post('/school-portal/students/import', requirePrincipal, uploadCsv, importStudentsCsv);
+router.post('/school-portal/students/:id/transfer', requirePrincipal, validateObjectId('id'), transferStudent);
+router.post('/school-portal/students/:id/reactivate', requirePrincipal, validateObjectId('id'), reactivateStudent);
+router.get('/school-portal/students/:id/transfer-certificate', requirePrincipal, validateObjectId('id'), getTransferCertificate);
 router.get('/school-portal/students/:id', requirePrincipal, getStudent);
 router.patch('/school-portal/students/:id', requirePrincipal, uploadStudentFiles, convertStudentImages, updateStudent);
 router.patch('/school-portal/students/:id/status', requirePrincipal, updateStudentStatus);
@@ -792,7 +831,6 @@ router.post('/school-portal/academic/parents/:id/set-password', requirePrincipal
 // School User Management Routes (Teachers, Librarians, HR, Accountants, Transport)
 router.get('/school-portal/users', requirePrincipal, listUsers);
 router.post('/school-portal/users', requirePrincipal, uploadSchoolUserFiles, convertSchoolUserImages, createUser);
-router.post('/school-portal/users/seed', requirePrincipal, seedUsers);
 router.get('/school-portal/users/:id', requirePrincipal, getUser);
 router.patch('/school-portal/users/:id', requirePrincipal, uploadSchoolUserFiles, convertSchoolUserImages, updateUser);
 router.patch('/school-portal/users/:id/status', requirePrincipal, updateUserStatus);
@@ -833,10 +871,15 @@ router.post('/school-portal/fees/assignments', requireSchoolAdmin, createStudent
 // Invoices & Payments
 router.get('/school-portal/fees/invoices', requireSchoolAdmin, listFeeInvoices);
 router.post('/school-portal/fees/invoices/generate', requireSchoolAdmin, generateFeeInvoice);
+router.post('/school-portal/fees/invoices/schedule', requireSchoolAdmin, generateFeeSchedule);
+router.get('/school-portal/fees/settings', requireSchoolAdmin, getFeeSettings);
+router.put('/school-portal/fees/settings', requireSchoolAdmin, updateFeeSettings);
+router.post('/school-portal/fees/late-fees/apply', requireSchoolAdmin, applyLateFeesNow);
 router.get('/school-portal/fees/invoices/:id', requireSchoolAdmin, validateObjectId('id'), getFeeInvoice);
 router.post('/school-portal/fees/invoices/:invoiceId/pay', requireSchoolAdmin, validateObjectId('invoiceId'), payFeeInvoice);
 router.get('/school-portal/fees/payments', requireSchoolAdmin, listFeePayments);
 router.get('/school-portal/fees/payments/:id', requireSchoolAdmin, validateObjectId('id'), getFeePayment);
+router.post('/school-portal/fees/payments/:id/refund', requireSchoolAdmin, validateObjectId('id'), refundFeePayment);
 router.post('/school-portal/fees/collect', requireSchoolAdmin, collectFeePayment);
 
 // Finance Routes
@@ -1131,6 +1174,7 @@ router.get('/school-portal/events', requirePrincipal, listEvents);
 router.get('/school-portal/events/:id', requirePrincipal, getEvent);
 router.post('/school-portal/events', requireSchoolAdmin, requirePermission('events.manage'), createEvent);
 router.patch('/school-portal/events/:id', requireSchoolAdmin, requirePermission('events.manage'), updateEvent);
+router.patch('/school-portal/events/:id/cancel', requireSchoolAdmin, requirePermission('events.manage'), setEventCancelled);
 router.delete('/school-portal/events/:id', requireSchoolAdmin, requirePermission('events.manage'), deleteEvent);
 
 // ==========================================================================

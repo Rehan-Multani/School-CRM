@@ -38,16 +38,14 @@ export async function hrLogin(req, res, next) {
       throw new AppError('Username/email and password are required', 400);
     }
 
-    // Find the HR user by email or employee id. The generic "hr" alias resolves
-    // to a real seeded HR account but still requires that account's password.
-    let user = await SchoolUser.findOne({
+    // Find the HR user by email or employee id. The identifier is escaped before
+    // it becomes a RegExp (otherwise "." / ".*" would match other accounts) and
+    // there is no generic alias: a login must name one specific account.
+    const escaped = identifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const user = await SchoolUser.findOne({
       role: 'HR',
-      $or: [{ email: identifier }, { employeeId: new RegExp(`^${identifier}$`, 'i') }],
+      $or: [{ email: identifier }, { employeeId: new RegExp(`^${escaped}$`, 'i') }],
     }).select('+passwordHash');
-
-    if (!user && (identifier === 'hr' || identifier === 'hr@school.com' || identifier === 'hr-201' || identifier === 'hr201')) {
-      user = await SchoolUser.findOne({ role: 'HR', status: 'ACTIVE' }).sort({ createdAt: 1 }).select('+passwordHash');
-    }
 
     if (!user || !user.passwordHash) {
       throw new AppError('Invalid username or password', 401);

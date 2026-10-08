@@ -1,5 +1,7 @@
 import { feeService } from '../services/fee.service.js';
 import { feePaymentService } from '../services/feePayment.service.js';
+import { feeScheduleService } from '../services/feeSchedule.service.js';
+import { feeLedgerService } from '../services/feeLedger.service.js';
 import { financeTransactionService } from '../services/financeTransaction.service.js';
 import { schoolId, performedBy } from '../utils/tenant.js';
 
@@ -288,6 +290,64 @@ export async function recordExpense(req, res, next) {
   try {
     const data = await financeTransactionService.recordExpense(schoolId(req), req.body);
     res.status(201).json({ success: true, message: 'Expense recorded', data });
+  } catch (error) {
+    next(error);
+  }
+}
+// ===================== FEE SETTINGS / SCHEDULE / LATE FEES =====================
+export async function getFeeSettings(req, res, next) {
+  try {
+    res.json({ success: true, data: await feeScheduleService.getSettings(schoolId(req)) });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateFeeSettings(req, res, next) {
+  try {
+    const data = await feeScheduleService.updateSettings(schoolId(req), req.body || {});
+    res.json({ success: true, data, message: 'Fee settings saved' });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function generateFeeSchedule(req, res, next) {
+  try {
+    const data = await feeScheduleService.generateSchedule(schoolId(req), req.body || {});
+    res.status(201).json({ success: true, data, message: data.message });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function applyLateFeesNow(req, res, next) {
+  try {
+    const data = await feeScheduleService.applyLateFees(schoolId(req));
+    res.json({ success: true, data, message: `${data.flipped} invoice(s) marked overdue, late fee applied to ${data.charged}` });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function refundFeePayment(req, res, next) {
+  try {
+    const b = req.body || {};
+    const result = await feeLedgerService.refundPayment({
+      schoolId: schoolId(req),
+      paymentId: req.params.id,
+      amount: b.amount,
+      kind: b.kind,
+      reason: b.reason,
+      method: b.method,
+      reference: b.reference,
+      by: performedBy(req),
+    });
+    res.json({
+      success: true,
+      message: `${result.refund.kind === 'CANCEL' ? 'Payment cancelled' : 'Refund recorded'} (₹${result.refund.amount})`,
+      data: { payment: result.payment.toPublicJSON(), refund: result.refund, invoice: result.invoice },
+    });
   } catch (error) {
     next(error);
   }

@@ -484,9 +484,9 @@ export const LeaveManagement = () => {
             <div className="p-3.5 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/30 flex items-center justify-between">
               <span className="text-[11px] font-bold text-indigo-700 dark:text-indigo-300">Allocated Quota Balance:</span>
               <div className="flex gap-3 text-[11px] font-bold text-slate-700 dark:text-slate-300">
-                <span>Casual: <strong>{employeeBalance.casualLeaveBalance ?? 12}</strong></span>
-                <span>Sick: <strong>{employeeBalance.sickLeaveBalance ?? 10}</strong></span>
-                <span>Earned: <strong>{employeeBalance.earnedLeaveBalance ?? 15}</strong></span>
+                <span>Casual: <strong>{employeeBalance.casual?.available ?? 0}</strong></span>
+                <span>Medical: <strong>{employeeBalance.medical?.available ?? 0}</strong></span>
+                <span>Paid: <strong>{employeeBalance.paid?.available ?? 0}</strong></span>
               </div>
             </div>
           )}

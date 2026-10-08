@@ -10,6 +10,7 @@ import { AppError } from '../../../shared/AppError.js';
 import { School } from '../models/School.js';
 import { planEndDate } from '../utils/subscription.utils.js';
 import { parentFeePaymentService } from './parentFeePayment.service.js';
+import { applyTax, resolveTaxPercent, round2 } from '../utils/subscriptionTax.js';
 
 /**
  * Onboarding plan selection (school.service.js initiateSubscriptionCheckout)
@@ -309,7 +310,9 @@ async function upsertInvoiceFromRazorpay(sub, invoiceEntity, statusOverride) {
     razorpaySubscriptionId: sub.razorpaySubscriptionId,
     razorpayInvoiceId: invoiceEntity.id,
     amount: (invoiceEntity.amount || 0) / 100,
-    tax: (invoiceEntity.tax_amount || 0) / 100,
+    tax: (invoiceEntity.tax_amount || 0) / 100, // Razorpay's own tax figure wins when it supplies one
+    subtotal: round2(((invoiceEntity.amount || 0) - (invoiceEntity.tax_amount || 0)) / 100),
+    totalAmount: round2((invoiceEntity.amount || 0) / 100),
     currency: invoiceEntity.currency || 'INR',
     status: statusOverride || (invoiceEntity.status === 'paid' ? 'Paid' : invoiceEntity.status === 'expired' ? 'Overdue' : 'Pending'),
     issuedAt: toDate(invoiceEntity.date) || new Date(),
@@ -371,13 +374,21 @@ async function ensureInvoiceForCharge(sub, paymentEntity, invoiceEntity) {
   const existing = await schoolSubscriptionRepository.findInvoiceByPaymentReference(paymentEntity.id);
   if (existing) return existing;
 
+  // Locally built invoice: subtotal = plan price (fallback: the captured amount), GST on top.
+  const plan = sub.planId && typeof sub.planId === 'object' ? sub.planId : null;
+  const money = applyTax(plan?.price || amount, await resolveTaxPercent(plan));
+
   return schoolSubscriptionRepository.createInvoice({
     invoiceNumber: await billingRepository.nextInvoiceNumber(paidAt.getFullYear()),
     ...invoiceOwnerFields(sub),
     source: 'RAZORPAY_SUBSCRIPTION',
     subscriptionId: sub._id,
     razorpaySubscriptionId: sub.razorpaySubscriptionId,
-    amount,
+    amount: money.subtotal,
+    subtotal: money.subtotal,
+    taxPercent: money.taxPercent,
+    tax: money.tax,
+    totalAmount: money.totalAmount,
     currency: paymentEntity.currency || 'INR',
     status: paymentEntity.captured ? 'Paid' : 'Pending',
     issuedAt: paidAt,

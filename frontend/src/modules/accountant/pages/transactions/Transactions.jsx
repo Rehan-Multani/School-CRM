@@ -12,7 +12,7 @@ import { PAYMENT_METHODS } from '../../utils/constants';
 
 const TYPE_TABS = [
   { id: 'ALL', label: 'All' },
-  { id: 'FEE_PAYMENT', label: 'Inflows (Fee)' },
+  { id: 'FEE_PAYMENT', label: 'Inflows (Fees & other income)' },
   { id: 'EXPENSE', label: 'Outflows (Expense)' },
 ];
 

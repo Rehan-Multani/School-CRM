@@ -8,6 +8,7 @@ import {
   runWebhookRecoveryJob,
   runStaleDetectionJob,
 } from './subscriptionJobs.js';
+import { feeScheduleService } from '../services/feeSchedule.service.js';
 
 /**
  * In-process scheduler (node-cron). If this service is ever run as more than
@@ -25,6 +26,8 @@ export function startSubscriptionCronJobs() {
   cron.schedule('*/15 * * * *', () => runFailedPaymentRecoveryJob());
   // Every 10 min — webhook recovery should catch up quickly after a transient failure.
   cron.schedule('*/10 * * * *', () => runWebhookRecoveryJob());
+  // Once a day (01:30) — flip overdue fee invoices and apply the school's late fee.
+  cron.schedule('30 1 * * *', () => feeScheduleService.runLateFeeJobForAllSchools().catch(() => {}));
   // Once a day — stale-subscription detection is a low-urgency housekeeping scan.
   cron.schedule('0 3 * * *', () => runStaleDetectionJob());
 

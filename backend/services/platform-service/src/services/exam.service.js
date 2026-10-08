@@ -145,6 +145,12 @@ class ExamService {
     if (payload.startDate !== undefined || payload.endDate !== undefined) {
       assertDateOrder(payload.startDate ?? before.startDate, payload.endDate ?? before.endDate);
     }
+    if (payload.status === 'PUBLISHED' && before.status !== 'PUBLISHED') {
+      const hasResults = await examRepository.hasCalculatedResults(schoolId, id);
+      if (!hasResults) {
+        throw new AppError('Results have not been calculated for this exam yet. Calculate results before publishing.', 400);
+      }
+    }
     const updated = await examRepository.updateExam(schoolId, id, payload);
     if (!updated) throw new AppError('Exam not found', 404);
     const json = updated.toPublicJSON();

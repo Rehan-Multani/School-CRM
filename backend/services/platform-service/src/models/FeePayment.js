@@ -102,11 +102,36 @@ const feePaymentSchema = new mongoose.Schema(
     gatewayPaymentId: { type: String, default: '', trim: true },
     gatewaySignature: { type: String, default: '', trim: true, select: false },
     paidByParentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Parent', default: null },
+    // Portion of a gateway payment that exceeded the invoice balance at capture
+    // time (e.g. cash was collected while the parent was paying online). The
+    // money was really received, so it is recorded here for a refund.
+    overpaidAmount: { type: Number, default: 0, min: 0 },
+    // Portion of `amount` currently applied to the invoice (amount − overpaid − refunded-from-applied).
+    appliedAmount: { type: Number, default: null },
+    // Refund / cancellation audit.
+    refundedAmount: { type: Number, default: 0, min: 0 },
+    refunds: [
+      {
+        amount: { type: Number, required: true, min: 0 },
+        kind: { type: String, enum: ['REFUND', 'CANCEL'], default: 'REFUND' },
+        reason: { type: String, default: '', trim: true },
+        method: { type: String, default: '', trim: true },
+        reference: { type: String, default: '', trim: true },
+        refundedAt: { type: Date, default: Date.now },
+        by: { type: String, default: '', trim: true },
+        financeTransactionId: { type: mongoose.Schema.Types.ObjectId, ref: 'FinanceTransaction', default: null },
+      },
+    ],
   },
   { timestamps: true }
 );
 
-feePaymentSchema.index({ schoolId: 1, receiptNumber: 1 });
+// One receipt number per school. Partial so legacy rows without a number
+// (and the random RCPT-* numbers of early online payments) are not affected.
+feePaymentSchema.index(
+  { schoolId: 1, receiptNumber: 1 },
+  { unique: true, partialFilterExpression: { receiptNumber: { $type: 'string', $gt: '' } } }
+);
 feePaymentSchema.index({ schoolId: 1, invoiceId: 1 });
 feePaymentSchema.index({ schoolId: 1, studentId: 1 });
 feePaymentSchema.index({ schoolId: 1, paymentDate: -1 });
@@ -143,8 +168,21 @@ feePaymentSchema.methods.toPublicJSON = function toPublicJSON() {
     notes: this.notes || this.remarks || '',
     status: this.status,
     collectedBy: this.collectedBy,
-    receiptId: this.receiptId?.toString() || null,
-    financeTransactionId: this.financeTransactionId?.toString() || null,
+    receiptId: this.receiptId?._id ? this.receiptId._id.toString() : this.receiptId?.toString() || null,
+    receipt: this.receiptId?._id && typeof this.receiptId.toPublicJSON === 'function' ? this.receiptId.toPublicJSON() : undefined,
+    financeTransactionId: this.financeTransactionId?._id ? this.financeTransactionId._id.toString() : this.financeTransactionId?.toString() || null,
+    overpaidAmount: this.overpaidAmount || 0,
+    appliedAmount: this.appliedAmount ?? Math.max(0, (this.amount || 0) - (this.overpaidAmount || 0)),
+    refundedAmount: this.refundedAmount || 0,
+    refunds: (this.refunds || []).map((r) => ({
+      amount: r.amount,
+      kind: r.kind,
+      reason: r.reason,
+      method: r.method,
+      reference: r.reference,
+      refundedAt: r.refundedAt,
+      by: r.by,
+    })),
     gateway: this.gateway || 'MANUAL',
     gatewayOrderId: this.gatewayOrderId || '',
     gatewayPaymentId: this.gatewayPaymentId || '',
