@@ -250,12 +250,15 @@ function SchoolsTableSkeleton() {
 // at the live site even while developing.)
 //   - VITE_SCHOOL_APP_URL, when the school panel is hosted somewhere else
 //   - dev: this panel runs on port 5174, the school panel on 5173, same host
+//   - superadmin.<domain> -> <domain> (live layout)
 //   - otherwise both panels are served from the same site
 function schoolPanelOrigin() {
   const configured = (import.meta.env.VITE_SCHOOL_APP_URL || '').replace(/\/+$/, '');
   if (configured) return configured;
   const { protocol, hostname, port, origin } = window.location;
   if (port === '5174') return `${protocol}//${hostname}:5173`;
+  // Live: the console is on superadmin.<domain>, the school panel on <domain>.
+  if (hostname.startsWith('superadmin.')) return `${protocol}//${hostname.slice('superadmin.'.length)}`;
   return origin;
 }
 
