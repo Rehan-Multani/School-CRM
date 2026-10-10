@@ -44,11 +44,10 @@ if ($env:APP_NO_PREFILL -ne '1') {
   $env:EXPO_PUBLIC_DEV_TEACHER_PASSWORD = 'Demo@12345'
   $env:EXPO_PUBLIC_DEV_TRANSPORT_ID = 'transport.demo@example.com'
   $env:EXPO_PUBLIC_DEV_TRANSPORT_PASSWORD = 'Demo@12345'
-  $env:EXPO_PUBLIC_DEV_STUDENT_ID = '9000022222'
-  $env:EXPO_PUBLIC_DEV_PARENT_ID = '9000011111'
-  # Demo parent: the OTP is prefilled too. The server accepts this fixed OTP only for
-  # numbers listed in its LOGIN_DEMO_NUMBERS; every other number gets a random SMS OTP.
-  $env:EXPO_PUBLIC_DEV_PARENT_OTP = '123456'
+  # Student / parent sign in by mobile + SMS OTP: only the numbers are prefilled (a real
+  # OTP arrives by SMS; the fixed demo OTP is not enabled for these numbers).
+  $env:EXPO_PUBLIC_DEV_STUDENT_ID = '9759663535'
+  $env:EXPO_PUBLIC_DEV_PARENT_ID = '6268204871'
   $env:EXPO_PUBLIC_DEV_PRINCIPAL_ID = 'principal.demo@example.com'
   $env:EXPO_PUBLIC_DEV_PRINCIPAL_PASSWORD = 'Demo@12345'
 }
