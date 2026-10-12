@@ -6,7 +6,7 @@ import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { principalExamsApi } from '../../../api/principal/exams';
 import { useAsync } from '../../../lib/useAsync';
 import { fmtDate } from '../../../lib/format';
-import { confirm, showError, toast } from '../../../lib/notify';
+import { showError, toast } from '../../../lib/notify';
 import PagedList from '../../../components/PagedList';
 import { Card } from '../../../components/ui';
 import { Chip, EmptyState, SearchBar, Select, Stat, StatusBadge } from '../../../components/kit';
@@ -54,20 +54,16 @@ export default function ExamsList() {
       academicYearId: year !== 'ALL' ? year : undefined,
     });
 
-  const remove = async (exam) => {
-    const ok = await confirm(
-      'Delete examination?',
-      `"${exam.name}" and all its subjects, timetable, marks and results will be permanently removed.`,
-      { confirmText: 'Delete', destructive: true },
-    );
-    if (!ok) return;
+  // Activate / deactivate (replaces delete): an inactive exam is hidden from students and parents.
+  const toggle = async (exam) => {
+    const next = exam.isActive === false;
     try {
-      const res = await principalExamsApi.remove(exam.id);
-      toast.success(res?.message || 'Exam term removed');
+      await principalExamsApi.update(exam.id, { isActive: next });
+      toast.success(next ? 'Examination activated' : 'Examination deactivated');
       listRef.current?.reload();
       stats.reload({ silent: true });
     } catch (e) {
-      showError(e, 'Could not delete exam');
+      showError(e, 'Could not update exam');
     }
   };
 
@@ -121,7 +117,7 @@ export default function ExamsList() {
                 <Text style={styles.name} numberOfLines={2}>{item.name}</Text>
                 <StatusBadge status={item.status} />
               </View>
-              <Text style={styles.meta}>{typeLabel(item.examType)} · {item.session}</Text>
+              <Text style={styles.meta}>{typeLabel(item.examType)} · {item.session}{item.isActive === false ? ' · Inactive' : ''}</Text>
               <Text style={styles.meta}>{fmtDate(item.startDate)} – {fmtDate(item.endDate)}</Text>
               {item.classes?.length ? (
                 <Text style={styles.classes} numberOfLines={2}>
@@ -139,9 +135,11 @@ export default function ExamsList() {
                 <Ionicons name="create-outline" size={18} color={theme.text} />
                 <Text style={styles.actText}>Edit</Text>
               </Pressable>
-              <Pressable style={styles.act} onPress={() => remove(item)}>
-                <Ionicons name="trash-outline" size={18} color={theme.danger} />
-                <Text style={[styles.actText, { color: theme.danger }]}>Delete</Text>
+              <Pressable style={styles.act} onPress={() => toggle(item)}>
+                <Ionicons name="power-outline" size={18} color={item.isActive === false ? theme.success : theme.warning} />
+                <Text style={[styles.actText, { color: item.isActive === false ? theme.success : theme.warning }]}>
+                  {item.isActive === false ? 'Activate' : 'Deactivate'}
+                </Text>
               </Pressable>
             </View>
           </Card>

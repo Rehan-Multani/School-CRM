@@ -38,6 +38,7 @@ export default function TeacherLayout() {
         <Stack.Screen name="schedule/[id]" options={{ title: 'Period' }} />
         <Stack.Screen name="section/[sectionId]" options={{ title: 'Students' }} />
         <Stack.Screen name="student/[studentId]" options={{ title: 'Student' }} />
+        <Stack.Screen name="self-attendance" options={{ title: 'Mark Present' }} />
         <Stack.Screen name="attendance/mark" options={{ title: 'Mark Attendance' }} />
         <Stack.Screen name="attendance/history" options={{ title: 'Attendance History' }} />
         <Stack.Screen name="attendance/summary" options={{ title: 'Monthly Summary' }} />

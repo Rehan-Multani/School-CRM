@@ -8,7 +8,7 @@ import PagedList from '../../../components/PagedList';
 import { Chip, EmptyState, SearchBar, Select } from '../../../components/kit';
 import { Button } from '../../../components/ui';
 import { SkeletonList } from '../../../components/Skeleton';
-import { confirm, showError, toast } from '../../../lib/notify';
+import { showError, toast } from '../../../lib/notify';
 import { spacing } from '../../../theme';
 import {
   ActionLink,
@@ -64,17 +64,6 @@ export default function PrincipalStudents() {
     }
   };
 
-  const remove = async (s) => {
-    const ok = await confirm('Delete student?', `Delete ${personName(s)}? This removes the student record and enrollment history.`, { confirmText: 'Delete', destructive: true });
-    if (!ok) return;
-    try {
-      await principalPeopleApi.deleteStudent(s.id);
-      toast('Student deleted');
-      listRef.current?.reload();
-    } catch (e) {
-      showError(e, 'Unable to delete student');
-    }
-  };
 
   const header = (
     <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.md }}>
@@ -152,7 +141,6 @@ export default function PrincipalStudents() {
                 <>
                   <ActionLink icon="create-outline" label="Edit" onPress={() => router.push({ pathname: '/principal/students/form', params: { id: s.id } })} />
                   <ActionLink icon={s.status === 'ACTIVE' ? 'ban-outline' : 'checkmark-circle-outline'} label={s.status === 'ACTIVE' ? 'Deactivate' : 'Activate'} tone={s.status === 'ACTIVE' ? 'warning' : 'success'} onPress={() => toggle(s)} />
-                  <ActionLink icon="trash-outline" label="Delete" tone="danger" onPress={() => remove(s)} />
                 </>
               }
             />

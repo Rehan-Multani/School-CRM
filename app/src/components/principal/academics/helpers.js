@@ -64,12 +64,9 @@ export async function runYearAction(year, action) {
   return act(action.run, action.done);
 }
 
-export async function deleteYear(year) {
-  return actConfirmed(
-    { title: 'Delete academic year', message: `Delete academic year "${year.name}"? This cannot be undone.`, confirmText: 'Delete' },
-    () => api.deleteYear(year.id),
-    'Academic year deleted',
-  );
+/** Activate / deactivate a record (the replacement for delete). `isActive` is its current state. */
+export async function toggleActive(update, isActive, noun) {
+  return act(() => update({ status: isActive ? 'INACTIVE' : 'ACTIVE' }), `${noun} ${isActive ? 'deactivated' : 'activated'}`);
 }
 
 /** Bulk-create helper for CSV imports: returns `{ success, failed }`. */

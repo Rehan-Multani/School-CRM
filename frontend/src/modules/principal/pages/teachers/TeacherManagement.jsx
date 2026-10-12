@@ -4,13 +4,12 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { principalAcademicApi, principalHrApi } from '../../../../shared/api/client';
 import { EmptyState } from '../academics/components/AcademicUi';
 import { apiMessage } from '../academics/utils';
 import { sanitizeMobileInput, isValid10DigitMobile } from '../../../../shared/utils/mobileValidation';
-import { Ban, Camera, Eye, ImagePlus, Loader2, Pencil, Plus, Power, Trash2, UserCheck, UserCircle2, Users, X } from 'lucide-react';
+import { Ban, Camera, Eye, ImagePlus, Loader2, Pencil, Plus, Power, UserCheck, UserCircle2, Users, X } from 'lucide-react';
 import { SkeletonTable } from '../../components/ui/SkeletonLoader';
 
 const inputClass =
@@ -136,7 +135,6 @@ export const TeacherManagement = () => {
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
   const [removePhoto, setRemovePhoto] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null);
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
   const photoInputRef = useRef(null);
@@ -337,16 +335,6 @@ export const TeacherManagement = () => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-    try {
-      await principalAcademicApi.deleteTeacher(deleteTarget.id);
-      showToast('Teacher deleted', 'success');
-      loadTeachers();
-    } catch (error) {
-      showToast(apiMessage(error, 'Unable to delete teacher'), 'error');
-    }
-  };
 
   const handlePhotoChange = (event) => {
     const file = event.target.files?.[0];
@@ -541,14 +529,6 @@ export const TeacherManagement = () => {
                 {row.status === 'ACTIVE' ? <Ban className="h-4 w-4 text-rose-500" /> : <Power className="h-4 w-4 text-emerald-500" />}
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => setDeleteTarget(row)}
-              className="rounded-full p-1.5 text-rose-500 transition hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer"
-              title={`Delete ${row.name}`}
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
           </div>
         );
       },
@@ -851,15 +831,6 @@ export const TeacherManagement = () => {
         </form>
       </Modal>
 
-      <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={handleDelete}
-        title="Delete Teacher"
-        message={`"${deleteTarget?.name}" will be permanently removed. Teachers with class or subject assignments cannot be deleted – deactivate them instead.`}
-        confirmText="Delete Teacher"
-        variant="danger"
-      />
 
       <ToastComponent />
     </div>

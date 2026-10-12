@@ -4,13 +4,12 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { CountCards, EmptyState } from '../academics/components/AcademicUi';
 import { apiMessage, ENTITY_STATUS_VARIANT } from '../academics/utils';
 import { sanitizeMobileInput, isValid10DigitMobile } from '../../../../shared/utils/mobileValidation';
 import { principalAcademicApi, principalStudentApi } from '../../../../shared/api/client';
-import { Camera, Edit3, Eye, ImagePlus, Loader2, Plus, Trash2, UserCheck, UserCircle2, UserX, X } from 'lucide-react';
+import { Camera, Edit3, Eye, ImagePlus, Loader2, Plus, UserCheck, UserCircle2, UserX, X } from 'lucide-react';
 import { SkeletonTable } from '../../components/ui/SkeletonLoader';
 
 const inputClass =
@@ -136,7 +135,6 @@ export const StudentManagement = () => {
   const [form, setForm] = useState(defaultForm);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
   const [yearClassMap, setYearClassMap] = useState({});
@@ -497,22 +495,7 @@ export const StudentManagement = () => {
     }
   };
 
-  const handleDelete = (student) => {
-    setDeleteTarget(student);
-  };
 
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    try {
-      await principalStudentApi.deleteStudent(deleteTarget.id);
-      showToast('Student deleted', 'success');
-      loadStudents();
-    } catch (error) {
-      showToast(apiMessage(error, 'Unable to delete student'), 'error');
-    } finally {
-      setDeleteTarget(null);
-    }
-  };
 
   const handleView = (student) => {
     navigate(`/principal/students/${student.id}`);
@@ -606,14 +589,6 @@ export const StudentManagement = () => {
             title={row.status === 'ACTIVE' ? `Deactivate ${row.name}` : `Activate ${row.name}`}
           >
             {row.status === 'ACTIVE' ? <UserX className="h-4 w-4 text-rose-500" /> : <UserCheck className="h-4 w-4 text-emerald-500" />}
-          </button>
-          <button
-            type="button"
-            onClick={() => handleDelete(row)}
-            className="rounded-full p-1.5 text-rose-500 transition hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer"
-            title={`Delete ${row.name}`}
-          >
-            <Trash2 className="h-4 w-4" />
           </button>
         </div>
       ),
@@ -1071,15 +1046,6 @@ export const StudentManagement = () => {
 
 
 
-      <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={confirmDelete}
-        title="Delete Student"
-        message={`Delete ${deleteTarget?.name}? This will remove the student record and enrollment history.`}
-        confirmText="Delete Student"
-        variant="danger"
-      />
 
       <ToastComponent />
     </div>

@@ -11,6 +11,10 @@ export const transportApi = {
   // The shared any-role route (not under the manager prefix).
   registerDevice: (token) => api.post('/device-tokens', { token }),
 
+  // Own attendance (school radius + fingerprint) — same rules as the teacher app.
+  selfAttendanceToday: () => api.get(`${P}/self-attendance/today`).then((r) => r.data),
+  selfCheckIn: (body) => api.post(`${P}/self-attendance/check-in`, body).then((r) => r.data),
+
   // `date` is YYYY-MM-DD; omitted = today on the server.
   overview: (date) => api.get(`${P}/overview`, { date }).then((r) => r.data),
   route: (routeId, date) => api.get(`${P}/routes/${routeId}`, { date }).then((r) => r.data),

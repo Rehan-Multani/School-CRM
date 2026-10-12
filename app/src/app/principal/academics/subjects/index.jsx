@@ -10,7 +10,7 @@ import { AsyncView, Badge, EmptyState, Select } from '../../../../components/kit
 import { Button, Card } from '../../../../components/ui';
 import { SkeletonCards } from '../../../../components/Skeleton';
 import { ActionPill, ActionRow, FilterChips, Meta, StatusBadge, useShowMore } from '../../../../components/principal/academics/kit';
-import { actConfirmed, importEach, importSummary } from '../../../../components/principal/academics/helpers';
+import { importEach, importSummary, toggleActive } from '../../../../components/principal/academics/helpers';
 import { SAMPLES, csvEscape, parseSubjects, pickCsvText, shareCsv } from '../../../../components/principal/academics/csv';
 import { font, spacing } from '../../../../theme';
 
@@ -136,13 +136,10 @@ export default function SubjectsScreen() {
                     <ActionRow>
                       <ActionPill icon="create-outline" label="Edit" tone="muted" onPress={() => router.push({ pathname: '/principal/academics/subjects/form', params: { id: subject.id } })} />
                       <ActionPill
-                        icon="trash-outline"
-                        label="Delete"
-                        tone="danger"
-                        onPress={async () => {
-                          const ok = await actConfirmed({ title: 'Delete subject', message: `Delete subject "${subject.name}"?`, confirmText: 'Delete' }, () => api.deleteSubject(subject.id), 'Subject deleted');
-                          if (ok) state.reload({ silent: true });
-                        }}
+                        icon="power-outline"
+                        label={subject.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                        tone={subject.status === 'ACTIVE' ? 'warning' : 'success'}
+                        onPress={async () => (await toggleActive((body) => api.updateSubject(subject.id, body), subject.status === 'ACTIVE', 'Subject')) && state.reload({ silent: true })}
                       />
                     </ActionRow>
                   </Card>

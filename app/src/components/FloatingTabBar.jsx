@@ -4,6 +4,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-na
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Haptics from 'expo-haptics';
 import GlassSurface, { LIQUID_GLASS } from './GlassSurface';
 import { useTheme } from '../context/ThemeContext';
 import { useTeacher } from '../context/TeacherContext';
@@ -42,7 +43,11 @@ function TabItem({
     focus.set(withSpring(isFocused ? 1 : 0, FOCUS_SPRING));
   }, [isFocused, focus]);
 
-  const handlePressIn = () => press.set(withSpring(0.9, PRESS_SPRING));
+  const handlePressIn = () => {
+    press.set(withSpring(0.9, PRESS_SPRING));
+    // A light tick the instant a different tab is touched; re-tapping the active tab is silent.
+    if (!isFocused) Haptics.selectionAsync().catch(() => {});
+  };
   const handlePressOut = () => press.set(withSpring(1, PRESS_SPRING));
 
   const contentStyle = useAnimatedStyle(() => ({ transform: [{ scale: press.get() }] }));

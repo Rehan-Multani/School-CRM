@@ -81,6 +81,25 @@ const staffAttendanceSchema = new mongoose.Schema(
       default: 'Admin',
       trim: true,
     },
+    // How the row was created: by HR/admin, or by the teacher from the app
+    // (geofence + fingerprint). Self marks keep the proof for later review.
+    method: { type: String, enum: ['MANUAL', 'APP_GEOFENCE'], default: 'MANUAL' },
+    clockInAt: { type: Date, default: null },
+    clockOutAt: { type: Date, default: null },
+    checkInGeo: {
+      latitude: { type: Number, default: null },
+      longitude: { type: Number, default: null },
+      accuracy: { type: Number, default: null },
+      distanceMeters: { type: Number, default: null },
+      biometricVerified: { type: Boolean, default: false },
+    },
+    checkOutGeo: {
+      latitude: { type: Number, default: null },
+      longitude: { type: Number, default: null },
+      accuracy: { type: Number, default: null },
+      distanceMeters: { type: Number, default: null },
+      biometricVerified: { type: Boolean, default: false },
+    },
   },
   { timestamps: true }
 );
@@ -106,6 +125,9 @@ staffAttendanceSchema.methods.toPublicJSON = function toPublicJSON() {
     clockOut: this.clockOut,
     remarks: this.remarks,
     recordedBy: this.recordedBy,
+    method: this.method || 'MANUAL',
+    checkInDistanceMeters: this.checkInGeo?.distanceMeters ?? null,
+    checkOutDistanceMeters: this.checkOutGeo?.distanceMeters ?? null,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

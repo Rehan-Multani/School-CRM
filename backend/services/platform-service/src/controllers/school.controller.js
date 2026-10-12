@@ -330,6 +330,24 @@ export async function schoolPortalUpdateBranding(req, res, next) {
   }
 }
 
+export async function schoolPortalGetAttendanceGeofence(req, res, next) {
+  try {
+    const data = await schoolService.getAttendanceGeofence(req.user?.sub);
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function schoolPortalUpdateAttendanceGeofence(req, res, next) {
+  try {
+    const data = await schoolService.updateAttendanceGeofence(req.user?.sub, req.body || {});
+    res.json({ success: true, message: 'Attendance location saved', data });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function schoolPortalChangePassword(req, res, next) {
   try {
     const result = await schoolService.changePortalPassword(req.user?.sub, req.body || {});

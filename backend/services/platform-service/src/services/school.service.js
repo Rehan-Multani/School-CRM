@@ -967,6 +967,52 @@ export class SchoolService {
     };
   }
 
+  attendanceGeofencePayload(school) {
+    const g = school.settings?.attendanceGeofence || {};
+    return {
+      enabled: Boolean(g.enabled),
+      latitude: g.latitude ?? null,
+      longitude: g.longitude ?? null,
+      radiusMeters: g.radiusMeters || 100,
+      requireBiometric: g.requireBiometric !== false,
+      label: g.label || '',
+    };
+  }
+
+  async getAttendanceGeofence(schoolId) {
+    const school = await schoolRepository.findById(schoolId);
+    if (!school) throw new AppError('School not found', 404);
+    return this.attendanceGeofencePayload(school);
+  }
+
+  async updateAttendanceGeofence(schoolId, payload = {}) {
+    const current = await this.getAttendanceGeofence(schoolId);
+    const next = { ...current };
+    if (payload.enabled !== undefined) next.enabled = Boolean(payload.enabled);
+    if (payload.requireBiometric !== undefined) next.requireBiometric = Boolean(payload.requireBiometric);
+    if (payload.label !== undefined) next.label = String(payload.label || '').trim().slice(0, 80);
+    if (payload.latitude !== undefined) next.latitude = payload.latitude === null || payload.latitude === '' ? null : Number(payload.latitude);
+    if (payload.longitude !== undefined) next.longitude = payload.longitude === null || payload.longitude === '' ? null : Number(payload.longitude);
+    if (payload.radiusMeters !== undefined) next.radiusMeters = Number(payload.radiusMeters);
+
+    const okLat = typeof next.latitude === 'number' && Number.isFinite(next.latitude) && next.latitude >= -90 && next.latitude <= 90;
+    const okLng = typeof next.longitude === 'number' && Number.isFinite(next.longitude) && next.longitude >= -180 && next.longitude <= 180;
+    if ((next.latitude !== null && !okLat) || (next.longitude !== null && !okLng)) {
+      throw new AppError('Enter a valid latitude (-90 to 90) and longitude (-180 to 180)', 400);
+    }
+    if (!Number.isFinite(next.radiusMeters) || next.radiusMeters < 20 || next.radiusMeters > 5000) {
+      throw new AppError('Radius must be between 20 and 5000 metres', 400);
+    }
+    next.radiusMeters = Math.round(next.radiusMeters);
+    if (next.enabled && (!okLat || !okLng)) {
+      throw new AppError('Set the school location before enabling self attendance', 400);
+    }
+
+    const school = await schoolRepository.updateById(schoolId, { $set: { 'settings.attendanceGeofence': next } });
+    if (!school) throw new AppError('School not found', 404);
+    return this.attendanceGeofencePayload(school);
+  }
+
   async changePortalPassword(schoolId, { currentPassword, newPassword }) {
     if (!currentPassword || !newPassword) {
       throw new AppError('Current password and new password are required', 400);

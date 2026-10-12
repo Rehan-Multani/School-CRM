@@ -99,6 +99,8 @@ import {
   schoolPlanUsage,
   schoolPortalPlanUsage,
   schoolPortalUpdateBranding,
+  schoolPortalGetAttendanceGeofence,
+  schoolPortalUpdateAttendanceGeofence,
   schoolPortalUpdateConfig,
   schoolPortalUpdateEmail,
   schoolPortalUpdateTheme,
@@ -784,6 +786,9 @@ router.get('/school-portal/settings', requireSchoolAdmin, schoolPortalSettings);
 router.get('/school-portal/plan-usage', requireSchoolAdmin, schoolPortalPlanUsage);
 router.patch('/school-portal/settings/theme', requireSchoolAdmin, schoolPortalUpdateTheme);
 router.patch('/school-portal/settings/branding', requireSchoolAdmin, schoolPortalUpdateBranding);
+// School location + radius inside which teachers may mark their own attendance (app).
+router.get('/school-portal/settings/attendance-geofence', requireSchoolAdmin, schoolPortalGetAttendanceGeofence);
+router.put('/school-portal/settings/attendance-geofence', requireSchoolAdmin, schoolPortalUpdateAttendanceGeofence);
 // Banners for the student / parent / teacher apps (School Admin manages).
 router.get('/school-portal/banners', requireSchoolAdmin, listBanners);
 router.post('/school-portal/banners', requireSchoolAdmin, uploadBannerImage, createBanner);

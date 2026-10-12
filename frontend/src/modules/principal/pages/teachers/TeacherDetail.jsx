@@ -2,12 +2,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { principalAcademicApi } from '../../../../shared/api/client';
 import { CountCards, EmptyState } from '../academics/components/AcademicUi';
 import { apiMessage } from '../academics/utils';
-import { ArrowLeft, Ban, Loader2, Pencil, Power, Trash2, UserCircle2 } from 'lucide-react';
+import { ArrowLeft, Ban, Loader2, Pencil, Power, UserCircle2 } from 'lucide-react';
 import { DetailPageSkeleton } from '../../components/ui/SkeletonLoader';
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '');
@@ -66,7 +65,6 @@ export const TeacherDetail = () => {
   const [teacher, setTeacher] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const loadTeacher = useCallback(async () => {
     setLoading(true);
@@ -109,17 +107,6 @@ export const TeacherDetail = () => {
     }
   };
 
-  const handleDelete = async () => {
-    setBusy(true);
-    try {
-      await principalAcademicApi.deleteTeacher(teacher.id);
-      showToast('Teacher deleted', 'success');
-      navigate('/principal/teachers');
-    } catch (error) {
-      showToast(apiMessage(error, 'Unable to delete teacher'), 'error');
-      setBusy(false);
-    }
-  };
 
   if (loading) {
     return <DetailPageSkeleton />;
@@ -188,14 +175,6 @@ export const TeacherDetail = () => {
             >
               {teacher.status === 'ACTIVE' ? <Ban className="h-3.5 w-3.5" /> : <Power className="h-3.5 w-3.5" />}
               {teacher.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmDelete(true)}
-              disabled={busy}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-rose-500 hover:border-rose-300 hover:bg-rose-50 disabled:opacity-60 dark:border-slate-700 dark:hover:bg-rose-950/20"
-            >
-              <Trash2 className="h-3.5 w-3.5" /> Delete
             </button>
           </>
         }
@@ -304,15 +283,6 @@ export const TeacherDetail = () => {
         )}
       </DetailCard>
 
-      <ConfirmDialog
-        isOpen={confirmDelete}
-        onClose={() => setConfirmDelete(false)}
-        onConfirm={handleDelete}
-        title="Delete Teacher"
-        message={`"${teacher.name}" will be permanently removed. Teachers with class or subject assignments cannot be deleted – deactivate them instead.`}
-        confirmText="Delete Teacher"
-        variant="danger"
-      />
 
       <ToastComponent />
     </div>

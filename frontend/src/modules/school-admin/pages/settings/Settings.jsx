@@ -24,12 +24,14 @@ import {
   Upload,
 } from 'lucide-react';
 import { SkeletonForm } from '../../components/ui/SkeletonLoader';
+import { AttendanceLocation } from './AttendanceLocation';
 
 const TABS = [
   { id: 'theme', label: 'Theme' },
   { id: 'security', label: 'Security & Password' },
   { id: 'email', label: 'Email Config' },
   { id: 'feePolicy', label: 'Fee Policy' },
+  { id: 'attendanceLocation', label: 'Attendance Location' },
 ];
 
 const FEE_POLICY_DEFAULTS = {
@@ -885,6 +887,8 @@ export const Settings = () => {
           </div>
         </form>
       )}
+
+      {activeTab === 'attendanceLocation' && <AttendanceLocation showToast={showToast} />}
 
       <ToastComponent />
     </div>

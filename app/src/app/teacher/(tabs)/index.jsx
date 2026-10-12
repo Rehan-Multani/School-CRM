@@ -14,8 +14,13 @@ import { Badge, ErrorView, SectionTitle, StaleNotice, StatCard } from '../../../
 import SchoolHeader from '../../../components/SchoolHeader';
 import SchoolBanners from '../../../components/SchoolBanners';
 import RefreshableScroll from '../../../components/RefreshableScroll';
+import SelfAttendancePrompt from '../../../components/attendance/SelfAttendancePrompt';
 import { alpha, font, radius, spacing } from '../../../theme';
 import { SkeletonHome } from '../../../components/Skeleton';
+
+const selfApi = {
+  today: () => teacherApi.selfAttendanceToday(),
+};
 
 // Doc §6.2 — greeting + class-teacher chip, dashboard cards, today's periods,
 // quick access to every teacher module.
@@ -47,6 +52,7 @@ export default function TeacherHome() {
     { icon: 'folder-open-outline', label: 'Materials', to: '/teacher/materials', color: '#8B5CF6' },
     { icon: 'ribbon-outline', label: 'Exams & Marks', to: '/teacher/exams', color: '#EC4899' },
     { icon: 'calendar-outline', label: 'Timetable', to: '/teacher/timetable', color: '#10B981' },
+    { icon: 'finger-print-outline', label: 'Mark Present', to: '/teacher/self-attendance', color: '#EF4444' },
     { icon: 'airplane-outline', label: 'Leaves', to: '/teacher/leaves', color: '#06B6D4' },
     { icon: 'shield-checkmark-outline', label: 'Safe Pickup', to: '/teacher/pickup', color: '#6366F1' },
   ];
@@ -64,6 +70,7 @@ export default function TeacherHome() {
 
   return (
     <View style={{ flex: 1 }}>
+      <SelfAttendancePrompt api={selfApi} route="/teacher/self-attendance" />
       <RefreshableScroll onRefresh={onRefresh} contentContainerStyle={{ paddingBottom: 120 }}>
         <SchoolHeader>
           {ctSections.length ? (

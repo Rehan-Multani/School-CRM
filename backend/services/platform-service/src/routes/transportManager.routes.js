@@ -36,6 +36,11 @@ import {
   managerUndoPickup,
   managerUndoDrop,
 } from '../controllers/transportManager.controller.js';
+import {
+  getManagerSelfAttendanceToday,
+  managerSelfCheckIn,
+  managerSelfCheckOut,
+} from '../controllers/transportManagerSelfAttendance.controller.js';
 
 const router = Router();
 const M = '/school-portal/transport-manager';
@@ -47,6 +52,11 @@ router.get(`${M}/me`, requireTransportManager, transportManagerMe);
 router.post(`${M}/auth/logout`, requireTransportManager, transportManagerLogout);
 router.patch(`${M}/change-password`, requireTransportManager, changePasswordRateLimiter, transportManagerChangePassword);
 router.post(`${M}/account/delete`, requireTransportManager, changePasswordRateLimiter, transportManagerDeleteAccount);
+
+// ============== OWN ATTENDANCE (school radius + fingerprint) ==============
+router.get(`${M}/self-attendance/today`, requireTransportManager, getManagerSelfAttendanceToday);
+router.post(`${M}/self-attendance/check-in`, requireTransportManager, managerSelfCheckIn);
+router.post(`${M}/self-attendance/check-out`, requireTransportManager, managerSelfCheckOut);
 
 // ======================= 02 · ROUTES + FLEET =======================
 router.get(`${M}/overview`, requireTransportManager, getTransportOverview);

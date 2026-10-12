@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { principalUserApi, principalHrApi } from '../../../../shared/api/client';
 import { apiMessage } from '../academics/utils';
@@ -32,7 +31,6 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
-  Trash2,
   Upload,
   UploadCloud,
   UserCheck,
@@ -194,8 +192,6 @@ export const StaffManagement = () => {
   const [showFormPassword, setShowFormPassword] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
 
-  // Delete Dialog
-  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // Department & Designation master data
   const [departments, setDepartments] = useState([]);
@@ -423,17 +419,6 @@ export const StaffManagement = () => {
     }
   };
 
-  const handleDeleteSubmit = async () => {
-    if (!deleteTarget) return;
-    try {
-      await principalUserApi.delete(deleteTarget.id);
-      showToast(`User "${deleteTarget.name}" deleted successfully`, 'success');
-      setDeleteTarget(null);
-      loadUsers();
-    } catch (error) {
-      showToast(apiMessage(error, 'Failed to delete user'), 'error');
-    }
-  };
 
   const handleExportCSV = async () => {
     try {
@@ -726,13 +711,6 @@ export const StaffManagement = () => {
                             <Power className="h-4 w-4" />
                           </button>
 
-                          <button
-                            onClick={() => setDeleteTarget(user)}
-                            className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
-                            title="Delete User"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1404,16 +1382,6 @@ export const StaffManagement = () => {
         </Modal>
       )}
 
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        title="Delete Staff User Record"
-        message={`Are you sure you want to permanently remove "${deleteTarget?.name}" (${deleteTarget?.employeeId})? This action cannot be undone.`}
-        confirmLabel="Delete User"
-        onConfirm={handleDeleteSubmit}
-        onCancel={() => setDeleteTarget(null)}
-        variant="danger"
-      />
 
       <ToastComponent />
     </div>

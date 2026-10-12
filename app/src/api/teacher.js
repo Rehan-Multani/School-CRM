@@ -43,6 +43,11 @@ export const teacherApi = {
   attendanceSummary: (sectionId, month) => data(api.get(`${P}/attendance/summary`, { sectionId, month })),
   studentAttendance: (studentId) => data(api.get(`${P}/attendance/student/${id(studentId)}`)),
 
+  // ---- own attendance (fingerprint + school radius) ----
+  selfAttendanceToday: () => data(api.get(`${P}/self-attendance/today`)),
+  selfCheckIn: (body) => data(api.post(`${P}/self-attendance/check-in`, body)),
+  selfCheckOut: (body) => data(api.post(`${P}/self-attendance/check-out`, body)),
+
   // ---- homework ----
   homeworkList: (params) => api.get(`${P}/homework`, params),
   homework: (hwId) => data(api.get(`${P}/homework/${id(hwId)}`)),

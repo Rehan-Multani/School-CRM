@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { principalPeopleApi } from '../../../api/principal/people';
 import { useAsync } from '../../../lib/useAsync';
-import { confirm, showError, toast } from '../../../lib/notify';
+import { showError, toast } from '../../../lib/notify';
 import { fmtDate } from '../../../lib/format';
 import RefreshableScroll from '../../../components/RefreshableScroll';
 import { SkeletonDetail } from '../../../components/Skeleton';
@@ -57,19 +57,6 @@ export default function PrincipalStudentDetail() {
     }
   };
 
-  const remove = async () => {
-    const ok = await confirm('Delete student?', `"${name}" will be permanently removed. This cannot be undone.`, { confirmText: 'Delete', destructive: true });
-    if (!ok) return;
-    setBusy(true);
-    try {
-      await principalPeopleApi.deleteStudent(s.id);
-      toast('Student deleted');
-      router.back();
-    } catch (err) {
-      showError(err, 'Unable to delete student');
-      setBusy(false);
-    }
-  };
 
   return (
     <RefreshableScroll onRefresh={() => state.reload({ silent: true })} contentContainerStyle={{ padding: spacing.lg, paddingBottom: 110 }}>
@@ -147,8 +134,6 @@ export default function PrincipalStudentDetail() {
           <Button title="Create parent login" icon="people-outline" variant="secondary" onPress={() => setParentOpen(true)} />
         </View>
       </Block>
-
-      <Button title="Delete Student" icon="trash-outline" variant="danger" loading={busy} onPress={remove} style={{ marginTop: spacing.xl }} />
 
       <PasswordSheet
         visible={pwOpen}

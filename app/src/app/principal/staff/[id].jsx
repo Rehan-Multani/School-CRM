@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { principalPeopleApi } from '../../../api/principal/people';
 import { useAsync } from '../../../lib/useAsync';
-import { confirm, showError, toast } from '../../../lib/notify';
+import { showError, toast } from '../../../lib/notify';
 import { fmtDate } from '../../../lib/format';
 import RefreshableScroll from '../../../components/RefreshableScroll';
 import { SkeletonDetail } from '../../../components/Skeleton';
@@ -41,19 +41,6 @@ export default function PrincipalStaffDetail() {
   const toggle = () => {
     const next = u.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
     return act(() => principalPeopleApi.setUserStatus(u.id, next), `User status marked as ${next}`, 'Failed to update user status');
-  };
-  const remove = async () => {
-    const ok = await confirm('Delete staff user?', `Permanently remove "${u.name}" (${u.employeeId})? This cannot be undone.`, { confirmText: 'Delete', destructive: true });
-    if (!ok) return;
-    setBusy(true);
-    try {
-      await principalPeopleApi.deleteUser(u.id);
-      toast('User deleted successfully');
-      router.back();
-    } catch (e) {
-      showError(e, 'Failed to delete user');
-      setBusy(false);
-    }
   };
 
   return (
@@ -119,8 +106,6 @@ export default function PrincipalStaffDetail() {
       <Block title="Uploaded Documents (max 3)">
         <DocView title="KYC Verification Images" paths={Array.isArray(u.documents) ? u.documents.filter(Boolean) : []} />
       </Block>
-
-      <Button title="Delete User" icon="trash-outline" variant="danger" loading={busy} onPress={remove} style={{ marginTop: spacing.xl }} />
 
       <PasswordSheet
         visible={pwOpen}

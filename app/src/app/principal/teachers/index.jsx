@@ -5,7 +5,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '../../../context/ThemeContext';
 import { principalPeopleApi } from '../../../api/principal/people';
 import { useAsync } from '../../../lib/useAsync';
-import { confirm, showError, toast } from '../../../lib/notify';
+import { showError, toast } from '../../../lib/notify';
 import { fmtDate } from '../../../lib/format';
 import { Chip, EmptyState, ErrorView, SearchBar } from '../../../components/kit';
 import { Button } from '../../../components/ui';
@@ -60,10 +60,6 @@ export default function PrincipalTeachers() {
     return run(() => principalPeopleApi.setTeacherStatus(t.id, next), `Teacher ${next === 'ACTIVE' ? 'activated' : 'deactivated'}`, 'Unable to update teacher status');
   };
   const approve = (t) => run(() => principalPeopleApi.approveEmployee(t.id), `${t.name || t.fullName} approved & activated`, 'Unable to approve teacher');
-  const remove = async (t) => {
-    const ok = await confirm('Delete teacher?', `"${t.name}" will be permanently removed. Teachers with class or subject assignments cannot be deleted - deactivate them instead.`, { confirmText: 'Delete', destructive: true });
-    if (ok) run(() => principalPeopleApi.deleteTeacher(t.id), 'Teacher deleted', 'Unable to delete teacher');
-  };
 
   const header = (
     <View style={{ paddingTop: spacing.md }}>
@@ -144,7 +140,6 @@ export default function PrincipalTeachers() {
                     {!pending ? (
                       <ActionLink icon={t.status === 'ACTIVE' ? 'ban-outline' : 'checkmark-circle-outline'} label={t.status === 'ACTIVE' ? 'Deactivate' : 'Activate'} tone={t.status === 'ACTIVE' ? 'warning' : 'success'} onPress={() => toggle(t)} />
                     ) : null}
-                    <ActionLink icon="trash-outline" label="Delete" tone="danger" onPress={() => remove(t)} />
                   </>
                 }
               />

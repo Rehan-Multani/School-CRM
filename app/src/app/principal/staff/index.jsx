@@ -8,7 +8,7 @@ import PagedList from '../../../components/PagedList';
 import { Badge, Chip, EmptyState, SearchBar } from '../../../components/kit';
 import { Button } from '../../../components/ui';
 import { SkeletonList } from '../../../components/Skeleton';
-import { confirm, showError, toast } from '../../../lib/notify';
+import { showError, toast } from '../../../lib/notify';
 import { spacing } from '../../../theme';
 import { ActionLink, CountStrip, PasswordSheet, PersonCard, StatusPill, useDebounced } from '../../../components/principal/people/shared';
 import { ROLE_LABELS, ROLE_TABS, ROLE_TONES } from '../../../components/principal/people/staffRoles';
@@ -46,10 +46,6 @@ export default function PrincipalStaff() {
     return run(() => principalPeopleApi.setUserStatus(u.id, next), `${u.name} marked as ${next}`, 'Failed to toggle status');
   };
   const sendCreds = (u) => run(() => principalPeopleApi.sendUserCredentials(u.id), (r) => r?.message || `Credentials dispatched to ${u.email}`, 'Failed to send credentials email');
-  const remove = async (u) => {
-    const ok = await confirm('Delete staff user?', `Permanently remove "${u.name}" (${u.employeeId})? This cannot be undone.`, { confirmText: 'Delete', destructive: true });
-    if (ok) run(() => principalPeopleApi.deleteUser(u.id), `User "${u.name}" deleted`, 'Failed to delete user');
-  };
 
   const header = (
     <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.md }}>
@@ -104,7 +100,6 @@ export default function PrincipalStaff() {
                 <ActionLink icon="key-outline" label="Password" tone="warning" onPress={() => setPwUser(u)} />
                 <ActionLink icon="send-outline" label="Send login" onPress={() => sendCreds(u)} />
                 <ActionLink icon="power-outline" label={u.status === 'ACTIVE' ? 'Deactivate' : 'Activate'} tone={u.status === 'ACTIVE' ? 'warning' : 'success'} onPress={() => toggle(u)} />
-                <ActionLink icon="trash-outline" label="Delete" tone="danger" onPress={() => remove(u)} />
               </>
             }
           />

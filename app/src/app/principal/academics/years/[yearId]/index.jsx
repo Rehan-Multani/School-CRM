@@ -9,7 +9,7 @@ import { AsyncView, Badge, EmptyState, SectionTitle } from '../../../../../compo
 import { Button, Card } from '../../../../../components/ui';
 import { SkeletonDetail } from '../../../../../components/Skeleton';
 import { ActionPill, ActionRow, CountGrid, Meta, StatusBadge, YEAR_TONE } from '../../../../../components/principal/academics/kit';
-import { actConfirmed, deleteYear, runYearAction, yearActions } from '../../../../../components/principal/academics/helpers';
+import { actConfirmed, runYearAction, toggleActive, yearActions } from '../../../../../components/principal/academics/helpers';
 import { font, spacing } from '../../../../../theme';
 
 // One academic year: lifecycle actions, mapped classes, and each class's sections.
@@ -54,7 +54,6 @@ export default function YearDetail() {
                     {yearActions(year).map((a) => (
                       <ActionPill key={a.key} icon={a.icon} label={a.label} tone={a.tone} onPress={async () => (await runYearAction(year, a)) && reload()} />
                     ))}
-                    <ActionPill icon="trash-outline" label="Delete" tone="danger" onPress={async () => (await deleteYear(year)) && router.back()} />
                   </ActionRow>
                 </Card>
 
@@ -123,17 +122,10 @@ export default function YearDetail() {
                                   onPress={() => router.push({ pathname: `/principal/academics/years/${yearId}/section-form`, params: { sectionId: s.id, classId: item.classId, className: item.class?.name || '' } })}
                                 />
                                 <ActionPill
-                                  icon="trash-outline"
-                                  label="Delete"
-                                  tone="danger"
-                                  onPress={async () => {
-                                    const ok = await actConfirmed(
-                                      { title: 'Delete section', message: `Are you sure you want to delete "${s.name}"?`, confirmText: 'Delete' },
-                                      () => api.deleteSection(s.id),
-                                      'Section deleted successfully',
-                                    );
-                                    if (ok) reload();
-                                  }}
+                                  icon="power-outline"
+                                  label={s.status === 'INACTIVE' ? 'Activate' : 'Deactivate'}
+                                  tone={s.status === 'INACTIVE' ? 'success' : 'warning'}
+                                  onPress={async () => (await toggleActive((body) => api.updateSection(s.id, body), s.status !== 'INACTIVE', 'Section')) && reload()}
                                 />
                               </ActionRow>
                             </View>

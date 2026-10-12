@@ -7,7 +7,7 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { homeworkApi, academicPortalApi } from '../../../../shared/api/client';
 import { apiMessage } from '../academics/utils';
-import { ClipboardList, CheckCircle2, AlertTriangle, ListChecks, Plus, Pencil, Trash2 } from 'lucide-react';
+import { ClipboardList, CheckCircle2, AlertTriangle, ListChecks, Plus, Pencil, Trash2, Power } from 'lucide-react';
 
 const inputClass =
   'h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white';
@@ -73,6 +73,7 @@ export const HomeworkMonitor = () => {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [togglingId, setTogglingId] = useState(null);
 
   const loadRef = useCallback(async () => {
     try {
@@ -212,6 +213,24 @@ export const HomeworkMonitor = () => {
     }
   };
 
+  // Active = ASSIGNED (students can submit), Inactive = CLOSED (no more submissions).
+  const toggleStatus = useCallback(
+    async (row) => {
+      const next = row.status === 'CLOSED' ? 'ASSIGNED' : 'CLOSED';
+      setTogglingId(row.id);
+      try {
+        await homeworkApi.update(row.id, { status: next });
+        showToast(next === 'ASSIGNED' ? 'Homework activated' : 'Homework deactivated', 'success');
+        load();
+      } catch (err) {
+        showToast(apiMessage(err, 'Unable to change homework status'), 'error');
+      } finally {
+        setTogglingId(null);
+      }
+    },
+    [load, showToast]
+  );
+
   const columns = useMemo(
     () => [
       {
@@ -243,7 +262,9 @@ export const HomeworkMonitor = () => {
       {
         key: 'status',
         title: 'Status',
-        render: (v) => <Badge variant={v === 'CLOSED' ? 'default' : 'success'}>{v}</Badge>,
+        render: (v) => (
+          <Badge variant={v === 'CLOSED' ? 'default' : 'success'}>{v === 'CLOSED' ? 'Inactive' : 'Active'}</Badge>
+        ),
       },
       {
         key: '_actions',
@@ -251,6 +272,19 @@ export const HomeworkMonitor = () => {
         align: 'right',
         render: (_v, row) => (
           <div className="flex items-center justify-end gap-1">
+            <button
+              type="button"
+              onClick={() => toggleStatus(row)}
+              disabled={togglingId === row.id}
+              className={`rounded-lg p-1.5 disabled:opacity-50 ${
+                row.status === 'CLOSED'
+                  ? 'text-slate-400 hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-950/30'
+                  : 'text-emerald-600 hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-950/30'
+              }`}
+              title={row.status === 'CLOSED' ? 'Activate' : 'Deactivate'}
+            >
+              <Power size={15} />
+            </button>
             <button
               type="button"
               onClick={() => openEdit(row)}
@@ -271,7 +305,7 @@ export const HomeworkMonitor = () => {
         ),
       },
     ],
-    []
+    [toggleStatus, togglingId]
   );
 
   const statCards = [
@@ -341,8 +375,8 @@ export const HomeworkMonitor = () => {
           className="h-10 rounded-xl border border-slate-200 bg-slate-50/80 px-3 text-xs font-semibold outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
         >
           <option value="ALL">All Statuses</option>
-          <option value="ASSIGNED">Assigned</option>
-          <option value="CLOSED">Closed</option>
+          <option value="ASSIGNED">Active</option>
+          <option value="CLOSED">Inactive</option>
         </select>
       </div>
 
@@ -448,8 +482,8 @@ export const HomeworkMonitor = () => {
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Status</label>
               <select className={inputClass} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                <option value="ASSIGNED">Assigned</option>
-                <option value="CLOSED">Closed</option>
+                <option value="ASSIGNED">Active</option>
+                <option value="CLOSED">Inactive</option>
               </select>
             </div>
           </div>

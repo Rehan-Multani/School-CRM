@@ -2,12 +2,11 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { principalStudentApi } from '../../../../shared/api/client';
 import { CountCards, EmptyState } from '../academics/components/AcademicUi';
 import { apiMessage } from '../academics/utils';
-import { ArrowLeft, Ban, Loader2, Pencil, Power, Trash2, UserCircle2 } from 'lucide-react';
+import { ArrowLeft, Ban, Loader2, Pencil, Power, UserCircle2 } from 'lucide-react';
 import { DetailPageSkeleton } from '../../components/ui/SkeletonLoader';
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '');
@@ -83,7 +82,6 @@ export const StudentDetail = () => {
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const loadStudent = useCallback(async () => {
     setLoading(true);
@@ -126,17 +124,6 @@ export const StudentDetail = () => {
     }
   };
 
-  const handleDelete = async () => {
-    setBusy(true);
-    try {
-      await principalStudentApi.deleteStudent(student.id);
-      showToast('Student deleted', 'success');
-      navigate('/principal/students');
-    } catch (error) {
-      showToast(apiMessage(error, 'Unable to delete student'), 'error');
-      setBusy(false);
-    }
-  };
 
   if (loading) {
     return <DetailPageSkeleton />;
@@ -186,14 +173,6 @@ export const StudentDetail = () => {
             >
               {student.status === 'ACTIVE' ? <Ban className="h-3.5 w-3.5" /> : <Power className="h-3.5 w-3.5" />}
               {student.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmDelete(true)}
-              disabled={busy}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-rose-500 hover:border-rose-300 hover:bg-rose-50 disabled:opacity-60 dark:border-slate-700 dark:hover:bg-rose-950/20"
-            >
-              <Trash2 className="h-3.5 w-3.5" /> Delete Student
             </button>
           </>
         }
@@ -305,15 +284,6 @@ export const StudentDetail = () => {
         )}
       </DetailCard>
 
-      <ConfirmDialog
-        isOpen={confirmDelete}
-        onClose={() => setConfirmDelete(false)}
-        onConfirm={handleDelete}
-        title="Delete Student"
-        message={`"${student.name}" will be permanently removed. This action cannot be undone.`}
-        confirmText="Delete Student"
-        variant="danger"
-      />
 
       <ToastComponent />
     </div>

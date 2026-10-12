@@ -22,10 +22,10 @@ import { buildStarter, isLayoutDoc, pageDimensions } from './designer/layoutMode
  */
 
 const inputClass =
-  'h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-800 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100';
+  'h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-800 outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100';
 const labelClass = 'mb-1 block text-[11px] font-bold uppercase tracking-wide text-slate-400';
 const btnPrimary =
-  'inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 text-sm font-bold text-white transition hover:bg-indigo-700 disabled:opacity-50';
+  'inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-white transition hover:bg-primary-hover disabled:opacity-50';
 const btnGhost =
   'inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100';
 
@@ -117,7 +117,7 @@ function openBlankWindow(setError) {
 function Check({ label, checked, onChange }) {
   return (
     <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-      <input type="checkbox" className="h-4 w-4 accent-indigo-600" checked={Boolean(checked)} onChange={(e) => onChange(e.target.checked)} />
+      <input type="checkbox" className="h-4 w-4 accent-primary" checked={Boolean(checked)} onChange={(e) => onChange(e.target.checked)} />
       {label}
     </label>
   );
@@ -322,7 +322,7 @@ function TemplateEditor({ initial, school, saving, onSave, onCancel }) {
                     type="button"
                     title={label}
                     onClick={() => insertVariable(key)}
-                    className="rounded-md border border-indigo-200 bg-indigo-50 px-2 py-0.5 font-mono text-[11px] font-semibold text-indigo-700 hover:bg-indigo-100 dark:border-indigo-500/30 dark:bg-indigo-500/10 dark:text-indigo-300"
+                    className="rounded-md border border-primary/25 bg-primary/10 px-2 py-0.5 font-mono text-[11px] font-semibold text-primary hover:bg-primary/20 dark:border-primary/30 dark:bg-primary/10 dark:text-primary"
                   >
                     {`{{${key}}}`}
                   </button>
@@ -335,7 +335,7 @@ function TemplateEditor({ initial, school, saving, onSave, onCancel }) {
             )}
           </section>
 
-          <section className="space-y-3 rounded-2xl border border-indigo-200 bg-indigo-50/60 p-4 dark:border-indigo-500/30 dark:bg-indigo-500/10">
+          <section className="space-y-3 rounded-2xl border border-primary/25 bg-primary/5 p-4 dark:border-primary/30 dark:bg-primary/10">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white">Advanced designer</h3>
@@ -398,7 +398,7 @@ function TemplateEditor({ initial, school, saving, onSave, onCancel }) {
                     onClick={() => patchDesign({ ...preset.values, secondSignatory: design.secondSignatory, secondSignatoryLabel: design.secondSignatoryLabel })}
                     className={`rounded-xl border px-3 py-1.5 text-sm font-bold transition ${
                       design.preset === key
-                        ? 'border-indigo-500 bg-indigo-600 text-white'
+                        ? 'border-primary bg-primary text-white'
                         : 'border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
                     }`}
                   >
@@ -587,7 +587,7 @@ function TemplatesTab({ api, school, onGenerate }) {
     <div className="space-y-5">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
-          ['Templates', stats.total, 'from-indigo-500 to-violet-500', LayoutGrid],
+          ['Templates', stats.total, 'from-primary to-primary-hover', LayoutGrid],
           ['Published', stats.published, 'from-emerald-500 to-teal-500', FileCheck2],
           ['Drafts', stats.drafts, 'from-amber-500 to-orange-500', FileText],
           ['Issued', stats.issued, 'from-sky-500 to-blue-600', Award],
@@ -618,7 +618,7 @@ function TemplatesTab({ api, school, onGenerate }) {
                 onClick={() => setFilter(key)}
                 className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-bold transition ${
                   filter === key
-                    ? 'border-indigo-600 bg-indigo-600 text-white'
+                    ? 'border-primary bg-primary text-white'
                     : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300'
                 }`}
               >
@@ -642,7 +642,7 @@ function TemplatesTab({ api, school, onGenerate }) {
         </div>
       ) : visible.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-300 bg-white py-14 text-center dark:border-slate-700 dark:bg-slate-900">
-          <Sparkles className="mx-auto h-8 w-8 text-indigo-400" />
+          <Sparkles className="mx-auto h-8 w-8 text-primary/70" />
           <div className="mt-3 text-sm font-bold text-slate-700 dark:text-slate-200">
             {templates.length ? 'No design matches this filter' : 'No designs yet'}
           </div>
@@ -695,7 +695,7 @@ function TemplatesTab({ api, school, onGenerate }) {
                       <Pencil className="mr-1 inline h-3.5 w-3.5" />Edit
                     </button>
                     {published && (
-                      <button type="button" className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white shadow hover:bg-indigo-700" onClick={() => onGenerate(template)}>
+                      <button type="button" className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white shadow hover:bg-primary-hover" onClick={() => onGenerate(template)}>
                         <Send className="mr-1 inline h-3.5 w-3.5" />{isLayoutDoc(template.type) ? 'Print' : 'Generate'}
                       </button>
                     )}
@@ -707,14 +707,14 @@ function TemplatesTab({ api, school, onGenerate }) {
                     <div className="truncate text-xs text-slate-500">{template.title}</div>
                   </div>
                   <div className="flex flex-wrap gap-1.5 text-[11px] font-semibold text-slate-500">
-                    <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">{typeLabel(template.type)}</span>
+                    <span className="rounded-md bg-primary/10 px-2 py-0.5 text-primary dark:bg-primary/10 dark:text-primary">{typeLabel(template.type)}</span>
                     {!isLayoutDoc(template.type) && (
                       <span className="rounded-md bg-slate-100 px-2 py-0.5 dark:bg-slate-800">For {template.applicableTo.toLowerCase()}</span>
                     )}
                     {!isLayoutDoc(template.type) && (
                       <span className="rounded-md bg-slate-100 px-2 py-0.5 dark:bg-slate-800">{template.issuedCount} issued</span>
                     )}
-                    {design.layout && <span className="rounded-md bg-violet-50 px-2 py-0.5 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300">Custom design</span>}
+                    {design.layout && <span className="rounded-md bg-primary/10 px-2 py-0.5 text-primary dark:bg-primary/10 dark:text-primary">Custom design</span>}
                   </div>
                   <div className="mt-auto flex items-center gap-1 pt-2">
                     <button type="button" className={`${btnGhost} h-8 px-2.5 text-xs`} onClick={() => toggleStatus(template)}>
@@ -1121,14 +1121,14 @@ function GenerateTab({ api, options, school, initialTemplateId, onIssued }) {
 
             <div className="flex flex-wrap items-center gap-3 text-sm">
               <label className="flex cursor-pointer items-center gap-2 font-semibold text-slate-700 dark:text-slate-200">
-                <input type="checkbox" className="h-4 w-4 accent-indigo-600" checked={pageAll} disabled={!people.length} onChange={togglePage} />
+                <input type="checkbox" className="h-4 w-4 accent-primary" checked={pageAll} disabled={!people.length} onChange={togglePage} />
                 Select this page
               </label>
               <span className="text-xs font-medium text-slate-500">
                 {pagination.total} found{selected.size ? ` - ${selected.size} selected` : ''}
               </span>
               {selected.size > 0 && (
-                <button type="button" className="text-xs font-bold text-indigo-600" onClick={() => setSelected(new Map())}>
+                <button type="button" className="text-xs font-bold text-primary" onClick={() => setSelected(new Map())}>
                   Clear
                 </button>
               )}
@@ -1142,7 +1142,7 @@ function GenerateTab({ api, options, school, initialTemplateId, onIssued }) {
               ) : (
                 people.map((person) => (
                   <label key={person.id} className="flex cursor-pointer items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                    <input type="checkbox" className="h-4 w-4 accent-indigo-600" checked={selected.has(person.id)} onChange={() => toggle(person)} />
+                    <input type="checkbox" className="h-4 w-4 accent-primary" checked={selected.has(person.id)} onChange={() => toggle(person)} />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-bold text-slate-900 dark:text-white">{person.name}</span>
                       <span className="block truncate text-xs text-slate-500">{[person.ref, person.subtitle].filter(Boolean).join(' - ')}</span>
@@ -1335,9 +1335,9 @@ function IssuedTab({ api, school, refreshKey }) {
               rows.map((row) => (
                 <tr key={row.id} className={row.status === 'REVOKED' ? 'bg-rose-50/40 dark:bg-rose-950/10' : ''}>
                   <td className="px-3 py-3">
-                    <input type="checkbox" className="h-4 w-4 accent-indigo-600" disabled={row.status !== 'ISSUED'} checked={selected.has(row.id)} onChange={() => toggle(row)} />
+                    <input type="checkbox" className="h-4 w-4 accent-primary" disabled={row.status !== 'ISSUED'} checked={selected.has(row.id)} onChange={() => toggle(row)} />
                   </td>
-                  <td className="px-3 py-3 font-mono text-xs font-bold text-indigo-600">{row.certificateNumber}</td>
+                  <td className="px-3 py-3 font-mono text-xs font-bold text-primary">{row.certificateNumber}</td>
                   <td className="px-3 py-3">
                     <div className="font-bold text-slate-900 dark:text-white">{row.recipientName}</div>
                     <div className="text-xs text-slate-500">{[row.recipientRef, row.recipientType.toLowerCase()].filter(Boolean).join(' - ')}</div>
@@ -1411,7 +1411,7 @@ export default function CertificateManager({ api }) {
 
   return (
     <div className="space-y-5">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-6 text-white shadow-lg">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary-hover via-primary to-primary/70 p-6 text-white shadow-lg">
         <div className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-white/10" />
         <div className="pointer-events-none absolute -bottom-16 right-24 h-40 w-40 rounded-full bg-white/10" />
         <div className="relative flex flex-wrap items-center justify-between gap-4">
@@ -1433,7 +1433,7 @@ export default function CertificateManager({ api }) {
                 type="button"
                 onClick={() => setTab(key)}
                 className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold transition ${
-                  tab === key ? 'bg-white text-indigo-700 shadow' : 'text-white/90 hover:bg-white/10'
+                  tab === key ? 'bg-white text-primary shadow' : 'text-white/90 hover:bg-white/10'
                 }`}
               >
                 <Icon className="h-4 w-4" />

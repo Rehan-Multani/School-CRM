@@ -81,6 +81,16 @@ const schoolSchema = new mongoose.Schema(
       safePickupEnabled: { type: Boolean, default: false },
       // School Admin toggle: lets this school's Principal open the Database Backup page.
       principalBackupEnabled: { type: Boolean, default: false },
+      // School Admin sets this: teachers can mark their own attendance from the
+      // app only while inside this circle (and after a fingerprint check).
+      attendanceGeofence: {
+        enabled: { type: Boolean, default: false },
+        latitude: { type: Number, default: null },
+        longitude: { type: Number, default: null },
+        radiusMeters: { type: Number, default: 100 },
+        requireBiometric: { type: Boolean, default: true },
+        label: { type: String, default: '', trim: true },
+      },
       // Set once the default ExamType list has been created for this school, so
       // deleting every type does not bring the defaults back.
       examTypesSeeded: { type: Boolean, default: false },

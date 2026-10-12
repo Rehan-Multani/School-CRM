@@ -316,6 +316,10 @@ export const schoolPortalApi = {
     schoolAdminClient.patch('/platform/school-portal/settings/password', payload).then((res) => res.data),
   updateEmailSettings: (payload) =>
     schoolAdminClient.patch('/platform/school-portal/settings/email', payload).then((res) => res.data),
+  attendanceGeofence: () =>
+    schoolAdminClient.get('/platform/school-portal/settings/attendance-geofence').then((res) => res.data),
+  updateAttendanceGeofence: (payload) =>
+    schoolAdminClient.put('/platform/school-portal/settings/attendance-geofence', payload).then((res) => res.data),
   notifications: () => schoolAdminClient.get('/platform/school-portal/notifications').then((res) => res.data),
   sendNotification: (payload) =>
     schoolAdminClient.post('/platform/school-portal/notifications', payload).then((res) => res.data),

@@ -9,7 +9,7 @@ import { AsyncView, EmptyState, Select, SectionTitle } from '../../../../../../c
 import { Button, Card } from '../../../../../../components/ui';
 import { SkeletonDetail } from '../../../../../../components/Skeleton';
 import { ActionPill, CountGrid, FilterChips, Meta, StatusBadge, teacherLabel } from '../../../../../../components/principal/academics/kit';
-import { act, actConfirmed } from '../../../../../../components/principal/academics/helpers';
+import { act, toggleActive } from '../../../../../../components/principal/academics/helpers';
 import { font, spacing } from '../../../../../../theme';
 
 const TABS = [
@@ -116,17 +116,10 @@ export default function SectionDetail() {
                           <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md }}>
                             <ActionPill icon="create-outline" label="Edit" tone="muted" onPress={() => router.push({ pathname: '/principal/academics/subject-assignments/form', params: { id: item.id } })} />
                             <ActionPill
-                              icon="trash-outline"
-                              label="Remove"
-                              tone="danger"
-                              onPress={async () => {
-                                const ok = await actConfirmed(
-                                  { title: 'Remove subject', message: `Remove subject "${item.subject?.name}" from the section?`, confirmText: 'Remove' },
-                                  () => api.deleteSectionSubject(item.id),
-                                  'Subject removed',
-                                );
-                                if (ok) reload();
-                              }}
+                              icon="power-outline"
+                              label={item.status !== 'INACTIVE' ? 'Deactivate' : 'Activate'}
+                              tone={item.status !== 'INACTIVE' ? 'warning' : 'success'}
+                              onPress={async () => (await toggleActive((body) => api.updateSectionSubject(item.id, body), item.status !== 'INACTIVE', 'Subject')) && reload()}
                             />
                           </View>
                         </Card>

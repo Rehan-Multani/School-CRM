@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { principalPeopleApi } from '../../../api/principal/people';
 import { useAsync } from '../../../lib/useAsync';
-import { confirm, showError, toast } from '../../../lib/notify';
+import { showError, toast } from '../../../lib/notify';
 import { fmtDate } from '../../../lib/format';
 import RefreshableScroll from '../../../components/RefreshableScroll';
 import { SkeletonDetail } from '../../../components/Skeleton';
@@ -50,19 +50,6 @@ export default function PrincipalTeacherDetail() {
   const toggle = () => {
     const next = t.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
     return act(() => principalPeopleApi.setTeacherStatus(t.id, next), `Teacher ${next === 'ACTIVE' ? 'activated' : 'deactivated'}`, 'Unable to update teacher status');
-  };
-  const remove = async () => {
-    const ok = await confirm('Delete teacher?', `"${name}" will be permanently removed. Teachers with class or subject assignments cannot be deleted - deactivate them instead.`, { confirmText: 'Delete', destructive: true });
-    if (!ok) return;
-    setBusy(true);
-    try {
-      await principalPeopleApi.deleteTeacher(t.id);
-      toast('Teacher deleted');
-      router.back();
-    } catch (e) {
-      showError(e, 'Unable to delete teacher');
-      setBusy(false);
-    }
   };
 
   return (
@@ -118,8 +105,6 @@ export default function PrincipalTeacherDetail() {
         <InfoList rows={[['Login email', t.account?.loginEmail], ['Login status', t.account?.accountStatus]]} />
         <Button title="Set login password" icon="key-outline" variant="secondary" onPress={() => setPwOpen(true)} style={{ marginTop: spacing.sm }} />
       </Block>
-
-      <Button title="Delete Teacher" icon="trash-outline" variant="danger" loading={busy} onPress={remove} style={{ marginTop: spacing.xl }} />
 
       <PasswordSheet
         visible={pwOpen}

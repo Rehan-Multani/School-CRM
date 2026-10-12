@@ -35,6 +35,7 @@ export default function TransportLayout() {
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="route/[routeId]" options={{ title: 'Route' }} />
+        <Stack.Screen name="self-attendance" options={{ title: 'Mark Present' }} />
         <Stack.Screen name="profile/change-password" options={{ title: 'Change Password' }} />
       </Stack>
     </>

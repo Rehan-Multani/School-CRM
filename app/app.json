@@ -2,7 +2,7 @@
   "expo": {
     "name": "School CRM",
     "slug": "school-crm",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -21,6 +21,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "package": "com.schoolcrm.app",
+      "versionCode": 2,
       "permissions": [
         "android.permission.INTERNET",
         "android.permission.ACCESS_NETWORK_STATE",
@@ -78,6 +79,20 @@
           "cameraPermission": "School CRM uses the camera to scan the parent's pickup QR code.",
           "microphonePermission": false,
           "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "School CRM uses your location only to confirm you are at school when you mark your attendance.",
+          "isAndroidBackgroundLocationEnabled": false,
+          "isIosBackgroundLocationEnabled": false
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "School CRM uses Face ID to verify it is you when you mark your attendance."
         }
       ],
       "expo-build-properties"

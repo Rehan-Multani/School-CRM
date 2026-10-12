@@ -41,20 +41,17 @@ export default function ExamHub() {
     }
   };
 
-  const remove = async (exam) => {
-    const ok = await confirm(
-      'Delete examination?',
-      `"${exam.name}" and all its subjects, timetable, marks and results will be permanently removed.`,
-      { confirmText: 'Delete', destructive: true },
-    );
-    if (!ok) return;
+  // Activate / deactivate (replaces delete): an inactive exam is hidden from students and parents.
+  const toggleActive = async (exam) => {
+    const next = exam.isActive === false;
     setBusy(true);
     try {
-      const res = await principalExamsApi.remove(exam.id);
-      toast.success(res?.message || 'Exam term removed');
-      router.back();
+      await principalExamsApi.update(exam.id, { isActive: next });
+      toast.success(next ? 'Examination activated' : 'Examination deactivated');
+      await state.reload({ silent: true });
     } catch (e) {
-      showError(e, 'Could not delete exam');
+      showError(e, 'Could not update exam');
+    } finally {
       setBusy(false);
     }
   };
@@ -97,7 +94,13 @@ export default function ExamHub() {
               <SectionTitle title="Manage" />
               <Card style={{ paddingVertical: 0 }}>
                 <ListRow icon="pencil-outline" title="Edit examination" onPress={() => router.push({ pathname: '/principal/exams/form', params: { examId } })} />
-                <ListRow icon="trash-outline" iconColor={theme.danger} title="Delete examination" subtitle="Removes subjects, timetable, marks and results" onPress={() => remove(exam)} />
+                <ListRow
+                  icon="power-outline"
+                  iconColor={exam.isActive === false ? theme.success : theme.warning}
+                  title={exam.isActive === false ? 'Activate examination' : 'Deactivate examination'}
+                  subtitle={exam.isActive === false ? 'Show this exam to students and parents again' : 'Hides this exam from students and parents'}
+                  onPress={() => toggleActive(exam)}
+                />
               </Card>
             </>
           );

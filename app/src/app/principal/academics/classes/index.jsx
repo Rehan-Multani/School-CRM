@@ -10,7 +10,7 @@ import { AsyncView, EmptyState, Select } from '../../../../components/kit';
 import { Button, Card } from '../../../../components/ui';
 import { SkeletonCards } from '../../../../components/Skeleton';
 import { ActionPill, ActionRow, FilterChips, Meta, StatusBadge } from '../../../../components/principal/academics/kit';
-import { actConfirmed, classDescription, importEach, importSummary } from '../../../../components/principal/academics/helpers';
+import { classDescription, importEach, importSummary, toggleActive } from '../../../../components/principal/academics/helpers';
 import { SAMPLES, csvEscape, parseClasses, pickCsvText, shareCsv } from '../../../../components/principal/academics/csv';
 import { font, spacing } from '../../../../theme';
 
@@ -171,17 +171,10 @@ export default function ClassesScreen() {
                       <ActionRow>
                         <ActionPill icon="create-outline" label="Edit" tone="muted" onPress={() => router.push({ pathname: '/principal/academics/classes/form', params: { id: cls.id } })} />
                         <ActionPill
-                          icon="trash-outline"
-                          label="Delete"
-                          tone="danger"
-                          onPress={async () => {
-                            const ok = await actConfirmed(
-                              { title: 'Delete class', message: `Delete class "${cls.name}"?`, confirmText: 'Delete' },
-                              () => api.deleteClass(cls.id),
-                              'Class deleted successfully',
-                            );
-                            if (ok) reloadAll();
-                          }}
+                          icon="power-outline"
+                          label={cls.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                          tone={cls.status === 'ACTIVE' ? 'warning' : 'success'}
+                          onPress={async () => (await toggleActive((body) => api.updateClass(cls.id, body), cls.status === 'ACTIVE', 'Class')) && reloadAll()}
                         />
                       </ActionRow>
                     </Card>

@@ -49,6 +49,11 @@ import {
   getStudentAttendance,
   getAttendanceSummary,
 } from '../controllers/teacher/teacherAttendance.controller.js';
+import {
+  getSelfAttendanceToday,
+  selfCheckIn,
+  selfCheckOut,
+} from '../controllers/teacher/teacherSelfAttendance.controller.js';
 import { withIdempotency } from '../middleware/idempotency.js';
 import { pickupRateLimiter } from '../middleware/pickupRateLimiter.js';
 import { uploadMaterialFile, verifyMaterialFile } from '../middleware/uploadTeacherResource.js';
@@ -159,6 +164,10 @@ router.get('/school-portal/teacher/attendance/history', requireTeacher, getAtten
 router.get('/school-portal/teacher/attendance/summary', requireTeacher, getAttendanceSummary);
 router.get('/school-portal/teacher/attendance/section/:sectionId', requireTeacher, oid('sectionId'), getSectionAttendance);
 router.get('/school-portal/teacher/attendance/student/:studentId', requireTeacher, oid('studentId'), getStudentAttendance);
+// The teacher's OWN attendance: admin-set geofence + fingerprint, written to StaffAttendance.
+router.get('/school-portal/teacher/self-attendance/today', requireTeacher, getSelfAttendanceToday);
+router.post('/school-portal/teacher/self-attendance/check-in', requireTeacher, selfCheckIn);
+router.post('/school-portal/teacher/self-attendance/check-out', requireTeacher, selfCheckOut);
 router.post('/school-portal/teacher/attendance', requireTeacher, withIdempotency('attendance.submit'), submitAttendance);
 router.patch('/school-portal/teacher/attendance/:attendanceId', requireTeacher, oid('attendanceId'), patchAttendance);
 router.post('/school-portal/teacher/attendance/:attendanceId/finalize', requireTeacher, oid('attendanceId'), finalizeAttendance);

@@ -13,7 +13,12 @@ import SchoolHeader from '../../../components/SchoolHeader';
 import SchoolBanners from '../../../components/SchoolBanners';
 import RefreshableScroll from '../../../components/RefreshableScroll';
 import DayStepper from '../../../components/transport/DayStepper';
-import { alpha, font, spacing } from '../../../theme';
+import SelfAttendancePrompt from '../../../components/attendance/SelfAttendancePrompt';
+import { alpha, font, radius, spacing } from '../../../theme';
+
+const selfApi = {
+  today: () => transportApi.selfAttendanceToday(),
+};
 
 // Home: every route of the school for one day, with how far its pickup and
 // drop have got. Tapping a route opens its student list for the same day.
@@ -28,6 +33,7 @@ export default function TransportHome() {
 
   return (
     <RefreshableScroll onRefresh={() => state.reload({ silent: true })} contentContainerStyle={{ paddingBottom: 110 }}>
+      <SelfAttendancePrompt api={selfApi} route="/transport/self-attendance" />
       <SchoolHeader>
         <View style={[styles.chip, { backgroundColor: alpha('#FFFFFF', 0.2) }]}>
           <Ionicons name="bus" size={12} color={theme.onPrimary} />
@@ -37,6 +43,15 @@ export default function TransportHome() {
       <SchoolBanners />
 
       <View style={styles.body}>
+        <Pressable onPress={() => router.push('/transport/self-attendance')} style={styles.markCard} accessibilityRole="button">
+          <Ionicons name="finger-print" size={22} color={theme.primary} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.markTitle}>Mark Present</Text>
+            <Text style={styles.markSub}>Mark your own attendance (at school, with fingerprint)</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+        </Pressable>
+
         <DayStepper date={date} onChange={setDate} />
 
         {state.loading && !state.data ? (
@@ -132,6 +147,19 @@ function Leg({ label, done, total, color }) {
 const makeStyles = (t) =>
   StyleSheet.create({
     body: { padding: spacing.lg },
+    markCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      padding: spacing.md,
+      marginBottom: spacing.md,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: t.border,
+      backgroundColor: t.surface,
+    },
+    markTitle: { fontSize: font.md, fontWeight: '800', color: t.text },
+    markSub: { fontSize: font.sm, color: t.textMuted, marginTop: 2 },
     chip: {
       flexDirection: 'row',
       alignItems: 'center',

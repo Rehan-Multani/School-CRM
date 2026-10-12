@@ -3,7 +3,6 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { principalUserApi } from '../../../../shared/api/client';
 import { apiMessage } from '../academics/utils';
@@ -23,7 +22,6 @@ import {
   Power,
   Send,
   ShieldCheck,
-  Trash2,
   User,
   UserCheck,
   UserX,
@@ -109,7 +107,6 @@ export const StaffDetail = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -187,18 +184,6 @@ export const StaffDetail = () => {
     }
   };
 
-  const handleDeleteUser = async () => {
-    if (!user) return;
-    setBusy(true);
-    try {
-      await principalUserApi.delete(user.id);
-      showToast('User deleted successfully', 'success');
-      navigate('/principal/staff');
-    } catch (error) {
-      showToast(apiMessage(error, 'Failed to delete user'), 'error');
-      setBusy(false);
-    }
-  };
 
   if (loading) {
     return <DetailPageSkeleton />;
@@ -309,13 +294,6 @@ export const StaffDetail = () => {
               {user.status === 'ACTIVE' ? 'Deactivate' : 'Activate'}
             </button>
 
-            <button
-              onClick={() => setConfirmDelete(true)}
-              disabled={busy}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-bold text-rose-700 shadow-sm transition hover:bg-rose-100 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
-            >
-              <Trash2 className="h-3.5 w-3.5" /> Delete
-            </button>
           </div>
         </div>
       </div>
@@ -537,16 +515,6 @@ export const StaffDetail = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={confirmDelete}
-        title="Delete User Record"
-        message={`Are you sure you want to permanently remove "${user.name}" (${user.employeeId})? This action cannot be undone.`}
-        confirmLabel="Delete User"
-        onConfirm={handleDeleteUser}
-        onCancel={() => setConfirmDelete(false)}
-        variant="danger"
-      />
 
       <ToastComponent />
     </div>

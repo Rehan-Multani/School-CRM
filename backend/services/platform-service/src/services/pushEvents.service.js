@@ -148,7 +148,61 @@ const fmtDay = (ymd) => {
   return new Date(y, m - 1, d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 };
 
+const OFFICE_ROLES = ['principal', 'school-admin'];
+
+/**
+ * In-app notification + FCM push for the school office (Principal + School Admin).
+ * Broadcast within the school: every principal / admin sees it in their inbox
+ * (GET /notifications/inbox) and every registered device gets the push.
+ */
+async function notifyOffice({ schoolId, title, body, link = {} }) {
+  try {
+    const slug = await schoolSlug(schoolId);
+    const notif = await PlatformNotification.create({
+      title,
+      body,
+      audiences: OFFICE_ROLES,
+      recipientRefIds: [],
+      schoolId: slug,
+      createdBy: 'system',
+      link: { type: link.type || '', id: link.id ? String(link.id) : '' },
+    });
+    const devices = await DeviceToken.find({ role: { $in: OFFICE_ROLES }, schoolId: slug }).select('token').lean();
+    const tokens = devices.map((d) => d.token);
+    const delivery = await sendFcm(tokens, {
+      title,
+      body,
+      data: { type: link.type || '', id: link.id || '', notificationId: String(notif._id), role: 'office' },
+    });
+    notif.delivery = {
+      firebaseConfigured: delivery.configured,
+      attempted: delivery.attempted,
+      success: delivery.success,
+      failed: delivery.failed,
+      skippedReason: tokens.length ? '' : 'No registered devices',
+    };
+    await notif.save();
+    return { pushed: delivery.success };
+  } catch (err) {
+    console.error('[push] office notification failed:', err?.message || err);
+    return { error: true };
+  }
+}
+
 export const pushEvents = {
+  /**
+   * A teacher / transport manager marked themselves present from the app
+   * (inside the school radius, after fingerprint) -> Principal + School Admin.
+   */
+  async staffPresent(schoolId, { name, roleLabel = 'Staff', time = '', recordId = '' } = {}) {
+    return notifyOffice({
+      schoolId,
+      title: `${roleLabel} present · ${name}`,
+      body: `${name} marked attendance from school${time ? ` at ${time}` : ''}.`,
+      link: { type: 'staff_attendance', id: recordId },
+    });
+  },
+
   /**
    * Safe pickup → the child's parents (push + in-app notification, deep link to
    * the pickup screen where the OTP is shown). `kind`: STARTED | OTP_RESENT |

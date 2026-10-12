@@ -10,7 +10,7 @@ import { AsyncView, Badge, EmptyState, Select } from '../../../../components/kit
 import { Button, Card, Input } from '../../../../components/ui';
 import { SkeletonCards } from '../../../../components/Skeleton';
 import { ActionPill, ActionRow, CountGrid, FilterChips, Meta, StatusBadge, teacherLabel, useShowMore } from '../../../../components/principal/academics/kit';
-import { act, actConfirmed, importEach, importSummary } from '../../../../components/principal/academics/helpers';
+import { act, importEach, importSummary, toggleActive } from '../../../../components/principal/academics/helpers';
 import { SAMPLES, csvEscape, parseAssignments, pickCsvText, shareCsv } from '../../../../components/principal/academics/csv';
 import { font, spacing } from '../../../../theme';
 
@@ -280,17 +280,10 @@ export default function SubjectAssignmentsScreen() {
                         <ActionRow>
                           <ActionPill icon="create-outline" label="Edit" tone="muted" onPress={() => router.push({ pathname: '/principal/academics/subject-assignments/form', params: { id: item.id } })} />
                           <ActionPill
-                            icon="trash-outline"
-                            label="Remove"
-                            tone="danger"
-                            onPress={async () => {
-                              const ok = await actConfirmed(
-                                { title: 'Remove assignment', message: `Remove "${sub?.name || 'this subject'}" from the section?`, confirmText: 'Remove' },
-                                () => api.deleteSectionSubject(item.id),
-                                'Subject assignment removed successfully',
-                              );
-                              if (ok) reload();
-                            }}
+                            icon="power-outline"
+                            label={item.status !== 'INACTIVE' ? 'Deactivate' : 'Activate'}
+                            tone={item.status !== 'INACTIVE' ? 'warning' : 'success'}
+                            onPress={async () => (await toggleActive((body) => api.updateSectionSubject(item.id, body), item.status !== 'INACTIVE', 'Subject assignment')) && reload()}
                           />
                         </ActionRow>
                       </Card>

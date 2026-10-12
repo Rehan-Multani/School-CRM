@@ -11,7 +11,7 @@ import { AsyncView, Badge, EmptyState } from '../../../../components/kit';
 import { Button, Card } from '../../../../components/ui';
 import { SkeletonCards } from '../../../../components/Skeleton';
 import { ActionPill, ActionRow, FilterChips, Meta, YEAR_TONE, yearHint } from '../../../../components/principal/academics/kit';
-import { deleteYear, importEach, importSummary, runYearAction, yearActions } from '../../../../components/principal/academics/helpers';
+import { importEach, importSummary, runYearAction, yearActions } from '../../../../components/principal/academics/helpers';
 import { SAMPLES, csvEscape, parseYears, pickCsvText, shareCsv } from '../../../../components/principal/academics/csv';
 import { font, spacing } from '../../../../theme';
 
@@ -104,7 +104,6 @@ export default function YearsScreen() {
                           <ActionPill key={a.key} icon={a.icon} label={a.label} tone={a.tone} onPress={async () => (await runYearAction(year, a)) && reload()} />
                         ))}
                         <ActionPill icon="create-outline" label="Edit" tone="muted" onPress={() => router.push({ pathname: '/principal/academics/years/form', params: { id: year.id } })} />
-                        <ActionPill icon="trash-outline" label="Delete" tone="danger" onPress={async () => (await deleteYear(year)) && reload()} />
                       </ActionRow>
                     </Card>
                   ))
