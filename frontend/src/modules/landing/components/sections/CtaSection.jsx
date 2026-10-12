@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Mail, Phone, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRight, Mail, Phone, ShieldCheck } from 'lucide-react';
 import Reveal from '../Reveal';
 import GradientBadge from '../ui/GradientBadge';
 import { PRODUCT } from '../../data/content';
@@ -18,7 +18,6 @@ export const CtaSection = () => {
 
             <div className="relative z-10 mx-auto max-w-3xl">
               <GradientBadge
-                icon={Sparkles}
                 dotColor="bg-emerald-300"
                 className="mb-6 !border-white/20 !bg-white/10 !text-white backdrop-blur-md"
               >

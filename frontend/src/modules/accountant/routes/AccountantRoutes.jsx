@@ -11,11 +11,13 @@ import { Transactions } from '../pages/transactions/Transactions';
 import { Notifications } from '../pages/notifications/Notifications';
 import { FinancialReports } from '../pages/reports/FinancialReports';
 import { Settings } from '../pages/settings/Settings';
+import { MyAttendance } from '../pages/attendance/MyAttendance';
 
 export const AccountantRoutes = () => {
   return (
     <Routes>
       <Route path="dashboard" element={<Dashboard />} />
+      <Route path="my-attendance" element={<MyAttendance />} />
       <Route path="fee-collection" element={<FeeCollection />} />
       <Route path="fee-structure" element={<FeeStructure />} />
       <Route path="installments" element={<InstallmentManagement />} />

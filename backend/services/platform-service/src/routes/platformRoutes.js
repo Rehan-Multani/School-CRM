@@ -444,6 +444,7 @@ import {
   updateHomework,
   deleteHomework,
 } from '../controllers/homework.controller.js';
+import { staffSelfAttendanceHandlers } from '../controllers/staffSelfAttendance.controller.js';
 import {
   listMeetings,
   getMeeting,
@@ -797,6 +798,17 @@ router.patch('/school-portal/banners/:id', requireSchoolAdmin, validateObjectId(
 router.delete('/school-portal/banners/:id', requireSchoolAdmin, validateObjectId('id'), deleteBanner);
 router.patch('/school-portal/settings/password', requireSchoolAdmin, schoolPortalChangePassword);
 router.patch('/school-portal/settings/email', requireSchoolAdmin, schoolPortalUpdateEmail);
+
+// ---- Own attendance for staff web panels (inside the school radius) ----
+const accountantSelf = staffSelfAttendanceHandlers({ role: 'ACCOUNTANT', label: 'Accountant', department: 'Accounts' });
+const hrSelf = staffSelfAttendanceHandlers({ role: 'HR', label: 'HR', department: 'Human Resources' });
+const librarianSelf = staffSelfAttendanceHandlers({ role: 'LIBRARIAN', label: 'Librarian', department: 'Library' });
+router.get('/school-portal/accountant/self-attendance/today', requireAccountant, accountantSelf.today);
+router.post('/school-portal/accountant/self-attendance/check-in', requireAccountant, accountantSelf.checkIn);
+router.get('/school-portal/hr/self-attendance/today', requireHR, hrSelf.today);
+router.post('/school-portal/hr/self-attendance/check-in', requireHR, hrSelf.checkIn);
+router.get('/school-portal/library/self-attendance/today', requireLibrarian, librarianSelf.today);
+router.post('/school-portal/library/self-attendance/check-in', requireLibrarian, librarianSelf.checkIn);
 
 // ---- Student Safe Pickup — School Admin configuration + history ----
 // The school-level master switch is Super Admin–only (PATCH /platform/schools/:id/features).

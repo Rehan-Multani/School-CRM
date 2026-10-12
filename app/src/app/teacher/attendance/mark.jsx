@@ -9,6 +9,7 @@ import { useAsync } from '../../../lib/useAsync';
 import { useUnsavedGuard } from '../../../lib/useUnsavedGuard';
 import { fmtDate } from '../../../lib/format';
 import { confirm, showError, toast } from '../../../lib/notify';
+import { currentFix } from '../../../lib/deviceLocation';
 import { Button } from '../../../components/ui';
 import { Badge, EmptyState, ErrorView } from '../../../components/kit';
 import { alpha, font, radius, spacing } from '../../../theme';
@@ -98,6 +99,21 @@ export default function MarkAttendance() {
     setMarks((m) => Object.fromEntries(Object.entries(m).map(([k, v]) => [k, { ...v, status: 'PRESENT' }])));
   };
 
+  // When the school allows student attendance only inside the school radius the
+  // server answers LOCATION_REQUIRED; we then read the GPS and send it. Once
+  // that happens this screen sends the location with every save.
+  const needsLocation = useRef(false);
+  const withLocation = async (call) => {
+    if (needsLocation.current) return call(await currentFix());
+    try {
+      return await call(null);
+    } catch (e) {
+      if (e?.code !== 'LOCATION_REQUIRED') throw e;
+      needsLocation.current = true;
+      return call(await currentFix());
+    }
+  };
+
   const save = async () => {
     const firstSave = !attendanceId;
     if (!firstSave && !changed.length) {
@@ -111,9 +127,11 @@ export default function MarkAttendance() {
         // One key per Save tap; reused if the same tap is retried after a network error.
         saveKey.current = saveKey.current || newIdempotencyKey();
         const records = entries.map((e) => ({ studentId: e.studentId, status: marks[e.studentId].status, note: marks[e.studentId].note }));
-        doc = await teacherApi.submitAttendance({ sectionId, date, records }, saveKey.current);
+        doc = await withLocation((location) =>
+          teacherApi.submitAttendance(location ? { sectionId, date, records, location } : { sectionId, date, records }, saveKey.current),
+        );
       } else {
-        doc = await teacherApi.patchAttendance(attendanceId, changed);
+        doc = await withLocation((location) => teacherApi.patchAttendance(attendanceId, changed, location));
       }
       saveKey.current = null;
       toast.success('Attendance saved successfully');

@@ -17,11 +17,13 @@ import {
   Bell,
   Sliders,
   User,
+  Fingerprint,
 } from 'lucide-react';
 
 export const NAVIGATION_ITEMS = [
   // MAIN
   { name: 'Dashboard', path: '/librarian/dashboard', icon: LayoutDashboard, category: 'Main' },
+  { name: 'Mark Present', path: '/librarian/my-attendance', icon: Fingerprint, category: 'Main' },
 
   // BOOKS & CATALOG
   { name: 'Book Catalog', path: '/librarian/books', icon: BookOpen, category: 'Catalog' },

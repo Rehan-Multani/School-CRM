@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { clearSession } from '../lib/clearSession';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
@@ -117,8 +118,7 @@ apiClient.interceptors.response.use(
       original.headers.Authorization = `Bearer ${token}`;
       return apiClient(original);
     } catch {
-      localStorage.removeItem('super_admin_token');
-      localStorage.removeItem('super_admin_refresh_token');
+      clearSession();
       throw error;
     }
   }

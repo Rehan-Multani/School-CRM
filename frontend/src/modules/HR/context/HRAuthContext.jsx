@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { hrAuthApi } from '../../../shared/api/client';
+import { clearSession } from '../../../shared/lib/clearSession';
 
 const HRAuthContext = createContext();
 
@@ -48,8 +49,7 @@ export const HRAuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('hr_token');
-    localStorage.removeItem('hr_user');
+    clearSession();
     setUser(null);
   };
 

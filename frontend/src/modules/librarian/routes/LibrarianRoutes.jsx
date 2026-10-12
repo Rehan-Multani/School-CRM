@@ -10,6 +10,7 @@ import { Publishers } from '../pages/books/Publishers';
 import { BookCopies } from '../pages/books/BookCopies';
 import { BookIssue } from '../pages/issue/BookIssue';
 import { BookReturn } from '../pages/return/BookReturn';
+import { MyAttendance } from '../pages/attendance/MyAttendance';
 import { IssuedBooks } from '../pages/issue/IssuedBooks';
 import { OverdueBooks } from '../pages/issue/OverdueBooks';
 import { MemberManagement } from '../pages/members/MemberManagement';
@@ -25,6 +26,7 @@ export const LibrarianRoutes = () => {
     <Routes>
       {/* 1. Dashboard */}
       <Route path="dashboard" element={<Dashboard />} />
+      <Route path="my-attendance" element={<MyAttendance />} />
 
       {/* 2. Books */}
       <Route path="books" element={<BookList />} />

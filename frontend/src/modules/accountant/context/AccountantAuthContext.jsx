@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { accountantAuthApi } from '../../../shared/api/client';
+import { clearSession } from '../../../shared/lib/clearSession';
 
 const AccountantAuthContext = createContext();
 
@@ -62,8 +63,7 @@ export const AccountantAuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem(STORAGE_USER);
-    localStorage.removeItem(STORAGE_TOKEN);
+    clearSession();
   };
 
   const updateProfile = (updatedFields) => {

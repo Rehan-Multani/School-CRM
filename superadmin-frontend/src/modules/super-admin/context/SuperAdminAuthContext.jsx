@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { platformAuthApi } from '../../../shared/api/client';
+import { clearSession } from '../../../shared/lib/clearSession';
 
 const SuperAdminAuthContext = createContext(null);
 
@@ -95,9 +96,7 @@ export const SuperAdminAuthProvider = ({ children }) => {
     // passing the captured token since storage is already cleared. A failed
     // revoke (offline, expired) must never keep the user signed in locally.
     const token = localStorage.getItem('super_admin_token');
-    localStorage.removeItem('super_admin_user');
-    localStorage.removeItem('super_admin_token');
-    localStorage.removeItem('super_admin_refresh_token');
+    clearSession();
     setAdmin(null);
 
     if (token) {

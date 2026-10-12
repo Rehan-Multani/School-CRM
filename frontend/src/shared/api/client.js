@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { announceSubscriptionBlocked } from '../ui/SubscriptionBlockedOverlay';
+import { clearSession } from '../lib/clearSession';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
@@ -131,12 +132,7 @@ function signOutOn401(client, { panel, tokenKey, userKey }) {
         path !== loginPath &&
         !url.endsWith('/password') // "current password is incorrect" is also a 401
       ) {
-        try {
-          localStorage.removeItem(tokenKey);
-          localStorage.removeItem(userKey);
-        } catch {
-          /* localStorage unavailable */
-        }
+        clearSession();
         window.location.assign(loginPath);
       }
       return Promise.reject(error);
@@ -1770,3 +1766,12 @@ export const schoolBackupApi = {
     }
   },
 };
+
+// Own attendance for staff in the web panels (inside the radius the School Admin set).
+const selfAttendanceApi = (client, path) => ({
+  today: () => client.get(`/platform/school-portal/${path}/self-attendance/today`).then((r) => r.data),
+  checkIn: (body) => client.post(`/platform/school-portal/${path}/self-attendance/check-in`, body).then((r) => r.data),
+});
+export const accountantSelfAttendanceApi = selfAttendanceApi(accountantClient, 'accountant');
+export const hrSelfAttendanceApi = selfAttendanceApi(hrClient, 'hr');
+export const librarianSelfAttendanceApi = selfAttendanceApi(librarianClient, 'library');

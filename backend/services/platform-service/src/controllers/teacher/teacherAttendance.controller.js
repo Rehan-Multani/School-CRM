@@ -1,5 +1,6 @@
 import { teacherAccessService } from '../../services/teacherAccess.service.js';
 import { teacherAttendanceService } from '../../services/teacherAttendance.service.js';
+import { staffSelfAttendanceService } from '../../services/staffSelfAttendance.service.js';
 import { performedBy } from '../../utils/tenant.js';
 import { auditLogService } from '../../services/auditLog.service.js';
 
@@ -20,6 +21,7 @@ export async function getAttendanceToday(req, res, next) {
 export async function submitAttendance(req, res, next) {
   try {
     const ctx = await teacherAccessService.loadContext(req);
+    await staffSelfAttendanceService.assertStudentAttendanceLocation(ctx.schoolId, req.body?.location);
     const data = await teacherAttendanceService.submit(ctx, req.body || {}, performedBy(req));
     auditLogService.record(req, {
       module: 'ATTENDANCE',
@@ -37,6 +39,7 @@ export async function submitAttendance(req, res, next) {
 export async function patchAttendance(req, res, next) {
   try {
     const ctx = await teacherAccessService.loadContext(req);
+    await staffSelfAttendanceService.assertStudentAttendanceLocation(ctx.schoolId, req.body?.location);
     const data = await teacherAttendanceService.patchDay(ctx, req.params.attendanceId, req.body || {}, performedBy(req));
     auditLogService.record(req, {
       module: 'ATTENDANCE',

@@ -9,12 +9,14 @@ import {
   ArrowLeftRight,
   FileBarChart,
   Bell,
-  Settings
+  Settings,
+  Fingerprint
 } from 'lucide-react';
 
 export const NAVIGATION_ITEMS = [
   // MAIN
   { name: 'Dashboard', path: '/accountant/dashboard', icon: LayoutDashboard, category: 'Main' },
+  { name: 'Mark Present', path: '/accountant/my-attendance', icon: Fingerprint, category: 'Main' },
 
   // FEES
   { name: 'Fee Collection', path: '/accountant/fee-collection', icon: CreditCard, category: 'Fees' },

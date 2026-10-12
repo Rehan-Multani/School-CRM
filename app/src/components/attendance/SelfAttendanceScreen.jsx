@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as LocalAuthentication from 'expo-local-authentication';
-import * as Location from 'expo-location';
 import { useStyles, useTheme } from '../../context/ThemeContext';
 import { useAsync } from '../../lib/useAsync';
 import { toast } from '../../lib/notify';
+import { StepError, currentFix } from '../../lib/deviceLocation';
 import RefreshableScroll from '../../components/RefreshableScroll';
 import { AsyncView, StatusBadge } from '../../components/kit';
 import { Button, Card } from '../../components/ui';
@@ -16,13 +16,6 @@ import { font, radius, spacing } from '../../theme';
 // Staff member's own attendance (teacher / transport manager): fingerprint -> GPS fix -> server checks the fix is
 // inside the radius the School Admin set (Settings > Attendance Location).
 // The server is the authority on distance; the phone only supplies the fix.
-
-class StepError extends Error {
-  constructor(message, { settings = false } = {}) {
-    super(message);
-    this.settings = settings;
-  }
-}
 
 async function verifyFingerprint() {
   const hasHardware = await LocalAuthentication.hasHardwareAsync();
@@ -37,23 +30,6 @@ async function verifyFingerprint() {
   if (!res.success) {
     throw new StepError(res.error === 'user_cancel' ? 'Fingerprint check was cancelled.' : 'Fingerprint did not match. Try again.');
   }
-}
-
-async function currentFix() {
-  const perm = await Location.requestForegroundPermissionsAsync();
-  if (perm.status !== 'granted') {
-    throw new StepError('Location permission is needed to mark attendance. Allow it in app settings.', { settings: true });
-  }
-  if (!(await Location.hasServicesEnabledAsync())) {
-    throw new StepError('Turn on your phone location (GPS) and try again.', { settings: true });
-  }
-  const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
-  return {
-    latitude: pos.coords.latitude,
-    longitude: pos.coords.longitude,
-    accuracy: pos.coords.accuracy,
-    mocked: pos.mocked === true,
-  };
 }
 
 export default function SelfAttendanceScreen({ api }) {

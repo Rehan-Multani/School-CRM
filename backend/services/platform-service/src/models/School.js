@@ -89,6 +89,8 @@ const schoolSchema = new mongoose.Schema(
         longitude: { type: Number, default: null },
         radiusMeters: { type: Number, default: 100 },
         requireBiometric: { type: Boolean, default: true },
+        // Teachers can save / edit STUDENT attendance only from inside the circle.
+        studentAttendanceInRadius: { type: Boolean, default: true },
         label: { type: String, default: '', trim: true },
       },
       // Set once the default ExamType list has been created for this school, so

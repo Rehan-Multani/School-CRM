@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { librarianAuthApi } from '../../../shared/api/client';
+import { clearSession } from '../../../shared/lib/clearSession';
 
 const LibrarianAuthContext = createContext();
 
@@ -46,8 +47,7 @@ export const LibrarianAuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    localStorage.removeItem('librarian_token');
-    localStorage.removeItem('librarian_user');
+    clearSession();
     setUser(null);
   };
 

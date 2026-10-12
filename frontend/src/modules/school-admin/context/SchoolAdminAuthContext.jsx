@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { schoolAdminAuthApi, schoolPortalApi } from '../../../shared/api/client';
 import { useSchoolAdminTheme } from './SchoolAdminThemeContext';
+import { clearSession } from '../../../shared/lib/clearSession';
 
 const SchoolAdminAuthContext = createContext();
 
@@ -110,10 +111,7 @@ export const SchoolAdminAuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setImpersonation(null);
-    localStorage.removeItem('school-admin-user');
-    localStorage.removeItem('school_admin_token');
-    localStorage.removeItem('school-admin-branding');
-    localStorage.removeItem(IMPERSONATION_KEY);
+    clearSession();
   };
 
   const updateProfile = (updatedFields) => {

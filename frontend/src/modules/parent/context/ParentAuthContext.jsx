@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { MOCK_PARENT } from '../data/mockData';
 import { SCHOOL } from '../../../shared/data/school';
+import { clearSession } from '../../../shared/lib/clearSession';
 
 const ParentAuthContext = createContext();
 
@@ -56,8 +57,7 @@ export const ParentAuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     setSelectedChildId('');
-    localStorage.removeItem('parent-user');
-    localStorage.removeItem('parent-selected-child');
+    clearSession();
   };
 
   const changeSelectedChild = (childId) => {

@@ -36,8 +36,8 @@ export const teacherApi = {
   attendanceSheet: (sectionId, date) => data(api.get(`${P}/attendance/today`, { sectionId, date })),
   submitAttendance: (body, key = newIdempotencyKey()) =>
     data(api.post(`${P}/attendance`, body, { 'Idempotency-Key': key })),
-  patchAttendance: (attendanceId, records) =>
-    data(api.patch(`${P}/attendance/${id(attendanceId)}`, { records })),
+  patchAttendance: (attendanceId, records, location) =>
+    data(api.patch(`${P}/attendance/${id(attendanceId)}`, location ? { records, location } : { records })),
   finalizeAttendance: (attendanceId) => data(api.post(`${P}/attendance/${id(attendanceId)}/finalize`)),
   attendanceHistory: (params) => api.get(`${P}/attendance/history`, params),
   attendanceSummary: (sectionId, month) => data(api.get(`${P}/attendance/summary`, { sectionId, month })),

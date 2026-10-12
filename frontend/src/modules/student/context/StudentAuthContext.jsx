@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { findStudent } from '../../../shared/data/students';
 import { SCHOOL } from '../../../shared/data/school';
+import { clearSession } from '../../../shared/lib/clearSession';
 
 const StudentAuthContext = createContext();
 
@@ -62,7 +63,7 @@ export const StudentAuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('student-user');
+    clearSession();
   };
 
   const updateProfile = (updatedFields) => {

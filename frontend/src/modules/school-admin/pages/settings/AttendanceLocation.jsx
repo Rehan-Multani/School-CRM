@@ -12,6 +12,7 @@ const DEFAULTS = {
   longitude: '',
   radiusMeters: 100,
   requireBiometric: true,
+  studentAttendanceInRadius: true,
   label: '',
 };
 
@@ -51,6 +52,7 @@ export function AttendanceLocation({ showToast }) {
         longitude: d.longitude ?? '',
         radiusMeters: d.radiusMeters || 100,
         requireBiometric: d.requireBiometric !== false,
+        studentAttendanceInRadius: d.studentAttendanceInRadius !== false,
         label: d.label || '',
       });
     } catch (err) {
@@ -105,6 +107,7 @@ export function AttendanceLocation({ showToast }) {
         longitude: form.longitude === '' ? null : Number(form.longitude),
         radiusMeters: Number(form.radiusMeters),
         requireBiometric: form.requireBiometric,
+        studentAttendanceInRadius: form.studentAttendanceInRadius,
         label: form.label,
       });
       showToast('Attendance location saved', 'success');
@@ -241,7 +244,14 @@ export function AttendanceLocation({ showToast }) {
           onChange={(v) => set({ requireBiometric: v })}
           icon={Fingerprint}
           label="Require fingerprint / phone lock"
-          hint="The teacher must pass the phone's fingerprint (or face / screen lock) before check in and check out."
+          hint="The teacher must pass the phone's fingerprint (or face / screen lock) before marking present."
+        />
+
+        <Toggle
+          checked={form.studentAttendanceInRadius}
+          onChange={(v) => set({ studentAttendanceInRadius: v })}
+          label="Student attendance only inside this radius"
+          hint="Teachers can save or edit student attendance from the app only while they are inside the circle."
         />
       </div>
 

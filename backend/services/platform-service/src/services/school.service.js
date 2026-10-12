@@ -975,6 +975,7 @@ export class SchoolService {
       longitude: g.longitude ?? null,
       radiusMeters: g.radiusMeters || 100,
       requireBiometric: g.requireBiometric !== false,
+      studentAttendanceInRadius: g.studentAttendanceInRadius !== false,
       label: g.label || '',
     };
   }
@@ -990,6 +991,7 @@ export class SchoolService {
     const next = { ...current };
     if (payload.enabled !== undefined) next.enabled = Boolean(payload.enabled);
     if (payload.requireBiometric !== undefined) next.requireBiometric = Boolean(payload.requireBiometric);
+    if (payload.studentAttendanceInRadius !== undefined) next.studentAttendanceInRadius = Boolean(payload.studentAttendanceInRadius);
     if (payload.label !== undefined) next.label = String(payload.label || '').trim().slice(0, 80);
     if (payload.latitude !== undefined) next.latitude = payload.latitude === null || payload.latitude === '' ? null : Number(payload.latitude);
     if (payload.longitude !== undefined) next.longitude = payload.longitude === null || payload.longitude === '' ? null : Number(payload.longitude);

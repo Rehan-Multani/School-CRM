@@ -17,6 +17,7 @@ import {
   IdCard,
   Award as CertificateIcon,
   DoorOpen,
+  Fingerprint,
 } from 'lucide-react';
 
 export const NAVIGATION_ITEMS = [
@@ -29,6 +30,7 @@ export const NAVIGATION_ITEMS = [
   { name: 'Student ID Cards', path: '/hr/id-cards', icon: IdCard, category: 'HR Management' },
   { name: 'Certificates', path: '/hr/certificates', icon: CertificateIcon, category: 'HR Management' },
   { name: 'Visitors', path: '/hr/visitors', icon: DoorOpen, category: 'HR Management' },
+  { name: 'Mark Present', path: '/hr/my-attendance', icon: Fingerprint, category: 'HR Management' },
 
   // OPERATIONS
   { name: 'Attendance Record', path: '/hr/attendance', icon: CalendarDays, category: 'Operations' },

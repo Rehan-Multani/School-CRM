@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { principalAuthApi } from '../../../shared/api/client';
+import { clearSession } from '../../../shared/lib/clearSession';
 
 const PrincipalAuthContext = createContext();
 
@@ -56,8 +57,7 @@ export const PrincipalAuthProvider = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('principal-user');
-    localStorage.removeItem('principal_token');
+    clearSession();
   };
 
   const updateProfile = (updatedFields) => {

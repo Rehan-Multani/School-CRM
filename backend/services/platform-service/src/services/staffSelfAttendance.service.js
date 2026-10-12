@@ -39,18 +39,22 @@ export function teacherActor(ctx) {
   };
 }
 
-export function transportManagerActor(schoolId, user) {
+/** Any SchoolUser (transport manager, accountant, HR, librarian ...) marking their own attendance. */
+export function staffActor(schoolId, user, { label, role, department = '' }) {
   return {
     schoolId: String(schoolId),
     refId: String(user._id),
     type: 'STAFF',
     employeeId: user.employeeId || String(user._id),
-    name: personName(user, 'Transport Manager'),
-    role: user.designation || 'Transport Manager',
-    department: user.department || 'Transport',
-    label: 'Transport Manager',
+    name: personName(user, label),
+    role: user.designation || role || label,
+    department: user.department || department,
+    label,
   };
 }
+
+export const transportManagerActor = (schoolId, user) =>
+  staffActor(schoolId, user, { label: 'Transport Manager', department: 'Transport' });
 
 function publicConfig(g = {}) {
   const configured = isLat(g.latitude) && isLng(g.longitude);
@@ -58,6 +62,7 @@ function publicConfig(g = {}) {
     enabled: Boolean(g.enabled) && configured,
     radiusMeters: g.radiusMeters || 100,
     requireBiometric: g.requireBiometric !== false,
+    studentAttendanceInRadius: g.studentAttendanceInRadius !== false,
     label: g.label || '',
   };
 }
@@ -94,7 +99,7 @@ class StaffSelfAttendanceService {
   }
 
   /** Validates the device fix + fingerprint claim and returns the proof to store. */
-  async #verify(actor, payload) {
+  async #verify(actor, payload, opts = {}) {
     const g = await this.#geofence(actor.schoolId);
     const cfg = publicConfig(g);
     if (!cfg.enabled) {
@@ -104,9 +109,15 @@ class StaffSelfAttendanceService {
         TEACHER_ERR.GEOFENCE_NOT_CONFIGURED,
       );
     }
-    if (cfg.requireBiometric && payload.biometricVerified !== true) {
+    // Web panels have no fingerprint reader: they pass { skipBiometric: true } from the ROUTE, never from the body.
+    if (cfg.requireBiometric && !opts.skipBiometric && payload.biometricVerified !== true) {
       throw new AppError('Fingerprint verification is required.', 400, TEACHER_ERR.BIOMETRIC_REQUIRED);
     }
+    return this.#checkFix(g, cfg, payload, 'Attendance');
+  }
+
+  /** Device fix must be real, accurate and inside the circle. Returns the proof to store. */
+  #checkFix(g, cfg, payload, subject) {
     const latitude = Number(payload.latitude);
     const longitude = Number(payload.longitude);
     if (!isLat(latitude) || !isLng(longitude)) {
@@ -129,7 +140,7 @@ class StaffSelfAttendanceService {
     const distance = Math.round(distanceMeters(latitude, longitude, g.latitude, g.longitude));
     if (distance > cfg.radiusMeters) {
       throw new AppError(
-        `You are ${distance} m from school. Attendance can be marked only within ${cfg.radiusMeters} m.`,
+        `You are ${distance} m from school. ${subject} can be marked only within ${cfg.radiusMeters} m.`,
         403,
         TEACHER_ERR.OUTSIDE_GEOFENCE,
       );
@@ -143,8 +154,27 @@ class StaffSelfAttendanceService {
     };
   }
 
-  async checkIn(actor, payload = {}) {
-    const geo = await this.#verify(actor, payload);
+  /**
+   * Student attendance by a teacher: when the school turned the radius on, the
+   * teacher must be inside it. Returns null when there is no restriction.
+   */
+  async assertStudentAttendanceLocation(schoolId, location) {
+    const g = await this.#geofence(schoolId);
+    const cfg = publicConfig(g);
+    if (!cfg.enabled || !cfg.studentAttendanceInRadius) return null;
+    const hasFix = location && typeof location === 'object' && location.latitude !== undefined && location.longitude !== undefined;
+    if (!hasFix) {
+      throw new AppError(
+        'Your location is needed to mark student attendance. Turn on location and try again (update the app if this keeps coming).',
+        400,
+        TEACHER_ERR.LOCATION_REQUIRED,
+      );
+    }
+    return this.#checkFix(g, cfg, location, 'Student attendance');
+  }
+
+  async checkIn(actor, payload = {}, opts = {}) {
+    const geo = await this.#verify(actor, payload, opts);
     const now = new Date();
     const date = dateOf(now);
     const key = { schoolId: oid(actor.schoolId), date, employeeRefId: oid(actor.refId) };
@@ -194,8 +224,8 @@ class StaffSelfAttendanceService {
     }
   }
 
-  async checkOut(actor, payload = {}) {
-    const geo = await this.#verify(actor, payload);
+  async checkOut(actor, payload = {}, opts = {}) {
+    const geo = await this.#verify(actor, payload, opts);
     const now = new Date();
     const key = { schoolId: oid(actor.schoolId), date: dateOf(now), employeeRefId: oid(actor.refId) };
     const existing = await StaffAttendance.findOne(key);

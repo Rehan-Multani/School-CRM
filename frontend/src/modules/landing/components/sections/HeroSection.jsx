@@ -10,9 +10,7 @@ import {
   GraduationCap,
   IndianRupee,
   LayoutDashboard,
-  ShieldCheck,
-  Sparkles,
-  Users,
+  ShieldCheck, Users,
   Zap,
 } from 'lucide-react';
 import Reveal from '../Reveal';
@@ -49,7 +47,7 @@ export const HeroSection = () => {
           {/* Left Column: Headlines & Call to Actions */}
           <div className="lg:col-span-6 xl:col-span-6 text-center lg:text-left">
             <Reveal>
-              <GradientBadge icon={Sparkles} className="mb-5">
+              <GradientBadge className="mb-5">
                 Next-Gen School Operating System
               </GradientBadge>
             </Reveal>

@@ -6,6 +6,7 @@ import { StaffManagement } from '../pages/staff/StaffManagement';
 import { StudentIdCardsPage } from '../pages/id-cards/StudentIdCardsPage';
 import { CertificatesPage } from '../pages/certificates/CertificatesPage';
 import { VisitorsPage } from '../pages/visitors/VisitorsPage';
+import { MyAttendance } from '../pages/attendance/MyAttendance';
 import { EmployeeList } from '../pages/employees/EmployeeList';
 import { EmployeeDetail } from '../pages/employees/EmployeeDetail';
 import { AddEditEmployee } from '../pages/employees/AddEditEmployee';
@@ -31,6 +32,7 @@ export const HRRoutes = () => {
       <Route path="id-cards" element={<StudentIdCardsPage />} />
       <Route path="certificates" element={<CertificatesPage />} />
       <Route path="visitors" element={<VisitorsPage />} />
+      <Route path="my-attendance" element={<MyAttendance />} />
       <Route path="employees" element={<Navigate to="/hr/teachers" replace />} />
       <Route path="employees/new" element={<AddEditEmployee />} />
       <Route path="employees/:id" element={<EmployeeDetail />} />
