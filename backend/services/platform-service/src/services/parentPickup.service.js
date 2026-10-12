@@ -20,6 +20,7 @@ const oid = (v) => new mongoose.Types.ObjectId(String(v));
  */
 function parentView(row) {
   const out = row.toPublicJSON();
+  if (row.pickupPersonPhoto) out.pickupPersonPhoto = row.pickupPersonPhoto;
   const live =
     row.status === 'OTP_SENT' &&
     row.otpCipher &&
@@ -71,7 +72,7 @@ class ParentPickupService {
       schoolId: oid(childCtx.schoolId),
       studentId: oid(childCtx.studentId),
       _id: oid(sessionId),
-    }).select('+guardianMobile +otpCipher'); // mobile leaves only masked; the OTP only via parentView()
+    })  .select('+guardianMobile +otpCipher +pickupPersonPhoto'); // mobile leaves only masked; the OTP only via parentView()
     if (!row) throw new AppError('Pickup session not found', 404, PARENT_ERR.NOT_FOUND);
     return parentView(row);
   }

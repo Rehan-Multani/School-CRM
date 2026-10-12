@@ -13,6 +13,12 @@ import {
 } from '../controllers/passwordReset.controller.js';
 import { requirePlatformUser } from '../middleware/requirePlatformUser.js';
 import { validateObjectId } from '../middleware/validateObjectId.js';
+import { activityLogger } from '../middleware/activityLogger.js';
+import { uploadBannerImage } from '../middleware/uploadBanner.js';
+import {
+  listBanners, createBanner, updateBanner, reorderBanners, deleteBanner, publicBanners, publicBannerImage,
+} from '../controllers/schoolBanner.controller.js';
+import { listBoards, listActiveBoardNames, createBoard, updateBoard, updateBoardStatus } from '../controllers/board.controller.js';
 import teacherApkRoutes from './teacher.routes.js';
 import studentApkRoutes from './student.routes.js';
 import parentApkRoutes from './parent.routes.js';
@@ -39,7 +45,9 @@ import {
   getSafePickupHistory as getAdminSafePickupHistory,
   resendSafePickupOtp,
   cancelSafePickup,
+  scanSafePickupQr,
 } from '../controllers/adminSafePickup.controller.js';
+import { pickupRateLimiter } from '../middleware/pickupRateLimiter.js';
 import {
   getServiceInfo,
   healthCheck,
@@ -347,6 +355,12 @@ import {
   updateScheduleEntry,
 } from '../controllers/exam.controller.js';
 import {
+  createExamType,
+  deleteExamType,
+  listExamTypes,
+  updateExamType,
+} from '../controllers/examType.controller.js';
+import {
   listHostels,
   getHostel,
   createHostel,
@@ -492,9 +506,26 @@ import {
   inboundMessage as commInboundMessage,
 } from '../controllers/communication.controller.js';
 import { requireSuperAdmin } from '../middleware/requireSuperAdmin.js';
+import {
+  downloadFullBackup,
+  downloadSchoolBackup,
+  setPrincipalBackupAccess,
+  principalBackupAccess,
+  principalBackupSummary,
+  principalBackupDownload,
+  fullBackupSummary,
+  schoolBackupSummary,
+} from '../controllers/backup.controller.js';
 import { requireSchoolAdmin } from '../middleware/requireSchoolAdmin.js';
 import { requireLibrarian } from '../middleware/requireLibrarian.js';
 import { requireHR } from '../middleware/requireHR.js';
+import { listVisitors, createVisitor, updateVisitor, deleteVisitor } from '../controllers/visitor.controller.js';
+import { idCardOptions, idCardStudents, saveIdCardDesign } from '../controllers/idCard.controller.js';
+import {
+  certificateOptions, listTemplates, createTemplate, updateTemplate, deleteTemplate,
+  certificateRecipients, issueCertificates, listIssued, getIssuedMany, revokeCertificate,
+  reinstateCertificate, verifyCertificate, timetableData, feeStructureData,
+} from '../controllers/certificate.controller.js';
 import { requirePrincipal } from '../middleware/requirePrincipal.js';
 import { requireSchoolAdminOrPrincipal } from '../middleware/requireSchoolAdminOrPrincipal.js';
 import { requireAccountant } from '../middleware/requireAccountant.js';
@@ -624,7 +655,27 @@ import { uploadDriverFiles, convertDriverImages } from '../middleware/uploadDriv
 
 const router = Router();
 
+// Activity Logs: every successful staff write is recorded (see middleware).
+router.use(activityLogger);
+
 router.get('/health', healthCheck);
+// Boards (Super Admin): create / read / update / activate-deactivate — never deleted.
+// Database backups. School Admin gets ONLY its own school (id comes from the token);
+// Super Admin gets the whole database.
+router.get('/school-portal/backup/summary', requireSchoolAdmin, schoolBackupSummary);
+router.get('/school-portal/backup/download', requireSchoolAdmin, downloadSchoolBackup);
+router.put('/school-portal/backup/principal-access', requireSchoolAdmin, setPrincipalBackupAccess);
+router.get('/school-portal/principal/backup/access', requirePrincipal, principalBackupAccess);
+router.get('/school-portal/principal/backup/summary', requirePrincipal, principalBackupSummary);
+router.get('/school-portal/principal/backup/download', requirePrincipal, principalBackupDownload);
+router.get('/superadmin/backup/summary', requireSuperAdmin, fullBackupSummary);
+router.get('/superadmin/backup/download', requireSuperAdmin, downloadFullBackup);
+
+router.get('/boards', requireSuperAdmin, listBoards);
+router.post('/boards', requireSuperAdmin, createBoard);
+router.put('/boards/:id', requireSuperAdmin, validateObjectId('id'), updateBoard);
+router.patch('/boards/:id/status', requireSuperAdmin, validateObjectId('id'), updateBoardStatus);
+router.get('/school-portal/boards', requireSchoolAdmin, listActiveBoardNames);
 router.get('/schools', requireSuperAdmin, listSchools);
 router.post('/schools', requireSuperAdmin, createSchool);
 router.put('/schools/:id', requireSuperAdmin, updateSchool);
@@ -639,6 +690,9 @@ router.delete('/schools/:id', requireSuperAdmin, deleteSchool);
 router.get('/school-auth/branding', schoolBranding);
 router.get('/school-theme/:schoolId', schoolThemePublic);
 router.get('/school-theme/:schoolId/logo', schoolLogoPublic);
+// School banners shown on the apps' home screens (public, like the theme).
+router.get('/school-theme/:schoolId/banners', publicBanners);
+router.get('/school-theme/:schoolId/banners/:bannerId/image', publicBannerImage);
 router.post('/school-auth/login', loginRateLimiter, schoolAdminLogin);
 // Redeems the one-time code from "Login as school" (Super Admin → Schools).
 router.post('/school-auth/login-as', loginRateLimiter, schoolAdminLoginAs);
@@ -730,6 +784,12 @@ router.get('/school-portal/settings', requireSchoolAdmin, schoolPortalSettings);
 router.get('/school-portal/plan-usage', requireSchoolAdmin, schoolPortalPlanUsage);
 router.patch('/school-portal/settings/theme', requireSchoolAdmin, schoolPortalUpdateTheme);
 router.patch('/school-portal/settings/branding', requireSchoolAdmin, schoolPortalUpdateBranding);
+// Banners for the student / parent / teacher apps (School Admin manages).
+router.get('/school-portal/banners', requireSchoolAdmin, listBanners);
+router.post('/school-portal/banners', requireSchoolAdmin, uploadBannerImage, createBanner);
+router.put('/school-portal/banners/reorder', requireSchoolAdmin, reorderBanners);
+router.patch('/school-portal/banners/:id', requireSchoolAdmin, validateObjectId('id'), updateBanner);
+router.delete('/school-portal/banners/:id', requireSchoolAdmin, validateObjectId('id'), deleteBanner);
 router.patch('/school-portal/settings/password', requireSchoolAdmin, schoolPortalChangePassword);
 router.patch('/school-portal/settings/email', requireSchoolAdmin, schoolPortalUpdateEmail);
 
@@ -759,6 +819,7 @@ router.post('/school-portal/safe-pickup/resend-otp', requireSchoolAdmin, require
 router.post('/school-portal/principal/safe-pickup/resend-otp', requirePrincipal, requireAdminOrPrincipal, resendSafePickupOtp);
 router.post('/school-portal/safe-pickup/cancel', requireSchoolAdmin, requireAdminOrPrincipal, cancelSafePickup);
 router.post('/school-portal/principal/safe-pickup/cancel', requirePrincipal, requireAdminOrPrincipal, cancelSafePickup);
+router.post('/school-portal/principal/safe-pickup/scan-qr', requirePrincipal, requireAdminOrPrincipal, pickupRateLimiter, scanSafePickupQr);
 router.get('/school-portal/safe-pickup/history', requireSchoolAdmin, requireAdminOrPrincipal, getAdminSafePickupHistory);
 router.get('/school-portal/principal/safe-pickup/history', requirePrincipal, requireAdminOrPrincipal, getAdminSafePickupHistory);
 router.get('/school-portal/principal/safe-pickup/settings', requirePrincipal, requireAdminOrPrincipal, getSafePickupSettings);
@@ -954,6 +1015,10 @@ router.get('/school-portal/library/transactions', requireLibrarian, listTransact
 router.get('/school-portal/library/reports/:category', requireLibrarian, getReportData);
 
 // Examination & Terms Endpoints
+router.get('/school-portal/exam-types', requirePrincipal, listExamTypes);
+router.post('/school-portal/exam-types', requirePrincipal, createExamType);
+router.patch('/school-portal/exam-types/:id', requirePrincipal, updateExamType);
+router.delete('/school-portal/exam-types/:id', requirePrincipal, deleteExamType);
 router.get('/school-portal/exams/stats', requirePrincipal, getExamStats);
 router.get('/school-portal/exams', requirePrincipal, listExams);
 router.post('/school-portal/exams', requirePrincipal, createExam);
@@ -1092,6 +1157,35 @@ router.get('/school-portal/transport/daily/:routeId', requireSchoolAdmin, valida
 // ==========================================
 // HR Management Endpoints (accessible by School Admin & HR)
 // ==========================================
+// Visitors (school enquiries at the gate): HR records them; School Admin / Principal read the list.
+router.get('/school-portal/visitors', requireHR, listVisitors);
+router.post('/school-portal/visitors', requireHR, createVisitor);
+router.patch('/school-portal/visitors/:id', requireHR, validateObjectId('id'), updateVisitor);
+router.delete('/school-portal/visitors/:id', requireHR, validateObjectId('id'), deleteVisitor);
+
+// Student ID cards: one shared read API for School Admin, Principal and HR (requireHR admits all three).
+router.get('/school-portal/id-cards/options', requireHR, idCardOptions);
+router.get('/school-portal/id-cards/students', requireHR, idCardStudents);
+router.put('/school-portal/id-cards/design', requireHR, saveIdCardDesign);
+
+// Certificates: templates (master), issuing to students / teachers / staff, history, revoke.
+// requireHR admits School Admin, Principal and HR. Static paths before :id paths.
+router.get('/school-portal/certificates/options', requireHR, certificateOptions);
+router.get('/school-portal/certificates/templates', requireHR, listTemplates);
+router.post('/school-portal/certificates/templates', requireHR, createTemplate);
+router.put('/school-portal/certificates/templates/:id', requireHR, validateObjectId('id'), updateTemplate);
+router.delete('/school-portal/certificates/templates/:id', requireHR, validateObjectId('id'), deleteTemplate);
+router.get('/school-portal/certificates/recipients', requireHR, certificateRecipients);
+router.post('/school-portal/certificates/issue', requireHR, issueCertificates);
+router.get('/school-portal/certificates/data/timetable', requireHR, timetableData);
+router.get('/school-portal/certificates/data/fee-structure', requireHR, feeStructureData);
+router.get('/school-portal/certificates/issued', requireHR, listIssued);
+router.get('/school-portal/certificates/issued/print', requireHR, getIssuedMany);
+router.post('/school-portal/certificates/issued/:id/revoke', requireHR, validateObjectId('id'), revokeCertificate);
+router.post('/school-portal/certificates/issued/:id/reinstate', requireHR, validateObjectId('id'), reinstateCertificate);
+// Public verification page behind the QR code (no login, returns only the verification facts).
+router.get('/certificates/verify/:code', verifyCertificate);
+
 router.get('/school-portal/hr/dashboard', requireHR, getHRDashboard);
 router.get('/school-portal/hr/settings', requireHR, getHRSettings);
 router.patch('/school-portal/hr/settings', requireHR, updateHRSettings);

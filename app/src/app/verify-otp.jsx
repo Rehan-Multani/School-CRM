@@ -88,13 +88,16 @@ export default function VerifyOtpScreen() {
     }
   };
 
-  const verifyOtp = () => {
-    if (otp.length !== otpLength) {
+  // `code` is passed by the boxes' auto-submit (state may still be one digit behind);
+  // the button passes a press event, so fall back to the state then.
+  const verifyOtp = (code) => {
+    const value = typeof code === 'string' ? code : otp;
+    if (value.length !== otpLength) {
       setError(`Please enter the ${otpLength}-digit OTP.`);
       return undefined;
     }
     return run(async () => {
-      const data = await otpLoginApi.verifyOtp(roleKey, mobile, otp);
+      const data = await otpLoginApi.verifyOtp(roleKey, mobile, value);
       if (data.needsSelection) {
         setChoice(data);
         setStage('choose');

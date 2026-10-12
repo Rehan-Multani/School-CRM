@@ -4,6 +4,7 @@ import { StudentEnrollment } from '../models/StudentEnrollment.js';
 import { AcademicYear } from '../models/AcademicYear.js';
 import { SchoolClass } from '../models/SchoolClass.js';
 import { Section } from '../models/Section.js';
+import { FeeInvoice } from '../models/FeeInvoice.js';
 import { escapeRegex } from '../../../shared/sanitize.js';
 
 function toObjectId(id) {
@@ -14,7 +15,7 @@ export class StudentRepository {
   // The Mongo filter for a students list, or null when the class/section/year
   // filter matches nobody. Each word of the search must match one of the fields,
   // so a full name ("Aarav Mehta") finds the student.
-  async buildStudentQuery(schoolId, { search, status, academicYearId, classId, sectionId } = {}) {
+  async buildStudentQuery(schoolId, { search, status, academicYearId, classId, sectionId, feeStatus, minDue } = {}) {
     const query = { schoolId: toObjectId(schoolId) };
     if (status) query.status = status;
     const words = String(search || '').trim().split(/\s+/).filter(Boolean).slice(0, 5);
@@ -42,7 +43,57 @@ export class StudentRepository {
       if (!studentIds.length) return null;
       query._id = { $in: studentIds };
     }
+
+    // Fee filter: DUE (owes anything), OVERDUE (owes and past due date), CLEAR (owes nothing).
+    // `minDue` narrows DUE/OVERDUE to students owing at least that much in total.
+    const wantsFee = ['DUE', 'OVERDUE', 'CLEAR'].includes(String(feeStatus || '').toUpperCase());
+    const min = Number(minDue);
+    const wantsMin = minDue !== undefined && minDue !== '' && Number.isFinite(min) && min > 0;
+    if (wantsFee || wantsMin) {
+      const mode = wantsFee ? String(feeStatus).toUpperCase() : 'DUE';
+      const match = {
+        schoolId: toObjectId(schoolId),
+        status: { $nin: ['PAID', 'CANCELLED'] },
+        balanceAmount: { $gt: 0 },
+      };
+      if (mode === 'OVERDUE') match.dueDate = { $lt: new Date() };
+      const owing = await FeeInvoice.aggregate([
+        { $match: match },
+        { $group: { _id: '$studentId', due: { $sum: '$balanceAmount' } } },
+        ...(wantsMin ? [{ $match: { due: { $gte: min } } }] : []),
+      ]);
+      const ids = owing.map((row) => row._id);
+      if (mode === 'CLEAR') {
+        query.$and = [...(query.$and || []), { _id: { $nin: ids } }];
+      } else {
+        if (!ids.length) return null;
+        query.$and = [...(query.$and || []), { _id: { $in: ids } }];
+      }
+    }
     return query;
+  }
+
+  // Total outstanding per student (cancelled/paid invoices excluded).
+  async outstandingByStudent(schoolId, studentIds = []) {
+    if (!studentIds.length) return new Map();
+    const rows = await FeeInvoice.aggregate([
+      {
+        $match: {
+          schoolId: toObjectId(schoolId),
+          studentId: { $in: studentIds },
+          status: { $nin: ['PAID', 'CANCELLED'] },
+          balanceAmount: { $gt: 0 },
+        },
+      },
+      {
+        $group: {
+          _id: '$studentId',
+          due: { $sum: '$balanceAmount' },
+          overdue: { $sum: { $cond: [{ $lt: ['$dueDate', new Date()] }, '$balanceAmount', 0] } },
+        },
+      },
+    ]);
+    return new Map(rows.map((r) => [String(r._id), { due: r.due, overdue: r.overdue }]));
   }
 
   // `paging` ({ skip, limit }) is optional: without it the whole list is returned.

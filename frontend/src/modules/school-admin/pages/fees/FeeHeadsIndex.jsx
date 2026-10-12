@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { feePortalApi } from '../../../../shared/api/client';
 import {
@@ -17,7 +16,7 @@ import {
   Plus,
   Search,
   Sparkles,
-  Trash2,
+  Power,
   Upload,
   X,
 } from 'lucide-react';
@@ -100,7 +99,6 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
   const [saving, setSaving] = useState(false);
   const [importing, setImporting] = useState(false);
   const [editingHead, setEditingHead] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const [form, setForm] = useState({
     name: '',
@@ -216,16 +214,14 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
     }
   };
 
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
+  const handleToggleStatus = async (head) => {
+    const nextStatus = head.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
     try {
-      await feePortalApi.deleteHead(deleteTarget.id);
-      showToast('Fee head deleted', 'success');
+      await feePortalApi.updateHead(head.id, { status: nextStatus });
+      showToast(`Fee head ${nextStatus === 'ACTIVE' ? 'activated' : 'deactivated'}`, 'success');
       loadFeeHeads();
     } catch (error) {
-      showToast(error.message || 'Unable to delete fee head', 'error');
-    } finally {
-      setDeleteTarget(null);
+      showToast(error.message || 'Unable to update fee head status', 'error');
     }
   };
 
@@ -488,11 +484,15 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setDeleteTarget(head)}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:border-rose-300 hover:text-rose-600 dark:border-slate-800"
-                          title="Delete Fee Head"
+                          onClick={() => handleToggleStatus(head)}
+                          className={`inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 ${
+                            head.status === 'ACTIVE'
+                              ? 'text-emerald-600 hover:border-emerald-300'
+                              : 'text-slate-400 hover:border-slate-400'
+                          }`}
+                          title={head.status === 'ACTIVE' ? 'Deactivate Fee Head' : 'Activate Fee Head'}
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Power className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     </td>
@@ -651,17 +651,6 @@ export const FeeHeadsIndex = ({ hideHeader = false }) => {
           </div>
         </form>
       </Modal>
-
-      {/* CONFIRM DELETE DIALOG */}
-      <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        title="Delete Fee Head"
-        message={`Are you sure you want to delete "${deleteTarget?.name}"?`}
-        confirmLabel="Delete Head"
-        onConfirm={confirmDelete}
-        onCancel={() => setDeleteTarget(null)}
-        variant="danger"
-      />
 
       <ToastComponent />
     </div>

@@ -14,6 +14,8 @@ import '../models/AcademicYear.js';
 import '../models/SchoolClass.js';
 import '../models/Student.js';
 import '../models/StudentEnrollment.js';
+import '../models/Section.js';
+import { StudentEnrollment } from '../models/StudentEnrollment.js';
 import { escapeRegex } from '../../../shared/sanitize.js';
 
 function toObjectId(id) {
@@ -340,13 +342,46 @@ export class FeeRepository {
   }
 
   /* ======================== INVOICES & BILLING ======================== */
-  listInvoices(schoolId, { studentId, status, search, page = 1, limit = 50 } = {}) {
+  async listInvoices(
+    schoolId,
+    { studentId, status, search, page = 1, limit = 50, classId, sectionId, academicYearId, dueFrom, dueTo, minBalance, overdue } = {}
+  ) {
     const query = { schoolId: toObjectId(schoolId) };
     if (studentId) query.studentId = toObjectId(studentId);
     if (status && status !== 'ALL') query.status = status;
+    if (academicYearId) query.academicYearId = toObjectId(academicYearId);
     if (search) {
       const safe = escapeRegex(search);
       query.invoiceNumber = { $regex: safe, $options: 'i' };
+    }
+
+    // Due-date window, "owes at least" amount, and "past due and still unpaid".
+    if (dueFrom || dueTo) {
+      query.dueDate = {};
+      if (dueFrom) query.dueDate.$gte = new Date(dueFrom);
+      if (dueTo) {
+        const end = new Date(dueTo);
+        end.setHours(23, 59, 59, 999);
+        query.dueDate.$lte = end;
+      }
+    }
+    const min = Number(minBalance);
+    if (minBalance !== undefined && minBalance !== '' && Number.isFinite(min) && min > 0) {
+      query.balanceAmount = { $gte: min };
+    }
+    if (overdue === true || overdue === 'true' || overdue === '1') {
+      query.balanceAmount = { ...(query.balanceAmount || {}), $gt: 0 };
+      query.status = { $nin: ['PAID', 'CANCELLED'] };
+      query.dueDate = { ...(query.dueDate || {}), $lt: new Date() };
+    }
+
+    // Class / section live on the student's enrollment, not the invoice.
+    if (classId || sectionId) {
+      const enrollmentFilter = { schoolId: toObjectId(schoolId) };
+      if (classId) enrollmentFilter.classId = toObjectId(classId);
+      if (sectionId) enrollmentFilter.sectionId = toObjectId(sectionId);
+      if (academicYearId) enrollmentFilter.academicYearId = toObjectId(academicYearId);
+      query.studentId = { $in: await StudentEnrollment.distinct('studentId', enrollmentFilter) };
     }
 
     const safePage = Math.max(1, Number(page) || 1);
@@ -357,7 +392,14 @@ export class FeeRepository {
       FeeInvoice.find(query)
         .populate('studentId', 'firstName lastName admissionNumber rollNumber')
         .populate('academicYearId', 'name code')
-        .populate('enrollmentId', 'rollNumber')
+        .populate({
+          path: 'enrollmentId',
+          select: 'rollNumber classId sectionId',
+          populate: [
+            { path: 'classId', select: 'name' },
+            { path: 'sectionId', select: 'name' },
+          ],
+        })
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(safeLimit),

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
@@ -6,6 +6,7 @@ import { principalMiscApi } from '../../../api/principal/misc';
 import { showError, toast } from '../../../lib/notify';
 import { Button } from '../../ui';
 import OtpBoxes from '../../OtpBoxes';
+import PickupPhotoField from '../../pickup/PickupPhotoField';
 import { font, radius, spacing } from '../../../theme';
 
 // Web: OtpVerificationModal. The guardian reads the 6-digit OTP (sent by SMS) to the principal.
@@ -15,12 +16,14 @@ export default function PickupOtpModal({ student, sessionId, onVerified, onClose
   const [otp, setOtp] = useState('');
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
+  const photoRef = useRef(null);
 
   const verify = async () => {
     if (otp.length < 6) return;
     setBusy(true);
     try {
-      await principalMiscApi.verifySafePickupOtp(sessionId, otp);
+      const photo = (await photoRef.current?.capture()) || undefined;
+      await principalMiscApi.verifySafePickupOtp(sessionId, otp, photo);
       setDone(true);
       toast.success(`${student.name} marked as safely picked up`);
       setTimeout(onVerified, 1200);
@@ -54,6 +57,7 @@ export default function PickupOtpModal({ student, sessionId, onVerified, onClose
               <View style={{ marginVertical: spacing.lg, alignItems: 'center' }}>
                 <OtpBoxes value={otp} onChange={setOtp} disabled={busy} />
               </View>
+              <PickupPhotoField ref={photoRef} disabled={busy} />
               <Button title="Verify OTP" loadingTitle="Verifying..." loading={busy} disabled={otp.length < 6} onPress={verify} />
               <Button title="Cancel" variant="ghost" disabled={busy} onPress={onClose} style={{ marginTop: spacing.sm }} />
             </>

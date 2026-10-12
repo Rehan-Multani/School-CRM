@@ -24,6 +24,7 @@ class StudentExamService {
       schoolId: oid(ctx.schoolId),
       classIds: oid(ctx.classId),
       status: { $in: VISIBLE_EXAM_STATUS },
+      isActive: { $ne: false },
     };
   }
 

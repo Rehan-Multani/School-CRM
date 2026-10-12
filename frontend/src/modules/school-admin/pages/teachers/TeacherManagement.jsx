@@ -4,13 +4,12 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { academicPortalApi, hrApi } from '../../../../shared/api/client';
 import { EmptyState } from '../academics/components/AcademicUi';
 import { apiMessage } from '../academics/utils';
 import { sanitizeMobileInput, isValid10DigitMobile } from '../../../../shared/utils/mobileValidation';
-import { Ban, Camera, Eye, EyeOff, ImagePlus, KeyRound, Loader2, Pencil, Plus, Power, Trash2, UserCheck, UserCircle2, Users, X } from 'lucide-react';
+import { Ban, Camera, Eye, EyeOff, ImagePlus, KeyRound, Loader2, Pencil, Plus, Power, UserCheck, UserCircle2, Users, X } from 'lucide-react';
 import { SkeletonTable } from '../../components/ui/SkeletonLoader';
 
 const inputClass =
@@ -52,6 +51,7 @@ const createEmptyForm = () => ({
   employeeId: '',
   qualification: '',
   joiningDate: '',
+  leavingDate: '',
   experienceSummary: '',
   department: '',
   designation: '',
@@ -136,7 +136,6 @@ export const TeacherManagement = () => {
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState('');
   const [removePhoto, setRemovePhoto] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null);
   const [passwordTarget, setPasswordTarget] = useState(null);
   const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -225,6 +224,7 @@ export const TeacherManagement = () => {
       employeeId: teacher.employeeId || '',
       qualification: teacher.qualifications?.map((item) => item.degree).filter(Boolean).join(', ') || '',
       joiningDate: teacher.joiningDate ? String(teacher.joiningDate).slice(0, 10) : '',
+      leavingDate: teacher.leavingDate ? String(teacher.leavingDate).slice(0, 10) : '',
       experienceSummary: teacher.experienceSummary || '',
       department: teacher.department || '',
       designation: teacher.designation || '',
@@ -252,6 +252,7 @@ export const TeacherManagement = () => {
     if (
       !fullName ||
       !form.gender ||
+      !form.dateOfBirth ||
       !form.mobileNumber.trim() ||
       !form.employeeId.trim() ||
       !form.qualification.trim() ||
@@ -283,6 +284,7 @@ export const TeacherManagement = () => {
         email: form.email.trim(),
         employeeId: form.employeeId.trim(),
         joiningDate: form.joiningDate,
+        leavingDate: form.leavingDate,
         experienceSummary: form.experienceSummary,
         department: form.department,
         designation: form.designation,
@@ -337,17 +339,6 @@ export const TeacherManagement = () => {
       loadTeachers();
     } catch (error) {
       showToast(apiMessage(error, 'Unable to update teacher status'), 'error');
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-    try {
-      await academicPortalApi.deleteTeacher(deleteTarget.id);
-      showToast('Teacher deleted', 'success');
-      loadTeachers();
-    } catch (error) {
-      showToast(apiMessage(error, 'Unable to delete teacher'), 'error');
     }
   };
 
@@ -582,14 +573,6 @@ export const TeacherManagement = () => {
                 {row.status === 'ACTIVE' ? <Ban className="h-4 w-4 text-rose-500" /> : <Power className="h-4 w-4 text-emerald-500" />}
               </button>
             )}
-            <button
-              type="button"
-              onClick={() => setDeleteTarget(row)}
-              className="rounded-full p-1.5 text-rose-500 transition hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer"
-              title={`Delete ${row.name}`}
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
           </div>
         );
       },
@@ -743,8 +726,8 @@ export const TeacherManagement = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-500">Date of Birth</label>
-                  <input type="date" className={inputClass} value={form.dateOfBirth} onChange={(e) => updateField('dateOfBirth', e.target.value)} />
+                  <label className="mb-1 block text-xs font-bold text-slate-500">Date of Birth *</label>
+                  <input type="date" required max={new Date().toISOString().split('T')[0]} className={inputClass} value={form.dateOfBirth} onChange={(e) => updateField('dateOfBirth', e.target.value)} />
                 </div>
               </div>
             </SectionBlock>
@@ -798,6 +781,10 @@ export const TeacherManagement = () => {
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-500">Joining Date *</label>
                   <input type="date" className={inputClass} value={form.joiningDate} onChange={(e) => updateField('joiningDate', e.target.value)} required />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-slate-500">Leaving Date</label>
+                  <input type="date" className={inputClass} value={form.leavingDate} min={form.joiningDate || undefined} onChange={(e) => updateField('leavingDate', e.target.value)} />
                 </div>
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-500">Experience</label>
@@ -950,16 +937,6 @@ export const TeacherManagement = () => {
           </div>
         </form>
       </Modal>
-
-      <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={handleDelete}
-        title="Delete Teacher"
-        message={`"${deleteTarget?.name}" will be permanently removed. Teachers with class or subject assignments cannot be deleted – deactivate them instead.`}
-        confirmText="Delete Teacher"
-        variant="danger"
-      />
 
       <ToastComponent />
     </div>

@@ -199,6 +199,17 @@ export class SchoolReportsRepository {
     const filter = { schoolId, status: { $in: OUTSTANDING_INVOICE_STATUSES } };
     if (OUTSTANDING_INVOICE_STATUSES.includes(query.status)) filter.status = query.status;
 
+    // startDate / endDate narrow the invoice DUE date ("dues falling between…").
+    if (query.startDate || query.endDate) {
+      filter.dueDate = {};
+      if (query.startDate) filter.dueDate.$gte = new Date(query.startDate);
+      if (query.endDate) {
+        const end = new Date(query.endDate);
+        end.setHours(23, 59, 59, 999);
+        filter.dueDate.$lte = end;
+      }
+    }
+
     const { page, limit, skip } = sanitizePagination({
       page: query.page,
       limit: query.limit,

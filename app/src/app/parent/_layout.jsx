@@ -10,7 +10,7 @@ import { registerPushToken } from '../../lib/permissions';
 import HeaderBack from '../../components/HeaderBack';
 import NoChildren from '../../components/parent/NoChildren';
 import { ErrorView } from '../../components/kit';
-import { Loader } from '../../components/ui';
+import { SkeletonScreen } from '../../components/Skeleton';
 
 // Parent flow (doc 03) = bottom tabs `(tabs)` + pushed screens. Almost every
 // screen shows ONE child: the academics / attendance / fee screens are the
@@ -44,7 +44,7 @@ function ParentShell() {
   );
 
   if (!childrenLoaded) {
-    return childrenError ? <ErrorView error={childrenError} onRetry={reloadChildren} /> : <Loader />;
+    return childrenError ? <ErrorView error={childrenError} onRetry={reloadChildren} /> : <SkeletonScreen />;
   }
   // NO_LINKED_CHILDREN (doc §1): nothing to show until the school links a student.
   if (!child) return <NoChildren />;

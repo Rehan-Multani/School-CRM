@@ -36,6 +36,7 @@ export const principalMiscApi = {
   safePickupSettings: () => api.get(`${SP}/settings`),
   safePickupStudents: (params) => api.get(`${SP}/students`, params),
   sendSafePickupOtp: (studentId) => api.post(`${SP}/send-otp`, { studentId }),
-  verifySafePickupOtp: (sessionId, otp) => api.post(`${SP}/verify-otp`, { sessionId, otp }),
+  verifySafePickupOtp: (sessionId, otp, pickupPersonPhoto) => api.post(`${SP}/verify-otp`, { sessionId, otp, pickupPersonPhoto }),
+  scanSafePickupQr: (token) => api.post(`${SP}/scan-qr`, { token }),
   safePickupHistory: (params) => api.get(`${SP}/history`, params),
 };

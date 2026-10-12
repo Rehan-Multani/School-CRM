@@ -29,7 +29,7 @@ import { Badge } from '../ui/Badge';
 import { SkeletonTable } from '../ui/SkeletonLoader';
 import { useToast } from '../ui/Toast';
 import { cn } from '../lib/cn';
-import { exportToCSV, exportToExcel } from '../lib/exportHelpers';
+import { ExportMenu } from './ExportMenu';
 import { PrintReportModal } from './PrintReportModal';
 
 // `countKey` reads the record count for the card from the summary endpoint.
@@ -80,6 +80,7 @@ const REPORT_CATEGORIES = [
     color: 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400',
     group: 'Finance',
     statuses: ['PENDING', 'PARTIALLY_PAID', 'OVERDUE'],
+    dateFilter: true, // filters on the invoice due date
   },
   {
     id: 'payroll',
@@ -254,6 +255,10 @@ export const SchoolReportsHub = ({ api, schoolName }) => {
   const [endDate, setEndDate] = useState('');
   const [status, setStatus] = useState('ALL');
   const [sort, setSort] = useState({ key: null, dir: 'asc' });
+  // Per-column dropdown filters (Class, Section, Status, ...) and a minimum
+  // amount (e.g. "owing at least ₹5,000"), both applied on the loaded rows.
+  const [colFilters, setColFilters] = useState({});
+  const [minAmount, setMinAmount] = useState('');
   const [page, setPage] = useState(1);
   const [printOpen, setPrintOpen] = useState(false);
 
@@ -322,6 +327,8 @@ export const SchoolReportsHub = ({ api, schoolName }) => {
     setEndDate('');
     setStatus('ALL');
     setSort({ key: null, dir: 'asc' });
+    setColFilters({});
+    setMinAmount('');
     setPage(1);
     setSelected(category);
   };
@@ -333,11 +340,44 @@ export const SchoolReportsHub = ({ api, schoolName }) => {
 
   const columns = useMemo(() => Object.keys(rows[0] || {}), [rows]);
 
+  // Dropdown filters are built from the data itself: any column that looks like a
+  // category (Class, Section, Status, Department, ...) with a handful of values.
+  const DIMENSION_WORDS = ['class', 'section', 'status', 'gender', 'department', 'designation', 'category', 'type', 'role', 'mode', 'method', 'grade', 'month', 'result', 'subject', 'shift', 'route', 'vehicle', 'hostel', 'room', 'block', 'fee head', 'reason', 'house', 'session', 'year'];
+  const filterColumns = useMemo(() => {
+    if (!rows.length) return [];
+    return columns
+      .map((col) => {
+        const values = [...new Set(rows.map((r) => r[col]).filter((v) => v !== null && v !== undefined && v !== '' && v !== '—' && v !== '-'))];
+        const name = col.toLowerCase();
+        const looksLikeDimension = DIMENSION_WORDS.some((w) => name.includes(w));
+        const sample = values.slice(0, 20);
+        const textual = sample.every((v) => typeof v === 'string' && !isMoney(v) && v.length <= 40);
+        const ok = values.length >= 2 && values.length <= (looksLikeDimension ? 60 : 8) && textual && (looksLikeDimension || values.length <= 8);
+        return ok ? { col, values: values.map(String).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })) } : null;
+      })
+      .filter(Boolean)
+      .slice(0, 6);
+  }, [rows, columns]);
+
+  // The column the "minimum amount" box applies to: prefer what is *owed*.
+  const amountColumn = useMemo(() => {
+    const money = columns.filter((col) => rows.some((r) => isMoney(r[col])));
+    const owed = ['due', 'pending', 'balance', 'outstanding'];
+    return money.find((c) => owed.some((w) => c.toLowerCase().includes(w))) || (selected?.id === 'fee_dues' ? money[0] : null) || null;
+  }, [rows, columns, selected]);
+
   const viewRows = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const matched = q
+    let matched = q
       ? rows.filter((row) => Object.values(row).some((value) => String(value).toLowerCase().includes(q)))
       : rows;
+    Object.entries(colFilters).forEach(([col, value]) => {
+      if (value && value !== 'ALL') matched = matched.filter((row) => String(row[col]) === value);
+    });
+    const min = Number(minAmount);
+    if (amountColumn && minAmount !== '' && Number.isFinite(min)) {
+      matched = matched.filter((row) => sortValue(row[amountColumn]) >= min);
+    }
     if (!sort.key) return matched;
     const direction = sort.dir === 'asc' ? 1 : -1;
     return [...matched].sort((a, b) => {
@@ -346,7 +386,7 @@ export const SchoolReportsHub = ({ api, schoolName }) => {
       if (x === y) return 0;
       return (x > y ? 1 : -1) * direction;
     });
-  }, [rows, search, sort]);
+  }, [rows, search, sort, colFilters, minAmount, amountColumn]);
 
   const totalPages = Math.max(1, Math.ceil(viewRows.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -367,21 +407,21 @@ export const SchoolReportsHub = ({ api, schoolName }) => {
     setPage(1);
   };
 
+  // Printed under the PDF heading so a saved report says what it was filtered by.
+  const filterSummary = () => {
+    const parts = [];
+    if (schoolName) parts.push(schoolName);
+    if (status !== 'ALL') parts.push(`Status: ${statusLabel(status)}`);
+    if (startDate || endDate) parts.push(`Period: ${startDate || '…'} to ${endDate || '…'}`);
+    Object.entries(colFilters).forEach(([c, v]) => {
+      if (v && v !== 'ALL') parts.push(`${c}: ${v}`);
+    });
+    if (amountColumn && minAmount !== '') parts.push(`${amountColumn} ≥ ₹${minAmount}`);
+    if (search.trim()) parts.push(`Search: ${search.trim()}`);
+    return parts.join('  |  ');
+  };
+
   const fileBase = () => `${selected.id}_report_${todayStr()}`;
-
-  const handleCSV = () => {
-    exportToCSV(toExportRows(viewRows), `${fileBase()}.csv`);
-    showToast(`${selected.label} exported as CSV`, 'success');
-  };
-
-  const handleExcel = async () => {
-    try {
-      await exportToExcel([{ name: selected.label, data: toExportRows(viewRows) }], `${fileBase()}.xlsx`);
-      showToast(`${selected.label} exported as Excel`, 'success');
-    } catch {
-      showToast('Could not create the Excel file', 'error');
-    }
-  };
 
   const kpi = (key, format = (v) => v) => {
     if (summaryFailed) return '—';
@@ -402,7 +442,9 @@ export const SchoolReportsHub = ({ api, schoolName }) => {
       ].filter(Boolean)
     : [];
 
-  const hasFilters = Boolean(search.trim() || startDate || endDate || status !== 'ALL');
+  const hasFilters = Boolean(
+    search.trim() || startDate || endDate || status !== 'ALL' || minAmount !== '' || Object.values(colFilters).some((v) => v && v !== 'ALL')
+  );
   const noExport = loading || viewRows.length === 0;
 
   return (
@@ -502,19 +544,17 @@ export const SchoolReportsHub = ({ api, schoolName }) => {
                 <Printer className="w-3.5 h-3.5" />
                 <span>Print</span>
               </button>
-              <button type="button" onClick={handleCSV} disabled={noExport} className={toolbarButton}>
-                <Download className="w-3.5 h-3.5" />
-                <span>CSV</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleExcel}
+              <ExportMenu
+                getRows={() => toExportRows(viewRows)}
+                title={selected.label}
+                filename={`${selected.id}_report`}
+                subtitle={filterSummary()}
                 disabled={noExport}
                 className="flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <FileSpreadsheet className="w-3.5 h-3.5" />
-                <span>Excel</span>
-              </button>
+                label="Export"
+                onExported={(kind, n) => showToast(`${selected.label}: ${n} records exported`, 'success')}
+                onError={(msg) => showToast(msg, 'error')}
+              />
             </div>
           </div>
 
@@ -599,6 +639,44 @@ export const SchoolReportsHub = ({ api, schoolName }) => {
               </>
             )}
 
+            {filterColumns.map(({ col, values }) => (
+              <select
+                key={col}
+                value={colFilters[col] || 'ALL'}
+                onChange={(e) => {
+                  setColFilters((prev) => ({ ...prev, [col]: e.target.value }));
+                  setPage(1);
+                }}
+                className="h-10 max-w-[180px] rounded-xl border border-slate-200 bg-slate-50/80 px-3 text-xs font-semibold outline-none focus:border-primary dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                title={col}
+              >
+                <option value="ALL">All {col}</option>
+                {values.map((v) => (
+                  <option key={v} value={v}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+            ))}
+
+            {amountColumn && (
+              <div className="flex items-center gap-1.5 h-10 bg-slate-50/80 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 px-2.5">
+                <span className="text-[11px] font-bold text-slate-400 whitespace-nowrap">{amountColumn} ≥ ₹</span>
+                <input
+                  type="number"
+                  min="0"
+                  inputMode="numeric"
+                  value={minAmount}
+                  onChange={(e) => {
+                    setMinAmount(e.target.value);
+                    setPage(1);
+                  }}
+                  placeholder="0"
+                  className="w-20 bg-transparent text-xs font-semibold text-slate-700 dark:text-slate-300 outline-none"
+                />
+              </div>
+            )}
+
             {hasFilters && (
               <button
                 type="button"
@@ -607,6 +685,8 @@ export const SchoolReportsHub = ({ api, schoolName }) => {
                   setStartDate('');
                   setEndDate('');
                   setStatus('ALL');
+                  setColFilters({});
+                  setMinAmount('');
                   setPage(1);
                 }}
                 className="px-2 text-xs font-bold text-rose-500 hover:text-rose-600 cursor-pointer"

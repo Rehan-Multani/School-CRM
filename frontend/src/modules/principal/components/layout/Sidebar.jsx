@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { NAVIGATION_ITEMS } from '../../utils/constants';
+import { NAVIGATION_ITEMS, BACKUP_NAV_ITEM } from '../../utils/constants';
+import { principalBackupApi } from '../../../../shared/api/client';
 import { usePrincipalAuth } from '../../context/PrincipalAuthContext';
 import { cn } from '../../utils/cn';
 import { LogOut, ChevronLeft, ChevronRight, GraduationCap } from 'lucide-react';
@@ -51,7 +52,21 @@ export const Sidebar = ({ isCollapsed, setIsCollapsed, isOpen, toggleSidebar }) 
     navigate('/principal/login');
   };
 
-  const categories = NAVIGATION_ITEMS.reduce((acc, item) => {
+  // Database Backup appears only when the School Admin has switched it on.
+  const [backupAllowed, setBackupAllowed] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    principalBackupApi
+      .access()
+      .then((r) => alive && setBackupAllowed(Boolean(r?.data?.enabled)))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const navItems = backupAllowed ? [...NAVIGATION_ITEMS, BACKUP_NAV_ITEM] : NAVIGATION_ITEMS;
+  const categories = navItems.reduce((acc, item) => {
     if (!acc[item.category]) acc[item.category] = [];
     acc[item.category].push(item);
     return acc;

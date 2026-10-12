@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { academicPortalApi, feePortalApi } from '../../../../shared/api/client';
 import {
@@ -21,7 +20,7 @@ import {
   Search,
   Settings,
   Sparkles,
-  Trash2,
+  Power,
 } from 'lucide-react';
 import { SkeletonTable } from '../../components/ui/SkeletonLoader';
 
@@ -40,7 +39,6 @@ export const FeeStructuresIndex = ({ hideHeader = false }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editingStructure, setEditingStructure] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // Dynamic Year-Specific Classes State
   const [yearClasses, setYearClasses] = useState([]);
@@ -207,16 +205,14 @@ export const FeeStructuresIndex = ({ hideHeader = false }) => {
     }
   };
 
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
+  const handleToggleStatus = async (st) => {
+    const nextStatus = st.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
     try {
-      await feePortalApi.deleteStructure(deleteTarget.id);
-      showToast('Fee structure and items deleted', 'success');
+      await feePortalApi.updateStructure(st.id, { status: nextStatus });
+      showToast(`Fee structure ${nextStatus === 'ACTIVE' ? 'activated' : 'deactivated'}`, 'success');
       loadStructures();
     } catch (error) {
-      showToast(error.message || 'Unable to delete fee structure', 'error');
-    } finally {
-      setDeleteTarget(null);
+      showToast(error.message || 'Unable to update fee structure status', 'error');
     }
   };
 
@@ -461,11 +457,15 @@ export const FeeStructuresIndex = ({ hideHeader = false }) => {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setDeleteTarget(st)}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:border-rose-300 hover:text-rose-600 dark:border-slate-800"
-                          title="Delete Structure"
+                          onClick={() => handleToggleStatus(st)}
+                          className={`inline-flex h-8 w-8 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 ${
+                            st.status === 'ACTIVE'
+                              ? 'text-emerald-600 hover:border-emerald-300'
+                              : 'text-slate-400 hover:border-slate-400'
+                          }`}
+                          title={st.status === 'ACTIVE' ? 'Deactivate Structure' : 'Activate Structure'}
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Power className="h-3.5 w-3.5" />
                         </button>
                       </div>
                     </td>
@@ -606,17 +606,6 @@ export const FeeStructuresIndex = ({ hideHeader = false }) => {
           </div>
         </form>
       </Modal>
-
-      {/* CONFIRM DELETE DIALOG */}
-      <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        title="Delete Fee Structure"
-        message={`Are you sure you want to delete "${deleteTarget?.name}"? All attached line items and configurations will be removed.`}
-        confirmLabel="Delete Structure"
-        onConfirm={confirmDelete}
-        onCancel={() => setDeleteTarget(null)}
-        variant="danger"
-      />
 
       <ToastComponent />
     </div>

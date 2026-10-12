@@ -39,9 +39,11 @@ function StaffForm({ user, presetRole }) {
     role: user?.role || (ROLES.some((r) => r.value === presetRole) ? presetRole : 'LIBRARIAN'),
     phone: user?.phone || '',
     gender: user?.gender || 'MALE',
+    dateOfBirth: dateOnly(user?.dateOfBirth),
     specialization: user?.specialization || '',
     employeeId: user?.employeeId || `EMP${Math.floor(1000 + Math.random() * 9000)}`,
     joiningDate: user ? dateOnly(user.joiningDate) : ymd(),
+    leavingDate: user ? dateOnly(user.leavingDate) : '',
     department: user?.department || '',
     designation: user?.designation || '',
     basicSalary: user?.basicSalary !== undefined && user?.basicSalary !== null ? String(user.basicSalary) : '',
@@ -64,6 +66,7 @@ function StaffForm({ user, presetRole }) {
   const validate = () => {
     const e = {};
     if (!form.firstName.trim()) e.firstName = 'First name is required';
+    if (!form.dateOfBirth) e.dateOfBirth = 'Date of birth is required';
     if (!form.email.trim()) e.email = 'Email is required';
     else if (!isEmail(form.email)) e.email = 'Enter a valid email address';
     if (!form.employeeId.trim()) e.employeeId = 'Employee ID is required';
@@ -151,7 +154,9 @@ function StaffForm({ user, presetRole }) {
         <SectionHead>2. Employment & Designation</SectionHead>
         <Card>
           <Input label="Employee ID" required value={form.employeeId} onChangeText={set('employeeId')} error={errors.employeeId} placeholder="e.g. EMP1024" autoCapitalize="characters" />
+          <DateField label="Date of Birth *" value={form.dateOfBirth} onChange={set('dateOfBirth')} error={errors.dateOfBirth} maximumDate={new Date()} />
           <DateField label="Joining Date" value={form.joiningDate} onChange={set('joiningDate')} />
+          <DateField label="Leaving Date" value={form.leavingDate} onChange={set('leavingDate')} />
           <Select label="Department *" value={form.department} options={deptOptions} onChange={set('department')} error={errors.department} placeholder="Select department" />
           <Select label="Designation *" value={form.designation} options={desigOptions} onChange={set('designation')} error={errors.designation} placeholder="Select designation" />
           <Input label="Specialization" value={form.specialization} onChangeText={set('specialization')} placeholder="e.g. Mathematics / Finance" />

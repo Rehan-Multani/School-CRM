@@ -20,7 +20,12 @@ export function HomeHeaderTitle() {
     <View style={styles.homeHeaderTitleRow}>
       <SchoolLogo school={school} size={32} />
       <View style={styles.homeHeaderTitleInfo}>
-        <Text style={[styles.schoolTitle, { color: theme.onPrimary }]} numberOfLines={1}>
+        <Text
+          style={[styles.schoolTitle, { color: theme.onPrimary }]}
+          numberOfLines={2}
+          adjustsFontSizeToFit
+          minimumFontScale={0.85}
+        >
           {school?.name || 'School'}
         </Text>
         {school?.academicSession ? (
@@ -58,13 +63,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    maxWidth: 220,
+    // Wide enough for a long school name; it wraps to a second line instead of
+    // being cut off with "...".
+    maxWidth: 250,
   },
   homeHeaderTitleInfo: {
     flexShrink: 1,
   },
   schoolTitle: {
-    fontSize: 15,
+    fontSize: 14,
+    lineHeight: 17,
     fontWeight: '800',
     letterSpacing: -0.2,
   },

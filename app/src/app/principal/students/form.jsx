@@ -88,6 +88,7 @@ function StudentForm({ student }) {
     const e = {};
     if (!form.admissionNumber.trim()) e.admissionNumber = 'Admission number is required';
     if (!form.firstName.trim()) e.firstName = 'First name is required';
+    if (!form.dateOfBirth) e.dateOfBirth = 'Date of birth is required';
     if (!form.parentName.trim()) e.parentName = 'Parent / guardian name is required';
     if (!isValidMobile(form.parentPhone, true)) e.parentPhone = 'Parent / guardian phone must be exactly 10 digits';
     if (form.phone && !isValidMobile(form.phone, false)) e.phone = 'Student phone must be exactly 10 digits';
@@ -180,7 +181,7 @@ function StudentForm({ student }) {
               <Chip key={g} label={g.charAt(0) + g.slice(1).toLowerCase()} active={form.gender === g} onPress={() => set('gender')(g)} />
             ))}
           </View>
-          <DateField label="Date of Birth" value={form.dateOfBirth} onChange={set('dateOfBirth')} maximumDate={new Date()} />
+          <DateField label="Date of Birth *" value={form.dateOfBirth} onChange={set('dateOfBirth')} error={errors.dateOfBirth} maximumDate={new Date()} />
           <Input label="Student Email" value={form.email} onChangeText={set('email')} autoCapitalize="none" keyboardType="email-address" error={errors.email} placeholder="e.g. aarav@school.edu" />
           <Input label="Student Phone" value={form.phone} onChangeText={(v) => set('phone')(sanitizeMobile(v))} keyboardType="number-pad" maxLength={10} error={errors.phone} placeholder="9876512345" />
           <TextArea label="Address" value={form.address} onChangeText={set('address')} placeholder="House / street / locality" />

@@ -2,12 +2,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { academicPortalApi } from '../../../../shared/api/client';
 import { EmptyState } from './components/AcademicUi';
 import { apiMessage, ENTITY_STATUS_VARIANT } from './utils';
-import { ChevronLeft, ChevronRight, Download, FileUp, Loader2, Pencil, Plus, Trash2, Upload } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, FileUp, Loader2, Pencil, Plus, Power, Upload } from 'lucide-react';
 
 const inputClass =
   'h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white';
@@ -63,7 +62,7 @@ export const ClassesIndex = () => {
   const [saving, setSaving] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
   const [importing, setImporting] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [togglingId, setTogglingId] = useState(null);
   const importRef = useRef();
   const [form, setForm] = useState({ name: '', description: '', status: 'ACTIVE', academicYearId: '' });
 
@@ -202,21 +201,17 @@ export const ClassesIndex = () => {
     setModalOpen(true);
   };
 
-  const handleDelete = (cls) => {
-    setDeleteTarget(cls);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
+  const handleToggleStatus = async (cls) => {
+    const nextStatus = cls.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    setTogglingId(cls.id);
     try {
-      await academicPortalApi.deleteClass(deleteTarget.id);
-      showToast('Class deleted successfully', 'success');
+      await academicPortalApi.updateClass(cls.id, { status: nextStatus });
+      showToast(`Class ${nextStatus === 'ACTIVE' ? 'activated' : 'deactivated'}`, 'success');
       loadClasses();
-      loadReferenceYearsAndMappings();
     } catch (error) {
-      showToast(apiMessage(error, 'Unable to delete class'), 'error');
+      showToast(apiMessage(error, 'Unable to update class status'), 'error');
     } finally {
-      setDeleteTarget(null);
+      setTogglingId(null);
     }
   };
 
@@ -446,11 +441,16 @@ export const ClassesIndex = () => {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleDelete(cls)}
-                            className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-400 dark:hover:bg-rose-950/30 dark:hover:text-rose-400 transition cursor-pointer"
-                            title={`Delete ${cls.name}`}
+                            onClick={() => handleToggleStatus(cls)}
+                            disabled={togglingId === cls.id}
+                            className={`rounded-lg p-1.5 transition cursor-pointer disabled:opacity-50 ${
+                              cls.status === 'ACTIVE'
+                                ? 'text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
+                                : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                            title={cls.status === 'ACTIVE' ? `Deactivate ${cls.name}` : `Activate ${cls.name}`}
                           >
-                            <Trash2 size={15} />
+                            <Power size={15} />
                           </button>
                         </div>
                       </td>
@@ -595,16 +595,6 @@ export const ClassesIndex = () => {
           </div>
         </form>
       </Modal>
-
-      <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={confirmDelete}
-        title="Delete Class"
-        message={`Delete class "${deleteTarget?.name}"?`}
-        confirmText="Delete Class"
-        variant="danger"
-      />
 
       <ToastComponent />
     </div>

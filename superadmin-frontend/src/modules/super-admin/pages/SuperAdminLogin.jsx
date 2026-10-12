@@ -31,8 +31,25 @@ export default function SuperAdminLogin() {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const { login } = useSuperAdminAuth();
+  // Two independent sign-in options: 'password' (email + password) and
+  // 'otp' (email only — a code is emailed, no password involved).
+  const [mode, setMode] = useState('password');
+  const [challenge, setChallenge] = useState(null); // { challengeId, maskedEmail }
+  const [otp, setOtp] = useState('');
+  const [cooldown, setCooldown] = useState(0);
+  const [info, setInfo] = useState('');
+
+  const { login, requestOtp, verifyOtp, resendOtp } = useSuperAdminAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (cooldown <= 0) return undefined;
+    const t = setTimeout(() => setCooldown((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [cooldown]);
+
+  const errorMessage = (err) =>
+    err.response?.data?.message || err.message || 'Unable to reach the authentication service.';
 
   useEffect(() => {
     document.title = 'Super Admin Login | School CRM';
@@ -55,17 +72,61 @@ export default function SuperAdminLogin() {
     setError('');
 
     try {
+      if (mode === 'otp') {
+        const result = await requestOtp(email.trim());
+        setChallenge({ challengeId: result.challengeId, maskedEmail: result.maskedEmail });
+        setCooldown(result.resendAfterSeconds || 30);
+        setOtp('');
+        setInfo(result.message || '');
+        return;
+      }
       await login(email.trim(), password);
       navigate('/super-admin/dashboard');
     } catch (err) {
-      const message =
-        err.response?.data?.message ||
-        err.message ||
-        'Unable to reach the authentication service.';
-      setError(message);
+      setError(errorMessage(err));
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleOtpSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      await verifyOtp(challenge.challengeId, otp.trim());
+      navigate('/super-admin/dashboard');
+    } catch (err) {
+      setError(errorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setError('');
+    setInfo('');
+    try {
+      const res = await resendOtp(challenge.challengeId);
+      setCooldown(res.resendAfterSeconds || 30);
+      setInfo(`A new OTP was sent to ${res.maskedEmail}`);
+    } catch (err) {
+      setError(errorMessage(err));
+    }
+  };
+
+  const backToEmail = () => {
+    setChallenge(null);
+    setOtp('');
+    setError('');
+    setInfo('');
+  };
+
+  const switchMode = (next) => {
+    if (loading || next === mode) return;
+    setMode(next);
+    setError('');
+    setInfo('');
   };
 
   return (
@@ -120,7 +181,11 @@ export default function SuperAdminLogin() {
               <BrandLogo className="h-9 w-9 rounded-lg" />
             </div>
             <h2 className="text-2xl font-bold tracking-tight text-slate-900">Welcome back</h2>
-            <p className="mt-1.5 text-sm text-slate-500">Sign in with your super admin account</p>
+            <p className="mt-1.5 text-sm text-slate-500">
+              {challenge
+                ? `Enter the 6-digit OTP sent to ${challenge.maskedEmail}`
+                : 'Sign in with your super admin account'}
+            </p>
           </div>
 
           <div className="rounded-2xl border border-slate-200/80 bg-white p-7 shadow-[0_12px_36px_-6px_rgba(15,23,42,0.07),0_2px_8px_rgba(0,0,0,0.04)]">
@@ -134,7 +199,98 @@ export default function SuperAdminLogin() {
               </div>
             )}
 
+            {challenge && info && !error && (
+              <div className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50/90 px-3.5 py-3 text-sm font-medium text-emerald-700">
+                {info}
+              </div>
+            )}
+
+            {challenge ? (
+              <form onSubmit={handleOtpSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="sa-otp" className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
+                    One-time password
+                  </label>
+                  <div className="relative">
+                    <ShieldCheck className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <input
+                      id="sa-otp"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      autoFocus
+                      maxLength={6}
+                      placeholder="------"
+                      value={otp}
+                      onChange={(e) => {
+                        setOtp(e.target.value.replace(/\D/g, '').slice(0, 6));
+                        if (error) setError('');
+                      }}
+                      required
+                      disabled={loading}
+                      className={`${inputClass} text-center font-mono text-lg tracking-[0.5em]`}
+                    />
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="mt-3 h-12 w-full gap-2 text-sm font-semibold shadow-md shadow-indigo-500/20"
+                  disabled={loading || otp.length !== 6}
+                >
+                  {loading ? (
+                    'Verifying...'
+                  ) : (
+                    <>
+                      Verify & Sign in
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+
+                <div className="flex items-center justify-between text-xs">
+                  <button
+                    type="button"
+                    onClick={backToEmail}
+                    disabled={loading}
+                    className="font-semibold text-slate-500 transition hover:text-slate-800"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={loading || cooldown > 0}
+                    className="font-semibold text-indigo-600 transition hover:text-indigo-800 disabled:cursor-not-allowed disabled:text-slate-400"
+                  >
+                    {cooldown > 0 ? `Resend OTP in ${cooldown}s` : 'Resend OTP'}
+                  </button>
+                </div>
+              </form>
+            ) : (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
+              <div role="tablist" aria-label="Sign-in method" className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
+                {[
+                  { key: 'password', label: 'Password' },
+                  { key: 'otp', label: 'Email OTP' },
+                ].map((tab) => (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={mode === tab.key}
+                    onClick={() => switchMode(tab.key)}
+                    className={`rounded-lg py-2 text-xs font-semibold transition ${
+                      mode === tab.key
+                        ? 'bg-white text-indigo-700 shadow-xs'
+                        : 'text-slate-500 hover:text-slate-800'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
               <div className="space-y-1.5">
                 <label htmlFor="sa-email" className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
                   Email Address
@@ -145,7 +301,6 @@ export default function SuperAdminLogin() {
                     id="sa-email"
                     type="email"
                     autoComplete="username"
-                    autoFocus
                     placeholder="admin@schoolcrm.com"
                     value={email}
                     onChange={(e) => {
@@ -159,6 +314,7 @@ export default function SuperAdminLogin() {
                 </div>
               </div>
 
+              {mode === 'password' && (
               <div className="space-y-1.5">
                 <label htmlFor="sa-password" className="block text-xs font-semibold uppercase tracking-wider text-slate-600">
                   Password
@@ -189,6 +345,7 @@ export default function SuperAdminLogin() {
                   </button>
                 </div>
               </div>
+              )}
 
               <Button
                 type="submit"
@@ -196,15 +353,16 @@ export default function SuperAdminLogin() {
                 disabled={loading}
               >
                 {loading ? (
-                  'Signing in...'
+                  mode === 'otp' ? 'Sending OTP...' : 'Signing in...'
                 ) : (
                   <>
-                    Sign in to Console
+                    {mode === 'otp' ? 'Send OTP' : 'Sign in to Console'}
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}
               </Button>
             </form>
+            )}
           </div>
 
           <p className="mt-5 text-center text-xs text-slate-400 flex items-center justify-center gap-1.5">

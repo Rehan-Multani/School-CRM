@@ -42,6 +42,11 @@ const PerformanceReviews = lazy(() => import('../pages/hr/PerformanceReviews').t
 const InventoryManagement = lazy(() => import('../pages/inventory/InventoryManagement').then((m) => ({ default: m.InventoryManagement })));
 const EventsManagement = lazy(() => import('../pages/events/EventsManagement').then((m) => ({ default: m.EventsManagement })));
 const ReportsHub = lazy(() => import('../pages/reports/ReportsHub').then((m) => ({ default: m.ReportsHub })));
+const BannerManagement = lazy(() => import('../pages/banners/BannerManagement').then((m) => ({ default: m.BannerManagement })));
+const VisitorsPage = lazy(() => import('../pages/visitors/VisitorsPage').then((m) => ({ default: m.VisitorsPage })));
+const CertificatesPage = lazy(() => import('../pages/certificates/CertificatesPage').then((m) => ({ default: m.CertificatesPage })));
+const StudentIdCardsPage = lazy(() => import('../pages/id-cards/StudentIdCardsPage').then((m) => ({ default: m.StudentIdCardsPage })));
+const SchoolBackup = lazy(() => import('../pages/backup/SchoolBackup').then((m) => ({ default: m.SchoolBackup })));
 const AuditLogs = lazy(() => import('../pages/audit/AuditLogs').then((m) => ({ default: m.AuditLogs })));
 const Support = lazy(() => import('../pages/support/Support').then((m) => ({ default: m.Support })));
 const Settings = lazy(() => import('../pages/settings/Settings').then((m) => ({ default: m.Settings })));
@@ -108,6 +113,11 @@ export const SchoolAdminRoutes = () => {
       <Route path="events" element={<EventsManagement />} />
       <Route path="reports" element={<ReportsHub />} />
       <Route path="audit" element={<AuditLogs />} />
+      <Route path="backup" element={<SchoolBackup />} />
+      <Route path="id-cards" element={<StudentIdCardsPage />} />
+      <Route path="certificates" element={<CertificatesPage />} />
+      <Route path="visitors" element={<VisitorsPage />} />
+      <Route path="banners" element={<BannerManagement />} />
       <Route path="support" element={<Support />} />
       <Route path="settings" element={<Settings />} />
       <Route path="settings/safe-pickup" element={<SafePickup />} />

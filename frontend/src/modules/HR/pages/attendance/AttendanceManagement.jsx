@@ -28,7 +28,7 @@ import {
   Users,
   Sun,
 } from 'lucide-react';
-import { exportToCSV } from '../../../../shared/lib/exportHelpers';
+import { ExportMenu } from '../../../../shared/components/ExportMenu';
 import { SkeletonTable } from '../../components/ui/SkeletonLoader';
 import { Badge } from '../../components/ui/Badge';
 
@@ -200,11 +200,7 @@ export const AttendanceManagement = () => {
     return Array.from(set);
   }, [records]);
 
-  const handleExportReport = () => {
-    if (reportData.length === 0) return;
-    exportToCSV(reportData, `staff_attendance_${reportStartDate}_to_${reportEndDate}.csv`);
-    showToast('Attendance report exported to CSV!', 'success');
-  };
+
 
   return (
     <div className="space-y-6 pb-12">
@@ -238,14 +234,17 @@ export const AttendanceManagement = () => {
             )}
 
             {activeTab === 'reports' && (
-              <button
-                onClick={handleExportReport}
+              <ExportMenu
+                title="Staff Attendance Report"
+                filename={`staff_attendance_${reportStartDate}_to_${reportEndDate}`}
+                subtitle={`Period: ${reportStartDate} to ${reportEndDate}`}
+                getRows={() => reportData}
                 disabled={reportData.length === 0}
-                className="flex items-center gap-1.5 px-4 py-2 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer disabled:opacity-50"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Export Report</span>
-              </button>
+                onExported={(kind, n) => showToast(`${n} rows exported`, 'success')}
+                onError={(m) => showToast(m, 'error')}
+                label="Export Report"
+                className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer disabled:opacity-50"
+              />
             )}
           </div>
         }

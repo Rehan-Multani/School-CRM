@@ -8,7 +8,8 @@ import { useToast } from '../../components/ui/Toast';
 import { useAccountantAuth } from '../../context/AccountantAuthContext';
 import { accountantApi } from '../../../../shared/api/client';
 import { formatCurrency, formatDate } from '../../utils/formatters';
-import { exportToCSV } from '../../../../shared/lib/exportHelpers';
+import { ExportMenu } from '../../../../shared/components/ExportMenu';
+import { fetchAllPages, prettyRows } from '../../../../shared/lib/exportRows';
 import { PrintReportModal } from '../../../../shared/components/PrintReportModal';
 import { PAYMENT_METHODS } from '../../utils/constants';
 import { Printer, Download, Search, RotateCcw, Ban } from 'lucide-react';
@@ -234,16 +235,23 @@ export const ReceiptManagement = ({ initialStatus = '' }) => {
         title="Receipts / Invoices"
         subtitle="Payment receipts and fee invoices in one place ââââââ search, filter, print and download."
         actions={
-          <button
-            onClick={() => {
-              if (!rows.length) return showToast('Nothing to export', 'info');
-              exportToCSV(rows, `${tab}_${new Date().toISOString().split('T')[0]}.csv`);
-              showToast('Current page exported to CSV', 'success');
+          <ExportMenu
+            title={tab === 'receipts' ? 'Fee Receipts' : 'Fee Invoices'}
+            filename={tab}
+            subtitle={[filters.status && `Status: ${filters.status}`, tab === 'receipts' && filters.paymentMethod && `Mode: ${filters.paymentMethod}`, filters.search && `Search: ${filters.search}`].filter(Boolean).join('  |  ')}
+            disabled={pagination.total === 0}
+            getRows={async () => {
+              const params = {};
+              if (filters.search) params.search = filters.search;
+              if (tab === 'receipts' && filters.paymentMethod) params.paymentMethod = filters.paymentMethod;
+              if (filters.status) params.status = filters.status;
+              const fetchPage = tab === 'receipts' ? accountantApi.receipts : accountantApi.invoices;
+              return prettyRows(await fetchAllPages(fetchPage, params));
             }}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs"
-          >
-            <Download className="w-3.5 h-3.5" /> Export
-          </button>
+            onExported={(kind, n) => showToast(`${n} records exported`, 'success')}
+            onError={(m) => showToast(m, 'error')}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs disabled:opacity-50"
+          />
         }
       />
 

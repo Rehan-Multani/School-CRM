@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { academicPortalApi } from '../../../../shared/api/client';
 import { AcademicBreadcrumb, EmptyState } from './components/AcademicUi';
@@ -10,7 +9,7 @@ import { apiMessage, ENTITY_STATUS_VARIANT } from './utils';
 import {
   BookOpen,
   Plus,
-  Trash2,
+  Power,
   Loader2,
   Search,
   RotateCcw,
@@ -132,7 +131,6 @@ export const SubjectAssignments = () => {
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingAssignment, setEditingAssignment] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // Form for Assign Subject Modal
   const [assignForm, setAssignForm] = useState({
@@ -437,17 +435,16 @@ export const SubjectAssignments = () => {
     }
   };
 
-  // Delete Assignment
-  const handleDeleteAssignment = async () => {
-    if (!deleteTarget) return;
+  // Activate / deactivate assignment
+  const handleToggleAssignment = async (assignment) => {
+    const nextStatus = assignment.status === 'INACTIVE' ? 'ACTIVE' : 'INACTIVE';
     setBusy(true);
     try {
-      await academicPortalApi.deleteSectionSubject(deleteTarget.id);
-      showToast('Subject assignment removed successfully', 'success');
-      setDeleteTarget(null);
+      await academicPortalApi.updateSectionSubject(assignment.id, { status: nextStatus });
+      showToast(`Subject assignment ${nextStatus === 'ACTIVE' ? 'activated' : 'deactivated'}`, 'success');
       await refreshAssignments();
     } catch (error) {
-      showToast(apiMessage(error, 'Failed to remove subject assignment'), 'error');
+      showToast(apiMessage(error, 'Failed to update assignment status'), 'error');
     } finally {
       setBusy(false);
     }
@@ -1082,11 +1079,16 @@ export const SubjectAssignments = () => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => setDeleteTarget(assignment)}
-                              className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-400 dark:hover:bg-rose-950/30 dark:hover:text-rose-400 transition cursor-pointer"
-                              title="Unassign Subject"
+                              onClick={() => handleToggleAssignment(assignment)}
+                              disabled={busy}
+                              className={`rounded-lg p-1.5 transition cursor-pointer disabled:opacity-50 ${
+                                assignment.status === 'INACTIVE'
+                                  ? 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                  : 'text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
+                              }`}
+                              title={assignment.status === 'INACTIVE' ? 'Activate Assignment' : 'Deactivate Assignment'}
                             >
-                              <Trash2 size={15} />
+                              <Power size={15} />
                             </button>
                           </div>
                         </td>
@@ -1467,25 +1469,6 @@ export const SubjectAssignments = () => {
           </form>
         )}
       </Modal>
-
-      {/* Confirm Unassign / Delete Dialog */}
-      <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={handleDeleteAssignment}
-        title="Unassign Subject"
-        message={
-          deleteTarget
-            ? `Are you sure you want to remove ${
-                deleteTarget.subject?.name || subjectMap.get(deleteTarget.subjectId)?.name || 'this subject'
-              } from ${deleteTarget.class?.name || classMap.get(deleteTarget.classId)?.name || 'Class'} (Section ${
-                deleteTarget.section?.name || sectionMap.get(deleteTarget.sectionId)?.name || 'A'
-              })?`
-            : 'Are you sure you want to remove this subject mapping?'
-        }
-        confirmText="Remove Subject"
-        variant="danger"
-      />
 
       <ToastComponent />
     </div>

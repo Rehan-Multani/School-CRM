@@ -11,7 +11,7 @@ import RefreshableScroll from '../../../components/RefreshableScroll';
 import { font, spacing } from '../../../theme';
 import { SkeletonDetail } from '../../../components/Skeleton';
 
-const STATUS_TONE = { PRESENT: 'success', ABSENT: 'danger', LATE: 'warning', HALF_DAY: 'warning', LEAVE: 'muted' };
+const STATUS_TONE = { PRESENT: 'success', ABSENT: 'danger', LATE: 'warning', HALF_DAY: 'halfDay', LEAVE: 'muted' };
 
 function Row({ label, value, styles, onPress, icon }) {
   if (!value) return null;

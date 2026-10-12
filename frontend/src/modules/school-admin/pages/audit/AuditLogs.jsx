@@ -18,29 +18,46 @@ const MODULE_VARIANT = {
   USERS: 'danger',
 };
 
+const ROLE_LABELS = {
+  SCHOOLADMIN: 'School Admin',
+  PRINCIPAL: 'Principal',
+  HR: 'HR',
+  ACCOUNTANT: 'Accountant',
+  LIBRARIAN: 'Librarian',
+  TEACHER: 'Teacher',
+  TRANSPORT: 'Transport Manager',
+  TRANSPORT_MANAGER: 'Transport Manager',
+};
+const roleLabel = (role) => ROLE_LABELS[String(role || '').toUpperCase()] || role || '-';
+
+const PAGE_SIZE = 5;
+
 export const AuditLogs = () => {
   const { showToast, ToastComponent } = useToast();
   const [rows, setRows] = useState([]);
   const [modules, setModules] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, limit: 25, total: 0, totalPages: 1 });
+  const [roles, setRoles] = useState([]);
+  const [pagination, setPagination] = useState({ page: 1, limit: PAGE_SIZE, total: 0, totalPages: 1 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expanded, setExpanded] = useState(null);
-  const [filters, setFilters] = useState({ module: 'ALL', actor: '', from: '', to: '', page: 1 });
+  const [filters, setFilters] = useState({ module: 'ALL', role: 'ALL', actor: '', from: '', to: '', page: 1 });
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const params = { page: filters.page, limit: 25 };
+      const params = { page: filters.page, limit: PAGE_SIZE };
       if (filters.module !== 'ALL') params.module = filters.module;
+      if (filters.role !== 'ALL') params.role = filters.role;
       if (filters.actor.trim()) params.actor = filters.actor.trim();
       if (filters.from) params.from = filters.from;
       if (filters.to) params.to = filters.to;
       const res = await auditApi.list(params);
       setRows(res?.data || []);
-      setPagination(res?.pagination || { page: 1, limit: 25, total: 0, totalPages: 1 });
+      setPagination(res?.pagination || { page: 1, limit: PAGE_SIZE, total: 0, totalPages: 1 });
       if (res?.modules?.length) setModules(res.modules);
+      if (res?.roles?.length) setRoles(res.roles);
     } catch (err) {
       setError(apiMessage(err, 'Unable to load audit logs'));
     } finally {
@@ -62,8 +79,8 @@ export const AuditLogs = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Audit Logs Registry"
-        subtitle="Every write action taken across the school portal – who did what, and when."
+        title="Activity Logs"
+        subtitle="Every operation performed by your school's staff - who did what, their role and contact, and when."
       />
 
       <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -80,12 +97,25 @@ export const AuditLogs = () => {
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-[11px] font-bold text-slate-400">Actor</label>
+          <label className="mb-1 block text-[11px] font-bold text-slate-400">Role</label>
+          <select
+            value={filters.role}
+            onChange={(e) => set({ role: e.target.value })}
+            className="h-10 rounded-xl border border-slate-200 bg-slate-50/80 px-3 text-xs font-semibold outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+          >
+            <option value="ALL">ALL</option>
+            {roles.map((r) => (
+              <option key={r} value={r}>{roleLabel(r)}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-[11px] font-bold text-slate-400">Search</label>
           <input
             value={filters.actor}
             onChange={(e) => setFilters((f) => ({ ...f, actor: e.target.value }))}
             onKeyDown={(e) => e.key === 'Enter' && set({ actor: filters.actor })}
-            placeholder="name / email"
+            placeholder="name / email / mobile / details"
             className="h-10 rounded-xl border border-slate-200 bg-slate-50/80 px-3 text-xs font-semibold outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
           />
         </div>
@@ -119,10 +149,13 @@ export const AuditLogs = () => {
             <thead className="border-b border-slate-100 bg-slate-50/60 text-[11px] font-bold uppercase text-slate-500 dark:border-slate-800 dark:bg-slate-950/40">
               <tr>
                 <th className="px-4 py-3">When</th>
-                <th className="px-4 py-3">Actor</th>
+                <th className="px-4 py-3">User</th>
+                <th className="px-4 py-3">Role</th>
+                <th className="px-4 py-3">Email</th>
+                <th className="px-4 py-3">Mobile</th>
                 <th className="px-4 py-3">Module</th>
-                <th className="px-4 py-3">Action</th>
-                <th className="px-4 py-3">Summary</th>
+                <th className="px-4 py-3">Operation</th>
+                <th className="px-4 py-3">Details</th>
                 <th className="w-10 px-2 py-3" />
               </tr>
             </thead>
@@ -130,7 +163,7 @@ export const AuditLogs = () => {
               {loading ? (
                 Array.from({ length: 8 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    {Array.from({ length: 6 }).map((__, j) => (
+                    {Array.from({ length: 9 }).map((__, j) => (
                       <td key={j} className="px-4 py-3">
                         <div className="h-3.5 w-2/3 rounded bg-slate-100 dark:bg-slate-900" />
                       </td>
@@ -139,7 +172,7 @@ export const AuditLogs = () => {
                 ))
               ) : rows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-16 text-center text-xs font-semibold text-slate-400">
+                  <td colSpan={9} className="px-4 py-16 text-center text-xs font-semibold text-slate-400">
                     No audit entries match these filters.
                   </td>
                 </tr>
@@ -148,17 +181,19 @@ export const AuditLogs = () => {
                   <React.Fragment key={r.id}>
                     <tr className="hover:bg-slate-50/60 dark:hover:bg-slate-950/30">
                       <td className="whitespace-nowrap px-4 py-3 text-slate-500">{new Date(r.createdAt).toLocaleString('en-IN')}</td>
-                      <td className="px-4 py-3">
-                        <span className="font-bold text-slate-900 dark:text-white">{r.actorName || 'System'}</span>
-                        {r.actorRole && <div className="text-[10px] text-slate-400">{r.actorRole}</div>}
+                      <td className="px-4 py-3 font-bold text-slate-900 dark:text-white">{r.actorName || 'System'}</td>
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <Badge variant="default">{roleLabel(r.actorRole)}</Badge>
                       </td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{r.actorEmail || '-'}</td>
+                      <td className="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-300">{r.actorMobile || '-'}</td>
                       <td className="px-4 py-3">
                         <Badge variant={MODULE_VARIANT[r.module] || 'default'}>{r.module}</Badge>
                       </td>
                       <td className="px-4 py-3 font-mono text-[11px] font-bold text-indigo-600 dark:text-indigo-400">{r.action}</td>
                       <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{r.summary || '–'}</td>
                       <td className="px-2 py-3 text-center">
-                        {(r.before || r.after) && (
+                        {(r.before || r.after || r.path) && (
                           <button
                             type="button"
                             onClick={() => setExpanded(expanded === r.id ? null : r.id)}
@@ -171,7 +206,12 @@ export const AuditLogs = () => {
                     </tr>
                     {expanded === r.id && (
                       <tr className="bg-slate-50/60 dark:bg-slate-950/40">
-                        <td colSpan={6} className="px-4 py-3">
+                        <td colSpan={9} className="px-4 py-3">
+                          {r.path && (
+                            <p className="mb-2 font-mono text-[10px] text-slate-400">
+                              {r.method} {r.path}{r.ip ? ` - ${r.ip}` : ''}
+                            </p>
+                          )}
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <span className="text-[10px] font-black uppercase text-slate-400">Before</span>
@@ -180,7 +220,7 @@ export const AuditLogs = () => {
                               </pre>
                             </div>
                             <div>
-                              <span className="text-[10px] font-black uppercase text-slate-400">After</span>
+                              <span className="text-[10px] font-black uppercase text-slate-400">Submitted data</span>
                               <pre className="mt-1 max-h-48 overflow-auto rounded-lg bg-white p-2 text-[10px] dark:bg-slate-900">
                                 {r.after ? JSON.stringify(r.after, null, 2) : '–'}
                               </pre>

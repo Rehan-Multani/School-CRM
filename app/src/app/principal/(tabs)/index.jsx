@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useStyles } from '../../../context/ThemeContext';
 import { SectionTitle } from '../../../components/kit';
 import SchoolHeader from '../../../components/SchoolHeader';
+import SchoolBanners from '../../../components/SchoolBanners';
 import RefreshableScroll from '../../../components/RefreshableScroll';
 import DashboardSummary from '../../../components/principal/DashboardSummary';
 import ModuleList from '../../../components/principal/ModuleList';
@@ -20,6 +21,7 @@ export default function PrincipalHome() {
       <SchoolHeader>
         <Text style={styles.hello}>Welcome, {user?.firstName || user?.name || 'Principal'}</Text>
       </SchoolHeader>
+      <SchoolBanners />
       <View style={styles.body}>
         <DashboardSummary ref={summary} />
         <SectionTitle title="Quick access" />

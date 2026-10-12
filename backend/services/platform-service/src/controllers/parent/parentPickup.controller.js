@@ -1,5 +1,6 @@
 import { parentAccessService } from '../../services/parentAccess.service.js';
 import { parentPickupService } from '../../services/parentPickup.service.js';
+import { pickupQrService } from '../../services/pickupQr.service.js';
 
 async function childCtx(req) {
   return parentAccessService.resolveChild(req, req.params.childId);
@@ -26,5 +27,13 @@ export async function activePickups(req, res, next) {
     res.set('Cache-Control', 'no-store');
     const ctx = await parentAccessService.loadContext(req);
     res.json({ success: true, data: await parentPickupService.activeForParent(ctx) });
+  } catch (e) { next(e); }
+}
+
+// The child's rotating pickup QR (5 min; a new one replaces the old).
+export async function childPickupQr(req, res, next) {
+  try {
+    res.set('Cache-Control', 'no-store');
+    res.json({ success: true, data: await pickupQrService.issueForChild(await childCtx(req)) });
   } catch (e) { next(e); }
 }

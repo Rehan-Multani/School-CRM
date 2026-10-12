@@ -130,6 +130,8 @@ export const StudentManagement = () => {
     classId: '',
     sectionId: '',
     status: '',
+    feeStatus: '',
+    minDue: '',
   });
   const [form, setForm] = useState(defaultForm);
   const [modalOpen, setModalOpen] = useState(false);
@@ -237,6 +239,8 @@ export const StudentManagement = () => {
       if (filters.classId) params.classId = filters.classId;
       if (filters.sectionId) params.sectionId = filters.sectionId;
       if (filters.status) params.status = filters.status;
+      if (filters.feeStatus) params.feeStatus = filters.feeStatus;
+      if (filters.minDue) params.minDue = filters.minDue;
       const result = await principalStudentApi.students(params);
       setStudents(result.data || []);
     } catch (error) {
@@ -550,6 +554,19 @@ export const StudentManagement = () => {
     { header: 'Guardian', key: 'parentName' },
     { header: 'Phone', key: 'guardianPhone' },
     {
+      header: 'Fee Due',
+      key: 'feeDue',
+      render: (value, row) =>
+        Number(value) > 0 ? (
+          <span className="font-bold text-rose-600">
+            ₹{Number(value).toLocaleString('en-IN')}
+            {Number(row.feeOverdue) > 0 && <span className="block text-[10px] font-bold text-rose-400">Overdue ₹{Number(row.feeOverdue).toLocaleString('en-IN')}</span>}
+          </span>
+        ) : (
+          <span className="text-[11px] font-semibold text-emerald-600">Clear</span>
+        ),
+    },
+    {
       header: 'Student Status',
       key: 'status',
       render: (value) => <Badge variant={ENTITY_STATUS_VARIANT[value] || 'default'}>{value}</Badge>,
@@ -687,6 +704,30 @@ export const StudentManagement = () => {
             <option value="INACTIVE">Inactive</option>
           </select>
         </div>
+        <div>
+          <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Fee status</label>
+          <select
+            value={filters.feeStatus}
+            onChange={(e) => setFilters((prev) => ({ ...prev, feeStatus: e.target.value }))}
+            className={inputClass}
+          >
+            <option value="">All students</option>
+            <option value="DUE">Has fee dues</option>
+            <option value="OVERDUE">Overdue fees</option>
+            <option value="CLEAR">No dues</option>
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Due at least (₹)</label>
+          <input
+            type="number"
+            min="0"
+            value={filters.minDue}
+            onChange={(e) => setFilters((prev) => ({ ...prev, minDue: e.target.value, feeStatus: prev.feeStatus || (e.target.value ? 'DUE' : '') }))}
+            placeholder="e.g. 5000"
+            className={inputClass}
+          />
+        </div>
       </div>
 
       {loading ? (
@@ -808,8 +849,8 @@ export const StudentManagement = () => {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold text-slate-500">Date of Birth</label>
-              <input type="date" className={inputClass} value={form.dateOfBirth} onChange={(e) => setForm((prev) => ({ ...prev, dateOfBirth: e.target.value }))} />
+              <label className="mb-1 block text-xs font-bold text-slate-500">Date of Birth *</label>
+              <input type="date" required max={new Date().toISOString().split('T')[0]} className={inputClass} value={form.dateOfBirth} onChange={(e) => setForm((prev) => ({ ...prev, dateOfBirth: e.target.value }))} />
             </div>
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Enrollment Date</label>

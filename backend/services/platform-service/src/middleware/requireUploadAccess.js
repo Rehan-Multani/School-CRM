@@ -30,6 +30,11 @@ const ALLOWED_ROLES = new Set([
   'SUPERADMIN',
 ]);
 
+// Student / parent app users only see profile photos and teacher-shared study
+// material — never staff documents, driver licences, etc.
+const LEARNER_ROLES = new Set(['STUDENT', 'PARENT']);
+const LEARNER_FOLDERS = new Set(['students', 'teachers', 'teacher-resources']);
+
 export function requireUploadAccess(req, res, next) {
   try {
     // Defense-in-depth: block traversal / hidden files even though express.static also guards.
@@ -55,7 +60,9 @@ export function requireUploadAccess(req, res, next) {
 
     const payload = verifyToken(token, env.jwtSecret);
     const role = (payload.role || '').toUpperCase();
-    if (!ALLOWED_ROLES.has(role)) {
+    const folder = decoded.split('/').filter(Boolean)[0];
+    const learnerOk = LEARNER_ROLES.has(role) && LEARNER_FOLDERS.has(folder);
+    if (!ALLOWED_ROLES.has(role) && !learnerOk) {
       throw new AppError('Access denied', 403);
     }
 

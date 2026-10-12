@@ -79,6 +79,7 @@ const defaultForm = {
   role: 'LIBRARIAN',
   phone: '',
   gender: 'MALE',
+  dateOfBirth: '',
   specialization: '',
   employeeId: '',
   joiningDate: new Date().toISOString().split('T')[0],
@@ -266,6 +267,7 @@ export const StaffManagement = () => {
       role: user.role || 'LIBRARIAN',
       phone: user.phone || '',
       gender: user.gender || 'MALE',
+      dateOfBirth: user.dateOfBirth ? String(user.dateOfBirth).slice(0, 10) : '',
       specialization: user.specialization || '',
       employeeId: user.employeeId || '',
       joiningDate: user.joiningDate ? new Date(user.joiningDate).toISOString().split('T')[0] : '',
@@ -1004,6 +1006,18 @@ export const StaffManagement = () => {
                   onChange={(e) => setForm({ ...form, employeeId: e.target.value })}
                   placeholder="e.g. EMP1024"
                   required
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[11px] font-bold text-slate-500">Date of Birth *</label>
+                <input
+                  type="date"
+                  required
+                  max={new Date().toISOString().split('T')[0]}
+                  value={form.dateOfBirth}
+                  onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
                   className={inputClass}
                 />
               </div>

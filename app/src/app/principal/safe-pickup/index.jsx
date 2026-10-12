@@ -4,10 +4,12 @@ import { Stack, router } from 'expo-router';
 import { useStyles } from '../../../context/ThemeContext';
 import { principalMiscApi } from '../../../api/principal/misc';
 import { showError, toast } from '../../../lib/notify';
+import { errorText } from '../../../lib/format';
 import { Button } from '../../../components/ui';
 import { Badge, EmptyState, ErrorView, Select, SearchBar } from '../../../components/kit';
 import { SkeletonList } from '../../../components/Skeleton';
 import PagedList from '../../../components/PagedList';
+import QrScannerModal from '../../../components/pickup/QrScannerModal';
 import PickupOtpModal from '../../../components/principal/misc/PickupOtpModal';
 import { useCascade, useSafePickupSettings } from '../../../components/principal/misc/useSafePickupFilters';
 import { font, radius, spacing } from '../../../theme';
@@ -24,6 +26,9 @@ export default function SafePickup() {
   const [q, setQ] = useState('');
   const [active, setActive] = useState(null); // { student, sessionId }
   const [sendingId, setSendingId] = useState(null);
+  const [scanning, setScanning] = useState(false);
+  const [scanBusy, setScanBusy] = useState(false);
+  const [scanError, setScanError] = useState('');
   const list = useRef(null);
   const cascade = useCascade(settings.data, yearId, classId);
 
@@ -57,6 +62,23 @@ export default function SafePickup() {
     }
   };
 
+  // Parent's rotating QR → pickup completes at once (same outcome as the OTP).
+  const onScanned = async (token) => {
+    setScanBusy(true);
+    setScanError('');
+    try {
+      const res = await principalMiscApi.scanSafePickupQr(token);
+      setScanning(false);
+      toast.success(`${res?.data?.studentName || 'Student'} marked as safely picked up`);
+      list.current?.reload();
+    } catch (e) {
+      // Shown inside the scanner: a toast would sit behind the full-screen camera.
+      setScanError(errorText(e) || 'This QR could not be verified.');
+    } finally {
+      setScanBusy(false);
+    }
+  };
+
   const header = (
     <View style={{ paddingTop: spacing.lg }}>
       <Text style={styles.intro}>Verify and mark students as safely picked up by their guardians.</Text>
@@ -64,6 +86,7 @@ export default function SafePickup() {
       <Select label="Academic year" value={yearId} options={cascade.yearOptions} onChange={(v) => { setYearId(v); setClassId(''); setSectionId(''); }} />
       <Select label="Class" value={classId} options={cascade.classOptions} onChange={(v) => { setClassId(v); setSectionId(''); }} />
       <Select label="Section" value={sectionId} options={cascade.sectionOptions} onChange={setSectionId} />
+      <Button title="Scan parent QR" icon="qr-code-outline" onPress={() => { setScanError(''); setScanning(true); }} style={{ marginBottom: spacing.md }} />
       <Button title="View pickup history" variant="outline" icon="time-outline" onPress={() => router.push('/principal/safe-pickup/history')} style={{ marginBottom: spacing.lg }} />
     </View>
   );
@@ -106,6 +129,7 @@ export default function SafePickup() {
           </View>
         )}
       />
+      <QrScannerModal visible={scanning} busy={scanBusy} error={scanError} onToken={onScanned} onClose={() => { setScanning(false); setScanError(''); }} />
       {active ? (
         <PickupOtpModal
           student={active.student}

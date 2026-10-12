@@ -5,6 +5,8 @@ import { Pulse, KpiSkeleton } from '../components/ui/SkeletonLoader';
 import Dashboard from '../pages/dashboard/Dashboard';
 import SchoolsIndex from '../pages/schools/SchoolsIndex';
 import EnquiriesIndex from '../pages/enquiries/EnquiriesIndex';
+import BoardsIndex from '../pages/boards/BoardsIndex';
+import BackupIndex from '../pages/backup/BackupIndex';
 import PlansIndex from '../pages/subscriptions/PlansIndex';
 import SubscriptionsIndex from '../pages/subscriptions/SubscriptionsIndex';
 import NotificationsIndex from '../pages/notifications/NotificationsIndex';
@@ -69,6 +71,22 @@ export const SuperAdminRoutes = () => {
         element={
           <ProtectedRoute>
             <EnquiriesIndex />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="backup"
+        element={
+          <ProtectedRoute>
+            <BackupIndex />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="boards"
+        element={
+          <ProtectedRoute>
+            <BoardsIndex />
           </ProtectedRoute>
         }
       />

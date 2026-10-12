@@ -6,7 +6,8 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { useSchoolAdminAuth } from '../../context/SchoolAdminAuthContext';
 import { hrApi } from '../../../../shared/api/client';
-import { exportToCSV, exportToJSON } from '../../../../shared/lib/exportHelpers';
+import { exportToJSON } from '../../../../shared/lib/exportHelpers';
+import { ExportMenu } from '../../../../shared/components/ExportMenu';
 import { PrintReportModal } from '../../../../shared/components/PrintReportModal';
 import {
   Award,
@@ -258,8 +259,9 @@ export const PerformanceReviews = () => {
     }
   };
 
-  const handleExportCSV = () => {
-    if (reviews.length === 0) return;
+  // Rows for the Export menu (Excel / PDF / CSV).
+  const buildExportRows = () => {
+    if (reviews.length === 0) return [];
     const exportData = reviews.map((r, i) => ({
       '#': i + 1,
       'Employee Name': r.employeeName,
@@ -276,8 +278,7 @@ export const PerformanceReviews = () => {
       'Review Date': r.reviewDate ? new Date(r.reviewDate).toLocaleDateString() : 'N/A',
       'Status': r.status,
     }));
-    exportToCSV(exportData, `performance_reviews_${new Date().toISOString().split('T')[0]}.csv`);
-    showToast('Reviews exported to CSV successfully!', 'success');
+    return exportData;
   };
 
   const handleExportJSON = () => {
@@ -317,14 +318,15 @@ export const PerformanceReviews = () => {
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
 
-            <button
-              onClick={handleExportCSV}
+            <ExportMenu
+              title="Performance Reviews"
+              filename="performance_reviews"
+              getRows={buildExportRows}
               disabled={reviews.length === 0}
+              onExported={(kind, n) => showToast(`${n} reviews exported`, 'success')}
+              onError={(m) => showToast(m, 'error')}
               className="flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-indigo-600 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
-            >
-              <Download className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Export CSV</span>
-            </button>
+            />
 
             <button
               onClick={openCreateModal}

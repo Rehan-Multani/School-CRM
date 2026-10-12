@@ -10,6 +10,7 @@ import { PrivacyPolicyPage } from './modules/landing/pages/PrivacyPolicyPage';
 import { TermsPage } from './modules/landing/pages/TermsPage';
 import { NotFoundPage } from './modules/landing/pages/NotFoundPage';
 import { PortalPickerPage } from './modules/landing/pages/PortalPickerPage';
+import { VerifyCertificatePage } from './modules/landing/pages/VerifyCertificatePage';
 
 import { StudentAuthProvider } from './modules/student/context/StudentAuthContext';
 import { ThemeProvider } from './modules/student/context/ThemeContext';
@@ -125,6 +126,9 @@ function App() {
                                                                            <Route path="/terms" element={<TermsPage />} />
                                                                            <Route path="*" element={<NotFoundPage />} />
                                                                          </Route>
+
+                                                                         {/* Public certificate verification (QR code target) */}
+                                                                         <Route path="/verify-certificate/:code" element={<VerifyCertificatePage />} />
 
                                                                          {/* Portal picker (staff sign in) */}
                                                                          <Route path="/login" element={<PortalPickerPage />} />

@@ -11,6 +11,7 @@ import { Badge, Chip, ErrorView, FieldLabel } from '../../../components/kit';
 import { font, radius, spacing } from '../../../theme';
 import { SkeletonForm } from '../../../components/Skeleton';
 import OtpBoxes from '../../../components/OtpBoxes';
+import PickupPhotoField from '../../../components/pickup/PickupPhotoField';
 
 // Doc §6.10 — OTP (6 boxes) → handover (person + relationship + confirm) →
 // complete. Cancel is available at any step.
@@ -27,6 +28,7 @@ export default function PickupSession() {
   const [person, setPerson] = useState('');
   const [relationship, setRelationship] = useState('Parent');
   const [handedOver, setHandedOver] = useState(false);
+  const photoRef = useRef(null);
   const s = state.data;
 
   useEffect(() => {
@@ -75,7 +77,8 @@ export default function PickupSession() {
     if (!person.trim()) return showError({ message: 'Enter the name of the person collecting the student.' });
     if (!handedOver) return showError({ message: 'Confirm that the student has been handed over.' });
     return run('complete', async () => {
-      const r = await teacherApi.completePickup(sessionId, { handoverConfirmed: true, pickupPersonName: person.trim(), pickupPersonRelationship: relationship });
+      const pickupPersonPhoto = (await photoRef.current?.capture()) || undefined;
+      const r = await teacherApi.completePickup(sessionId, { handoverConfirmed: true, pickupPersonName: person.trim(), pickupPersonRelationship: relationship, pickupPersonPhoto });
       toast('Pickup completed');
       return r;
     });
@@ -106,7 +109,7 @@ export default function PickupSession() {
             {s.className}-{s.sectionName}
             {s.guardianName ? ` · Guardian ${s.guardianName}` : ''}
           </Text>
-          <Text style={styles.muted}>OTP sent to {s.maskedMobile}</Text>
+          <Text style={styles.muted}>{s.verificationMethod === 'PARENT_QR' ? 'Verified by parent QR code' : `OTP sent to ${s.maskedMobile}`}</Text>
         </Card>
 
         {status === 'COMPLETED' ? (
@@ -151,6 +154,7 @@ export default function PickupSession() {
                 <Chip key={r} label={r} active={relationship === r} onPress={() => setRelationship(r)} />
               ))}
             </View>
+            <PickupPhotoField ref={photoRef} disabled={Boolean(busy)} />
             <Pressable onPress={() => setHandedOver((h) => !h)} style={styles.check}>
               <Ionicons name={handedOver ? 'checkbox' : 'square-outline'} size={24} color={handedOver ? theme.primary : theme.textMuted} />
               <Text style={{ color: theme.text, fontSize: font.md, flex: 1 }}>The student has been handed over</Text>

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Animated, Easing, ScrollView, StyleSheet, View } from 'react-native';
+import { Animated, Easing, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { radius, spacing } from '../theme';
 
@@ -226,6 +226,64 @@ export function SkeletonSheet({ count = 7, chips = 5, padded = true }) {
         </Box>
       ))}
     </View>
+  );
+}
+
+/**
+ * School banner strip: same size as <SchoolBanners /> (2:1, screen width minus the
+ * side gutters) plus the dots row, so the page does not jump when it loads.
+ */
+export function SkeletonBanner({ style }) {
+  const { width } = useWindowDimensions();
+  const w = width - spacing.lg * 2;
+  return (
+    <View style={[{ marginTop: spacing.md, paddingHorizontal: spacing.lg }, style]}>
+      <Bone w={w} h={Math.round(w / 2)} r={radius.lg} />
+      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 5, marginTop: spacing.sm }}>
+        <Bone w={16} h={6} r={3} />
+        <Bone w={6} h={6} r={3} />
+        <Bone w={6} h={6} r={3} />
+      </View>
+    </View>
+  );
+}
+
+/** Safe Pickup QR card: title row, the QR square, timer line, three action buttons. */
+export function SkeletonQrCard({ qrSize = 220, style }) {
+  return (
+    <Box style={[{ marginBottom: spacing.md }, style]}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+        <Bone w={44} h={44} r={14} />
+        <View style={{ flex: 1, gap: 8 }}>
+          <Bone w="40%" h={15} />
+          <Bone w="75%" h={11} />
+        </View>
+      </View>
+      <View style={{ alignItems: 'center', marginTop: spacing.lg }}>
+        <Bone w={qrSize + 16} h={qrSize + 16} r={radius.md} />
+      </View>
+      <View style={{ alignItems: 'center', marginTop: spacing.md, gap: 8 }}>
+        <Bone w="38%" h={13} />
+        <Bone w="75%" h={11} />
+      </View>
+      <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg }}>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Bone key={i} h={62} r={radius.md} style={{ flex: 1 }} w={null} />
+        ))}
+      </View>
+    </Box>
+  );
+}
+
+/** Whole-screen placeholder for a role home (header-less): banner + the home body. */
+export function SkeletonScreen({ banner = true }) {
+  return (
+    <ScrollView scrollEnabled={false} contentContainerStyle={{ paddingBottom: spacing.xl }}>
+      {banner ? <SkeletonBanner /> : null}
+      <View style={{ padding: spacing.lg }}>
+        <SkeletonHome />
+      </View>
+    </ScrollView>
   );
 }
 

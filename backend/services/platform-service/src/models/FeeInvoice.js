@@ -76,6 +76,9 @@ feeInvoiceSchema.methods.toPublicJSON = function toPublicJSON() {
           code: this.academicYearId.code,
         }
       : (this.academicYearId?.toString ? this.academicYearId.toString() : this.academicYearId),
+    // Present when the enrollment was populated (invoice list).
+    className: this.enrollmentId?.classId?.name || '',
+    sectionName: this.enrollmentId?.sectionId?.name || '',
     invoiceNumber: this.invoiceNumber,
     periodLabel: this.periodLabel,
     periodStart: this.periodStart,

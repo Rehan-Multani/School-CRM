@@ -66,6 +66,8 @@ const schoolUserSchema = new mongoose.Schema(
       default: 'FULL_TIME',
     },
     joiningDate: { type: Date, default: null },
+    // Optional: set when the staff member has left (or is due to leave).
+    leavingDate: { type: Date, default: null },
     department: { type: String, default: '', trim: true },
     designation: { type: String, default: '', trim: true },
     basicSalary: { type: Number, default: 0, min: 0 },
@@ -138,6 +140,7 @@ schoolUserSchema.methods.toPublicJSON = function toPublicJSON() {
     experienceSummary: this.experienceSummary,
     employmentType: this.employmentType,
     joiningDate: this.joiningDate,
+    leavingDate: this.leavingDate || null,
     department: this.department,
     designation: this.designation,
     basicSalary: this.basicSalary || 0,

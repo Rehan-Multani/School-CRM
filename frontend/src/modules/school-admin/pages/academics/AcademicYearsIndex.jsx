@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { academicPortalApi } from '../../../../shared/api/client';
 import { AcademicBreadcrumb, EmptyState } from './components/AcademicUi';
@@ -317,7 +316,6 @@ export const AcademicYearsIndex = () => {
   const [importing, setImporting] = useState(false);
   const [yearForm, setYearForm] = useState(EMPTY_ROW());
   const [yearSaving, setYearSaving] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const loadYears = useCallback(async () => {
     setLoading(true);
@@ -415,23 +413,6 @@ export const AcademicYearsIndex = () => {
       showToast(apiMessage(error, 'Unable to update academic year'), 'error');
     } finally {
       setYearSaving(false);
-    }
-  };
-
-  const handleDeleteYear = (year) => {
-    setDeleteTarget(year);
-  };
-
-  const confirmDeleteYear = async () => {
-    if (!deleteTarget) return;
-    try {
-      await academicPortalApi.deleteYear(deleteTarget.id);
-      showToast('Academic year deleted', 'success');
-      loadYears();
-    } catch (error) {
-      showToast(apiMessage(error, 'Unable to delete academic year'), 'error');
-    } finally {
-      setDeleteTarget(null);
     }
   };
 
@@ -702,14 +683,6 @@ export const AcademicYearsIndex = () => {
                           >
                             <Pencil size={15} />
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteYear(year)}
-                            className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-400 dark:hover:bg-rose-950/30 dark:hover:text-rose-400 transition cursor-pointer"
-                            title="Delete Year"
-                          >
-                            <Trash2 size={15} />
-                          </button>
                         </div>
                       </td>
                     </tr>
@@ -832,16 +805,6 @@ export const AcademicYearsIndex = () => {
           </div>
         </form>
       </Modal>
-
-      <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={confirmDeleteYear}
-        title="Delete Academic Year"
-        message={`Delete academic year "${deleteTarget?.name}"?`}
-        confirmText="Delete Academic Year"
-        variant="danger"
-      />
 
       <ToastComponent />
     </div>

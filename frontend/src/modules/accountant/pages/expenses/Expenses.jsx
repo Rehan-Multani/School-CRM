@@ -8,7 +8,8 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { accountantApi } from '../../../../shared/api/client';
 import { formatCurrency, formatDate } from '../../utils/formatters';
-import { exportToCSV } from '../../../../shared/lib/exportHelpers';
+import { ExportMenu } from '../../../../shared/components/ExportMenu';
+import { fetchAllPages, prettyRows } from '../../../../shared/lib/exportRows';
 import { PAYMENT_METHODS } from '../../utils/constants';
 import { TrendingDown, Plus, Receipt, Trash2, Pencil, Download, Search } from 'lucide-react';
 
@@ -218,16 +219,22 @@ export const Expenses = () => {
         subtitle="Record operational costs, vendor bills and utilities. Categories & vendors are managed inline."
         actions={
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                if (!rows.length) return showToast('Nothing to export', 'info');
-                exportToCSV(rows, `expenses_${new Date().toISOString().split('T')[0]}.csv`);
-                showToast('Current page exported to CSV', 'success');
+            <ExportMenu
+              title="Expenses"
+              filename="expenses"
+              subtitle={[filters.category && `Category: ${filters.category}`, filters.paymentStatus && `Payment: ${filters.paymentStatus}`, filters.search && `Search: ${filters.search}`].filter(Boolean).join('  |  ')}
+              disabled={pagination.total === 0}
+              getRows={async () => {
+                const params = {};
+                if (filters.search) params.search = filters.search;
+                if (filters.category) params.category = filters.category;
+                if (filters.paymentStatus) params.paymentStatus = filters.paymentStatus;
+                return prettyRows(await fetchAllPages(accountantApi.expenses, params));
               }}
-              className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs"
-            >
-              <Download className="w-3.5 h-3.5" /> Export
-            </button>
+              onExported={(kind, n) => showToast(`${n} expenses exported`, 'success')}
+              onError={(m) => showToast(m, 'error')}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs disabled:opacity-50"
+            />
             <button
               onClick={() => setModal({ mode: 'create', form: emptyForm() })}
               className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs"

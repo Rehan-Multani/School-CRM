@@ -72,6 +72,24 @@ function normalizeMobile(value) {
   }
 }
 
+// A family member's number: required, a valid 10-digit mobile, and not the
+// driver's own number.
+function normalizeFamilyMobile(value, driverMobile) {
+  if (value === undefined || value === null || String(value).trim() === '') {
+    throw bad('Family mobile number is required');
+  }
+  let mobile;
+  try {
+    mobile = normalizeMobileNumber(value, 'Family mobile number');
+  } catch (error) {
+    throw bad(error.message);
+  }
+  if (driverMobile && mobile === driverMobile) {
+    throw bad('Family mobile number must be different from the driver mobile number');
+  }
+  return mobile;
+}
+
 function normalizeLicense(value) {
   const raw = requireText(value, 'License number', { max: 25 }).replace(/\s/g, '').toUpperCase();
   if (!LICENSE_RE.test(raw)) throw bad('License number must be 5-20 letters/digits, e.g. MP123456789');
@@ -351,6 +369,7 @@ export const transportService = {
     const name = requireText(data.name, 'Driver name');
     const mobile = normalizeMobile(data.mobile);
     const licenseNumber = normalizeLicense(data.licenseNumber);
+    const familyMobile = normalizeFamilyMobile(data.familyMobile, mobile);
 
     const [byMobile, byLicense] = await Promise.all([
       transportRepository.findDriverByMobile(schoolId, mobile),
@@ -365,6 +384,7 @@ export const transportService = {
       schoolId,
       name,
       mobile,
+      familyMobile,
       licenseNumber,
       status: normalizeStatus(data.status, 'Driver'),
       photo: data.photo ? String(data.photo).trim() : '',
@@ -398,6 +418,12 @@ export const transportService = {
         if (duplicate) throw conflict(`A driver with mobile ${mobile} already exists`, TRANSPORT_ERR.DUPLICATE);
       }
       driver.mobile = mobile;
+    }
+
+    if (data.familyMobile !== undefined) {
+      driver.familyMobile = normalizeFamilyMobile(data.familyMobile, driver.mobile);
+    } else if (driver.familyMobile && driver.familyMobile === driver.mobile) {
+      throw bad('Family mobile number must be different from the driver mobile number');
     }
 
     if (data.licenseNumber !== undefined) {

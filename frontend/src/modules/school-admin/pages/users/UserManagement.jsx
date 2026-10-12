@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { schoolUserApi, hrApi } from '../../../../shared/api/client';
 import { apiMessage } from '../academics/utils';
@@ -32,7 +31,6 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
-  Trash2,
   Upload,
   UploadCloud,
   UserCheck,
@@ -79,9 +77,11 @@ const defaultForm = {
   role: 'LIBRARIAN',
   phone: '',
   gender: 'MALE',
+  dateOfBirth: '',
   specialization: '',
   employeeId: '',
   joiningDate: new Date().toISOString().split('T')[0],
+  leavingDate: '',
   department: '',
   designation: '',
   basicSalary: '',
@@ -193,9 +193,6 @@ export const UserManagement = () => {
   const [showFormPassword, setShowFormPassword] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
 
-  // Delete Dialog
-  const [deleteTarget, setDeleteTarget] = useState(null);
-
   // Department & Designation master data
   const [departments, setDepartments] = useState([]);
   const [designations, setDesignations] = useState([]);
@@ -266,9 +263,11 @@ export const UserManagement = () => {
       role: user.role || 'LIBRARIAN',
       phone: user.phone || '',
       gender: user.gender || 'MALE',
+      dateOfBirth: user.dateOfBirth ? String(user.dateOfBirth).slice(0, 10) : '',
       specialization: user.specialization || '',
       employeeId: user.employeeId || '',
       joiningDate: user.joiningDate ? new Date(user.joiningDate).toISOString().split('T')[0] : '',
+      leavingDate: user.leavingDate ? new Date(user.leavingDate).toISOString().split('T')[0] : '',
       department: user.department || '',
       designation: user.designation || '',
       basicSalary: user.basicSalary !== undefined ? String(user.basicSalary) : '',
@@ -418,18 +417,6 @@ export const UserManagement = () => {
       showToast(apiMessage(error, 'Failed to change password'), 'error');
     } finally {
       setChangingPassword(false);
-    }
-  };
-
-  const handleDeleteSubmit = async () => {
-    if (!deleteTarget) return;
-    try {
-      await schoolUserApi.delete(deleteTarget.id);
-      showToast(`User "${deleteTarget.name}" deleted successfully`, 'success');
-      setDeleteTarget(null);
-      loadUsers();
-    } catch (error) {
-      showToast(apiMessage(error, 'Failed to delete user'), 'error');
     }
   };
 
@@ -724,13 +711,6 @@ export const UserManagement = () => {
                             <Power className="h-4 w-4" />
                           </button>
 
-                          <button
-                            onClick={() => setDeleteTarget(user)}
-                            className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40"
-                            title="Delete User"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
                         </div>
                       </td>
                     </tr>
@@ -1009,11 +989,34 @@ export const UserManagement = () => {
               </div>
 
               <div>
+                <label className="mb-1 block text-[11px] font-bold text-slate-500">Date of Birth *</label>
+                <input
+                  type="date"
+                  required
+                  max={new Date().toISOString().split('T')[0]}
+                  value={form.dateOfBirth}
+                  onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })}
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
                 <label className="mb-1 block text-[11px] font-bold text-slate-500">Joining Date</label>
                 <input
                   type="date"
                   value={form.joiningDate}
                   onChange={(e) => setForm({ ...form, joiningDate: e.target.value })}
+                  className={inputClass}
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[11px] font-bold text-slate-500">Leaving Date</label>
+                <input
+                  type="date"
+                  value={form.leavingDate}
+                  min={form.joiningDate || undefined}
+                  onChange={(e) => setForm({ ...form, leavingDate: e.target.value })}
                   className={inputClass}
                 />
               </div>
@@ -1389,17 +1392,6 @@ export const UserManagement = () => {
           </form>
         </Modal>
       )}
-
-      {/* Delete Confirmation Dialog */}
-      <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        title="Delete Staff User Record"
-        message={`Are you sure you want to permanently remove "${deleteTarget?.name}" (${deleteTarget?.employeeId})? This action cannot be undone.`}
-        confirmLabel="Delete User"
-        onConfirm={handleDeleteSubmit}
-        onCancel={() => setDeleteTarget(null)}
-        variant="danger"
-      />
 
       <ToastComponent />
     </div>

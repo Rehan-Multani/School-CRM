@@ -58,6 +58,18 @@ export const env = {
   // with no way to revoke it. The client transparently refreshes on 401.
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '15m',
   jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
+  // TEMPORARY: when set to a 6-digit code, the Super Admin login OTP is always
+  // that code and NO email is sent. Leave empty to use real emailed OTPs.
+  loginOtpFixedCode: /^\d{6}$/.test((process.env.LOGIN_OTP_FIXED_CODE || '').trim())
+    ? process.env.LOGIN_OTP_FIXED_CODE.trim()
+    : '',
+  smtp: {
+    host: process.env.SMTP_HOST || '',
+    port: Number(process.env.SMTP_PORT) || 587,
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || '',
+    from: process.env.SMTP_FROM || process.env.SMTP_USER || '',
+  },
   superAdmin: {
     email: (process.env.SUPERADMIN_EMAIL || 'superadmin@gmail.com').toLowerCase().trim(),
     password: requiredSuperAdminPassword(),

@@ -2,12 +2,11 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { academicPortalApi } from '../../../../shared/api/client';
 import { AcademicBreadcrumb, EmptyState } from './components/AcademicUi';
 import { apiMessage, ENTITY_STATUS_VARIANT } from './utils';
-import { ChevronLeft, ChevronRight, Download, FileUp, Loader2, Pencil, Plus, Trash2, Upload, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, FileUp, Loader2, Pencil, Plus, Power, Upload, X } from 'lucide-react';
 
 const inputClass =
   'h-11 w-full appearance-none rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-sm outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-slate-800 dark:bg-slate-950 dark:text-white';
@@ -65,7 +64,7 @@ export const SubjectsIndex = () => {
   const [saving, setSaving] = useState(false);
   const [editingSubject, setEditingSubject] = useState(null);
   const [importing, setImporting] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [togglingId, setTogglingId] = useState(null);
   const importRef = useRef();
   
   // Custom multi-select dropdown controls
@@ -284,20 +283,17 @@ export const SubjectsIndex = () => {
     setModalOpen(true);
   };
 
-  const handleDelete = (subject) => {
-    setDeleteTarget(subject);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
+  const handleToggleStatus = async (subject) => {
+    const nextStatus = subject.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    setTogglingId(subject.id);
     try {
-      await academicPortalApi.deleteSubject(deleteTarget.id);
-      showToast('Subject deleted', 'success');
+      await academicPortalApi.updateSubject(subject.id, { status: nextStatus });
+      showToast(`Subject ${nextStatus === 'ACTIVE' ? 'activated' : 'deactivated'}`, 'success');
       loadSubjects();
     } catch (error) {
-      showToast(apiMessage(error, 'Unable to delete subject'), 'error');
+      showToast(apiMessage(error, 'Unable to update subject status'), 'error');
     } finally {
-      setDeleteTarget(null);
+      setTogglingId(null);
     }
   };
 
@@ -512,11 +508,16 @@ export const SubjectsIndex = () => {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleDelete(subject)}
-                            className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-400 dark:hover:bg-rose-950/30 dark:hover:text-rose-400 transition cursor-pointer"
-                            title={`Delete ${subject.name}`}
+                            onClick={() => handleToggleStatus(subject)}
+                            disabled={togglingId === subject.id}
+                            className={`rounded-lg p-1.5 transition cursor-pointer disabled:opacity-50 ${
+                              subject.status === 'ACTIVE'
+                                ? 'text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
+                                : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                            title={subject.status === 'ACTIVE' ? `Deactivate ${subject.name}` : `Activate ${subject.name}`}
                           >
-                            <Trash2 size={15} />
+                            <Power size={15} />
                           </button>
                         </div>
                       </td>
@@ -723,16 +724,6 @@ export const SubjectsIndex = () => {
           </div>
         </form>
       </Modal>
-
-      <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={confirmDelete}
-        title="Delete Subject"
-        message={`Delete subject "${deleteTarget?.name}"?`}
-        confirmText="Delete Subject"
-        variant="danger"
-      />
 
       <ToastComponent />
     </div>

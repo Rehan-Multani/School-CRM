@@ -1,6 +1,7 @@
 import { AppError } from '../../../shared/AppError.js';
 import { examRepository } from '../repositories/exam.repository.js';
 import { pushEvents } from './pushEvents.service.js';
+import { examTypeService } from './examType.service.js';
 
 // Fields a request body must never be able to overwrite.
 const PROTECTED_FIELDS = ['schoolId', 'examId', '_id', 'id', 'createdAt', 'updatedAt'];
@@ -121,9 +122,11 @@ class ExamService {
     if (!payload.academicYearId) throw new AppError('Academic year is required', 400);
     if (!payload.startDate || !payload.endDate) throw new AppError('Start and end dates are required', 400);
     assertDateOrder(payload.startDate, payload.endDate);
+    const examType = await examTypeService.resolveCode(schoolId, payload.examType || 'HALF_YEARLY');
 
     const created = await examRepository.createExam({
       ...payload,
+      examType,
       schoolId,
     });
 
@@ -142,6 +145,9 @@ class ExamService {
     if (!before) throw new AppError('Exam not found', 404);
     payload = editable(payload);
     if (payload.name !== undefined && !String(payload.name).trim()) throw new AppError('Exam name is required', 400);
+    if (payload.examType !== undefined) {
+      payload.examType = await examTypeService.resolveCode(schoolId, payload.examType, before.examType);
+    }
     if (payload.startDate !== undefined || payload.endDate !== undefined) {
       assertDateOrder(payload.startDate ?? before.startDate, payload.endDate ?? before.endDate);
     }

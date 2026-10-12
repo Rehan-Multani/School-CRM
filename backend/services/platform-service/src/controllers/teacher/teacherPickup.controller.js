@@ -1,5 +1,6 @@
 import { teacherAccessService } from '../../services/teacherAccess.service.js';
 import { safePickupService } from '../../services/safePickup.service.js';
+import { pickupQrService } from '../../services/pickupQr.service.js';
 
 const ctxOf = (req) => teacherAccessService.loadContext(req);
 const idemKey = (req) => (req.headers['idempotency-key'] || req.headers['x-idempotency-key'] || '').toString().trim();
@@ -77,6 +78,27 @@ export async function cancelPickup(req, res, next) {
     const ctx = await ctxOf(req);
     const data = await safePickupService.cancel(ctx, req.params.pickupSessionId, req);
     res.json({ success: true, message: 'Pickup verification cancelled', data });
+  } catch (e) {
+    next(e);
+  }
+}
+
+// Parent's rotating QR scanned by the class teacher → session VERIFIED (handover confirm follows).
+export async function scanPickupQr(req, res, next) {
+  try {
+    const ctx = await ctxOf(req);
+    const data = await pickupQrService.scan(
+      {
+        schoolId: ctx.schoolId,
+        userId: ctx.teacherId,
+        name: ctx.teacher?.name || req.user?.name || '',
+        classTeacherSectionIds: ctx.classTeacherSectionIds,
+        completeNow: false,
+      },
+      req.body?.token,
+      req
+    );
+    res.status(201).json({ success: true, message: 'Parent QR verified', data });
   } catch (e) {
     next(e);
   }

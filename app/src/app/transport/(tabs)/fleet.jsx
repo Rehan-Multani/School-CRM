@@ -119,6 +119,7 @@ function DriverCard({ driver }) {
         ) : null}
       </View>
       <Line icon="card-outline" text={`Licence ${driver.licenseNumber}`} />
+      {driver.familyMobile ? <Line icon="people-outline" text={`Family ${driver.familyMobile}`} /> : null}
       <Line icon="bus-outline" text={driver.vehicle ? driver.vehicle.vehicleNumber : 'No vehicle assigned'} />
       <Line icon="map-outline" text={driver.route ? driver.route.routeName : 'Not on a route'} />
     </Card>

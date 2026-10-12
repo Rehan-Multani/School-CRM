@@ -10,6 +10,9 @@ const A = '/school-portal/academic';
 const id = (v) => encodeURIComponent(String(v));
 
 export const principalExamsApi = {
+  // exam types (the school's own list; active only)
+  types: () => api.get('/school-portal/exam-types'),
+
   // exams
   stats: () => api.get(`${E}/stats`),
   list: (params) => api.get(E, params),

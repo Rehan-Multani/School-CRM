@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { AppError } from '../../../shared/AppError.js';
 import { sanitizePagination, escapeRegex } from '../../../shared/sanitize.js';
-import { StudentPickupSession } from '../models/StudentPickupSession.js';
+import { StudentPickupSession, cleanPickupPhoto } from '../models/StudentPickupSession.js';
 import { Student } from '../models/Student.js';
 import { StudentEnrollment } from '../models/StudentEnrollment.js';
 import { SchoolClass } from '../models/SchoolClass.js';
@@ -470,6 +470,7 @@ class SafePickupService {
     session.otpHash = ''; // one-time use — invalidate immediately
     await session.save();
     audit(req, 'PICKUP_OTP_VERIFIED', session);
+    notifyParents(session, 'VERIFIED', session.teacherName);
     return this.#publicWithMeta(session);
   }
 
@@ -536,12 +537,23 @@ class SafePickupService {
       throw new AppError(`pickupPersonRelationship must be one of: ${RELATIONSHIPS.join(', ')}`, 400, E.VALIDATION);
     }
 
+    let photo = '';
+    try {
+      photo = cleanPickupPhoto(payload.pickupPersonPhoto);
+    } catch {
+      throw new AppError('The photo is invalid or too large. Please retake it.', 400, E.VALIDATION);
+    }
+
     session.status = 'COMPLETED';
     session.completedAt = new Date();
     session.completedBy = oid(ctx.teacherId);
     session.handoverConfirmed = true;
     session.pickupPersonName = String(payload.pickupPersonName || '').trim().slice(0, 120);
     session.pickupPersonRelationship = rel;
+    if (photo) {
+      session.pickupPersonPhoto = photo;
+      session.hasPickupPhoto = true;
+    }
     session.otpHash = '';
     await session.save();
     audit(req, 'PICKUP_COMPLETED', session, {

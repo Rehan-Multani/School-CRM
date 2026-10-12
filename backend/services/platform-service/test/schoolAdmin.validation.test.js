@@ -75,6 +75,7 @@ describe('Students and teachers', () => {
       name: 'Val Teacher',
       gender: 'MALE',
       email: 'val.teacher@schoola.edu',
+      dateOfBirth: '1990-03-04',
       mobileNumber: '9811100022',
       employeeId: `VALT-${Math.random().toString(36).slice(2, 7)}`,
       joiningDate: '2024-04-01',

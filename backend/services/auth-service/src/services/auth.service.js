@@ -4,9 +4,59 @@ import { env } from '../config/env.js';
 import { authRepository } from '../repositories/auth.repository.js';
 import { refreshTokenRepository } from '../repositories/refreshToken.repository.js';
 import { AppError } from '../../../shared/AppError.js';
+import { LoginChallenge } from '../models/LoginChallenge.js';
+import { sendLoginOtpEmail, isSmtpConfigured } from '../config/mailer.js';
 import { signAccessToken, signRefreshToken, verifyToken } from '../../../shared/generateToken.js';
 
 const BCRYPT_ROUNDS = 12;
+
+// Sign-in is two steps: password, then a 6-digit OTP emailed to the account.
+const OTP_TTL_SECONDS = 5 * 60;
+const OTP_MAX_ATTEMPTS = 5;
+const OTP_RESEND_COOLDOWN_SECONDS = 30;
+const OTP_MAX_RESENDS = 3;
+
+const sha256 = (v) => crypto.createHash('sha256').update(String(v)).digest('hex');
+// Keyed so a leaked challenge row cannot be brute-forced offline (1e6 codes).
+export const hashOtp = (challengeId, otp) =>
+  crypto.createHmac('sha256', env.jwtSecret).update(`${challengeId}:${otp}`).digest('hex');
+
+const safeEqual = (a, b) => {
+  const x = Buffer.from(String(a));
+  const y = Buffer.from(String(b));
+  return x.length === y.length && crypto.timingSafeEqual(x, y);
+};
+
+function maskEmail(email) {
+  const [local = '', domain = ''] = String(email).split('@');
+  const head = local.slice(0, Math.min(2, local.length));
+  return `${head}${'*'.repeat(Math.max(local.length - head.length, 3))}@${domain}`;
+}
+
+/** Generate + email a fresh OTP; returns the keyed hash to persist. */
+async function emailOtp(admin, challengeId) {
+  // Mail service switched off: fixed code, nothing is sent (LOGIN_OTP_FIXED_CODE).
+  if (env.loginOtpFixedCode) {
+    return hashOtp(challengeId, env.loginOtpFixedCode);
+  }
+  const otp = String(crypto.randomInt(0, 1_000_000)).padStart(6, '0');
+  if (env.nodeEnv === 'production' && !isSmtpConfigured()) {
+    throw new AppError('Email service is not configured, so the sign-in OTP cannot be sent.', 503);
+  }
+  try {
+    await sendLoginOtpEmail({
+      to: admin.email,
+      name: admin.name,
+      otp,
+      minutes: OTP_TTL_SECONDS / 60,
+    });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('[auth] failed to email login OTP:', error.message);
+    throw new AppError('Could not send the OTP email. Please try again.', 502);
+  }
+  return hashOtp(challengeId, otp);
+}
 
 /**
  * Issue an access/refresh pair and persist a record for the refresh half.
@@ -84,6 +134,123 @@ export class AuthService {
     await admin.save();
 
     return issueTokens(admin, { context });
+  }
+
+  /**
+   * Option 2 — passwordless sign-in. Email in, OTP out, no password involved.
+   * The answer is identical whether or not the email belongs to a Super Admin
+   * (unknown emails get a throw-away challengeId that can never verify), so the
+   * endpoint cannot be used to discover the admin's address.
+   */
+  async requestLoginOtp({ email }, context = {}) {
+    const normalizedEmail = String(email ?? '').toLowerCase().trim();
+    if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      throw new AppError('Enter a valid email address', 400);
+    }
+
+    const challengeId = crypto.randomBytes(32).toString('base64url');
+    const admin = await authRepository.findByEmail(normalizedEmail);
+    if (admin) {
+      await LoginChallenge.deleteMany({ userId: admin._id });
+      const otpHash = await emailOtp(admin, challengeId);
+      await LoginChallenge.create({
+        userId: admin._id,
+        challengeHash: sha256(challengeId),
+        otpHash,
+        expiresAt: new Date(Date.now() + OTP_TTL_SECONDS * 1000),
+        createdByIp: context.ip || '',
+        userAgent: context.userAgent || '',
+      });
+    }
+
+    const masked = maskEmail(normalizedEmail);
+    return {
+      challengeId,
+      maskedEmail: masked,
+      expiresInSeconds: OTP_TTL_SECONDS,
+      resendAfterSeconds: OTP_RESEND_COOLDOWN_SECONDS,
+      message: `If this email is registered, an OTP was sent to ${masked}`,
+    };
+  }
+
+  async verifyLoginOtp({ challengeId, otp }, context = {}) {
+    const code = String(otp ?? '').trim();
+    if (!challengeId || !/^\d{6}$/.test(code)) {
+      throw new AppError('Enter the 6-digit OTP sent to your email', 400);
+    }
+
+    const challenge = await LoginChallenge.findOne({ challengeHash: sha256(challengeId) });
+    if (!challenge || challenge.expiresAt <= new Date()) {
+      throw new AppError('Incorrect or expired OTP', 401);
+    }
+    if (challenge.attempts >= OTP_MAX_ATTEMPTS) {
+      await challenge.deleteOne();
+      throw new AppError('Too many wrong attempts. Please sign in again.', 429);
+    }
+
+    if (!safeEqual(hashOtp(challengeId, code), challenge.otpHash)) {
+      challenge.attempts += 1;
+      await challenge.save();
+      throw new AppError('Incorrect OTP', 401);
+    }
+
+    // Single use: consume before issuing so a replay of the same code fails.
+    const consumed = await LoginChallenge.findOneAndDelete({ _id: challenge._id });
+    if (!consumed) {
+      throw new AppError('OTP already used. Please sign in again.', 401);
+    }
+
+    const admin = await authRepository.findById(challenge.userId);
+    if (!admin) {
+      throw new AppError('Account not found', 404);
+    }
+    admin.lastLoginAt = new Date();
+    await admin.save();
+
+    return issueTokens(admin, { context });
+  }
+
+  async resendLoginOtp({ challengeId }) {
+    if (!challengeId) {
+      throw new AppError('Sign-in session missing. Please sign in again.', 400);
+    }
+    const challenge = await LoginChallenge.findOne({ challengeHash: sha256(challengeId) });
+    if (!challenge) {
+      // Unknown id = unregistered email from requestLoginOtp(); answer the same
+      // as a real resend so the two cases cannot be told apart.
+      return {
+        maskedEmail: '',
+        expiresInSeconds: OTP_TTL_SECONDS,
+        resendAfterSeconds: OTP_RESEND_COOLDOWN_SECONDS,
+      };
+    }
+    if (challenge.expiresAt <= new Date()) {
+      throw new AppError('Sign-in session expired. Please start again.', 401);
+    }
+    const waitMs = challenge.lastSentAt.getTime() + OTP_RESEND_COOLDOWN_SECONDS * 1000 - Date.now();
+    if (waitMs > 0) {
+      throw new AppError(`Please wait ${Math.ceil(waitMs / 1000)}s before requesting a new OTP`, 429);
+    }
+    if (challenge.resendCount >= OTP_MAX_RESENDS) {
+      throw new AppError('Resend limit reached. Please sign in again.', 429);
+    }
+
+    const admin = await authRepository.findById(challenge.userId);
+    if (!admin) {
+      throw new AppError('Account not found', 404);
+    }
+    challenge.otpHash = await emailOtp(admin, challengeId);
+    challenge.attempts = 0;
+    challenge.resendCount += 1;
+    challenge.lastSentAt = new Date();
+    challenge.expiresAt = new Date(Date.now() + OTP_TTL_SECONDS * 1000);
+    await challenge.save();
+
+    return {
+      maskedEmail: maskEmail(admin.email),
+      expiresInSeconds: OTP_TTL_SECONDS,
+      resendAfterSeconds: OTP_RESEND_COOLDOWN_SECONDS,
+    };
   }
 
   async me(userId) {

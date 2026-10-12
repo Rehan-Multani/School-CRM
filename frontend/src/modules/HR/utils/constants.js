@@ -14,6 +14,9 @@ import {
   ClipboardList,
   Bell,
   Settings as SettingsIcon,
+  IdCard,
+  Award as CertificateIcon,
+  DoorOpen,
 } from 'lucide-react';
 
 export const NAVIGATION_ITEMS = [
@@ -23,6 +26,9 @@ export const NAVIGATION_ITEMS = [
   // HR MANAGEMENT
   { name: 'Teacher Management', path: '/hr/teachers', icon: GraduationCap, category: 'HR Management' },
   { name: 'Staff Management', path: '/hr/staff', icon: Users, category: 'HR Management' },
+  { name: 'Student ID Cards', path: '/hr/id-cards', icon: IdCard, category: 'HR Management' },
+  { name: 'Certificates', path: '/hr/certificates', icon: CertificateIcon, category: 'HR Management' },
+  { name: 'Visitors', path: '/hr/visitors', icon: DoorOpen, category: 'HR Management' },
 
   // OPERATIONS
   { name: 'Attendance Record', path: '/hr/attendance', icon: CalendarDays, category: 'Operations' },

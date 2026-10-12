@@ -12,6 +12,7 @@ import {
   Loader2,
   Plus,
   Trash2,
+  Power,
   Pencil,
   Star,
   Check,
@@ -45,8 +46,6 @@ export const AcademicYearDetail = () => {
   const [editSectionForm, setEditSectionForm] = useState({ name: '', capacity: 40, roomNumber: '', classTeacherId: '', status: 'ACTIVE' });
   const [teachers, setTeachers] = useState([]);
   const [removeClassTarget, setRemoveClassTarget] = useState(null);
-  const [deleteSectionTarget, setDeleteSectionTarget] = useState(null);
-  const [deleteYearTarget, setDeleteYearTarget] = useState(null);
 
   // Edit Year Modal state
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -124,19 +123,6 @@ export const AcademicYearDetail = () => {
     }
   };
 
-  const confirmDeleteYear = async () => {
-    if (!deleteYearTarget) return;
-    try {
-      await academicPortalApi.deleteYear(deleteYearTarget.id);
-      showToast('Academic year deleted', 'success');
-      navigate('/school-admin/academics/years');
-    } catch (error) {
-      showToast(apiMessage(error, 'Unable to delete academic year'), 'error');
-    } finally {
-      setDeleteYearTarget(null);
-    }
-  };
-
   const handleAddClass = async (e) => {
     e.preventDefault();
     if (!selectedClassId) return;
@@ -167,16 +153,14 @@ export const AcademicYearDetail = () => {
     }
   };
 
-  const handleDeleteSection = async () => {
-    if (!deleteSectionTarget) return;
+  const handleToggleSection = async (section) => {
+    const nextStatus = section.status === 'INACTIVE' ? 'ACTIVE' : 'INACTIVE';
     try {
-      await academicPortalApi.deleteSection(deleteSectionTarget.id);
-      showToast('Section deleted successfully', 'success');
+      await academicPortalApi.updateSection(section.id, { status: nextStatus });
+      showToast(`Section ${nextStatus === 'ACTIVE' ? 'activated' : 'deactivated'}`, 'success');
       loadData();
     } catch (error) {
-      showToast(apiMessage(error, 'Unable to delete section'), 'error');
-    } finally {
-      setDeleteSectionTarget(null);
+      showToast(apiMessage(error, 'Unable to update section status'), 'error');
     }
   };
 
@@ -419,7 +403,7 @@ export const AcademicYearDetail = () => {
                 teachers={teachers}
                 onChanged={loadData}
                 onEditSection={(sec) => handleOpenEditSection(sec)}
-                onDeleteSection={(sec) => setDeleteSectionTarget(sec)}
+                onToggleSection={handleToggleSection}
               />
             </div>
           ))}
@@ -726,34 +710,12 @@ export const AcademicYearDetail = () => {
         variant="danger"
       />
 
-      {/* Confirm Delete Section Dialog */}
-      <ConfirmDialog
-        isOpen={Boolean(deleteSectionTarget)}
-        onClose={() => setDeleteSectionTarget(null)}
-        onConfirm={handleDeleteSection}
-        title="Delete Section"
-        message={`Are you sure you want to delete "${deleteSectionTarget?.name}"?`}
-        confirmText="Delete Section"
-        variant="danger"
-      />
-
-      {/* Confirm Delete Year Dialog */}
-      <ConfirmDialog
-        isOpen={Boolean(deleteYearTarget)}
-        onClose={() => setDeleteYearTarget(null)}
-        onConfirm={confirmDeleteYear}
-        title="Delete Academic Year"
-        message={`Are you sure you want to permanently delete academic year "${year.name}"?`}
-        confirmText="Delete Academic Year"
-        variant="danger"
-      />
-
       <ToastComponent />
     </div>
   );
 };
 
-function ClassSections({ yearId, classId, teachers, onChanged, onEditSection, onDeleteSection }) {
+function ClassSections({ yearId, classId, teachers, onChanged, onEditSection, onToggleSection }) {
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -836,11 +798,15 @@ function ClassSections({ yearId, classId, teachers, onChanged, onEditSection, on
                     </Link>
                     <button
                       type="button"
-                      onClick={() => onDeleteSection && onDeleteSection(section)}
-                      className="rounded-lg p-1.5 text-slate-500 hover:bg-rose-50 hover:text-rose-600 dark:text-slate-400 dark:hover:bg-rose-950/30 dark:hover:text-rose-400 transition cursor-pointer"
-                      title="Delete Section"
+                      onClick={() => onToggleSection && onToggleSection(section)}
+                      className={`rounded-lg p-1.5 transition cursor-pointer ${
+                        section.status === 'INACTIVE'
+                          ? 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          : 'text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30'
+                      }`}
+                      title={section.status === 'INACTIVE' ? 'Activate Section' : 'Deactivate Section'}
                     >
-                      <Trash2 size={15} />
+                      <Power size={15} />
                     </button>
                   </div>
                 </td>

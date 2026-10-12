@@ -14,6 +14,7 @@ import { Card } from '../../../components/ui';
 import { Avatar, Badge, ErrorView, SectionTitle, StatCard } from '../../../components/kit';
 import { SkeletonHome } from '../../../components/Skeleton';
 import SchoolHeader from '../../../components/SchoolHeader';
+import SchoolBanners from '../../../components/SchoolBanners';
 import RefreshableScroll from '../../../components/RefreshableScroll';
 import ChildSwitcher, { childClassLine } from '../../../components/parent/ChildSwitcher';
 import { money } from '../../../components/student/status';
@@ -71,6 +72,7 @@ export default function ParentHome() {
             <ChildSwitcher />
           </View>
         </SchoolHeader>
+        <SchoolBanners />
 
         <View style={styles.body}>
           {readyPickups.map((p) => (

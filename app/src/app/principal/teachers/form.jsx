@@ -52,6 +52,7 @@ function TeacherForm({ teacher }) {
     employeeId: teacher?.employeeId || '',
     qualification: Array.isArray(teacher?.qualifications) ? teacher.qualifications.map((q) => (typeof q === 'string' ? q : q?.degree)).filter(Boolean).join(', ') : '',
     joiningDate: dateOnly(teacher?.joiningDate),
+    leavingDate: dateOnly(teacher?.leavingDate),
     experienceSummary: teacher?.experienceSummary || '',
     department: teacher?.department || '',
     designation: teacher?.designation || '',
@@ -76,6 +77,7 @@ function TeacherForm({ teacher }) {
     if (form.email.trim() && !isEmail(form.email)) e.email = 'Enter a valid email address';
     if (!form.employeeId.trim()) e.employeeId = 'Employee ID is required';
     if (!form.qualification.trim()) e.qualification = 'Qualification is required';
+    if (!form.dateOfBirth) e.dateOfBirth = 'Date of birth is required';
     if (!form.joiningDate) e.joiningDate = 'Joining date is required';
     if (!form.department) e.department = 'Select a department';
     if (!form.designation) e.designation = 'Select a designation';
@@ -100,6 +102,7 @@ function TeacherForm({ teacher }) {
       email: form.email.trim(),
       employeeId: form.employeeId.trim(),
       joiningDate: form.joiningDate,
+      leavingDate: form.leavingDate || '',
       experienceSummary: form.experienceSummary,
       department: form.department,
       designation: form.designation,
@@ -156,7 +159,7 @@ function TeacherForm({ teacher }) {
               <Chip key={g} label={g.charAt(0) + g.slice(1).toLowerCase()} active={form.gender === g} onPress={() => set('gender')(g)} />
             ))}
           </View>
-          <DateField label="Date of Birth" value={form.dateOfBirth} onChange={set('dateOfBirth')} maximumDate={new Date()} />
+          <DateField label="Date of Birth *" value={form.dateOfBirth} onChange={set('dateOfBirth')} error={errors.dateOfBirth} maximumDate={new Date()} />
         </Card>
 
         <SectionHead>Contact Details</SectionHead>
@@ -180,6 +183,7 @@ function TeacherForm({ teacher }) {
           <Input label="Employee ID" required value={form.employeeId} onChangeText={set('employeeId')} error={errors.employeeId} placeholder="TCH-1001" autoCapitalize="characters" />
           <Input label="Qualification" required value={form.qualification} onChangeText={set('qualification')} error={errors.qualification} placeholder="M.Sc, B.Ed" />
           <DateField label="Joining Date *" value={form.joiningDate} onChange={set('joiningDate')} error={errors.joiningDate} />
+          <DateField label="Leaving Date" value={form.leavingDate} onChange={set('leavingDate')} />
           <Input label="Experience" value={form.experienceSummary} onChangeText={set('experienceSummary')} placeholder="8 years of classroom teaching" />
           <Select label="Department *" value={form.department} options={deptOptions} onChange={set('department')} error={errors.department} placeholder="Select department" />
           <Select label="Designation *" value={form.designation} options={desigOptions} onChange={set('designation')} error={errors.designation} placeholder="Select designation" />

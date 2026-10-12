@@ -295,6 +295,7 @@ export const schoolPortalApi = {
   reportData: (category, params) =>
     schoolAdminClient.get('/platform/school-portal/reports/data', { params: { category, ...params } }).then((res) => res.data),
   me: () => schoolAdminClient.get('/platform/school-portal/me').then((res) => res.data),
+  boards: () => schoolAdminClient.get('/platform/school-portal/boards').then((res) => res.data),
   plans: () => schoolAdminClient.get('/platform/school-portal/plans').then((res) => res.data),
   initiateSubscriptionCheckout: (planId) =>
     schoolAdminClient.post('/platform/school-portal/select-plan/checkout', { planId }).then((res) => res.data),
@@ -326,7 +327,6 @@ export const schoolPortalApi = {
     schoolAdminClient.patch(`/platform/school-portal/students/${id}`, payload, studentRequestConfig(payload)).then((res) => res.data),
   updateStudentStatus: (id, status) =>
     schoolAdminClient.patch(`/platform/school-portal/students/${id}/status`, { status }).then((res) => res.data),
-  deleteStudent: (id) => schoolAdminClient.delete(`/platform/school-portal/students/${id}`).then((res) => res.data),
   // Student lifecycle: promotion, transfer / TC, bulk CSV import
   promotionPreview: (params) =>
     schoolAdminClient.get('/platform/school-portal/students/promote/preview', { params }).then((res) => res.data),
@@ -383,7 +383,6 @@ export const schoolUserApi = {
     schoolAdminClient.patch(`/platform/school-portal/users/${id}/password`, { password }).then((res) => res.data),
   sendCredentials: (id) =>
     schoolAdminClient.post(`/platform/school-portal/users/${id}/send-credentials`).then((res) => res.data),
-  delete: (id) => schoolAdminClient.delete(`/platform/school-portal/users/${id}`).then((res) => res.data),
 };
 
 export const payrollPortalApi = {
@@ -391,10 +390,10 @@ export const payrollPortalApi = {
   employees: () => schoolAdminClient.get('/platform/school-portal/payroll/employees').then((r) => r.data),
   get: (id) => schoolAdminClient.get(`/platform/school-portal/payroll/${id}`).then((r) => r.data),
   create: (payload) => schoolAdminClient.post('/platform/school-portal/payroll', payload).then((r) => r.data),
+  delete: (id) => schoolAdminClient.delete(`/platform/school-portal/payroll/${id}`).then((r) => r.data),
   updateStatus: (id, status, payload = {}) =>
     schoolAdminClient.patch(`/platform/school-portal/payroll/${id}/status`, { status, ...payload }).then((r) => r.data),
   releaseAll: (month) => schoolAdminClient.post('/platform/school-portal/payroll/release', { month }).then((r) => r.data),
-  delete: (id) => schoolAdminClient.delete(`/platform/school-portal/payroll/${id}`).then((r) => r.data),
 };
 
 export const staffAttendanceApi = {
@@ -422,7 +421,6 @@ export const academicPortalApi = {
   archiveYear: (id) => schoolAdminClient.post(`/platform/school-portal/academic/years/${id}/archive`).then((r) => r.data),
   unarchiveYear: (id) => schoolAdminClient.post(`/platform/school-portal/academic/years/${id}/unarchive`).then((r) => r.data),
   completeYear: (id) => schoolAdminClient.post(`/platform/school-portal/academic/years/${id}/complete`).then((r) => r.data),
-  deleteYear: (id) => schoolAdminClient.delete(`/platform/school-portal/academic/years/${id}`).then((r) => r.data),
   yearClasses: (yearId) => schoolAdminClient.get(`/platform/school-portal/academic/years/${yearId}/classes`).then((r) => r.data),
   addClassToYear: (yearId, classId) =>
     schoolAdminClient.post(`/platform/school-portal/academic/years/${yearId}/classes`, { classId }).then((r) => r.data),
@@ -432,17 +430,14 @@ export const academicPortalApi = {
   getClass: (id) => schoolAdminClient.get(`/platform/school-portal/academic/classes/${id}`).then((r) => r.data),
   createClass: (payload) => schoolAdminClient.post('/platform/school-portal/academic/classes', payload).then((r) => r.data),
   updateClass: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/academic/classes/${id}`, payload).then((r) => r.data),
-  deleteClass: (id) => schoolAdminClient.delete(`/platform/school-portal/academic/classes/${id}`).then((r) => r.data),
   seedClasses: () => schoolAdminClient.post('/platform/school-portal/academic/classes/seed').then((r) => r.data),
   sections: (params) => schoolAdminClient.get('/platform/school-portal/academic/sections', { params }).then((r) => r.data),
   getSection: (id) => schoolAdminClient.get(`/platform/school-portal/academic/sections/${id}`).then((r) => r.data),
   createSection: (payload) => schoolAdminClient.post('/platform/school-portal/academic/sections', payload).then((r) => r.data),
   updateSection: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/academic/sections/${id}`, payload).then((r) => r.data),
-  deleteSection: (id) => schoolAdminClient.delete(`/platform/school-portal/academic/sections/${id}`).then((r) => r.data),
   subjects: (params) => schoolAdminClient.get('/platform/school-portal/academic/subjects', { params }).then((r) => r.data),
   createSubject: (payload) => schoolAdminClient.post('/platform/school-portal/academic/subjects', payload).then((r) => r.data),
   updateSubject: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/academic/subjects/${id}`, payload).then((r) => r.data),
-  deleteSubject: (id) => schoolAdminClient.delete(`/platform/school-portal/academic/subjects/${id}`).then((r) => r.data),
   allSectionSubjects: (params) =>
     schoolAdminClient.get('/platform/school-portal/academic/section-subjects', { params }).then((r) => r.data),
   createSectionSubject: (payload) =>
@@ -453,8 +448,6 @@ export const academicPortalApi = {
     schoolAdminClient.post(`/platform/school-portal/academic/sections/${sectionId}/subjects`, payload).then((r) => r.data),
   updateSectionSubject: (id, payload) =>
     schoolAdminClient.patch(`/platform/school-portal/academic/section-subjects/${id}`, payload).then((r) => r.data),
-  deleteSectionSubject: (id) =>
-    schoolAdminClient.delete(`/platform/school-portal/academic/section-subjects/${id}`).then((r) => r.data),
   teachers: (params) => schoolAdminClient.get('/platform/school-portal/academic/teachers', { params }).then((r) => r.data),
   getTeacher: (id) => schoolAdminClient.get(`/platform/school-portal/academic/teachers/${id}`).then((r) => r.data),
   createTeacher: (payload) =>
@@ -465,7 +458,6 @@ export const academicPortalApi = {
     schoolAdminClient.patch(`/platform/school-portal/academic/teachers/${id}/status`, { status }).then((r) => r.data),
   setTeacherPassword: (id, newPassword) =>
     schoolAdminClient.post(`/platform/school-portal/academic/teachers/${id}/set-password`, { newPassword }).then((r) => r.data),
-  deleteTeacher: (id) => schoolAdminClient.delete(`/platform/school-portal/academic/teachers/${id}`).then((r) => r.data),
 };
 
 // Class timetable (School Admin). Entries: { id, sectionId, subjectId, subjectName, teacherId, teacherName,
@@ -486,7 +478,6 @@ export const feePortalApi = {
   getHead: (id) => schoolAdminClient.get(`/platform/school-portal/fees/heads/${id}`).then((r) => r.data),
   createHead: (payload) => schoolAdminClient.post('/platform/school-portal/fees/heads', payload).then((r) => r.data),
   updateHead: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/fees/heads/${id}`, payload).then((r) => r.data),
-  deleteHead: (id) => schoolAdminClient.delete(`/platform/school-portal/fees/heads/${id}`).then((r) => r.data),
   seedDefaultHeads: () => schoolAdminClient.post('/platform/school-portal/fees/heads/seed').then((r) => r.data),
   bulkCreateHeads: (payload) => schoolAdminClient.post('/platform/school-portal/fees/heads/bulk', payload).then((r) => r.data),
 
@@ -495,7 +486,6 @@ export const feePortalApi = {
   getStructure: (id) => schoolAdminClient.get(`/platform/school-portal/fees/structures/${id}`).then((r) => r.data),
   createStructure: (payload) => schoolAdminClient.post('/platform/school-portal/fees/structures', payload).then((r) => r.data),
   updateStructure: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/fees/structures/${id}`, payload).then((r) => r.data),
-  deleteStructure: (id) => schoolAdminClient.delete(`/platform/school-portal/fees/structures/${id}`).then((r) => r.data),
 
   // Fee Structure Items
   structureItems: (structureId) => schoolAdminClient.get(`/platform/school-portal/fees/structures/${structureId}/items`).then((r) => r.data),
@@ -539,7 +529,8 @@ export const platformSchoolApi = {
     apiClient.post(`/platform/schools/${id}/reset-login`, payload).then((res) => res.data),
   changePassword: (id, password) =>
     apiClient.post(`/platform/schools/${id}/change-password`, { password }).then((res) => res.data),
-  remove: (id) => apiClient.delete(`/platform/schools/${id}`).then((res) => res.data),
+  remove: (id, password) =>
+    apiClient.delete(`/platform/schools/${id}`, { data: { password } }).then((res) => res.data),
   getFeatures: (id) => apiClient.get(`/platform/schools/${id}/features`).then((res) => res.data),
   updateFeatures: (id, payload) =>
     apiClient.patch(`/platform/schools/${id}/features`, payload).then((res) => res.data),
@@ -973,6 +964,71 @@ export const principalTimetableApi = {
   list: (params) => principalClient.get('/platform/school-portal/timetable', { params }).then((r) => r.data),
 };
 
+// School banners for the mobile apps' home screens (School Admin manages).
+// The image link is public, so it is built from the API base, not assetUrl().
+export function bannerImageUrl(path) {
+  if (!path) return '';
+  if (/^(https?:|data:|blob:)/i.test(path)) return path;
+  return `${API_BASE_URL.replace(/\/$/, '')}/platform${path.startsWith('/') ? '' : '/'}${path}`;
+}
+export const bannerApi = {
+  list: () => schoolAdminClient.get('/platform/school-portal/banners').then((r) => r.data),
+  create: (formData) =>
+    schoolAdminClient
+      .post('/platform/school-portal/banners', formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+      .then((r) => r.data),
+  update: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/banners/${id}`, payload).then((r) => r.data),
+  reorder: (ids) => schoolAdminClient.put('/platform/school-portal/banners/reorder', { ids }).then((r) => r.data),
+  remove: (id) => schoolAdminClient.delete(`/platform/school-portal/banners/${id}`).then((r) => r.data),
+};
+
+// Student ID cards: one read API (options + students) shared by three panels.
+const idCardApi = (client) => ({
+  options: () => client.get('/platform/school-portal/id-cards/options').then((r) => r.data),
+  students: (params) => client.get('/platform/school-portal/id-cards/students', { params }).then((r) => r.data),
+  saveDesign: (design) => client.put('/platform/school-portal/id-cards/design', design).then((r) => r.data),
+});
+// Certificates: templates, issuing, history. One API shape for three panels.
+const certificateApi = (client) => {
+  const base = '/platform/school-portal/certificates';
+  return {
+    options: () => client.get(`${base}/options`).then((r) => r.data),
+    templates: (params) => client.get(`${base}/templates`, { params }).then((r) => r.data),
+    createTemplate: (payload) => client.post(`${base}/templates`, payload).then((r) => r.data),
+    updateTemplate: (id, payload) => client.put(`${base}/templates/${id}`, payload).then((r) => r.data),
+    deleteTemplate: (id) => client.delete(`${base}/templates/${id}`).then((r) => r.data),
+    recipients: (params) => client.get(`${base}/recipients`, { params }).then((r) => r.data),
+    timetableData: (sectionId) => client.get(`${base}/data/timetable`, { params: { sectionId } }).then((r) => r.data),
+    feeStructureData: (classId, academicYearId) =>
+      client.get(`${base}/data/fee-structure`, { params: { classId, academicYearId } }).then((r) => r.data),
+    issue: (payload) => client.post(`${base}/issue`, payload).then((r) => r.data),
+    issued: (params) => client.get(`${base}/issued`, { params }).then((r) => r.data),
+    revoke: (id, reason) => client.post(`${base}/issued/${id}/revoke`, { reason }).then((r) => r.data),
+    reinstate: (id) => client.post(`${base}/issued/${id}/reinstate`).then((r) => r.data),
+  };
+};
+export const schoolAdminCertificateApi = certificateApi(schoolAdminClient);
+export const principalCertificateApi = certificateApi(principalClient);
+export const hrCertificateApi = certificateApi(hrClient);
+
+// Visitors: HR records, School Admin / Principal read. One API shape for three panels.
+const visitorApi = (client) => {
+  const base = '/platform/school-portal/visitors';
+  return {
+    list: (params) => client.get(base, { params }).then((r) => r.data),
+    create: (payload) => client.post(base, payload).then((r) => r.data),
+    update: (id, payload) => client.patch(`${base}/${id}`, payload).then((r) => r.data),
+    remove: (id) => client.delete(`${base}/${id}`).then((r) => r.data),
+  };
+};
+export const schoolAdminVisitorApi = visitorApi(schoolAdminClient);
+export const principalVisitorApi = visitorApi(principalClient);
+export const hrVisitorApi = visitorApi(hrClient);
+
+export const schoolAdminIdCardApi = idCardApi(schoolAdminClient);
+export const principalIdCardApi = idCardApi(principalClient);
+export const hrIdCardApi = idCardApi(hrClient);
+
 export const principalStudentApi = {
   students: (params) => principalClient.get('/platform/school-portal/students', { params }).then((res) => res.data),
   getStudent: (id) => principalClient.get(`/platform/school-portal/students/${id}`).then((res) => res.data),
@@ -1007,6 +1063,11 @@ export const principalNotificationApi = {
 };
 
 export const principalExamApi = {
+  // Exam types (per-school CRUD list)
+  examTypes: (params) => principalClient.get('/platform/school-portal/exam-types', { params }).then((r) => r.data),
+  createExamType: (payload) => principalClient.post('/platform/school-portal/exam-types', payload).then((r) => r.data),
+  updateExamType: (id, payload) => principalClient.patch(`/platform/school-portal/exam-types/${id}`, payload).then((r) => r.data),
+  deleteExamType: (id) => principalClient.delete(`/platform/school-portal/exam-types/${id}`).then((r) => r.data),
   // Exams
   stats: () => principalClient.get('/platform/school-portal/exams/stats').then((r) => r.data),
   exams: (params) => principalClient.get('/platform/school-portal/exams', { params }).then((r) => r.data),
@@ -1064,20 +1125,24 @@ export const principalHrApi = {
 };
 
 export const examPortalApi = {
+  // Exam types (per-school CRUD list)
+  examTypes: (params) => schoolAdminClient.get('/platform/school-portal/exam-types', { params }).then((r) => r.data),
+  createExamType: (payload) => schoolAdminClient.post('/platform/school-portal/exam-types', payload).then((r) => r.data),
+  updateExamType: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/exam-types/${id}`, payload).then((r) => r.data),
+  deleteExamType: (id) => schoolAdminClient.delete(`/platform/school-portal/exam-types/${id}`).then((r) => r.data),
   // Exams
   stats: () => schoolAdminClient.get('/platform/school-portal/exams/stats').then((r) => r.data),
   exams: (params) => schoolAdminClient.get('/platform/school-portal/exams', { params }).then((r) => r.data),
   getExam: (id) => schoolAdminClient.get(`/platform/school-portal/exams/${id}`).then((r) => r.data),
   createExam: (payload) => schoolAdminClient.post('/platform/school-portal/exams', payload).then((r) => r.data),
   updateExam: (id, payload) => schoolAdminClient.patch(`/platform/school-portal/exams/${id}`, payload).then((r) => r.data),
-  deleteExam: (id) => schoolAdminClient.delete(`/platform/school-portal/exams/${id}`).then((r) => r.data),
+  deleteSubject: (examId, id) => schoolAdminClient.delete(`/platform/school-portal/exams/${examId}/subjects/${id}`).then((r) => r.data),
 
   // Exam Subjects
   subjects: (examId, params) => schoolAdminClient.get(`/platform/school-portal/exams/${examId}/subjects`, { params }).then((r) => r.data),
   seedSubjects: (examId) => schoolAdminClient.post(`/platform/school-portal/exams/${examId}/subjects/seed`).then((r) => r.data),
   addSubject: (examId, payload) => schoolAdminClient.post(`/platform/school-portal/exams/${examId}/subjects`, payload).then((r) => r.data),
   updateSubject: (examId, id, payload) => schoolAdminClient.patch(`/platform/school-portal/exams/${examId}/subjects/${id}`, payload).then((r) => r.data),
-  deleteSubject: (examId, id) => schoolAdminClient.delete(`/platform/school-portal/exams/${examId}/subjects/${id}`).then((r) => r.data),
 
   // Exam Schedule
   schedule: (examId, params) => schoolAdminClient.get(`/platform/school-portal/exams/${examId}/schedule`, { params }).then((r) => r.data),
@@ -1642,4 +1707,62 @@ export const teacherPickupApi = {
     pickupDemoClient
       .post(`/platform/school-portal/teacher/pickups/${id}/complete`, payload)
       .then((r) => r.data),
+};
+
+// ---- Database backup (School Admin: this school only) ----
+// The file is a gzipped JSON stream, so it is fetched as a blob; an error body
+// then arrives as a blob too and has to be decoded to show its message.
+// Principal's own view of the same backup, available only while the School Admin allows it.
+export const principalBackupApi = {
+  access: () => principalClient.get('/platform/school-portal/principal/backup/access').then((r) => r.data),
+  summary: () => principalClient.get('/platform/school-portal/principal/backup/summary').then((r) => r.data),
+  download: async () => {
+    try {
+      const res = await principalClient.get('/platform/school-portal/principal/backup/download', {
+        responseType: 'blob',
+        timeout: 0,
+      });
+      const disposition = res.headers?.['content-disposition'] || '';
+      const filename = /filename="?([^";]+)"?/i.exec(disposition)?.[1] || 'school-backup.json';
+      return { blob: res.data, filename };
+    } catch (err) {
+      const blob = err.response?.data;
+      if (blob instanceof Blob) {
+        try {
+          err.response.data = JSON.parse(await blob.text());
+        } catch {
+          /* keep original */
+        }
+      }
+      throw err;
+    }
+  },
+};
+
+export const schoolBackupApi = {
+  setPrincipalAccess: (enabled) =>
+    schoolAdminClient.put('/platform/school-portal/backup/principal-access', { enabled }).then((r) => r.data),
+  summary: () => schoolAdminClient.get('/platform/school-portal/backup/summary').then((r) => r.data),
+  download: async () => {
+    try {
+      const res = await schoolAdminClient.get('/platform/school-portal/backup/download', {
+        responseType: 'blob',
+        timeout: 0,
+      });
+      const disposition = res.headers?.['content-disposition'] || '';
+      const filename = /filename="?([^";]+)"?/i.exec(disposition)?.[1] || 'school-backup.json';
+      return { blob: res.data, filename };
+    } catch (err) {
+      const blob = err.response?.data;
+      if (blob instanceof Blob) {
+        try {
+          const parsed = JSON.parse(await blob.text());
+          err.response.data = parsed;
+        } catch {
+          /* keep original */
+        }
+      }
+      throw err;
+    }
+  },
 };

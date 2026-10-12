@@ -1,3 +1,4 @@
+import { requireBirthDate } from '../utils/birthDate.js';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 import { AppError } from '../../../shared/AppError.js';
@@ -62,6 +63,7 @@ function normalizeTeacher(teacher) {
     experienceSummary: teacher.experienceSummary || '',
     employmentType: teacher.employmentType || 'FULL_TIME',
     joiningDate: teacher.joiningDate,
+    leavingDate: teacher.leavingDate || null,
     department: teacher.department || 'Academic',
     departmentId: null,
     designation: teacher.designation || 'Teacher',
@@ -125,6 +127,7 @@ function normalizeSchoolUser(user) {
     experienceSummary: user.experienceSummary || '',
     employmentType: user.employmentType || 'FULL_TIME',
     joiningDate: user.joiningDate,
+    leavingDate: user.leavingDate || null,
     department: user.department || 'Administration',
     departmentId: null,
     designation: user.designation || user.role,
@@ -331,7 +334,7 @@ class HRService {
         mobileNumber: payload.phone || '',
         alternateMobile: payload.alternatePhone || '',
         gender: payload.gender || 'MALE',
-        dateOfBirth: payload.dateOfBirth ? new Date(payload.dateOfBirth) : null,
+        dateOfBirth: requireBirthDate(payload.dateOfBirth),
         bloodGroup: payload.bloodGroup || '',
         maritalStatus: payload.maritalStatus || '',
         nationality: payload.nationality || 'Indian',
@@ -345,6 +348,7 @@ class HRService {
           ? [{ degree: payload.qualification, specialization: payload.specialization || '', passingYear: null, institution: '' }]
           : payload.qualifications || [],
         joiningDate: payload.joiningDate ? new Date(payload.joiningDate) : new Date(),
+        leavingDate: payload.leavingDate ? new Date(payload.leavingDate) : null,
         status,
         profilePhoto: payload.photo || '',
         documents: {
@@ -407,7 +411,7 @@ class HRService {
         email,
         phone: payload.phone || '',
         gender: payload.gender || 'MALE',
-        dateOfBirth: payload.dateOfBirth ? new Date(payload.dateOfBirth) : null,
+        dateOfBirth: requireBirthDate(payload.dateOfBirth),
         bloodGroup: payload.bloodGroup || '',
         maritalStatus: payload.maritalStatus || '',
         nationality: payload.nationality || 'Indian',
@@ -420,6 +424,7 @@ class HRService {
         designation: payload.designation || 'Staff',
         role: normalizedRole,
         joiningDate: payload.joiningDate ? new Date(payload.joiningDate) : new Date(),
+        leavingDate: payload.leavingDate ? new Date(payload.leavingDate) : null,
         basicSalary: Number(payload.basicSalary) || 0,
         pan: payload.pan || '',
         uan: payload.uan || '',
@@ -497,6 +502,7 @@ class HRService {
         };
       }
       if (payload.joiningDate) staff.joiningDate = new Date(payload.joiningDate);
+      if (payload.leavingDate !== undefined) staff.leavingDate = payload.leavingDate ? new Date(payload.leavingDate) : null;
       if (payload.password) staff.passwordHash = await bcrypt.hash(payload.password, 10);
 
       await staff.save();
@@ -544,6 +550,7 @@ class HRService {
         teacher.emergencyContactRelationship = payload.emergencyContact.relationship || '';
       }
       if (payload.joiningDate) teacher.joiningDate = new Date(payload.joiningDate);
+      if (payload.leavingDate !== undefined) teacher.leavingDate = payload.leavingDate ? new Date(payload.leavingDate) : null;
       if (payload.basicSalary !== undefined || payload.bankDetails || payload.pan !== undefined || payload.uan !== undefined) {
         teacher.payroll = {
           ...teacher.payroll,

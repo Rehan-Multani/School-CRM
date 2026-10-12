@@ -168,6 +168,10 @@ export const pushEvents = {
         title: `New pickup OTP · ${name}`,
         body: `A new OTP was issued${who}. The old one no longer works. Open the app to see it.`,
       },
+      VERIFIED: {
+        title: `Pickup verified · ${name}`,
+        body: `The pickup was verified${who}. ${name} is being handed over.`,
+      },
       COMPLETED: {
         title: `Pickup completed · ${name}`,
         body: session?.pickupPersonName ? `${name} was handed over to ${session.pickupPersonName}${rel}.` : `${name} was handed over safely.`,
@@ -178,13 +182,25 @@ export const pushEvents = {
       },
     }[kind];
     if (!text || !session?.studentId) return null;
-    return notifyUsers({
-      schoolId,
-      ...text,
-      pref: 'pickup',
-      link: { type: 'pickup', id: session._id },
-      recipients: { parent: await parentsOf(schoolId, [String(session.studentId)]) },
-    });
+    const link = { type: 'pickup', id: session._id };
+    // The student is told too — but never the OTP wording, which is for the parent.
+    const studentText =
+      kind === 'STARTED'
+        ? { title: `Safe pickup started · ${name}`, body: `A pickup was started${who}. Your parent has been asked to verify it.` }
+        : kind === 'OTP_RESENT'
+          ? { title: `Pickup verification updated · ${name}`, body: 'A new verification code was sent to your parent.' }
+          : text;
+    const [parent] = await Promise.all([
+      notifyUsers({
+        schoolId,
+        ...text,
+        pref: 'pickup',
+        link,
+        recipients: { parent: await parentsOf(schoolId, [String(session.studentId)]) },
+      }),
+      notifyUsers({ schoolId, ...studentText, pref: 'pickup', link, recipients: { student: [String(session.studentId)] } }),
+    ]);
+    return parent;
   },
 
   async homeworkAssigned(schoolId, hw) {

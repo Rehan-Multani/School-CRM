@@ -98,6 +98,7 @@ export const teacherApi = {
   pickupStudents: (params) => api.get(`${P}/pickups/eligible-students`, params),
   initiatePickup: (studentId, key = newIdempotencyKey()) =>
     data(api.post(`${P}/pickups/initiate`, { studentId }, { 'Idempotency-Key': key })),
+  scanPickupQr: (token) => data(api.post(`${P}/pickups/scan-qr`, { token })),
   pickupSession: (sessionId) => data(api.get(`${P}/pickups/${id(sessionId)}`)),
   verifyPickup: (sessionId, otp) => data(api.post(`${P}/pickups/${id(sessionId)}/verify`, { otp })),
   resendPickupOtp: (sessionId) => data(api.post(`${P}/pickups/${id(sessionId)}/resend-otp`)),

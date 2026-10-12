@@ -12,6 +12,7 @@ import { seedStaffUsers } from './seedStaffUsers.js';
 import { seedTeachers } from './seedTeachers.js';
 import { seedLibraryData } from './seedLibrary.js';
 import { seedRoles } from './seedRoles.js';
+import { seedCertificateTemplates } from './seedCertificateTemplates.js';
 import { isFirebaseConfigured } from './config/firebase.js';
 import { startSubscriptionCronJobs } from './cron/index.js';
 import { razorpaySubscriptionService } from './services/razorpaySubscription.service.js';
@@ -54,6 +55,7 @@ async function runSeeds() {
     await seedTeachers();
     await seedLibraryData();
     await seedRoles();
+    await seedCertificateTemplates();
 
     console.log(`[platform-service:seed] Initialization complete: ${plans.length} plans, ${schools.length} schools, ${ticketCount} tickets, ${invoices.length} invoices`);
   } catch (seedErr) {

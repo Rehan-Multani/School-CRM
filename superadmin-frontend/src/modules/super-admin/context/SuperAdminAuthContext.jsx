@@ -55,6 +55,29 @@ export const SuperAdminAuthProvider = ({ children }) => {
       throw new Error(result.message || 'Invalid email or password');
     }
 
+    return completeLogin(result);
+  };
+
+  // Passwordless option: emails an OTP to the address; no session until verifyOtp.
+  const requestOtp = async (email) => {
+    const result = await platformAuthApi.requestOtp(email);
+    if (!result.success) {
+      throw new Error(result.message || 'Unable to send OTP');
+    }
+    return result;
+  };
+
+  const verifyOtp = async (challengeId, otp) => {
+    const result = await platformAuthApi.verifyOtp(challengeId, otp);
+    if (!result.success) {
+      throw new Error(result.message || 'Incorrect OTP');
+    }
+    return completeLogin(result);
+  };
+
+  const resendOtp = (challengeId) => platformAuthApi.resendOtp(challengeId);
+
+  const completeLogin = (result) => {
     localStorage.setItem('super_admin_token', result.token);
     if (result.refreshToken) {
       localStorage.setItem('super_admin_refresh_token', result.refreshToken);
@@ -106,6 +129,9 @@ export const SuperAdminAuthProvider = ({ children }) => {
     admin,
     loading,
     login,
+    requestOtp,
+    verifyOtp,
+    resendOtp,
     logout,
     updateProfile,
     changePassword,

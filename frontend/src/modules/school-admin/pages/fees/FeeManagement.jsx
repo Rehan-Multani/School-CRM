@@ -8,6 +8,8 @@ import { feePortalApi, schoolPortalApi } from '../../../../shared/api/client';
 import { formatCurrency } from '../../utils/formatters';
 import { FeeHeadsIndex } from './FeeHeadsIndex';
 import { FeeStructuresIndex } from './FeeStructuresIndex';
+import { ExportMenu } from '../../../../shared/components/ExportMenu';
+import { fetchAllPages } from '../../../../shared/lib/exportRows';
 import {
   Banknote,
   CheckCircle2,
@@ -61,6 +63,14 @@ export const FeeManagement = () => {
   // Invoice Filters & Search
   const [invoiceSearch, setInvoiceSearch] = useState('');
   const [invoiceStatusFilter, setInvoiceStatusFilter] = useState('ALL');
+  const [invoiceClassFilter, setInvoiceClassFilter] = useState('ALL');
+  const [invoiceDueFrom, setInvoiceDueFrom] = useState('');
+  const [invoiceDueTo, setInvoiceDueTo] = useState('');
+  const [invoiceMinBalance, setInvoiceMinBalance] = useState('');
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState('ALL');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('ALL');
+  const [paymentFrom, setPaymentFrom] = useState('');
+  const [paymentTo, setPaymentTo] = useState('');
 
   // Payment Filters & Search
   const [paymentSearch, setPaymentSearch] = useState('');
@@ -113,8 +123,7 @@ export const FeeManagement = () => {
   const loadInvoices = useCallback(async () => {
     setLoadingInvoices(true);
     try {
-      const res = await feePortalApi.invoices({ limit: 100 });
-      setInvoices(res.data || []);
+      setInvoices(await fetchAllPages(feePortalApi.invoices, {}, { limit: 100, maxPages: 50 }));
     } catch (err) {
       showToast(err.message || 'Unable to load fee invoices', 'error');
     } finally {
@@ -125,8 +134,7 @@ export const FeeManagement = () => {
   const loadPayments = useCallback(async () => {
     setLoadingPayments(true);
     try {
-      const res = await feePortalApi.payments({ limit: 100 });
-      setPayments(res.data || []);
+      setPayments(await fetchAllPages(feePortalApi.payments, {}, { limit: 100, maxPages: 50 }));
     } catch (err) {
       showToast(err.message || 'Unable to load payment records', 'error');
     } finally {
@@ -334,7 +342,20 @@ export const FeeManagement = () => {
   // Filtered Invoices
   const filteredInvoices = useMemo(() => {
     return invoices.filter((inv) => {
-      if (invoiceStatusFilter !== 'ALL' && inv.status !== invoiceStatusFilter) return false;
+      if (invoiceStatusFilter === 'OVERDUE') {
+        // "Overdue" = still owing and past its due date (the stored status lags the calendar).
+        const pastDue = inv.dueDate && new Date(inv.dueDate) < new Date();
+        const owing = inv.status !== 'PAID' && inv.status !== 'CANCELLED' && Number(inv.balanceAmount) > 0;
+        if (!(inv.status === 'OVERDUE' || (owing && pastDue))) return false;
+      } else if (invoiceStatusFilter !== 'ALL' && inv.status !== invoiceStatusFilter) return false;
+      if (invoiceClassFilter !== 'ALL' && (inv.className || '') !== invoiceClassFilter) return false;
+      if (invoiceDueFrom && (!inv.dueDate || new Date(inv.dueDate) < new Date(invoiceDueFrom))) return false;
+      if (invoiceDueTo) {
+        const end = new Date(invoiceDueTo);
+        end.setHours(23, 59, 59, 999);
+        if (!inv.dueDate || new Date(inv.dueDate) > end) return false;
+      }
+      if (invoiceMinBalance !== '' && Number(inv.balanceAmount) < Number(invoiceMinBalance)) return false;
       if (invoiceSearch.trim()) {
         const q = invoiceSearch.toLowerCase();
         const studentName = `${inv.studentId?.firstName || ''} ${inv.studentId?.lastName || ''}`.toLowerCase();
@@ -344,11 +365,28 @@ export const FeeManagement = () => {
       }
       return true;
     });
-  }, [invoices, invoiceStatusFilter, invoiceSearch]);
+  }, [invoices, invoiceStatusFilter, invoiceSearch, invoiceClassFilter, invoiceDueFrom, invoiceDueTo, invoiceMinBalance]);
+
+  const invoiceClassOptions = useMemo(
+    () => [...new Set(invoices.map((i) => i.className).filter(Boolean))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
+    [invoices]
+  );
+  const paymentMethodOptions = useMemo(
+    () => [...new Set(payments.map((p) => p.paymentMethod).filter(Boolean))].sort(),
+    [payments]
+  );
 
   // Filtered Payments
   const filteredPayments = useMemo(() => {
     return payments.filter((p) => {
+      if (paymentMethodFilter !== 'ALL' && p.paymentMethod !== paymentMethodFilter) return false;
+      if (paymentStatusFilter !== 'ALL' && p.status !== paymentStatusFilter) return false;
+      if (paymentFrom && (!p.paymentDate || new Date(p.paymentDate) < new Date(paymentFrom))) return false;
+      if (paymentTo) {
+        const end = new Date(paymentTo);
+        end.setHours(23, 59, 59, 999);
+        if (!p.paymentDate || new Date(p.paymentDate) > end) return false;
+      }
       if (paymentSearch.trim()) {
         const q = paymentSearch.toLowerCase();
         const studentName = `${p.studentId?.firstName || ''} ${p.studentId?.lastName || ''}`.toLowerCase();
@@ -358,7 +396,54 @@ export const FeeManagement = () => {
       }
       return true;
     });
-  }, [payments, paymentSearch]);
+  }, [payments, paymentSearch, paymentMethodFilter, paymentStatusFilter, paymentFrom, paymentTo]);
+
+  const day = (v) => (v ? new Date(v).toISOString().slice(0, 10) : '');
+  const studentLabel = (st) => (st && typeof st === 'object' ? `${st.firstName || ''} ${st.lastName || ''}`.trim() : '');
+  const invoiceExportRows = () =>
+    filteredInvoices.map((inv) => ({
+      'Invoice No': inv.invoiceNumber,
+      'Admission No': inv.studentId?.admissionNumber || '',
+      Student: studentLabel(inv.studentId),
+      Class: [inv.className, inv.sectionName].filter(Boolean).join(' - '),
+      Period: inv.periodLabel || '',
+      'Total Bill': Number(inv.totalAmount) || 0,
+      Paid: Number(inv.paidAmount) || 0,
+      'Balance Due': Number(inv.balanceAmount) || 0,
+      'Late Fee': Number(inv.lateFeeAmount) || 0,
+      'Due Date': day(inv.dueDate),
+      Status: inv.status,
+    }));
+  const paymentExportRows = () =>
+    filteredPayments.map((pm) => ({
+      'Receipt No': pm.receiptNumber,
+      Student: studentLabel(pm.studentId),
+      'Invoice No': pm.invoiceId?.invoiceNumber || '',
+      Amount: Number(pm.amount) || 0,
+      Refunded: Number(pm.refundedAmount) || 0,
+      Mode: pm.paymentMethod || '',
+      Date: day(pm.paymentDate),
+      Status: pm.status,
+    }));
+  const invoiceFilterSummary = () =>
+    [
+      invoiceStatusFilter !== 'ALL' && `Status: ${invoiceStatusFilter}`,
+      invoiceClassFilter !== 'ALL' && `Class: ${invoiceClassFilter}`,
+      (invoiceDueFrom || invoiceDueTo) && `Due: ${invoiceDueFrom || '…'} to ${invoiceDueTo || '…'}`,
+      invoiceMinBalance !== '' && `Balance ≥ ₹${invoiceMinBalance}`,
+      invoiceSearch.trim() && `Search: ${invoiceSearch.trim()}`,
+    ]
+      .filter(Boolean)
+      .join('  |  ');
+  const paymentFilterSummary = () =>
+    [
+      paymentMethodFilter !== 'ALL' && `Mode: ${paymentMethodFilter}`,
+      paymentStatusFilter !== 'ALL' && `Status: ${paymentStatusFilter}`,
+      (paymentFrom || paymentTo) && `Date: ${paymentFrom || '…'} to ${paymentTo || '…'}`,
+      paymentSearch.trim() && `Search: ${paymentSearch.trim()}`,
+    ]
+      .filter(Boolean)
+      .join('  |  ');
 
   return (
     <div className="space-y-6">
@@ -516,9 +601,59 @@ export const FeeManagement = () => {
                   </button>
                 ))}
               </div>
+
+              <select
+                value={invoiceClassFilter}
+                onChange={(e) => setInvoiceClassFilter(e.target.value)}
+                className="h-9 rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 text-xs font-semibold outline-none focus:border-primary dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                title="Class"
+              >
+                <option value="ALL">All Classes</option>
+                {invoiceClassOptions.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+              <div className="flex items-center gap-1.5 h-9 rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 dark:border-slate-800 dark:bg-slate-950">
+                <span className="text-[10px] font-bold uppercase text-slate-400">Due</span>
+                <input type="date" value={invoiceDueFrom} max={invoiceDueTo || undefined} onChange={(e) => setInvoiceDueFrom(e.target.value)} className="bg-transparent text-xs font-semibold outline-none" title="Due from" />
+                <span className="text-xs text-slate-400">to</span>
+                <input type="date" value={invoiceDueTo} min={invoiceDueFrom || undefined} onChange={(e) => setInvoiceDueTo(e.target.value)} className="bg-transparent text-xs font-semibold outline-none" title="Due to" />
+              </div>
+              <div className="flex items-center gap-1.5 h-9 rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 dark:border-slate-800 dark:bg-slate-950">
+                <span className="text-[10px] font-bold uppercase text-slate-400">Balance ≥ ₹</span>
+                <input type="number" min="0" value={invoiceMinBalance} onChange={(e) => setInvoiceMinBalance(e.target.value)} placeholder="0" className="w-16 bg-transparent text-xs font-semibold outline-none" />
+              </div>
+              {(invoiceClassFilter !== 'ALL' || invoiceDueFrom || invoiceDueTo || invoiceMinBalance !== '' || invoiceStatusFilter !== 'ALL' || invoiceSearch) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInvoiceStatusFilter('ALL');
+                    setInvoiceClassFilter('ALL');
+                    setInvoiceDueFrom('');
+                    setInvoiceDueTo('');
+                    setInvoiceMinBalance('');
+                    setInvoiceSearch('');
+                  }}
+                  className="px-1 text-xs font-bold text-rose-500 hover:text-rose-600"
+                >
+                  Clear
+                </button>
+              )}
             </div>
 
             <div className="flex items-center gap-2">
+              <ExportMenu
+                title="Fee Invoices"
+                filename="fee_invoices"
+                subtitle={invoiceFilterSummary()}
+                getRows={invoiceExportRows}
+                disabled={filteredInvoices.length === 0}
+                onExported={(kind, n) => showToast(`${n} invoices exported`, 'success')}
+                onError={(m) => showToast(m, 'error')}
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+              />
               <button
                 type="button"
                 onClick={handleOpenGenerateModal}
@@ -673,6 +808,37 @@ export const FeeManagement = () => {
               />
             </div>
 
+            <div className="flex flex-wrap items-center gap-2.5">
+              <select value={paymentMethodFilter} onChange={(e) => setPaymentMethodFilter(e.target.value)} className="h-9 rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 text-xs font-semibold outline-none focus:border-primary dark:border-slate-800 dark:bg-slate-950 dark:text-white" title="Payment mode">
+                <option value="ALL">All Modes</option>
+                {paymentMethodOptions.map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+              <select value={paymentStatusFilter} onChange={(e) => setPaymentStatusFilter(e.target.value)} className="h-9 rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 text-xs font-semibold outline-none focus:border-primary dark:border-slate-800 dark:bg-slate-950 dark:text-white" title="Status">
+                <option value="ALL">All Statuses</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="REFUNDED">Refunded</option>
+                <option value="CANCELLED">Cancelled</option>
+              </select>
+              <div className="flex items-center gap-1.5 h-9 rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 dark:border-slate-800 dark:bg-slate-950">
+                <span className="text-[10px] font-bold uppercase text-slate-400">Paid</span>
+                <input type="date" value={paymentFrom} max={paymentTo || undefined} onChange={(e) => setPaymentFrom(e.target.value)} className="bg-transparent text-xs font-semibold outline-none" title="From" />
+                <span className="text-xs text-slate-400">to</span>
+                <input type="date" value={paymentTo} min={paymentFrom || undefined} onChange={(e) => setPaymentTo(e.target.value)} className="bg-transparent text-xs font-semibold outline-none" title="To" />
+              </div>
+              <ExportMenu
+                title="Fee Payments"
+                filename="fee_payments"
+                subtitle={paymentFilterSummary()}
+                getRows={paymentExportRows}
+                disabled={filteredPayments.length === 0}
+                onExported={(kind, n) => showToast(`${n} payments exported`, 'success')}
+                onError={(m) => showToast(m, 'error')}
+                className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 disabled:opacity-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+              />
             <button
               type="button"
               onClick={loadPayments}
@@ -681,6 +847,7 @@ export const FeeManagement = () => {
               <RefreshCw className={`h-3.5 w-3.5 ${loadingPayments ? 'animate-spin' : ''}`} />
               <span>Refresh Records</span>
             </button>
+            </div>
           </div>
 
           {/* Payments Table */}

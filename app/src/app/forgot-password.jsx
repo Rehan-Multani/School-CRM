@@ -78,13 +78,14 @@ export default function ForgotPassword() {
     });
   };
 
-  const verifyOtp = () => {
-    if (otp.length !== otpLength) {
+  const verifyOtp = (code) => {
+    const value = typeof code === 'string' ? code : otp;
+    if (value.length !== otpLength) {
       setError(`Enter the ${otpLength}-digit OTP.`);
       return;
     }
     run(async () => {
-      const data = await passwordResetApi.verifyOtp(roleKey, identifier, otp);
+      const data = await passwordResetApi.verifyOtp(roleKey, identifier, value);
       setResetToken(data.resetToken);
       setStep(2);
     });

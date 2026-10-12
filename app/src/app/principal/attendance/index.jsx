@@ -93,7 +93,7 @@ export default function AttendanceMonitoring() {
                 <Badge label={`Present ${item.Present}`} tone="success" />
                 <Badge label={`Absent ${item.Absent}`} tone="danger" />
                 <Badge label={`Leave ${item['On Leave']}`} tone="info" />
-                <Badge label={`Half day ${item['Half Day']}`} tone="warning" />
+                <Badge label={`Half day ${item['Half Day']}`} tone="halfDay" />
               </View>
             </View>
           )}
@@ -137,7 +137,7 @@ export default function AttendanceMonitoring() {
                           <Badge label={`Present ${s.present}`} tone="success" />
                           <Badge label={`Absent ${s.absent}`} tone="danger" />
                           {s.breakdown?.LATE ? <Badge label={`Late ${s.breakdown.LATE}`} tone="warning" /> : null}
-                          {s.breakdown?.HALF_DAY ? <Badge label={`Half day ${s.breakdown.HALF_DAY}`} tone="warning" /> : null}
+                          {s.breakdown?.HALF_DAY ? <Badge label={`Half day ${s.breakdown.HALF_DAY}`} tone="halfDay" /> : null}
                           {s.breakdown?.LEAVE ? <Badge label={`Leave ${s.breakdown.LEAVE}`} tone="info" /> : null}
                         </View>
                       </View>

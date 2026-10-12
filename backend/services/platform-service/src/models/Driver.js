@@ -28,6 +28,14 @@ const driverSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    // A family member's number, so the school can reach someone when the driver
+    // cannot be reached. Required for every new driver; older drivers fill it on
+    // their next edit.
+    familyMobile: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     licenseNumber: {
       type: String,
       required: true,
@@ -94,6 +102,7 @@ driverSchema.methods.toPublicJSON = function toPublicJSON() {
     id: this._id.toString(),
     name: this.name,
     mobile: this.mobile,
+    familyMobile: this.familyMobile || '',
     licenseNumber: this.licenseNumber,
     vehicleId: this.vehicleId ? String(this.vehicleId._id || this.vehicleId) : null,
     vehicle: vehicle

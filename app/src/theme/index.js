@@ -19,6 +19,9 @@ const light = {
   danger: '#DC2626',
   success: '#16A34A',
   warning: '#D97706',
+  // Half day: its own color, so it is never confused with Late (amber).
+  halfDay: '#7C3AED',
+  info: '#0284C7',
   white: '#FFFFFF',
   shadow: '#0F172A',
 };
@@ -33,6 +36,8 @@ const dark = {
   danger: '#F87171',
   success: '#4ADE80',
   warning: '#FBBF24',
+  halfDay: '#A78BFA',
+  info: '#38BDF8',
   white: '#FFFFFF',
   shadow: '#000000',
 };

@@ -63,7 +63,7 @@ import {
   listReceipts,
   getReceipt,
 } from '../controllers/parent/parentFees.controller.js';
-import { listPickup, getPickup, activePickups } from '../controllers/parent/parentPickup.controller.js';
+import { listPickup, getPickup, activePickups, childPickupQr } from '../controllers/parent/parentPickup.controller.js';
 import { getTransport, getTransportHistory } from '../controllers/parent/parentTransport.controller.js';
 import {
   listNotices,
@@ -146,6 +146,7 @@ router.get(`${C}/fees/receipts/:paymentId`, requireParent, child, oid('paymentId
 
 // ============================ 08 · PICKUP (read-only, child-scoped) ============================
 router.get(`${C}/pickup`, requireParent, child, listPickup);
+router.get(`${C}/pickup/qr`, requireParent, child, childPickupQr);
 router.get(`${C}/pickup/:sessionId`, requireParent, child, oid('sessionId'), getPickup);
 
 // ============================ 08b · TRANSPORT (read-only, child-scoped) ============================

@@ -15,13 +15,13 @@ import { alpha, font, radius, spacing } from '../../../theme';
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 const WEEK = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
-// Doc §6.5 colours: green P, red A, orange L, yellow HD, blue LV.
+// Colours: green P, red A, orange L, purple HD (distinct from Late), blue LV.
 function statusMeta(theme) {
   return {
     PRESENT: { short: 'P', label: 'Present', color: theme.success },
     ABSENT: { short: 'A', label: 'Absent', color: theme.danger },
     LATE: { short: 'L', label: 'Late', color: '#F97316' },
-    HALF_DAY: { short: 'HD', label: 'Half day', color: '#EAB308' },
+    HALF_DAY: { short: 'HD', label: 'Half day', color: theme.halfDay },
     LEAVE: { short: 'LV', label: 'Leave', color: '#3B82F6' },
   };
 }

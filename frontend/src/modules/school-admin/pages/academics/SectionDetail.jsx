@@ -4,13 +4,12 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { Tabs } from '../../components/ui/Tabs';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { academicPortalApi, timetableApi } from '../../../../shared/api/client';
 import { TimetableGrid } from '../../../../shared/ui/TimetableGrid';
 import { AcademicBreadcrumb, CountCards, EmptyState } from './components/AcademicUi';
 import { apiMessage, ENTITY_STATUS_VARIANT } from './utils';
-import { Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Loader2, Pencil, Plus, Power } from 'lucide-react';
 import { DetailPageSkeleton } from '../../components/ui/SkeletonLoader';
 
 const inputClass =
@@ -27,7 +26,6 @@ export const SectionDetail = () => {
   const [teachers, setTeachers] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null);
   const [form, setForm] = useState({
     subjectId: '',
     teacherId: '',
@@ -100,20 +98,14 @@ export const SectionDetail = () => {
     }
   };
 
-  const handleRemoveSubject = (item) => {
-    setDeleteTarget(item);
-  };
-
-  const confirmRemoveSubject = async () => {
-    if (!deleteTarget) return;
+  const handleToggleSubject = async (item) => {
+    const nextStatus = item.status === 'INACTIVE' ? 'ACTIVE' : 'INACTIVE';
     try {
-      await academicPortalApi.deleteSectionSubject(deleteTarget.id);
-      showToast('Subject removed', 'success');
+      await academicPortalApi.updateSectionSubject(item.id, { status: nextStatus });
+      showToast(`Subject ${nextStatus === 'ACTIVE' ? 'activated' : 'deactivated'}`, 'success');
       loadData();
     } catch (error) {
-      showToast(apiMessage(error, 'Unable to remove subject'), 'error');
-    } finally {
-      setDeleteTarget(null);
+      showToast(apiMessage(error, 'Unable to update subject status'), 'error');
     }
   };
 
@@ -214,10 +206,12 @@ export const SectionDetail = () => {
                       <td className="px-4 py-3">
                         <button
                           type="button"
-                          onClick={() => handleRemoveSubject(item)}
-                          className="inline-flex items-center gap-1 font-bold text-rose-500 hover:underline"
+                          onClick={() => handleToggleSubject(item)}
+                          className={`inline-flex items-center gap-1 font-bold hover:underline ${
+                            item.status === 'INACTIVE' ? 'text-slate-500' : 'text-emerald-600'
+                          }`}
                         >
-                          <Trash2 className="h-3.5 w-3.5" /> Remove
+                          <Power className="h-3.5 w-3.5" /> {item.status === 'INACTIVE' ? 'Activate' : 'Deactivate'}
                         </button>
                       </td>
                     </tr>
@@ -307,16 +301,6 @@ export const SectionDetail = () => {
           </div>
         </form>
       </Modal>
-
-      <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={confirmRemoveSubject}
-        title="Remove Subject"
-        message={`Remove subject "${deleteTarget?.subject?.name}" from the section?`}
-        confirmText="Remove Subject"
-        variant="danger"
-      />
 
       <ToastComponent />
     </div>

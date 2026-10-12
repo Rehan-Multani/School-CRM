@@ -10,6 +10,7 @@ import { Card } from '../../../components/ui';
 import { Badge, EmptyState, ErrorView, ProgressBar, SectionTitle, StatCard } from '../../../components/kit';
 import { SkeletonHome } from '../../../components/Skeleton';
 import SchoolHeader from '../../../components/SchoolHeader';
+import SchoolBanners from '../../../components/SchoolBanners';
 import RefreshableScroll from '../../../components/RefreshableScroll';
 import DayStepper from '../../../components/transport/DayStepper';
 import { alpha, font, spacing } from '../../../theme';
@@ -33,6 +34,7 @@ export default function TransportHome() {
           <Text style={[styles.chipText, { color: theme.onPrimary }]}>Transport Manager</Text>
         </View>
       </SchoolHeader>
+      <SchoolBanners />
 
       <View style={styles.body}>
         <DayStepper date={date} onChange={setDate} />

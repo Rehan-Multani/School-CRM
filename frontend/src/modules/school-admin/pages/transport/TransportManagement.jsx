@@ -105,6 +105,7 @@ const emptyVehicle = {
 const emptyDriver = {
   name: '',
   mobile: '',
+  familyMobile: '',
   licenseNumber: '',
   vehicleId: '',
   status: 'ACTIVE',
@@ -587,6 +588,9 @@ export const TransportManagement = () => {
                       </td>
                       <td className="px-5 py-3.5 font-mono font-semibold text-slate-600 dark:text-slate-300">
                         {driver.mobile}
+                        <div className="text-[10px] font-medium text-slate-400">
+                          Family: {driver.familyMobile || '-'}
+                        </div>
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
@@ -657,6 +661,7 @@ export const TransportManagement = () => {
                                 form: {
                                   name: driver.name || '',
                                   mobile: driver.mobile || '',
+                                  familyMobile: driver.familyMobile || '',
                                   licenseNumber: driver.licenseNumber || '',
                                   vehicleId: driver.vehicleId || '',
                                   status: driver.status || 'ACTIVE',
@@ -1308,6 +1313,7 @@ export const TransportManagement = () => {
               const { editing, form } = driverModal;
               const name = (form.name || '').trim();
               const cleanMobile = (form.mobile || '').replace(/\D/g, '');
+              const cleanFamilyMobile = (form.familyMobile || '').replace(/\D/g, '');
               const licenseNumber = (form.licenseNumber || '').trim();
 
               if (!name) {
@@ -1316,6 +1322,14 @@ export const TransportManagement = () => {
               }
               if (cleanMobile.length !== 10) {
                 showToast('Mobile number must be exactly 10 digits', 'error');
+                return;
+              }
+              if (cleanFamilyMobile.length !== 10) {
+                showToast('Family mobile number must be exactly 10 digits', 'error');
+                return;
+              }
+              if (cleanFamilyMobile === cleanMobile) {
+                showToast('Family mobile number must be different from the driver mobile number', 'error');
                 return;
               }
               if (!licenseNumber) {
@@ -1328,6 +1342,7 @@ export const TransportManagement = () => {
                 const fd = new FormData();
                 fd.append('name', name);
                 fd.append('mobile', cleanMobile);
+                fd.append('familyMobile', cleanFamilyMobile);
                 fd.append('licenseNumber', licenseNumber);
                 fd.append('status', form.status || 'ACTIVE');
                 if (form.vehicleId) fd.append('vehicleId', form.vehicleId);
@@ -1340,6 +1355,7 @@ export const TransportManagement = () => {
                 payload = {
                   name,
                   mobile: cleanMobile,
+                  familyMobile: cleanFamilyMobile,
                   licenseNumber,
                   status: form.status || 'ACTIVE',
                   vehicleId: form.vehicleId || '',
@@ -1595,6 +1611,24 @@ export const TransportManagement = () => {
                     {(driverModal.form.mobile || '').length}/10
                   </div>
                 </div>
+              </Field>
+              <Field
+                label="Family mobile number"
+                required
+                hint="A family member's number (different from the driver's), to reach them if the driver is unreachable"
+              >
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
+                  className={inputClass}
+                  placeholder="9876500000"
+                  value={driverModal.form.familyMobile}
+                  onChange={(e) => {
+                    const clean = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setDriverModal((m) => ({ ...m, form: { ...m.form, familyMobile: clean } }));
+                  }}
+                />
               </Field>
               <Field label="License number" required>
                 <input

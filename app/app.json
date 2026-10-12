@@ -28,7 +28,6 @@
         "android.permission.VIBRATE"
       ],
       "blockedPermissions": [
-        "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -73,6 +72,14 @@
       ],
       "@react-native-community/datetimepicker",
       "expo-sharing",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "School CRM uses the camera to scan the parent's pickup QR code.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
       "expo-build-properties"
     ],
     "scheme": "schoolcrm",

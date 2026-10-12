@@ -58,5 +58,7 @@ export function childProfile(student = {}, link = {}, enr = {}) {
     email: s.email || '',
     phone: s.phone || '',
     address: s.address || '',
+    parentName: s.parentName || '',
+    parentPhone: s.parentPhone || '',
   };
 }

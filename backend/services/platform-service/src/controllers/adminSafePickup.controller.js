@@ -7,12 +7,13 @@ import { SchoolClass } from '../models/SchoolClass.js';
 import { Section } from '../models/Section.js';
 import { School } from '../models/School.js';
 import { StudentAttendance } from '../models/StudentAttendance.js';
-import { StudentPickupSession } from '../models/StudentPickupSession.js';
+import { StudentPickupSession, cleanPickupPhoto } from '../models/StudentPickupSession.js';
 import { safePickupRepository } from '../repositories/safePickup.repository.js';
 import { safePickupOtpService } from '../services/safePickupOtp.service.js';
 import { smsService } from '../services/sms.service.js';
 import { auditLogService } from '../services/auditLog.service.js';
 import { pushEvents } from '../services/pushEvents.service.js';
+import { pickupQrService } from '../services/pickupQr.service.js';
 
 // Parent push is best-effort: it must never fail or slow the pickup itself.
 // `by` is the acting user's name, or their role ("School Admin" / "Principal").
@@ -412,6 +413,17 @@ export async function verifySafePickupOtp(req, res, next) {
       throw new AppError('Incorrect OTP', 400, E.OTP_INVALID);
     }
 
+    let photo = '';
+    try {
+      photo = cleanPickupPhoto(req.body?.pickupPersonPhoto);
+    } catch {
+      throw new AppError('The photo is invalid or too large. Please retake it.', 400, E.VALIDATION);
+    }
+    if (photo) {
+      session.pickupPersonPhoto = photo;
+      session.hasPickupPhoto = true;
+    }
+
     // Mark as verified and complete
     session.status = 'COMPLETED';
     session.verifiedAt = new Date();
@@ -506,7 +518,7 @@ export async function getSafePickupHistory(req, res, next) {
       verifiedBy: s.completedBy ? String(s.completedBy) : '',
       verifiedByName: s.teacherName || '',
       verifiedByRole: 'ADMIN_OR_PRINCIPAL',
-      verificationMethod: 'OTP',
+      verificationMethod: s.verificationMethod === 'PARENT_QR' ? 'QR' : 'OTP',
       status: 'COMPLETED',
     }));
 
@@ -608,6 +620,25 @@ export async function cancelSafePickup(req, res, next) {
     audit(req, 'PICKUP_CANCELLED', session);
     notifyParents(req, session, 'CANCELLED');
     res.json({ success: true, message: 'Pickup cancelled', data: session.toPublicJSON() });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Principal scans the parent's rotating QR → pickup completes immediately (same as the OTP flow).
+export async function scanSafePickupQr(req, res, next) {
+  try {
+    const schoolId = req.schoolId || req.user?.schoolId;
+    const userId = req.user?.userId || req.user?.sub;
+    if (!schoolId || !mongoose.isValidObjectId(String(schoolId))) {
+      throw new AppError('Invalid school context', 400, E.VALIDATION);
+    }
+    const data = await pickupQrService.scan(
+      { schoolId, userId, name: actor(req), completeNow: true },
+      req.body?.token,
+      req
+    );
+    res.status(201).json({ success: true, message: 'Safe pickup completed successfully', data });
   } catch (error) {
     next(error);
   }

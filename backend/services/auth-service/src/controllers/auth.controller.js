@@ -22,6 +22,34 @@ export async function login(req, res, next) {
   }
 }
 
+export async function requestLoginOtp(req, res, next) {
+  try {
+    const result = await authService.requestLoginOtp({ email: req.body?.email }, requestContext(req));
+    res.json({ success: true, ...result });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function verifyLoginOtp(req, res, next) {
+  try {
+    const { challengeId, otp } = req.body || {};
+    const result = await authService.verifyLoginOtp({ challengeId, otp }, requestContext(req));
+    res.status(200).json({ success: true, ...result });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function resendLoginOtp(req, res, next) {
+  try {
+    const result = await authService.resendLoginOtp({ challengeId: req.body?.challengeId });
+    res.json({ success: true, message: 'A new OTP has been sent', ...result });
+  } catch (error) {
+    next(error);
+  }
+}
+
 export async function me(req, res, next) {
   try {
     const result = await authService.me(req.user?.sub);

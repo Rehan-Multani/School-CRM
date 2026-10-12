@@ -16,7 +16,7 @@ import {
   Sparkles,
   ArrowRight,
 } from 'lucide-react';
-import { exportToCSV } from '../../../../shared/lib/exportHelpers';
+import { ExportMenu } from '../../../../shared/components/ExportMenu';
 
 export const Reports = () => {
   const [activeTab, setActiveTab] = useState('employee-summary');
@@ -44,8 +44,9 @@ export const Reports = () => {
     fetchReport();
   }, [fetchReport]);
 
-  const handleExportCSV = () => {
-    if (!data) return;
+  // Rows of the report on screen; ExportMenu turns them into Excel / PDF / CSV.
+  const buildExportRows = () => {
+    if (!data) return [];
     let exportRows = [];
 
     if (activeTab === 'employee-summary') {
@@ -97,10 +98,7 @@ export const Reports = () => {
       }));
     }
 
-    if (exportRows.length) {
-      exportToCSV(exportRows, `hr_${activeTab}_report_${new Date().toISOString().split('T')[0]}.csv`);
-      showToast('Report downloaded as CSV!', 'success');
-    }
+    return exportRows;
   };
 
   const renderVisualReport = () => {
@@ -271,14 +269,16 @@ export const Reports = () => {
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </button>
-            <button
-              onClick={handleExportCSV}
+            <ExportMenu
+              title={`HR Report - ${String(activeTab).replace(/-/g, ' ')}`}
+              filename={`hr_${activeTab}_report`}
+              getRows={buildExportRows}
               disabled={loading || !data}
-              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-650 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer disabled:opacity-60"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Export Report</span>
-            </button>
+              onExported={(kind) => showToast(`Report exported as ${kind === 'excel' ? 'Excel' : kind.toUpperCase()}`, 'success')}
+              onError={(m) => showToast(m, 'error')}
+              label="Export Report"
+              className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer disabled:opacity-60"
+            />
           </div>
         }
       />

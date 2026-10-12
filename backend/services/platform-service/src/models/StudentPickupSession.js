@@ -10,6 +10,15 @@ export const PICKUP_STATUSES = [
   'FAILED', // attempt limit exhausted
 ];
 export const ACTIVE_PICKUP_STATUSES = ['PENDING', 'OTP_SENT', 'VERIFIED'];
+const PHOTO_RE = /^data:image\/(jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+export const PICKUP_PHOTO_MAX_CHARS = 400000;
+/** @returns {string} the data URI ('' when none given); throws Error('INVALID_PICKUP_PHOTO') when malformed/oversized. */
+export function cleanPickupPhoto(v) {
+  const s = typeof v === 'string' ? v.trim() : '';
+  if (!s) return '';
+  if (s.length > PICKUP_PHOTO_MAX_CHARS || !PHOTO_RE.test(s)) throw new Error('INVALID_PICKUP_PHOTO');
+  return s;
+}
 export const PICKUP_RELATIONSHIPS = [
   'Parent',
   'Guardian',
@@ -59,6 +68,11 @@ const studentPickupSessionSchema = new mongoose.Schema(
     pickupPersonName: { type: String, default: '', trim: true },
     pickupPersonRelationship: { type: String, enum: ['', ...PICKUP_RELATIONSHIPS], default: '' },
     handoverConfirmed: { type: Boolean, default: false },
+    // Live photo of the person collecting the student (optional). A small JPEG data
+    // URI; select:false so list/history queries never carry it. Only the parent's
+    // detail view (+ the completing teacher's response) include it.
+    pickupPersonPhoto: { type: String, default: '', select: false },
+    hasPickupPhoto: { type: Boolean, default: false },
 
     initiatedAt: { type: Date, default: Date.now },
     verifiedAt: { type: Date, default: null },
@@ -126,6 +140,7 @@ studentPickupSessionSchema.methods.toPublicJSON = function toPublicJSON() {
     pickupPersonName: this.pickupPersonName || '',
     pickupPersonRelationship: this.pickupPersonRelationship || '',
     handoverConfirmed: Boolean(this.handoverConfirmed),
+    hasPickupPhoto: Boolean(this.hasPickupPhoto),
     verificationMethod: this.verificationMethod,
     initiatedAt: this.initiatedAt,
     verifiedAt: this.verifiedAt,

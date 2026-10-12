@@ -6,7 +6,8 @@ import { StatCard } from '../../components/ui/StatCard';
 import { Select } from '../../components/ui/Select';
 import { Tabs } from '../../components/ui/Tabs';
 import { SkeletonStatCard, SkeletonTable } from '../../components/ui/SkeletonLoader';
-import { exportToCSV, exportToExcel } from '../../utils/exportHelpers';
+import { exportToExcel } from '../../utils/exportHelpers';
+import { ExportMenu } from '../../../../shared/components/ExportMenu';
 import {
   Download,
   RefreshCw,
@@ -95,20 +96,21 @@ function printAllReports(title, sections) {
   win.print();
 }
 
-const ReportSection = ({ title, onExport, extra, children }) => (
+const ReportSection = ({ title, exportRows, exportName, extra, children }) => (
   <div>
     <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
       <h3 className="text-sm font-bold text-slate-900 dark:text-white">{title}</h3>
       <div className="flex items-center gap-3">
         {extra}
-        {onExport && (
-          <button
-            onClick={onExport}
-            className="text-3xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 flex items-center gap-1.5"
-          >
-            <Download className="h-3.5 w-3.5" />
-            Export CSV
-          </button>
+        {exportRows && (
+          <ExportMenu
+            title={title}
+            filename={exportName || title}
+            getRows={() => exportRows}
+            disabled={!exportRows.length}
+            label="Export"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-3xs font-bold text-indigo-600 hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-indigo-400"
+          />
         )}
       </div>
     </div>
@@ -507,7 +509,7 @@ export const Reports = () => {
             </div>
             <div className="p-6">
               {activeTab === 'issueReturn' && (
-                <ReportSection title="Issue & Return Report" onExport={() => exportToCSV(rows.issueReturn, 'issue_return_report.csv')}>
+                <ReportSection title="Issue & Return Report" exportRows={rows.issueReturn} exportName="issue_return_report">
                   <DataTable
                     columns={[
                       { title: 'Book Title', key: 'bookTitle' },
@@ -526,7 +528,7 @@ export const Reports = () => {
               )}
 
               {activeTab === 'overdue' && (
-                <ReportSection title="Overdue Report" onExport={() => exportToCSV(rows.overdue, 'overdue_report.csv')}>
+                <ReportSection title="Overdue Report" exportRows={rows.overdue} exportName="overdue_report">
                   <DataTable
                     columns={[
                       { title: 'Book Title', key: 'bookTitle' },
@@ -544,7 +546,7 @@ export const Reports = () => {
               )}
 
               {activeTab === 'fines' && (
-                <ReportSection title="Fine Report" onExport={() => exportToCSV(rows.fines, 'fine_report.csv')}>
+                <ReportSection title="Fine Report" exportRows={rows.fines} exportName="fine_report">
                   <DataTable
                     columns={[
                       { title: 'Book Title', key: 'bookTitle' },
@@ -561,7 +563,7 @@ export const Reports = () => {
               )}
 
               {activeTab === 'memberActivity' && (
-                <ReportSection title="Member Activity Report" onExport={() => exportToCSV(rows.memberActivity, 'member_activity_report.csv')}>
+                <ReportSection title="Member Activity Report" exportRows={rows.memberActivity} exportName="member_activity_report">
                   <DataTable
                     columns={[
                       { title: 'Member', key: 'borrowerName' },
@@ -580,7 +582,7 @@ export const Reports = () => {
               )}
 
               {activeTab === 'bookUsage' && (
-                <ReportSection title="Book Usage Report" onExport={() => exportToCSV(rows.bookUsage, 'book_usage_report.csv')}>
+                <ReportSection title="Book Usage Report" exportRows={rows.bookUsage} exportName="book_usage_report">
                   <DataTable
                     columns={[
                       { title: 'Title', key: 'title', sortable: true },
@@ -601,7 +603,7 @@ export const Reports = () => {
               {activeTab === 'trend' && (
                 <ReportSection
                   title="Daily / Weekly / Monthly Report"
-                  onExport={() => exportToCSV(rows.trend, 'circulation_trend_report.csv')}
+                  exportRows={rows.trend} exportName="circulation_trend_report"
                   extra={
                     <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900 rounded-lg p-1">
                       {['daily', 'weekly', 'monthly'].map((g) => (
@@ -639,7 +641,7 @@ export const Reports = () => {
               )}
 
               {activeTab === 'mostIssued' && (
-                <ReportSection title="Most Issued Books" onExport={() => exportToCSV(rows.mostIssued, 'most_issued_books_report.csv')}>
+                <ReportSection title="Most Issued Books" exportRows={rows.mostIssued} exportName="most_issued_books_report">
                   {data.mostIssued.length === 0 ? (
                     <div className="py-12 text-center text-xs text-slate-400 font-semibold">
                       No issue transactions recorded yet.
@@ -674,7 +676,7 @@ export const Reports = () => {
               )}
 
               {activeTab === 'mostActiveMembers' && (
-                <ReportSection title="Most Active Members" onExport={() => exportToCSV(rows.mostActiveMembers, 'most_active_members_report.csv')}>
+                <ReportSection title="Most Active Members" exportRows={rows.mostActiveMembers} exportName="most_active_members_report">
                   {data.mostActiveMembers.length === 0 ? (
                     <div className="py-12 text-center text-xs text-slate-400 font-semibold">
                       No circulation activity recorded yet.
@@ -708,7 +710,7 @@ export const Reports = () => {
               )}
 
               {activeTab === 'inventory' && (
-                <ReportSection title="Inventory / Stock Report" onExport={() => exportToCSV(rows.inventory, 'inventory_report.csv')}>
+                <ReportSection title="Inventory / Stock Report" exportRows={rows.inventory} exportName="inventory_report">
                   <DataTable
                     columns={[
                       { title: 'Category Name', key: 'name', sortable: true },
@@ -724,7 +726,7 @@ export const Reports = () => {
               )}
 
               {activeTab === 'lostDamaged' && (
-                <ReportSection title="Lost & Damaged Books" onExport={() => exportToCSV(rows.lostDamaged, 'lost_damaged_report.csv')}>
+                <ReportSection title="Lost & Damaged Books" exportRows={rows.lostDamaged} exportName="lost_damaged_report">
                   {data.lostDamaged.length === 0 ? (
                     <div className="py-12 text-center text-xs text-slate-400 font-semibold">
                       No lost or damaged copies recorded.

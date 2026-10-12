@@ -35,10 +35,11 @@ function OtpBoxes({ value = '', length = 6, onChange, onDone, onFocus, disabled 
   const handleChange = (text) => {
     const next = String(text || '').replace(/\D/g, '').slice(0, length);
     onChange?.(next);
-    // Fire once, when the last digit arrives. Deferred so the parent has
-    // re-rendered with the full code before the callback reads it.
+    // Fire once, when the last digit arrives. The full code is passed along:
+    // the parent's own `otp` state has not re-rendered yet at this point, so a
+    // callback that read it would still see 5 digits ("enter the 6-digit OTP").
     if (next.length === length && digits.length < length) {
-      setTimeout(() => onDoneRef.current?.(), 0);
+      setTimeout(() => onDoneRef.current?.(next), 0);
     }
   };
 
@@ -144,9 +145,13 @@ const styles = StyleSheet.create({
   // focuses it. Transparent text/caret/selection keep it invisible.
   hiddenInput: {
     ...StyleSheet.absoluteFillObject,
+    // Truly invisible: some Android builds ignore a transparent text colour, which
+    // printed the code a second time under the boxes. It still takes focus, taps
+    // and SMS autofill.
+    opacity: 0,
     color: 'transparent',
     backgroundColor: 'transparent',
-    fontSize: 22,
+    fontSize: 1,
     padding: 0,
   },
 });

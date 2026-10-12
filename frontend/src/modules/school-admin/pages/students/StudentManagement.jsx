@@ -4,19 +4,19 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { DataTable } from '../../components/ui/DataTable';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { CountCards, EmptyState } from '../academics/components/AcademicUi';
 import { apiMessage, ENTITY_STATUS_VARIANT } from '../academics/utils';
 import { sanitizeMobileInput, isValid10DigitMobile } from '../../../../shared/utils/mobileValidation';
 import { academicPortalApi, feePortalApi, schoolPortalApi } from '../../../../shared/api/client';
-import { ArrowUpRight, Camera, Edit3, Eye, FileUp, ImagePlus, LogOut, Loader2, Plus, Trash2, UserCheck, UserCircle2, UserX, Wallet, X } from 'lucide-react';
+import { ArrowUpRight, Camera, Edit3, Eye, FileUp, ImagePlus, LogOut, Loader2, Plus, UserCheck, UserCircle2, UserX, Wallet, X } from 'lucide-react';
 import { SkeletonTable } from '../../components/ui/SkeletonLoader';
 import { formatCurrency } from '../../utils/formatters';
-import { exportToCSV } from '../../../../shared/lib/exportHelpers';
+import { fetchAllPages } from '../../../../shared/lib/exportRows';
 import { PromoteStudentsModal } from './PromoteStudentsModal';
 import { TransferStudentModal } from './TransferStudentModal';
 import { ImportStudentsModal } from './ImportStudentsModal';
+import { IndiaLocationFields } from '../../components/ui/IndiaLocationFields';
 
 const inputClass =
   'h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-slate-800 dark:bg-slate-950';
@@ -31,12 +31,24 @@ const DOCUMENT_CATEGORIES = [
   { key: 'marksheet', label: 'Previous Year\'s Marksheet', field: 'marksheetDocuments', hint: 'Grade sheet / report card.' },
 ];
 
+const RELIGIONS = ['Hindu', 'Muslim', 'Christian', 'Sikh', 'Buddhist', 'Jain', 'Parsi', 'Other'];
+const CASTE_CATEGORIES = ['General', 'OBC', 'SC', 'ST', 'EWS', 'Other'];
+
+const HOUSE_SUGGESTIONS = ['Red House', 'Blue House', 'Green House', 'Yellow House'];
+
 const defaultForm = {
   admissionNumber: '',
   firstName: '',
   lastName: '',
   gender: 'MALE',
   dateOfBirth: '',
+  religion: '',
+  casteCategory: '',
+  caste: '',
+  state: '',
+  city: '',
+  village: '',
+  house: '',
   email: '',
   phone: '',
   parentName: '',
@@ -154,11 +166,12 @@ export const StudentManagement = () => {
     classId: '',
     sectionId: '',
     status: '',
+    feeStatus: '',
+    minDue: '',
   });
   const [form, setForm] = useState(defaultForm);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [transferTarget, setTransferTarget] = useState(null);
@@ -295,6 +308,8 @@ export const StudentManagement = () => {
     if (filters.classId) params.classId = filters.classId;
     if (filters.sectionId) params.sectionId = filters.sectionId;
     if (filters.status) params.status = filters.status;
+    if (filters.feeStatus) params.feeStatus = filters.feeStatus;
+    if (filters.minDue) params.minDue = filters.minDue;
     if (pager.search) params.search = pager.search;
     return params;
   }, [filters, pager.search]);
@@ -373,6 +388,13 @@ export const StudentManagement = () => {
         lastName: data.lastName || '',
         gender: data.gender || 'OTHER',
         dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString().slice(0, 10) : '',
+        religion: data.religion || '',
+        casteCategory: data.casteCategory || '',
+        caste: data.caste || '',
+        state: data.state || '',
+        city: data.city || '',
+        village: data.village || '',
+        house: data.house || '',
         removePhoto: false,
         email: data.email || '',
         phone: data.phone || '',
@@ -521,6 +543,8 @@ export const StudentManagement = () => {
       });
 
       if (!form.dateOfBirth) payload.delete('dateOfBirth');
+      // Sent even when blank so an edit can clear them.
+      ['religion', 'casteCategory', 'caste', 'state', 'city', 'village', 'house'].forEach((key) => payload.set(key, (form[key] || '').trim()));
       if (!form.enrollmentDate) payload.delete('enrollmentDate');
       if (!form.removePhoto) payload.delete('removePhoto');
       if (photoFile) payload.append('photo', photoFile);
@@ -576,23 +600,6 @@ export const StudentManagement = () => {
     }
   };
 
-  const handleDelete = (student) => {
-    setDeleteTarget(student);
-  };
-
-  const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    try {
-      await schoolPortalApi.deleteStudent(deleteTarget.id);
-      showToast('Student deleted', 'success');
-      loadStudents();
-    } catch (error) {
-      showToast(apiMessage(error, 'Unable to delete student'), 'error');
-    } finally {
-      setDeleteTarget(null);
-    }
-  };
-
   const handleView = (student) => {
     navigate(`/school-admin/students/${student.id}`);
   };
@@ -611,14 +618,43 @@ export const StudentManagement = () => {
 
   const tableRows = useMemo(() => toTableRows(students), [students]);
 
-  // Export covers every student matching the filters, not just the page on screen.
-  const handleExport = async () => {
+  // Excel / PDF / CSV cover every student matching the filters, not just this page.
+  const getExportRows = async () => {
     try {
-      const result = await schoolPortalApi.students(filterParams());
-      exportToCSV(toTableRows(result.data || []), 'students.csv');
+      const all = await fetchAllPages(schoolPortalApi.students, filterParams(), { limit: 100, maxPages: 100 });
+      return all.map((st) => ({
+        'Admission No': st.admissionNumber || '',
+        Name: st.name || [st.firstName, st.lastName].filter(Boolean).join(' '),
+        Class: st.enrollment?.class?.name || '',
+        Section: st.enrollment?.section?.name || '',
+        'Academic Year': st.enrollment?.academicYear?.name || '',
+        Gender: st.gender || '',
+        'Date of Birth': st.dateOfBirth ? String(st.dateOfBirth).slice(0, 10) : '',
+        Guardian: st.parentName || '',
+        Phone: st.parentPhone || st.phone || '',
+        Email: st.email || '',
+        'Fee Due': Number(st.feeDue) || 0,
+        'Fee Overdue': Number(st.feeOverdue) || 0,
+        Status: st.status || '',
+      }));
     } catch (error) {
       showToast(apiMessage(error, 'Unable to export students'), 'error');
+      return [];
     }
+  };
+
+  const exportSubtitle = () => {
+    const parts = [];
+    const year = years.find((y) => y.id === filters.academicYearId);
+    const cls = classes.find((c) => c.id === filters.classId);
+    const sec = sections.find((c) => c.id === filters.sectionId);
+    if (year) parts.push(`Year: ${year.name}`);
+    if (cls) parts.push(`Class: ${cls.name}${sec ? " - " + sec.name : ""}`);
+    if (filters.status) parts.push(`Status: ${filters.status}`);
+    if (filters.feeStatus) parts.push(`Fee: ${filters.feeStatus === 'DUE' ? 'Has dues' : filters.feeStatus === 'OVERDUE' ? 'Overdue' : 'No dues'}`);
+    if (filters.minDue) parts.push(`Due ≥ ₹${filters.minDue}`);
+    if (pager.search) parts.push(`Search: ${pager.search}`);
+    return parts.join('  |  ');
   };
 
   const columns = [
@@ -643,6 +679,19 @@ export const StudentManagement = () => {
     },
     { header: 'Guardian', key: 'parentName' },
     { header: 'Phone', key: 'guardianPhone' },
+    {
+      header: 'Fee Due',
+      key: 'feeDue',
+      render: (value, row) =>
+        Number(value) > 0 ? (
+          <span className="font-bold text-rose-600">
+            {formatCurrency(value)}
+            {Number(row.feeOverdue) > 0 && <span className="block text-[10px] font-bold text-rose-400">Overdue {formatCurrency(row.feeOverdue)}</span>}
+          </span>
+        ) : (
+          <span className="text-[11px] font-semibold text-emerald-600">Clear</span>
+        ),
+    },
     {
       header: 'Student Status',
       key: 'status',
@@ -692,14 +741,6 @@ export const StudentManagement = () => {
           >
             <LogOut className="h-4 w-4" />
           </button>
-          <button
-            type="button"
-            onClick={() => handleDelete(row)}
-            className="rounded-full p-1.5 text-rose-500 transition hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer"
-            title={`Delete ${row.name}`}
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
         </div>
       ),
     },
@@ -739,7 +780,7 @@ export const StudentManagement = () => {
 
       <CountCards items={stats} />
 
-      <div className="grid gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-4 dark:border-slate-800 dark:bg-slate-900">
+      <div className="grid gap-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm md:grid-cols-3 lg:grid-cols-6 dark:border-slate-800 dark:bg-slate-900">
         <div>
           <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Academic Year</label>
           <select
@@ -805,6 +846,30 @@ export const StudentManagement = () => {
             <option value="INACTIVE">Inactive</option>
           </select>
         </div>
+        <div>
+          <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Fee status</label>
+          <select
+            value={filters.feeStatus}
+            onChange={(e) => updateFilters((prev) => ({ ...prev, feeStatus: e.target.value }))}
+            className={inputClass}
+          >
+            <option value="">All students</option>
+            <option value="DUE">Has fee dues</option>
+            <option value="OVERDUE">Overdue fees</option>
+            <option value="CLEAR">No dues</option>
+          </select>
+        </div>
+        <div>
+          <label className="mb-1 block text-[11px] font-bold uppercase tracking-wider text-slate-400">Due at least (₹)</label>
+          <input
+            type="number"
+            min="0"
+            value={filters.minDue}
+            onChange={(e) => updateFilters((prev) => ({ ...prev, minDue: e.target.value, feeStatus: prev.feeStatus || (e.target.value ? "DUE" : "") }))}
+            placeholder="e.g. 5000"
+            className={inputClass}
+          />
+        </div>
       </div>
 
       {!loadedOnce ? (
@@ -829,12 +894,13 @@ export const StudentManagement = () => {
             page: pager.page,
             pageSize: pager.pageSize,
             onChange: setPager,
-            onExport: handleExport,
+            getExportRows,
           }}
           onRowClick={handleView}
           searchPlaceholder="Search by student, admission number, parent, or email..."
           emptyMessage="No students match the current filters."
           exportFilename="students.csv"
+          exportSubtitle={exportSubtitle()}
         />
       )}
 
@@ -934,12 +1000,63 @@ export const StudentManagement = () => {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold text-slate-500">Date of Birth</label>
-              <input type="date" className={inputClass} value={form.dateOfBirth} onChange={(e) => setForm((prev) => ({ ...prev, dateOfBirth: e.target.value }))} />
+              <label className="mb-1 block text-xs font-bold text-slate-500">Date of Birth *</label>
+              <input type="date" required max={new Date().toISOString().split('T')[0]} className={inputClass} value={form.dateOfBirth} onChange={(e) => setForm((prev) => ({ ...prev, dateOfBirth: e.target.value }))} />
             </div>
             <div>
               <label className="mb-1 block text-xs font-bold text-slate-500">Enrollment Date</label>
               <input type="date" className={inputClass} value={form.enrollmentDate} onChange={(e) => setForm((prev) => ({ ...prev, enrollmentDate: e.target.value }))} />
+            </div>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-3">
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-500">Religion</label>
+              <select className={inputClass} value={form.religion} onChange={(e) => setForm((prev) => ({ ...prev, religion: e.target.value }))}>
+                <option value="">Select religion</option>
+                {RELIGIONS.map((item) => (
+                  <option key={item} value={item}>{item}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-500">Caste Category</label>
+              <select className={inputClass} value={form.casteCategory} onChange={(e) => setForm((prev) => ({ ...prev, casteCategory: e.target.value }))}>
+                <option value="">Select category</option>
+                {CASTE_CATEGORIES.map((item) => (
+                  <option key={item} value={item}>{item}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-500">Caste</label>
+              <input className={inputClass} placeholder="Write caste, e.g. Maratha" maxLength={80} value={form.caste} onChange={(e) => setForm((prev) => ({ ...prev, caste: e.target.value }))} />
+            </div>
+          </div>
+
+          <IndiaLocationFields
+            value={form}
+            inputClass={inputClass}
+            labelClass="mb-1 block text-xs font-bold text-slate-500"
+            onChange={(patch) => setForm((prev) => ({ ...prev, ...patch }))}
+          />
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-500">Group / House</label>
+              <input
+                className={inputClass}
+                list="student-house-options"
+                placeholder="e.g. Red House"
+                maxLength={60}
+                value={form.house}
+                onChange={(e) => setForm((prev) => ({ ...prev, house: e.target.value }))}
+              />
+              <datalist id="student-house-options">
+                {HOUSE_SUGGESTIONS.map((item) => (
+                  <option key={item} value={item} />
+                ))}
+              </datalist>
             </div>
           </div>
 
@@ -1197,16 +1314,6 @@ export const StudentManagement = () => {
       </Modal>
 
 
-
-      <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={confirmDelete}
-        title="Delete Student"
-        message={`Delete ${deleteTarget?.name}? This will remove the student record and enrollment history.`}
-        confirmText="Delete Student"
-        variant="danger"
-      />
 
       <PromoteStudentsModal
         isOpen={promoteOpen}

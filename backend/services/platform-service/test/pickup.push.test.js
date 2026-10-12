@@ -75,7 +75,11 @@ describe('Parent is notified when a pickup starts', () => {
     expect(JSON.stringify(p[0])).toMatch(/Open the app/);
 
     // and an in-app notification for that parent, linking to the pickup
-    const notif = await PlatformNotification.findOne({ title: /Safe pickup started/ }).lean();
+    const notif = await PlatformNotification.findOne({ title: /Safe pickup started/, audiences: 'parent' }).lean();
+    // the student is told as well (without the OTP wording)
+    const studentNotif = await PlatformNotification.findOne({ title: /Safe pickup started/, audiences: 'student' }).lean();
+    expect(studentNotif.recipientRefIds.map(String)).toContain(String(ctx.a.studentId));
+    expect(studentNotif.body).not.toMatch(/OTP/);
     expect(notif.recipientRefIds.map(String)).toContain(String(ctx.a.parentId));
     expect(notif.link).toMatchObject({ type: 'pickup', id: init.body.data.id });
   });
@@ -124,6 +128,9 @@ describe('Other pickup events', () => {
     const live = (await request(app).get(`/school-portal/parent/children/${ctx.a.studentId}/pickup`).set(auth(ctx.a.parentToken))).body.active;
     const v = await request(app).post(`/school-portal/teacher/pickups/${id}/verify`).set(auth(ctx.a.token)).send({ otp: live.otp });
     expect(v.status).toBe(200);
+    await waitForCalls();
+    expect(JSON.stringify(pushed()[0])).toMatch(/Pickup verified/);
+    calls = [];
     const done = await request(app)
       .post(`/school-portal/teacher/pickups/${id}/complete`)
       .set(auth(ctx.a.token))

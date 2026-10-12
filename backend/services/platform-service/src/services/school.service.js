@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
+import mongoose from 'mongoose';
 import sharp from 'sharp';
 import { brandAssetVersion, parseImageDataUri } from '../utils/brandAsset.utils.js';
 import { AppError } from '../../../shared/AppError.js';
@@ -18,6 +19,7 @@ import { normalizeIndianMobile } from '../utils/mobile.js';
 import { LoginAsCode } from '../models/LoginAsCode.js';
 import { AuditLog } from '../models/AuditLog.js';
 import { subscriptionAccessService } from './subscriptionAccess.service.js';
+import { boardService } from './board.service.js';
 
 // "Login as school": the hand-off code lives for a minute, the session it buys
 // for two hours (a support visit, not a standing login).
@@ -27,7 +29,6 @@ const LOGIN_AS_SESSION_SECONDS = 2 * 60 * 60;
 const hashLoginAsCode = (code) => crypto.createHash('sha256').update(code).digest('hex');
 
 const SCHOOL_TYPES = ['Public', 'Private', 'Government', 'Government Aided', 'International', 'Other'];
-const SCHOOL_BOARDS = ['CBSE', 'ICSE', 'State Board', 'IB', 'Cambridge', 'Other'];
 const SCHOOL_MEDIA = ['English', 'Hindi', 'English + Hindi', 'Other'];
 const SCHOOL_STATUSES = ['Active', 'Inactive', 'Trial', 'Suspended'];
 const CLASS_OPTIONS = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
@@ -169,7 +170,7 @@ function normalizeWorkingDays(value) {
   return [...new Set(value.filter((day) => WORKING_DAYS.includes(day)))];
 }
 
-function normalizePayload(payload, createdBy) {
+function normalizePayload(payload, createdBy, boardOptions) {
   const classFrom = ensureOption(payload?.academic?.classFrom, CLASS_OPTIONS, 'Classes from');
   const classTo = ensureOption(payload?.academic?.classTo, CLASS_OPTIONS, 'Classes to');
 
@@ -182,7 +183,7 @@ function normalizePayload(payload, createdBy) {
     code: normalizeCode(payload?.code),
     schoolId: normalizeSchoolId(payload?.schoolId || payload?.name),
     type: ensureOption(payload?.type, SCHOOL_TYPES, 'School type'),
-    board: ensureOption(payload?.board, SCHOOL_BOARDS, 'Board'),
+    board: ensureOption(payload?.board, boardOptions, 'Board'),
     establishedYear: optionalYear(payload?.establishedYear),
     logo: normalizeLogo(payload?.logo),
     website: normalizeWebsite(payload?.website),
@@ -356,7 +357,7 @@ export class SchoolService {
 
   async createSchool(payload, createdBy) {
     try {
-      const next = normalizePayload(payload, createdBy);
+      const next = normalizePayload(payload, createdBy, await boardService.activeNames());
       next.subscriptionPlan = '';
       // Optional feature flag at creation time (Super Admin). Defaults false.
       if (payload?.safePickupEnabled !== undefined) {
@@ -383,7 +384,10 @@ export class SchoolService {
         throw new AppError('School not found', 404);
       }
 
-      const next = normalizePayload(payload, undefined);
+      // An inactive board stays valid for a school that already uses it.
+      const boardOptions = await boardService.activeNames();
+      if (current.board && !boardOptions.includes(current.board)) boardOptions.push(current.board);
+      const next = normalizePayload(payload, undefined, boardOptions);
       delete next.createdBy;
       next.admin.passwordHash = current.admin.passwordHash || '';
       next.admin.hasLogin = Boolean(current.admin.hasLogin || current.admin.passwordHash);
@@ -415,6 +419,27 @@ export class SchoolService {
     }
 
     return school.toPublicJSON();
+  }
+
+  // Deleting a tenant is irreversible, so a stolen/idle session is not enough:
+  // the Super Admin must re-enter their own password. The SuperAdminUser model
+  // lives in auth-service, so read its collection directly (same database).
+  // 403 (not 401) on mismatch — the client treats 401 as "session expired".
+  async assertSuperAdminPassword(userId, password) {
+    const raw = typeof password === 'string' ? password : '';
+    if (!raw) {
+      throw new AppError('Your password is required to delete a school', 400);
+    }
+    if (!userId || !mongoose.Types.ObjectId.isValid(String(userId))) {
+      throw new AppError('Unable to verify your account', 403);
+    }
+    const admin = await mongoose.connection
+      .collection('superadminusers')
+      .findOne({ _id: new mongoose.Types.ObjectId(String(userId)) }, { projection: { passwordHash: 1 } });
+    const ok = admin?.passwordHash ? await bcrypt.compare(raw, admin.passwordHash) : false;
+    if (!ok) {
+      throw new AppError('Incorrect password', 403);
+    }
   }
 
   async deleteSchool(id) {
@@ -781,7 +806,7 @@ export class SchoolService {
     };
   }
 
-  normalizePortalConfigPayload(payload) {
+  normalizePortalConfigPayload(payload, boardOptions) {
     const classFrom = ensureOption(payload?.academic?.classFrom, CLASS_OPTIONS, 'Classes from');
     const classTo = ensureOption(payload?.academic?.classTo, CLASS_OPTIONS, 'Classes to');
 
@@ -792,7 +817,7 @@ export class SchoolService {
     return {
       name: requireText(payload?.name, 'School name'),
       type: ensureOption(payload?.type, SCHOOL_TYPES, 'School type'),
-      board: ensureOption(payload?.board, SCHOOL_BOARDS, 'Board'),
+      board: ensureOption(payload?.board, boardOptions, 'Board'),
       establishedYear: optionalYear(payload?.establishedYear),
       logo: normalizeLogo(payload?.logo),
       website: normalizeWebsite(payload?.website),
@@ -838,7 +863,9 @@ export class SchoolService {
       throw new AppError('School not found', 404);
     }
 
-    const next = this.normalizePortalConfigPayload(payload);
+    const boardOptions = await boardService.activeNames();
+    if (current.board && !boardOptions.includes(current.board)) boardOptions.push(current.board);
+    const next = this.normalizePortalConfigPayload(payload, boardOptions);
     const update = {
       name: next.name,
       type: next.type,

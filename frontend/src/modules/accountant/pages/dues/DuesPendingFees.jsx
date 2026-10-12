@@ -8,8 +8,8 @@ import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
 import { accountantApi } from '../../../../shared/api/client';
 import { formatCurrency, formatDate } from '../../utils/formatters';
-import { exportToCSV } from '../../../../shared/lib/exportHelpers';
-import { AlertTriangle, Users, Download, CreditCard, Eye, History, Search } from 'lucide-react';
+import { ExportMenu } from '../../../../shared/components/ExportMenu';
+import { AlertTriangle, Users, CreditCard, History, Search, X } from 'lucide-react';
 
 const STATUS_OPTIONS = ['', 'Pending', 'Partially Paid', 'Overdue'];
 const badgeVariant = (s) => (s === 'Overdue' ? 'danger' : s === 'Partially Paid' ? 'info' : 'warning');
@@ -26,21 +26,54 @@ export const DuesPendingFees = () => {
 
   const [classes, setClasses] = useState([]);
   const [history, setHistory] = useState(null);
-  const [filters, setFilters] = useState({ search: '', status: '', classId: '', admissionNumber: '', page: 1 });
+  const [sections, setSections] = useState([]);
+  const [filters, setFilters] = useState({
+    search: '',
+    status: '',
+    classId: '',
+    sectionId: '',
+    admissionNumber: '',
+    dueFrom: '',
+    dueTo: '',
+    minPending: '',
+    page: 1,
+  });
 
   useEffect(() => {
     accountantApi.classes().then((res) => setClasses(res?.data || [])).catch(() => setClasses([]));
   }, []);
 
+  // Sections follow the chosen class.
+  useEffect(() => {
+    if (!filters.classId) {
+      setSections([]);
+      return;
+    }
+    accountantApi
+      .sections({ classId: filters.classId })
+      .then((res) => setSections(res?.data || []))
+      .catch(() => setSections([]));
+  }, [filters.classId]);
+
+  // Every filter the server understands, shared by the table and the export.
+  const buildParams = (extra = {}) => {
+    const params = { ...extra };
+    if (filters.search) params.search = filters.search;
+    if (filters.status) params.status = filters.status;
+    if (filters.classId) params.classId = filters.classId;
+    if (filters.sectionId) params.sectionId = filters.sectionId;
+    if (filters.admissionNumber) params.admissionNumber = filters.admissionNumber;
+    if (filters.dueFrom) params.dueFrom = filters.dueFrom;
+    if (filters.dueTo) params.dueTo = filters.dueTo;
+    if (filters.minPending) params.minPending = filters.minPending;
+    return params;
+  };
+
   useEffect(() => {
     let alive = true;
     setLoading(true);
     setError(null);
-    const params = { page: filters.page, limit: 15 };
-    if (filters.search) params.search = filters.search;
-    if (filters.status) params.status = filters.status;
-    if (filters.classId) params.classId = filters.classId;
-    if (filters.admissionNumber) params.admissionNumber = filters.admissionNumber;
+    const params = buildParams({ page: filters.page, limit: 15 });
 
     accountantApi
       .dues(params)
@@ -58,6 +91,60 @@ export const DuesPendingFees = () => {
   }, [filters]);
 
   const set = (patch) => setFilters((f) => ({ ...f, ...patch, page: patch.page ?? 1 }));
+
+  // Excel / PDF / CSV cover EVERY matching invoice, not just the visible page.
+  const loadAllForExport = async () => {
+    const all = [];
+    for (let page = 1; page <= 100; page += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      const res = await accountantApi.dues(buildParams({ page, limit: 100 }));
+      const batch = res?.data || [];
+      all.push(...batch);
+      if (!batch.length || page >= (res?.pagination?.totalPages || 1)) break;
+    }
+    return all.map((r) => ({
+      'Admission No': r.admissionNumber || '',
+      Student: r.studentName,
+      Class: [r.className, r.sectionName].filter(Boolean).join(' - '),
+      'Invoice No': r.invoiceNumber,
+      Period: r.periodLabel || '',
+      'Total Fee': r.totalAmount,
+      Paid: r.paidAmount,
+      Discount: r.discountAmount,
+      Fine: r.fineAmount,
+      'Pending Due': r.pendingAmount,
+      'Due Date': r.dueDate ? new Date(r.dueDate).toISOString().slice(0, 10) : '',
+      'Overdue Days': r.overdueDays || 0,
+      Status: r.status,
+    }));
+  };
+
+  const exportAll = async () => {
+    try {
+      return await loadAllForExport();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Could not load the dues for export', 'error');
+      return [];
+    }
+  };
+
+  const filterSummary = () => {
+    const parts = [];
+    const cls = classes.find((c) => String(c.id) === String(filters.classId));
+    const sec = sections.find((c) => String(c.id) === String(filters.sectionId));
+    if (cls) parts.push(`Class: ${cls.name}${sec ? ' - ' + sec.name : ''}`);
+    if (filters.status) parts.push(`Status: ${filters.status}`);
+    if (filters.dueFrom || filters.dueTo) parts.push(`Due: ${filters.dueFrom || '…'} to ${filters.dueTo || '…'}`);
+    if (filters.minPending) parts.push(`Pending ≥ ₹${filters.minPending}`);
+    if (filters.search) parts.push(`Search: ${filters.search}`);
+    return parts.join('  |  ');
+  };
+
+  const hasFilters = Boolean(
+    filters.search || filters.status || filters.classId || filters.sectionId || filters.admissionNumber || filters.dueFrom || filters.dueTo || filters.minPending
+  );
+  const clearFilters = () =>
+    setFilters({ search: '', status: '', classId: '', sectionId: '', admissionNumber: '', dueFrom: '', dueTo: '', minPending: '', page: 1 });
 
   const openHistory = (row) => {
     accountantApi
@@ -113,17 +200,16 @@ export const DuesPendingFees = () => {
         title="Dues / Pending Fees"
         subtitle="All outstanding student fee balances with filters, totals and per-student history."
         actions={
-          <button
-            onClick={() => {
-              if (!rows.length) return showToast('Nothing to export', 'info');
-              exportToCSV(rows, `dues_${new Date().toISOString().split('T')[0]}.csv`);
-              showToast('Current page exported to CSV', 'success');
-            }}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs"
-          >
-            <Download className="w-3.5 h-3.5" /> Export CSV
-          </button>
-        }
+          <ExportMenu
+            title="Dues / Pending Fees"
+            filename="fee_dues"
+            subtitle={filterSummary()}
+            getRows={exportAll}
+            disabled={pagination.total === 0}
+            onExported={(kind, n) => showToast(`${n} dues exported`, 'success')}
+            onError={(m) => showToast(m, 'error')}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs disabled:opacity-50"
+          />        }
       />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -172,6 +258,71 @@ export const DuesPendingFees = () => {
             </option>
           ))}
         </select>
+        <select
+          value={filters.sectionId}
+          onChange={(e) => set({ sectionId: e.target.value })}
+          disabled={!filters.classId}
+          className="h-10 px-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-semibold disabled:opacity-50"
+          title={filters.classId ? 'Section' : 'Pick a class first'}
+        >
+          <option value="">All Sections</option>
+          {sections.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        <div className="flex items-center gap-1.5 h-10 px-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+          <span className="text-[10px] font-bold uppercase text-slate-400">Due</span>
+          <input
+            type="date"
+            value={filters.dueFrom}
+            max={filters.dueTo || undefined}
+            onChange={(e) => set({ dueFrom: e.target.value })}
+            className="bg-transparent text-xs font-semibold outline-none"
+            title="Due date from"
+          />
+          <span className="text-slate-400 text-xs">to</span>
+          <input
+            type="date"
+            value={filters.dueTo}
+            min={filters.dueFrom || undefined}
+            onChange={(e) => set({ dueTo: e.target.value })}
+            className="bg-transparent text-xs font-semibold outline-none"
+            title="Due date to"
+          />
+        </div>
+        <div className="flex items-center gap-1.5 h-10 px-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+          <span className="text-[10px] font-bold uppercase text-slate-400">Pending ≥ ₹</span>
+          <input
+            type="number"
+            min="0"
+            value={filters.minPending}
+            onChange={(e) => set({ minPending: e.target.value })}
+            placeholder="0"
+            className="w-20 bg-transparent text-xs font-semibold outline-none"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => set({ status: filters.status === 'Overdue' ? '' : 'Overdue' })}
+          className={`h-10 px-3 rounded-xl border text-xs font-bold transition ${
+            filters.status === 'Overdue'
+              ? 'border-rose-500 bg-rose-50 text-rose-600'
+              : 'border-slate-200 dark:border-slate-800 text-slate-600 hover:border-rose-400'
+          }`}
+        >
+          Overdue only
+        </button>
+        {hasFilters && (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="h-10 px-2 flex items-center gap-1 text-xs font-bold text-rose-500 hover:text-rose-600"
+          >
+            <X className="w-3.5 h-3.5" /> Clear
+          </button>
+        )}
       </div>
 
       <ServerTable

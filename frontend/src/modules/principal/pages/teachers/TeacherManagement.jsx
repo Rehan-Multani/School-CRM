@@ -248,6 +248,7 @@ export const TeacherManagement = () => {
     if (
       !fullName ||
       !form.gender ||
+      !form.dateOfBirth ||
       !form.mobileNumber.trim() ||
       !form.employeeId.trim() ||
       !form.qualification.trim() ||
@@ -701,8 +702,8 @@ export const TeacherManagement = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-500">Date of Birth</label>
-                  <input type="date" className={inputClass} value={form.dateOfBirth} onChange={(e) => updateField('dateOfBirth', e.target.value)} />
+                  <label className="mb-1 block text-xs font-bold text-slate-500">Date of Birth *</label>
+                  <input type="date" required max={new Date().toISOString().split('T')[0]} className={inputClass} value={form.dateOfBirth} onChange={(e) => updateField('dateOfBirth', e.target.value)} />
                 </div>
               </div>
             </SectionBlock>

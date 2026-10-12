@@ -66,6 +66,7 @@ export async function updateSchoolStatus(req, res, next) {
 
 export async function deleteSchool(req, res, next) {
   try {
+    await schoolService.assertSuperAdminPassword(req.user?.sub, req.body?.password);
     const data = await schoolService.deleteSchool(req.params.id);
 
     res.json({

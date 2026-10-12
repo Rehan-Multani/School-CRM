@@ -7,7 +7,7 @@ import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
 import { accountantApi } from '../../../../shared/api/client';
 import { formatCurrency } from '../../utils/formatters';
-import { exportToCSV } from '../../../../shared/lib/exportHelpers';
+import { ExportMenu } from '../../../../shared/components/ExportMenu';
 import { ClipboardList, Layers, Download, Lock, Eye } from 'lucide-react';
 
 export const FeeStructure = () => {
@@ -97,25 +97,23 @@ export const FeeStructure = () => {
         title="Fee Structure"
         subtitle="The school's class-wise fee structure. Read-only for the accountant role."
         actions={
-          <button
-            onClick={() => {
-              if (!rows.length) return showToast('Nothing to export', 'info');
-              exportToCSV(
-                rows.map((r) => ({
-                  structure: r.name,
-                  academicYear: r.academicYear?.name || '',
-                  class: r.class?.name || '',
-                  feeHeads: r.itemsCount ?? 0,
-                  status: r.status,
-                })),
-                `fee_structures_${new Date().toISOString().split('T')[0]}.csv`
-              );
-              showToast('Exported to CSV', 'success');
-            }}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs"
-          >
-            <Download className="w-3.5 h-3.5" /> Export
-          </button>
+          <ExportMenu
+            title="Fee Structures"
+            filename="fee_structures"
+            getRows={() =>
+              rows.map((r) => ({
+                Structure: r.name,
+                'Academic Year': r.academicYear?.name || '',
+                Class: r.class?.name || '',
+                'Fee Heads': r.itemsCount ?? 0,
+                Status: r.status,
+              }))
+            }
+            disabled={!rows.length}
+            onExported={(kind, n) => showToast(`${n} structures exported`, 'success')}
+            onError={(m) => showToast(m, 'error')}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs disabled:opacity-50"
+          />
         }
       />
 

@@ -30,7 +30,13 @@ import {
   LifeBuoy,
   Building2,
   Contact,
-  Award
+  Award,
+  ScrollText,
+  IdCard,
+  Award as CertificateIcon,
+  GalleryHorizontal,
+  DoorOpen,
+  DatabaseBackup
 } from 'lucide-react';
 
 export const NAVIGATION_ITEMS = [
@@ -52,6 +58,9 @@ export const NAVIGATION_ITEMS = [
   
   // PEOPLE
   { name: 'Student Management', path: '/school-admin/students', icon: Users, category: 'People' },
+  { name: 'Student ID Cards', path: '/school-admin/id-cards', icon: IdCard, category: 'People' },
+  { name: 'Certificates', path: '/school-admin/certificates', icon: CertificateIcon, category: 'People' },
+  { name: 'Visitors', path: '/school-admin/visitors', icon: DoorOpen, category: 'People' },
   { name: 'Teacher Management', path: '/school-admin/teachers', icon: UserCheck, category: 'People' },
   { name: 'User Management', path: '/school-admin/users', icon: UserCog, category: 'People' },
   { name: 'Departments', path: '/school-admin/hr/departments', icon: Building2, category: 'People' },
@@ -69,6 +78,7 @@ export const NAVIGATION_ITEMS = [
   { name: 'Safe Pickup History', path: '/school-admin/safe-pickup/history', icon: History, category: 'Administration' },
   { name: 'Inventory', path: '/school-admin/inventory', icon: Package, category: 'Administration' },
   { name: 'Events', path: '/school-admin/events', icon: Calendar, category: 'Administration' },
+  { name: 'App Banners', path: '/school-admin/banners', icon: GalleryHorizontal, category: 'Administration' },
 
   // LIBRARY
   { name: 'Dashboard', path: '/school-admin/library/dashboard', icon: LayoutGrid, category: 'Library' },
@@ -80,6 +90,8 @@ export const NAVIGATION_ITEMS = [
   // SYSTEM
   { name: 'Notifications', path: '/school-admin/notifications', icon: Bell, category: 'System' },
   { name: 'School Reports', path: '/school-admin/reports', icon: BarChart3, category: 'System' },
+  { name: 'Activity Logs', path: '/school-admin/audit', icon: ScrollText, category: 'System' },
+  { name: 'Database Backup', path: '/school-admin/backup', icon: DatabaseBackup, category: 'System' },
   { name: 'Help & Support', path: '/school-admin/support', icon: LifeBuoy, category: 'System' },
   { name: 'Student Safe Pickup', path: '/school-admin/settings/safe-pickup', icon: Shield, category: 'System' },
   { name: 'Settings', path: '/school-admin/settings', icon: Settings, category: 'System' }

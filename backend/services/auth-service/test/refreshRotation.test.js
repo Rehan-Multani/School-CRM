@@ -9,11 +9,14 @@
 import { beforeAll, afterAll, describe, expect, it } from 'vitest';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import request from 'supertest';
 
 let app;
 let SuperAdminUser;
 let RefreshToken;
+let LoginChallenge;
+let hashOtp;
 
 const EMAIL = 'rotation-test@example.com';
 const PASSWORD = 'CorrectHorseBattery1';
@@ -25,6 +28,10 @@ beforeAll(async () => {
   process.env.JWT_SECRET = 'test-jwt-secret-that-is-definitely-long-enough';
   process.env.JWT_REFRESH_SECRET = 'test-refresh-secret-that-is-also-long-enough';
   process.env.SUPERADMIN_PASSWORD = 'seed-only-not-used-here';
+  // Never send real mail from tests (dotenv does not override existing vars).
+  process.env.SMTP_HOST = '';
+  process.env.SMTP_USER = '';
+  process.env.SMTP_PASS = '';
 
   let uri = process.env.MONGO_URI_TEST || '';
   if (!uri) {
@@ -37,6 +44,8 @@ beforeAll(async () => {
   ({ default: app } = await import('../src/app.js'));
   ({ SuperAdminUser } = await import('../src/models/SuperAdminUser.js'));
   ({ RefreshToken } = await import('../src/models/RefreshToken.js'));
+  ({ LoginChallenge } = await import('../src/models/LoginChallenge.js'));
+  ({ hashOtp } = await import('../src/services/auth.service.js'));
 
   await SuperAdminUser.deleteMany({ email: EMAIL });
   await SuperAdminUser.create({
@@ -52,7 +61,15 @@ afterAll(async () => {
   if (memoryServer) await memoryServer.stop();
 });
 
+const OTP = '123456';
+const sha256 = (v) => crypto.createHash('sha256').update(v).digest('hex');
+
+// Two independent sign-in options: email + password, or email-only OTP. The
+// emailed code is random, so swap the stored hash for a known one and verify it.
 const login = () => request(app).post('/login').send({ email: EMAIL, password: PASSWORD });
+const startLogin = () => request(app).post('/login/request-otp').send({ email: EMAIL });
+const knownOtp = async (challengeId) =>
+  LoginChallenge.updateOne({ challengeHash: sha256(challengeId) }, { otpHash: hashOtp(challengeId, OTP) });
 
 describe('super admin refresh tokens', () => {
   it('issues a short-lived access token and a persisted refresh token', async () => {
@@ -144,5 +161,53 @@ describe('super admin refresh tokens', () => {
       .patch('/password')
       .set('Authorization', `Bearer ${sessionA.token}`)
       .send({ currentPassword: 'AnotherStrongPass9', newPassword: PASSWORD });
+  });
+});
+
+describe('super admin login OTP', () => {
+  it('password option signs in directly, without any OTP step', async () => {
+    const res = await login();
+    expect(res.status).toBe(200);
+    expect(res.body.token).toBeTruthy();
+    expect(res.body.otpRequired).toBeUndefined();
+  });
+
+  it('request-otp needs no password and issues no tokens', async () => {
+    const res = await startLogin();
+    expect(res.status).toBe(200);
+    expect(res.body.challengeId).toBeTruthy();
+    expect(res.body.token).toBeUndefined();
+    expect(res.body.refreshToken).toBeUndefined();
+  });
+
+  it('answers an unregistered email like a registered one but can never verify', async () => {
+    const res = await request(app).post('/login/request-otp').send({ email: 'nobody@example.com' });
+    expect(res.status).toBe(200);
+    expect(res.body.challengeId).toBeTruthy();
+    const verify = await request(app)
+      .post('/login/verify-otp')
+      .send({ challengeId: res.body.challengeId, otp: OTP });
+    expect(verify.status).toBe(401);
+  });
+
+  it('rejects a wrong OTP and locks the challenge after 5 attempts', async () => {
+    const { body } = await startLogin();
+    await knownOtp(body.challengeId);
+    for (let i = 0; i < 5; i += 1) {
+      const bad = await request(app).post('/login/verify-otp').send({ challengeId: body.challengeId, otp: '000000' });
+      expect(bad.status).toBe(401);
+    }
+    const locked = await request(app).post('/login/verify-otp').send({ challengeId: body.challengeId, otp: OTP });
+    expect(locked.status).toBe(429);
+  });
+
+  it('OTP is single use', async () => {
+    const { body } = await startLogin();
+    await knownOtp(body.challengeId);
+    const ok = await request(app).post('/login/verify-otp').send({ challengeId: body.challengeId, otp: OTP });
+    expect(ok.status).toBe(200);
+    expect(ok.body.token).toBeTruthy();
+    const replay = await request(app).post('/login/verify-otp').send({ challengeId: body.challengeId, otp: OTP });
+    expect(replay.status).toBe(401);
   });
 });

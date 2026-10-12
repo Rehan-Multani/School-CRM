@@ -6,7 +6,7 @@ import { useAsync } from '../../../lib/useAsync';
 import { fmtDate, fmtTime } from '../../../lib/format';
 import { Card } from '../../../components/ui';
 import { AsyncView, Badge, EmptyState, SectionTitle } from '../../../components/kit';
-import { SkeletonDetail } from '../../../components/Skeleton';
+import { SkeletonDetail, SkeletonList } from '../../../components/Skeleton';
 import RefreshableScroll from '../../../components/RefreshableScroll';
 import { alpha, font, radius, spacing } from '../../../theme';
 
@@ -174,7 +174,7 @@ export default function Transport() {
               <SectionTitle title="History" />
               <Card>
                 {history.loading && !history.data ? (
-                  <Text style={styles.muted}>Loading...</Text>
+                  <SkeletonList count={3} padded={false} badge />
                 ) : rows.length ? (
                   rows.map((r, idx) => (
                     <View key={r.id} style={[styles.histRow, idx === rows.length - 1 && { borderBottomWidth: 0 }]}>

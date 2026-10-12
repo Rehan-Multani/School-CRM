@@ -34,10 +34,14 @@ export default function ExamsList() {
   const stats = useAsync(() => principalExamsApi.stats(), [], { refetchOnFocus: true });
   const years = useAsync(() => principalExamsApi.years(), []);
   const yearOptions = useMemo(
-    () => [{ value: 'ALL', label: 'All academic sessions' }, ...rows(years.data).map((y) => ({ value: y.id, label: `${y.name}${y.isCurrent ? ' (Current)' : ''}` }))],
+    () => [{ value: 'ALL', label: 'All sessions' }, ...rows(years.data).map((y) => ({ value: y.id, label: `${y.name}${y.isCurrent ? ' (Current)' : ''}` }))],
     [years.data],
   );
-  const typeOptions = useMemo(() => [{ value: 'ALL', label: 'All exam types' }, ...EXAM_TYPES], []);
+  const types = useAsync(() => principalExamsApi.types(), []);
+  const typeOptions = useMemo(() => {
+    const list = rows(types.data).map((t) => ({ value: t.value, label: t.label }));
+    return [{ value: 'ALL', label: 'All exam types' }, ...(list.length ? list : EXAM_TYPES)];
+  }, [types.data]);
   const s = stats.data?.data || {};
 
   const fetchPage = (page) =>
@@ -150,8 +154,9 @@ export default function ExamsList() {
 
 const makeStyles = (t) =>
   StyleSheet.create({
-    top: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, backgroundColor: t.bg },
-    statsRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
+    // flexShrink 0: the list below is flex:1 and was squashing this block, clipping the stat tiles.
+    top: { flexShrink: 0, paddingHorizontal: spacing.lg, paddingTop: spacing.md, backgroundColor: t.bg },
+    statsRow: { flexDirection: 'row', flexShrink: 0, gap: spacing.sm, marginBottom: spacing.md },
     card: { marginBottom: spacing.md },
     cardHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: spacing.sm },
     name: { flex: 1, fontSize: font.lg, fontWeight: '800', color: t.text },

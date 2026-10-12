@@ -16,7 +16,7 @@ const ROWS = [
   { key: 'PRESENT', label: 'Present', tone: 'success' },
   { key: 'ABSENT', label: 'Absent', tone: 'danger' },
   { key: 'LATE', label: 'Late', tone: 'warning' },
-  { key: 'HALF_DAY', label: 'Half day', tone: 'warning' },
+  { key: 'HALF_DAY', label: 'Half day', tone: 'halfDay' },
   { key: 'LEAVE', label: 'On leave', tone: 'info' },
 ];
 

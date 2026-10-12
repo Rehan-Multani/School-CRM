@@ -97,6 +97,8 @@ export function childApi(childId) {
     // The live session (may carry `otp` while OTP_SENT) or null. Poll-only; never cache.
     activePickup: () => api.get(`${C}/pickup`, { page: 1, limit: 1 }).then((r) => r.active || null),
     pickup: (sessionId) => data(api.get(`${C}/pickup/${id(sessionId)}`)),
+    // Rotating (5 min) pickup QR for this child — { enabled, token, expiresAt, ttlSeconds, ... }. Never cache.
+    pickupQr: () => data(api.get(`${C}/pickup/qr`)),
 
     // Notice detail is parent-level, but the shared notice screen reads it from the scope.
     notice: parentApi.notice,

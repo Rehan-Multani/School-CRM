@@ -174,8 +174,10 @@ app.post(
 app.use(express.json({ limit: '1mb' }));
 
 // Uploaded files need a valid platform JWT (header or ?t=), as in the service app.
+// The apps request files at <API_URL>/platform/uploads/... (the dev gateway strips
+// /platform); on cPanel there is no gateway, so mount the same prefixes here.
 app.use(
-  '/uploads',
+  ['/uploads', '/api/v1/platform/uploads', '/v1/platform/uploads'],
   requireUploadAccess,
   express.static(uploadsRoot, {
     index: false,

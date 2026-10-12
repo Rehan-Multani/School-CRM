@@ -6,12 +6,15 @@ import { useAuth } from '../../../context/AuthContext';
 import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { newIdempotencyKey, teacherApi } from '../../../api/teacher';
 import { confirm, showError } from '../../../lib/notify';
+import { errorText } from '../../../lib/format';
 import PagedList from '../../../components/PagedList';
 import { Badge, EmptyState } from '../../../components/kit';
 import { font, radius, spacing } from '../../../theme';
 import { SkeletonList } from '../../../components/Skeleton';
+import { Button } from '../../../components/ui';
+import QrScannerModal from '../../../components/pickup/QrScannerModal';
 
-const ATT_TONE = { PRESENT: 'success', ABSENT: 'danger', LATE: 'warning', HALF_DAY: 'warning', LEAVE: 'muted', UNMARKED: 'muted' };
+const ATT_TONE = { PRESENT: 'success', ABSENT: 'danger', LATE: 'warning', HALF_DAY: 'halfDay', LEAVE: 'muted', UNMARKED: 'muted' };
 
 // Doc §6.10 — class teachers only, and only when the Super Admin enabled Safe
 // Pickup for the school. Tap a student → OTP goes to the guardian's mobile.
@@ -22,6 +25,9 @@ export default function PickupStudents() {
   const [q, setQ] = useState('');
   const [query, setQuery] = useState('');
   const [starting, setStarting] = useState(null);
+  const [scanning, setScanning] = useState(false);
+  const [scanBusy, setScanBusy] = useState(false);
+  const [scanError, setScanError] = useState('');
   const keys = useRef({});
 
   useEffect(() => {
@@ -68,6 +74,22 @@ export default function PickupStudents() {
     );
   }
 
+  // Parent's rotating QR → VERIFIED session → handover screen (class teacher only).
+  const onScanned = async (token) => {
+    setScanBusy(true);
+    setScanError('');
+    try {
+      const session = await teacherApi.scanPickupQr(token);
+      setScanning(false);
+      router.push(`/teacher/pickup/${session.id}`);
+    } catch (e) {
+      // Shown inside the scanner: a toast would sit behind the full-screen camera.
+      setScanError(errorText(e) || 'This QR could not be verified.');
+    } finally {
+      setScanBusy(false);
+    }
+  };
+
   const start = async (s) => {
     if (s.activeSessionId) {
       router.push(`/teacher/pickup/${s.activeSessionId}`);
@@ -89,15 +111,20 @@ export default function PickupStudents() {
   };
 
   return (
+    <>
+    <QrScannerModal visible={scanning} busy={scanBusy} error={scanError} onToken={onScanned} onClose={() => { setScanning(false); setScanError(''); }} />
     <PagedList
       deps={[query]}
       skeleton={<SkeletonList icon={false} badge padded={false} />}
       fetchPage={(page) => teacherApi.pickupStudents({ page, limit: 30, q: query })}
       ListHeaderComponent={
-        <View style={styles.search}>
-          <Ionicons name="search" size={18} color={theme.textMuted} />
-          <TextInput value={q} onChangeText={setQ} placeholder="Search student" placeholderTextColor={theme.textMuted} style={styles.searchInput} maxLength={60} />
-        </View>
+        <>
+          <Button title="Scan parent QR" icon="qr-code-outline" onPress={() => { setScanError(''); setScanning(true); }} style={{ marginTop: spacing.md }} />
+          <View style={styles.search}>
+            <Ionicons name="search" size={18} color={theme.textMuted} />
+            <TextInput value={q} onChangeText={setQ} placeholder="Search student" placeholderTextColor={theme.textMuted} style={styles.searchInput} maxLength={60} />
+          </View>
+        </>
       }
       ListEmptyComponent={<EmptyState icon="people-outline" title="No students" />}
       renderItem={({ item }) => {
@@ -127,6 +154,7 @@ export default function PickupStudents() {
         );
       }}
     />
+    </>
   );
 }
 

@@ -7,7 +7,7 @@ import { useToast } from '../../components/ui/Toast';
 import { SkeletonTable } from '../../components/ui/SkeletonLoader';
 import { libraryPortalApi } from '../../../../shared/api/client';
 import { apiMessage } from '../academics/utils';
-import { exportToCSV, exportToExcel } from '../../../../shared/lib/exportHelpers';
+import { ExportMenu } from '../../../../shared/components/ExportMenu';
 import { PrintReportModal } from '../../../../shared/components/PrintReportModal';
 import { useSchoolAdminAuth } from '../../context/SchoolAdminAuthContext';
 import {
@@ -246,17 +246,7 @@ export const LibraryReports = () => {
 
   const reportLabel = REPORT_TYPES.find((t) => t.id === reportType)?.label || 'Report';
 
-  const handleExportCSV = () => {
-    if (!viewRows.length) return;
-    exportToCSV(plainRows(), `library_${reportType}_report_${todayStr()}.csv`);
-    showToast('Report exported as CSV', 'success');
-  };
 
-  const handleExportExcel = async () => {
-    if (!viewRows.length) return;
-    await exportToExcel([{ name: reportType, data: plainRows() }], `library_${reportType}_report_${todayStr()}.xlsx`);
-    showToast('Report exported as Excel', 'success');
-  };
 
   const showDateRange = ['issue', 'return', 'overdue'].includes(reportType);
   const showCategory = ['issue', 'return', 'overdue', 'book-usage'].includes(reportType);
@@ -279,12 +269,15 @@ export const LibraryReports = () => {
             <button type="button" onClick={() => setPrintOpen(true)} disabled={!viewRows.length} className={actionButton}>
               <Printer className="h-3.5 w-3.5" /> Print
             </button>
-            <button type="button" onClick={handleExportCSV} disabled={!viewRows.length} className={actionButton}>
-              <Download className="h-3.5 w-3.5" /> CSV
-            </button>
-            <button type="button" onClick={handleExportExcel} disabled={!viewRows.length} className={actionButton}>
-              <FileSpreadsheet className="h-3.5 w-3.5" /> Excel
-            </button>
+            <ExportMenu
+              title={reportLabel}
+              filename={`library_${reportType}_report`}
+              getRows={plainRows}
+              disabled={!viewRows.length}
+              onExported={(kind, n) => showToast(`${n} rows exported`, 'success')}
+              onError={(m) => showToast(m, 'error')}
+              className={actionButton}
+            />
             <button type="button" onClick={load} className="rounded-xl border border-slate-200 bg-slate-50 p-2 text-slate-600 hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300" title="Refresh">
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
             </button>

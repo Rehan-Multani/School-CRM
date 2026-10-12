@@ -74,9 +74,18 @@ const schoolSchema = new mongoose.Schema(
     settings: {
       theme: { type: String, enum: ['light', 'dark'], default: 'light' },
       primaryColor: { type: String, default: '#4F46E5', trim: true },
+      // Student ID card look (colors, layout, visible fields) shared by School Admin / Principal / HR.
+      idCardDesign: { type: mongoose.Schema.Types.Mixed, default: null },
       // Super-Admin per-school feature flag: Student Safe Pickup / Parent OTP.
       // Effective state for a student = this AND SchoolClass.safePickupEnabled.
       safePickupEnabled: { type: Boolean, default: false },
+      // School Admin toggle: lets this school's Principal open the Database Backup page.
+      principalBackupEnabled: { type: Boolean, default: false },
+      // Set once the default ExamType list has been created for this school, so
+      // deleting every type does not bring the defaults back.
+      examTypesSeeded: { type: Boolean, default: false },
+      // The ready-made certificate / timetable / fee designs were added once; deleting them keeps them gone.
+      certificateTemplatesSeeded: { type: Boolean, default: false },
       portalBranding: {
         logo: { type: String, default: '' },
         favicon: { type: String, default: '' },

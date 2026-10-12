@@ -58,6 +58,11 @@ export default function ChildProfile() {
               <Line styles={styles} label="Email" value={c.email} />
               <Line styles={styles} label="Address" value={c.address} />
             </Card>
+            <SectionTitle title="Parent / Guardian" />
+            <Card>
+              <Line styles={styles} label="Name" value={c.parentName} />
+              <Line styles={styles} label="Contact" value={c.parentPhone} />
+            </Card>
             <Text style={[styles.muted, { textAlign: 'center', marginTop: spacing.lg }]}>To correct any of these details, please contact the school office.</Text>
           </>
         )}

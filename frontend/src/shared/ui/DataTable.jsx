@@ -15,6 +15,7 @@ import {
   Check,
 } from 'lucide-react';
 import { exportToCSV } from '../lib/exportHelpers';
+import { ExportMenu } from '../components/ExportMenu';
 import { cn } from '../lib/cn';
 
 export const DataTable = ({
@@ -38,6 +39,7 @@ export const DataTable = ({
   enableIndex = true,
   csvFilename,
   exportFilename,
+  exportSubtitle,
   onView,
   onEdit,
   onMore,
@@ -212,6 +214,44 @@ export const DataTable = ({
     return result;
   }, [rows, searchTerm, effectiveSearchKeys, selectedFilters, sortConfig, serverMode]);
 
+  // Rows for Excel / PDF / CSV: what the user sees (current search, filters and
+  // sort), one column per visible titled column, keyed by its header.
+  const buildExportRows = () => {
+    const cols = columns.filter((c) => {
+      const key = String(getKey(c) ?? "");
+      return visibleColumns.has(getKey(c)) && getTitle(c) && c.exportable !== false && !/^actions?$/i.test(key);
+    });
+    const plain = (v) => (v === null || v === undefined ? "" : typeof v === "object" && !(v instanceof Date) ? "" : v);
+    return processedData.map((row) =>
+      Object.fromEntries(
+        cols.map((c) => {
+          const key = getKey(c);
+          let value;
+          if (typeof c.exportValue === "function") value = c.exportValue(row);
+          else {
+            value = plain(row[key]);
+            if (value === "" && typeof c.render === "function") {
+              try {
+                const out = c.render(row[key], row);
+                if (typeof out === "string" || typeof out === "number") value = out;
+              } catch {
+                /* leave blank */
+              }
+            }
+          }
+          return [String(getTitle(c)), plain(value)];
+        })
+      )
+    );
+  };
+
+  const exportTitle =
+    String(exportName)
+      .replace(/\.(csv|xlsx|pdf)$/i, '')
+      .replace(/[_-]+/g, ' ')
+      .replace(/\b\d{4} \d{2} \d{2}\b|\b\d{10,}\b/g, '')
+      .trim() || 'Report';
+
   const totalRecords = serverMode ? server.total : processedData.length;
   const totalPages = Math.ceil(totalRecords / pageSize) || 1;
   const paginatedData = useMemo(() => {
@@ -343,8 +383,17 @@ export const DataTable = ({
               )}
             </div>
 
-            {/* CSV Export */}
-            {enableExport && (
+            {/* Export: Excel / PDF / CSV of exactly what is on screen */}
+            {enableExport && (!server?.onExport || server?.getExportRows) && (
+              <ExportMenu
+                getRows={server?.getExportRows ? server.getExportRows : buildExportRows}
+                title={exportTitle.replace(/\b\w/g, (c) => c.toUpperCase())}
+                filename={exportTitle}
+                subtitle={exportSubtitle || (searchTerm ? `Search: ${searchTerm}` : "")}
+                disabled={server?.getExportRows ? !server.total : processedData.length === 0}
+              />
+            )}
+            {enableExport && server?.onExport && !server?.getExportRows && (
               <button
                 type="button"
                 onClick={() => (server?.onExport ? server.onExport(appliedSearch.current) : exportToCSV(processedData, exportName))}

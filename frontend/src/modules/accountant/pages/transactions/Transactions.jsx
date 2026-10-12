@@ -6,7 +6,8 @@ import { Modal } from '../../components/ui/Modal';
 import { useToast } from '../../components/ui/Toast';
 import { accountantApi } from '../../../../shared/api/client';
 import { formatCurrency, formatDate } from '../../utils/formatters';
-import { exportToCSV } from '../../../../shared/lib/exportHelpers';
+import { ExportMenu } from '../../../../shared/components/ExportMenu';
+import { fetchAllPages, prettyRows } from '../../../../shared/lib/exportRows';
 import { Download, Filter, Search } from 'lucide-react';
 import { PAYMENT_METHODS } from '../../utils/constants';
 
@@ -111,16 +112,25 @@ export const Transactions = () => {
         title="Transactions"
         subtitle="Central ledger of student fee collections (credits) and school expenditures (debits)."
         actions={
-          <button
-            onClick={() => {
-              if (!rows.length) return showToast('Nothing to export', 'info');
-              exportToCSV(rows, `transactions_${new Date().toISOString().split('T')[0]}.csv`);
-              showToast('Current page exported to CSV', 'success');
+          <ExportMenu
+            title="Transactions"
+            filename="transactions"
+            subtitle={[filters.type !== 'ALL' && `Type: ${filters.type}`, filters.paymentMethod && `Mode: ${filters.paymentMethod}`, filters.status && `Status: ${filters.status}`, (filters.dateFrom || filters.dateTo) && `Date: ${filters.dateFrom || '…'} to ${filters.dateTo || '…'}`, filters.search && `Search: ${filters.search}`].filter(Boolean).join('  |  ')}
+            disabled={pagination.total === 0}
+            getRows={async () => {
+              const params = {};
+              if (filters.type !== 'ALL') params.type = filters.type;
+              if (filters.paymentMethod) params.paymentMethod = filters.paymentMethod;
+              if (filters.status) params.status = filters.status;
+              if (filters.dateFrom) params.dateFrom = filters.dateFrom;
+              if (filters.dateTo) params.dateTo = filters.dateTo;
+              if (filters.search) params.search = filters.search;
+              return prettyRows(await fetchAllPages(accountantApi.transactions, params));
             }}
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs"
-          >
-            <Download className="w-4 h-4" /> Export
-          </button>
+            onExported={(kind, n) => showToast(`${n} transactions exported`, 'success')}
+            onError={(m) => showToast(m, 'error')}
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs disabled:opacity-50"
+          />
         }
       />
 

@@ -12,6 +12,7 @@ import { Card } from '../../../components/ui';
 import { Badge, ErrorView, SectionTitle, StaleNotice, StatCard } from '../../../components/kit';
 import { SkeletonHome, SkeletonList } from '../../../components/Skeleton';
 import SchoolHeader from '../../../components/SchoolHeader';
+import SchoolBanners from '../../../components/SchoolBanners';
 import RefreshableScroll from '../../../components/RefreshableScroll';
 import { alpha, font, radius, spacing } from '../../../theme';
 
@@ -80,6 +81,7 @@ export default function StudentHome() {
             </View>
           ) : null}
         </SchoolHeader>
+        <SchoolBanners />
 
         <View style={styles.body}>
           {user?.mustResetPassword ? (

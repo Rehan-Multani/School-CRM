@@ -1,3 +1,4 @@
+import { requireBirthDate } from '../utils/birthDate.js';
 import mongoose from 'mongoose';
 import { feeService } from './fee.service.js';
 import { AppError } from '../../../shared/AppError.js';
@@ -12,6 +13,14 @@ import { assertCanAdd } from './planLimits.service.js';
 
 const STUDENT_STATUSES = ['ACTIVE', 'INACTIVE'];
 const GENDERS = ['MALE', 'FEMALE', 'OTHER'];
+const RELIGIONS = ['Hindu', 'Muslim', 'Christian', 'Sikh', 'Buddhist', 'Jain', 'Parsi', 'Other'];
+const CASTE_CATEGORIES = ['General', 'OBC', 'SC', 'ST', 'EWS', 'Other'];
+
+// Optional dropdown value: blank clears it, anything else must be a listed option.
+function optionalOption(value, options, label) {
+  const text = optionalText(value);
+  return text ? ensureOption(text, options, label) : '';
+}
 
 function requireText(value, label) {
   const text = typeof value === 'string' ? value.trim() : '';
@@ -72,7 +81,14 @@ function buildStudentPayload(payload) {
     firstName: requireText(payload.firstName, 'First name'),
     lastName: optionalText(payload.lastName),
     gender: payload.gender ? ensureOption(payload.gender, GENDERS, 'Gender') : 'OTHER',
-    dateOfBirth: parseBirthDate(payload.dateOfBirth),
+    dateOfBirth: requireBirthDate(payload.dateOfBirth),
+    religion: optionalOption(payload.religion, RELIGIONS, 'Religion'),
+    casteCategory: optionalOption(payload.casteCategory, CASTE_CATEGORIES, 'Caste category'),
+    caste: optionalText(payload.caste),
+    state: optionalText(payload.state),
+    city: optionalText(payload.city),
+    village: optionalText(payload.village),
+    house: optionalText(payload.house),
     email: optionalText(payload.email).toLowerCase(),
     phone: normalizeMobile(payload.phone, 'Student phone', { required: false }),
     parentName: requireText(payload.parentName, 'Parent name'),
@@ -133,6 +149,8 @@ export class StudentService {
     const classIds = [...new Set(enrollments.map((item) => item.classId?.toString()).filter(Boolean))];
     const sectionIds = [...new Set(enrollments.map((item) => item.sectionId?.toString()).filter(Boolean))];
 
+    const outstanding = await studentRepository.outstandingByStudent(schoolId, ids);
+
     const [years, classes, sections] = await Promise.all([
       studentRepository.findYearsByIds(schoolId, yearIds),
       studentRepository.findClassesByIds(schoolId, classIds),
@@ -151,8 +169,11 @@ export class StudentService {
         }
 
         const base = student.toPublicJSON();
+        const owed = outstanding.get(student._id.toString());
         return {
           ...base,
+          feeDue: owed?.due || 0,
+          feeOverdue: owed?.overdue || 0,
           name: fullStudent(base),
           enrollment: enrollment
             ? {
@@ -273,6 +294,13 @@ export class StudentService {
     if (payload.lastName !== undefined) update.lastName = optionalText(payload.lastName);
     if (payload.gender !== undefined) update.gender = ensureOption(payload.gender, GENDERS, 'Gender');
     if (payload.dateOfBirth !== undefined) update.dateOfBirth = parseBirthDate(payload.dateOfBirth);
+    if (payload.religion !== undefined) update.religion = optionalOption(payload.religion, RELIGIONS, 'Religion');
+    if (payload.casteCategory !== undefined) update.casteCategory = optionalOption(payload.casteCategory, CASTE_CATEGORIES, 'Caste category');
+    if (payload.caste !== undefined) update.caste = optionalText(payload.caste);
+    if (payload.state !== undefined) update.state = optionalText(payload.state);
+    if (payload.city !== undefined) update.city = optionalText(payload.city);
+    if (payload.village !== undefined) update.village = optionalText(payload.village);
+    if (payload.house !== undefined) update.house = optionalText(payload.house);
     if (payload.email !== undefined) update.email = optionalText(payload.email).toLowerCase();
     if (payload.phone !== undefined) update.phone = normalizeMobile(payload.phone, 'Student phone', { required: false });
     if (payload.parentName !== undefined) update.parentName = requireText(payload.parentName, 'Parent name');

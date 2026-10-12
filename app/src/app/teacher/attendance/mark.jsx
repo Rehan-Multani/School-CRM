@@ -20,8 +20,8 @@ const STATUSES = [
   { key: 'PRESENT', short: 'P', tone: 'success' },
   { key: 'ABSENT', short: 'A', tone: 'danger' },
   { key: 'LATE', short: 'L', tone: 'warning' },
-  { key: 'HALF_DAY', short: 'HD', tone: 'warning' },
-  { key: 'LEAVE', short: 'LV', tone: 'muted' },
+  { key: 'HALF_DAY', short: 'HD', tone: 'halfDay' },
+  { key: 'LEAVE', short: 'LV', tone: 'info' },
 ];
 
 export default function MarkAttendance() {

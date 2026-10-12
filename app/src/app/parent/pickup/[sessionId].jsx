@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams } from 'expo-router';
 import { usePortal } from '../../../context/PortalScope';
@@ -59,6 +59,12 @@ export default function PickupDetail() {
                 <Line styles={styles} label="Teacher" value={p.teacherName} />
                 <Line styles={styles} label="Guardian on record" value={[p.guardianName, p.maskedMobile].filter(Boolean).join(' · ')} />
                 <Line styles={styles} label="Picked up by" value={p.pickupPersonName ? `${p.pickupPersonName}${p.pickupPersonRelationship ? ` (${p.pickupPersonRelationship})` : ''}` : ''} />
+                {p.pickupPersonPhoto ? (
+                  <View style={styles.photoRow}>
+                    <Text style={styles.lineLabel}>Photo</Text>
+                    <Image source={{ uri: p.pickupPersonPhoto }} style={styles.photo} />
+                  </View>
+                ) : null}
                 <Line styles={styles} label="Handover confirmed" value={p.status === 'COMPLETED' ? (p.handoverConfirmed ? 'Yes' : 'No') : ''} />
               </Card>
 
@@ -84,6 +90,8 @@ const makeStyles = (t) =>
     title: { flex: 1, fontSize: font.xl, fontWeight: '800', color: t.text },
     muted: { fontSize: font.sm, color: t.textMuted, marginTop: 2 },
     note: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.md },
+    photoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8 },
+    photo: { width: 96, height: 96, borderRadius: 12 },
     line: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5, gap: spacing.md },
     lineLabel: { fontSize: font.md, color: t.textMuted },
     lineValue: { flex: 1, textAlign: 'right', fontSize: font.md, color: t.text, fontWeight: '600' },

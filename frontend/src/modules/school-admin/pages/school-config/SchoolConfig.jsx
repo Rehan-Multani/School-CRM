@@ -17,7 +17,6 @@ import {
 import { SkeletonForm } from '../../components/ui/SkeletonLoader';
 
 const SCHOOL_TYPES = ['Public', 'Private', 'Government', 'Government Aided', 'International', 'Other'];
-const SCHOOL_BOARDS = ['CBSE', 'ICSE', 'State Board', 'IB', 'Cambridge', 'Other'];
 const SCHOOL_MEDIA = ['English', 'Hindi', 'English + Hindi', 'Other'];
 const CLASS_OPTIONS = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 const WORKING_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -151,6 +150,20 @@ export const SchoolConfig = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [boardNames, setBoardNames] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    schoolPortalApi
+      .boards()
+      .then((result) => {
+        if (!cancelled) setBoardNames(result.data || []);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -311,7 +324,7 @@ export const SchoolConfig = () => {
                 value={form.board}
                 onChange={(e) => updateForm('board', e.target.value)}
               >
-                {SCHOOL_BOARDS.map((option) => (
+                {(form.board && !boardNames.includes(form.board) ? [form.board, ...boardNames] : boardNames).map((option) => (
                   <option key={option} value={option}>
                     {option}
                   </option>

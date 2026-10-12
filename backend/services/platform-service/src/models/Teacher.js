@@ -56,6 +56,8 @@ const teacherSchema = new mongoose.Schema(
     department: { type: String, default: '', trim: true },
     designation: { type: String, default: '', trim: true },
     joiningDate: { type: Date, default: null },
+    // Optional: set when the teacher has left (or is due to leave).
+    leavingDate: { type: Date, default: null },
     employmentType: {
       type: String,
       enum: ['', 'FULL_TIME', 'PART_TIME', 'CONTRACT', 'VISITING', 'TEMPORARY'],
@@ -173,6 +175,7 @@ teacherSchema.methods.toPublicJSON = function toPublicJSON() {
     department: this.department,
     designation: this.designation,
     joiningDate: this.joiningDate,
+    leavingDate: this.leavingDate || null,
     employmentType: this.employmentType,
     experienceSummary: this.experienceSummary,
     previousExperienceSummary: this.previousExperienceSummary,

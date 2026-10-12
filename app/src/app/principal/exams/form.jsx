@@ -18,18 +18,23 @@ export default function ExamForm() {
   const editing = Boolean(examId);
   const exam = useAsync(() => (editing ? principalExamsApi.get(examId) : Promise.resolve(null)), [examId]);
   const years = useAsync(() => principalExamsApi.years(), []);
+  const types = useAsync(() => principalExamsApi.types(), []);
+  const typeOptions = useMemo(() => {
+    const list = rows(types.data).map((t) => ({ value: t.value, label: t.label }));
+    return list.length ? list : EXAM_TYPES;
+  }, [types.data]);
 
   return (
     <View style={{ flex: 1 }}>
       <Stack.Screen options={{ title: editing ? 'Edit Examination' : 'New Examination' }} />
       <AsyncView state={exam}>
-        {(res) => <FormBody key={res?.data?.id || 'new'} existing={res?.data || null} years={rows(years.data)} yearsLoading={years.loading} />}
+        {(res) => <FormBody key={res?.data?.id || 'new'} existing={res?.data || null} years={rows(years.data)} yearsLoading={years.loading} typeOptions={typeOptions} />}
       </AsyncView>
     </View>
   );
 }
 
-function FormBody({ existing, years, yearsLoading }) {
+function FormBody({ existing, years, yearsLoading, typeOptions }) {
   const theme = useTheme();
   const editing = Boolean(existing);
   const [form, setForm] = useState(() => ({
@@ -141,7 +146,7 @@ function FormBody({ existing, years, yearsLoading }) {
           error={errors.academicYearId}
           disabled={editing || yearsLoading}
         />
-        <Select label="Exam type" value={form.examType} options={EXAM_TYPES} onChange={set('examType')} />
+        <Select label="Exam type" value={form.examType} options={typeOptions} onChange={set('examType')} />
         {editing ? <Select label="Status" value={form.status} options={statusOptions} onChange={set('status')} /> : null}
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>

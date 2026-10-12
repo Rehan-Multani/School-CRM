@@ -1,3 +1,4 @@
+import { requireBirthDate } from '../utils/birthDate.js';
 import bcrypt from 'bcryptjs';
 import { AppError } from '../../../shared/AppError.js';
 import { userRepository } from '../repositories/user.repository.js';
@@ -80,6 +81,7 @@ class UserService {
       throw new AppError(`Employee ID "${employeeId}" is already assigned to another user`, 409);
     }
 
+    const dateOfBirth = requireBirthDate(payload.dateOfBirth);
     const passwordHash = await bcrypt.hash(rawPassword, 10);
     const fullName = `${firstName} ${lastName}`.trim();
 
@@ -108,11 +110,13 @@ class UserService {
       passwordHash,
       role,
       phone: optionalText(payload.phone || payload.mobileNumber),
+      dateOfBirth,
       gender: payload.gender && VALID_GENDERS.includes(payload.gender.toUpperCase())
         ? payload.gender.toUpperCase()
         : 'MALE',
       specialization: optionalText(payload.specialization),
       joiningDate: parseDate(payload.joiningDate) || new Date(),
+      leavingDate: parseDate(payload.leavingDate),
       department: optionalText(payload.department),
       designation: optionalText(payload.designation) || role,
       basicSalary: Number(payload.basicSalary) || 0,
@@ -168,11 +172,13 @@ class UserService {
     }
 
     if (payload.phone !== undefined) updates.phone = optionalText(payload.phone);
+    if (payload.dateOfBirth !== undefined && payload.dateOfBirth !== '') updates.dateOfBirth = requireBirthDate(payload.dateOfBirth);
     if (payload.gender !== undefined) {
       updates.gender = VALID_GENDERS.includes(payload.gender.toUpperCase()) ? payload.gender.toUpperCase() : 'MALE';
     }
     if (payload.specialization !== undefined) updates.specialization = optionalText(payload.specialization);
     if (payload.joiningDate !== undefined) updates.joiningDate = parseDate(payload.joiningDate);
+    if (payload.leavingDate !== undefined) updates.leavingDate = parseDate(payload.leavingDate);
     if (payload.department !== undefined) updates.department = optionalText(payload.department);
     if (payload.designation !== undefined) updates.designation = optionalText(payload.designation);
     if (payload.basicSalary !== undefined) updates.basicSalary = Number(payload.basicSalary) || 0;

@@ -28,6 +28,7 @@ const COMMANDS = [
   { name: 'Dashboard', category: 'Navigation', path: '/super-admin/dashboard', icon: LayoutDashboard },
   { name: 'Schools', category: 'Navigation', path: '/super-admin/schools', icon: School },
   { name: 'Enquiry', category: 'Navigation', path: '/super-admin/enquiries', icon: Inbox },
+  { name: 'Boards', category: 'Navigation', path: '/super-admin/boards', icon: Layers },
   { name: 'Plans', category: 'Navigation', path: '/super-admin/plans', icon: Layers },
   { name: 'Subscriptions', category: 'Navigation', path: '/super-admin/subscriptions', icon: CreditCard },
   { name: 'Invoices', category: 'Navigation', path: '/super-admin/subscriptions', icon: Receipt },

@@ -12,7 +12,7 @@ import {
   DialogDescription,
 } from '../../components/ui/Dialog';
 import { useSuperAdminNotifications } from '../../context/SuperAdminNotificationContext';
-import { platformSchoolApi, platformSubscriptionApi } from '../../../../shared/api/client';
+import { platformSchoolApi, platformSubscriptionApi, platformBoardApi } from '../../../../shared/api/client';
 import schoolLogo from '../../../../assets/School_logo.png';
 import {
   Plus,
@@ -46,7 +46,6 @@ const DEFAULT_SCHOOL_LOGO = schoolLogo;
 const MAX_LOGO_SIZE = 2 * 1024 * 1024;
 
 const SCHOOL_TYPES = ['Public', 'Private', 'Government', 'Government Aided', 'International', 'Other'];
-const SCHOOL_BOARDS = ['CBSE', 'ICSE', 'State Board', 'IB', 'Cambridge', 'Other'];
 const SCHOOL_MEDIA = ['English', 'Hindi', 'English + Hindi', 'Other'];
 const CLASS_OPTIONS = ['Nursery', 'LKG', 'UKG', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 const WORKING_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -329,6 +328,9 @@ export default function SchoolsIndex() {
   const [editingSchool, setEditingSchool] = useState(null);
   const [viewingSchool, setViewingSchool] = useState(null);
   const [schoolToDelete, setSchoolToDelete] = useState(null);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState('');
+  const [showDeletePassword, setShowDeletePassword] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [credentials, setCredentials] = useState(null);
   const [copiedField, setCopiedField] = useState('');
@@ -342,7 +344,26 @@ export default function SchoolsIndex() {
   const [passwordSubmitting, setPasswordSubmitting] = useState(false);
   const [passwordError, setPasswordError] = useState('');
   const [availablePlans, setAvailablePlans] = useState([]);
+  const [boardNames, setBoardNames] = useState([]);
   const [form, setForm] = useState(initialForm);
+
+  useEffect(() => {
+    let cancelled = false;
+    platformBoardApi
+      .list({ status: 'active' })
+      .then((result) => {
+        if (!cancelled) setBoardNames((result.data || []).map((board) => board.name));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Active boards, plus the school's current board when it has since been deactivated.
+  const boardOptions = form.board && !boardNames.includes(form.board) && boardNames.length
+    ? [form.board, ...boardNames]
+    : boardNames;
   const [codeTouched, setCodeTouched] = useState(false);
   const logoFileRef = useRef(null);
 
@@ -717,13 +738,25 @@ export default function SchoolsIndex() {
     }
   };
 
+  const closeDeleteModal = () => {
+    setSchoolToDelete(null);
+    setDeletePassword('');
+    setDeleteError('');
+    setShowDeletePassword(false);
+  };
+
   const handleDeleteSchool = async () => {
     if (!schoolToDelete) return;
+    if (!deletePassword) {
+      setDeleteError('Enter your Super Admin password to confirm.');
+      return;
+    }
     setDeleting(true);
+    setDeleteError('');
     try {
-      await platformSchoolApi.remove(schoolToDelete.id);
+      await platformSchoolApi.remove(schoolToDelete.id, deletePassword);
       addNotification('warning', `School deleted: ${schoolToDelete.name}`);
-      setSchoolToDelete(null);
+      closeDeleteModal();
       const nextPage = schools.length === 1 && page > 1 ? page - 1 : page;
       if (nextPage !== page) {
         setPage(nextPage);
@@ -731,10 +764,8 @@ export default function SchoolsIndex() {
         await loadSchools(nextPage);
       }
     } catch (err) {
-      addNotification(
-        'error',
-        err.response?.data?.message || err.message || 'Unable to delete school.'
-      );
+      // Keep the dialog open so a typo'd password can be retried.
+      setDeleteError(err.response?.data?.message || err.message || 'Unable to delete school.');
     } finally {
       setDeleting(false);
     }
@@ -820,7 +851,7 @@ export default function SchoolsIndex() {
                   </Field>
                   <Field id="board" label="Board" required>
                     <select id="board" className={selectClass} value={form.board} onChange={(e) => updateForm('board', e.target.value)}>
-                      {SCHOOL_BOARDS.map((opt) => (
+                      {boardOptions.map((opt) => (
                         <option key={opt} value={opt}>{opt}</option>
                       ))}
                     </select>
@@ -1460,7 +1491,7 @@ export default function SchoolsIndex() {
       <Dialog
         open={Boolean(schoolToDelete)}
         onOpenChange={(open) => {
-          if (!open && !deleting) setSchoolToDelete(null);
+          if (!open && !deleting) closeDeleteModal();
         }}
       >
         <DialogContent className="max-w-md">
@@ -1476,11 +1507,50 @@ export default function SchoolsIndex() {
               Delete <span className="font-semibold text-slate-900 dark:text-white">{schoolToDelete?.name}</span>? All tenant data for this school will be removed.
             </p>
           </div>
+          <form
+            id="delete-school-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleDeleteSchool();
+            }}
+          >
+            <Field id="deleteSchoolPassword" label="Your password" required hint="Enter your Super Admin password to confirm">
+              <div className="relative">
+                <input
+                  id="deleteSchoolPassword"
+                  type={showDeletePassword ? 'text' : 'password'}
+                  className={`${inputClass} pr-10`}
+                  value={deletePassword}
+                  onChange={(e) => {
+                    setDeletePassword(e.target.value);
+                    if (deleteError) setDeleteError('');
+                  }}
+                  placeholder="Super Admin password"
+                  autoComplete="current-password"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowDeletePassword((prev) => !prev)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300"
+                  aria-label={showDeletePassword ? 'Hide password' : 'Show password'}
+                >
+                  {showDeletePassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </Field>
+            {deleteError && (
+              <p className="mt-2 flex items-center gap-2 text-sm text-rose-600 dark:text-rose-400" role="alert">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                <span>{deleteError}</span>
+              </p>
+            )}
+          </form>
           <div className="flex gap-3 pt-1">
-            <Button type="button" variant="secondary" className="flex-1" disabled={deleting} onClick={() => setSchoolToDelete(null)}>
+            <Button type="button" variant="secondary" className="flex-1" disabled={deleting} onClick={closeDeleteModal}>
               Cancel
             </Button>
-            <Button type="button" variant="destructive" className="flex-1 gap-2" disabled={deleting} onClick={handleDeleteSchool}>
+            <Button type="button" variant="destructive" className="flex-1 gap-2" disabled={deleting || !deletePassword} onClick={handleDeleteSchool}>
               {deleting ? (
                 <>
                   Deleting...

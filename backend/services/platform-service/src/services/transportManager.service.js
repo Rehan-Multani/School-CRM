@@ -163,6 +163,7 @@ class TransportManagerService {
           id: json.id,
           name: json.name,
           mobile: json.mobile,
+          familyMobile: json.familyMobile,
           licenseNumber: json.licenseNumber,
           photo: json.photo,
           status: json.status,

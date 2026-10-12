@@ -3,7 +3,7 @@ import { PageHeader } from '../../components/ui/PageHeader';
 import { AreaChart } from '../../components/ui/Charts/AreaChart';
 import { BarChart } from '../../components/ui/Charts/BarChart';
 import { useToast } from '../../components/ui/Toast';
-import { exportToCSV, exportToExcel } from '../../../../shared/lib/exportHelpers';
+import { ExportMenu } from '../../../../shared/components/ExportMenu';
 import { accountantApi } from '../../../../shared/api/client';
 import { formatCurrency } from '../../utils/formatters';
 import { Download, FileSpreadsheet, Loader2, RefreshCw } from 'lucide-react';
@@ -101,21 +101,6 @@ export const FinancialReports = () => {
     return String(val);
   };
 
-  const handleCSV = () => {
-    if (!rows.length) return showToast('Nothing to export', 'info');
-    exportToCSV(rows, `${category}_report_${new Date().toISOString().split('T')[0]}.csv`);
-    showToast('Report exported to CSV', 'success');
-  };
-
-  const handleExcel = async () => {
-    if (!rows.length) return showToast('Nothing to export', 'info');
-    await exportToExcel(
-      [{ name: category, data: rows }],
-      `${category}_report_${new Date().toISOString().split('T')[0]}.xlsx`
-    );
-    showToast('Report exported to Excel', 'success');
-  };
-
   const chart = (() => {
     if (category === 'daily') return <AreaChart data={rows} dataKey="amount" xKey="date" height={260} color="#7c3aed" />;
     if (category === 'monthly') return <BarChart data={rows} dataKey="amount" xKey="month" height={260} color="#8b5cf6" />;
@@ -173,18 +158,16 @@ export const FinancialReports = () => {
           <RefreshCw className="w-3.5 h-3.5" /> Generate
         </button>
         <div className="flex-1" />
-        <button
-          onClick={handleCSV}
-          className="h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-950"
-        >
-          <Download className="w-3.5 h-3.5" /> CSV
-        </button>
-        <button
-          onClick={handleExcel}
-          className="h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-950"
-        >
-          <FileSpreadsheet className="w-3.5 h-3.5" /> Excel
-        </button>
+        <ExportMenu
+          title={(REPORTS.find((r) => r.id === category)?.label || category) + ' Report'}
+          filename={`${category}_report`}
+          subtitle={dateFrom || dateTo ? `Period: ${dateFrom || '…'} to ${dateTo || '…'}` : ''}
+          getRows={() => rows}
+          disabled={!rows.length}
+          onExported={(kind, n) => showToast(`${n} rows exported`, 'success')}
+          onError={(m) => showToast(m, 'error')}
+          className="h-9 px-3 rounded-lg border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 flex items-center gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-950 disabled:opacity-50"
+        />
       </div>
 
       {error && (

@@ -60,6 +60,7 @@ import {
   resendPickupOtp,
   completePickup,
   cancelPickup,
+  scanPickupQr,
 } from '../controllers/teacher/teacherPickup.controller.js';
 import {
   listHomework,
@@ -237,6 +238,7 @@ router.post('/school-portal/teacher/device-tokens', requireTeacher, registerTeac
 // ============================ 15 · SAFE PICKUP ============================
 router.get('/school-portal/teacher/pickups/eligible-students', requireTeacher, listEligibleStudents);
 router.post('/school-portal/teacher/pickups/initiate', requireTeacher, pickupRateLimiter, initiatePickup);
+router.post('/school-portal/teacher/pickups/scan-qr', requireTeacher, pickupRateLimiter, scanPickupQr);
 router.get('/school-portal/teacher/pickups/:pickupSessionId', requireTeacher, oid('pickupSessionId'), getPickupSession);
 router.post('/school-portal/teacher/pickups/:pickupSessionId/verify', requireTeacher, oid('pickupSessionId'), pickupRateLimiter, verifyPickupOtp);
 router.post('/school-portal/teacher/pickups/:pickupSessionId/resend-otp', requireTeacher, oid('pickupSessionId'), pickupRateLimiter, resendPickupOtp);

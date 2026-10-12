@@ -5,11 +5,9 @@ const examSchema = new mongoose.Schema(
     schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true, index: true },
     academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear', required: true, index: true },
     name: { type: String, required: true, trim: true },
-    examType: {
-      type: String,
-      enum: ['UNIT_TEST', 'MONTHLY_TEST', 'QUARTERLY', 'HALF_YEARLY', 'ANNUAL', 'PRE_BOARD', 'OTHER'],
-      default: 'HALF_YEARLY',
-    },
+    // Code of one of the school's ExamType rows (validated in exam.service) —
+    // no longer a fixed enum, since each school manages its own list.
+    examType: { type: String, trim: true, uppercase: true, default: 'HALF_YEARLY' },
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     classIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'SchoolClass' }],
@@ -24,6 +22,8 @@ const examSchema = new mongoose.Schema(
       enum: ['DRAFT', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'PUBLISHED', 'CANCELLED'],
       default: 'DRAFT',
     },
+    // Admin on/off switch, independent of the lifecycle status above. Exams are never deleted from the UI.
+    isActive: { type: Boolean, default: true, index: true },
   },
   { timestamps: true }
 );
@@ -43,6 +43,7 @@ examSchema.methods.toPublicJSON = function toPublicJSON() {
     gradingType: this.gradingType,
     description: this.description,
     status: this.status,
+    isActive: this.isActive !== false,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

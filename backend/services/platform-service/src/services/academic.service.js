@@ -1,3 +1,4 @@
+import { requireBirthDate } from '../utils/birthDate.js';
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { AppError } from '../../../shared/AppError.js';
@@ -66,6 +67,12 @@ function parseDate(value, label) {
 function parseOptionalDate(value, label) {
   if (value === undefined || value === null || value === '') return null;
   return parseDate(value, label);
+}
+
+function assertLeavingAfterJoining(joiningDate, leavingDate) {
+  if (joiningDate && leavingDate && new Date(leavingDate) < new Date(joiningDate)) {
+    throw new AppError('Leaving date cannot be before the joining date', 400);
+  }
 }
 
 function optionalEnum(value, options, label) {
@@ -239,6 +246,10 @@ function sanitizeTeacherPayload(payload = {}, existing = null) {
       payload.joiningDate !== undefined
         ? parseOptionalDate(payload.joiningDate, 'Joining date')
         : existing?.joiningDate || null,
+    leavingDate:
+      payload.leavingDate !== undefined
+        ? parseOptionalDate(payload.leavingDate, 'Leaving date')
+        : existing?.leavingDate || null,
     employmentType:
       payload.employmentType !== undefined
         ? optionalEnum(payload.employmentType, EMPLOYMENT_TYPES, 'Employment type')
@@ -1077,7 +1088,9 @@ export class AcademicService {
       if (!teacherPayload.gender) throw new AppError('Gender is required', 400);
       if (!teacherPayload.mobileNumber) throw new AppError('Mobile number is required', 400);
       if (!teacherPayload.employeeId) throw new AppError('Employee ID is required', 400);
+      teacherPayload.dateOfBirth = requireBirthDate(teacherPayload.dateOfBirth);
       if (!teacherPayload.joiningDate) throw new AppError('Joining date is required', 400);
+      assertLeavingAfterJoining(teacherPayload.joiningDate, teacherPayload.leavingDate);
       if (!teacherPayload.qualifications.length) throw new AppError('Qualification is required', 400);
       await validateTeacherContact(schoolId, teacherPayload, { ...payload, mobileNumber: teacherPayload.mobileNumber });
       teacherPayload.documents = mergeDocumentUploads(payload.documentsKeep, null, files);
@@ -1104,6 +1117,7 @@ export class AcademicService {
   async updateTeacher(schoolId, id, payload, files = {}) {
     const existing = await assertTeacher(schoolId, id);
     const update = sanitizeTeacherPayload(payload, existing);
+    assertLeavingAfterJoining(update.joiningDate, update.leavingDate);
     await validateTeacherContact(schoolId, update, payload, existing._id);
     const photo = files.photo || null;
     const shouldRemovePhoto = isTruthyFlag(payload.removePhoto);

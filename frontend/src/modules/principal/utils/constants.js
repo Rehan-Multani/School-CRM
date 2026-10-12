@@ -15,8 +15,15 @@ import {
   Bell,
   Settings,
   Shield,
-  History
+  History,
+  IdCard,
+  Award as CertificateIcon,
+  DoorOpen,
+  Database
 } from 'lucide-react';
+
+// Shown only while the School Admin has allowed it (the Sidebar adds it after checking).
+export const BACKUP_NAV_ITEM = { name: 'Database Backup', path: '/principal/backup', icon: Database, category: 'System' };
 
 export const NAVIGATION_ITEMS = [
   // MAIN
@@ -24,6 +31,9 @@ export const NAVIGATION_ITEMS = [
   
   // PEOPLE
   { name: 'Student Management', path: '/principal/students', icon: Users, category: 'People' },
+  { name: 'Student ID Cards', path: '/principal/id-cards', icon: IdCard, category: 'People' },
+  { name: 'Certificates', path: '/principal/certificates', icon: CertificateIcon, category: 'People' },
+  { name: 'Visitors', path: '/principal/visitors', icon: DoorOpen, category: 'People' },
   { name: 'Teacher Management', path: '/principal/teachers', icon: UserCheck, category: 'People' },
   { name: 'Staff Management', path: '/principal/staff', icon: Briefcase, category: 'People' },
   

@@ -29,11 +29,20 @@ import { Settings } from '../pages/settings/Settings';
 import { SafePickup } from '../pages/safe-pickup/SafePickup';
 import { SafePickupHistory } from '../pages/safe-pickup/SafePickupHistory';
 
+import { StudentIdCardsPage } from '../pages/id-cards/StudentIdCardsPage';
+import { CertificatesPage } from '../pages/certificates/CertificatesPage';
+import { VisitorsPage } from '../pages/visitors/VisitorsPage';
+import { PrincipalBackup } from '../pages/backup/PrincipalBackup';
+
 export const PrincipalRoutes = () => {
   return (
     <Routes>
       <Route path="dashboard" element={<Dashboard />} />
       <Route path="students" element={<StudentManagement />} />
+      <Route path="id-cards" element={<StudentIdCardsPage />} />
+      <Route path="certificates" element={<CertificatesPage />} />
+      <Route path="visitors" element={<VisitorsPage />} />
+      <Route path="backup" element={<PrincipalBackup />} />
       <Route path="students/:studentId" element={<StudentDetail />} />
       <Route path="teachers" element={<TeacherManagement />} />
       <Route path="teachers/:teacherId" element={<TeacherDetail />} />

@@ -87,6 +87,32 @@ function deriveInvoiceStatus(inv, now = new Date()) {
   return 'Pending';
 }
 
+/**
+ * DB-level twin of deriveInvoiceStatus(): the conditions an invoice must meet to
+ * show as `status` (Paid / Partially Paid / Pending / Overdue / Cancelled).
+ * Applying it in the query keeps pagination and totals correct — filtering the
+ * page that came back instead made "Overdue" show a half-empty page 1.
+ */
+function derivedStatusMatch(status, now = new Date()) {
+  const key = String(status || '').trim().toLowerCase();
+  const notYetDue = { $or: [{ dueDate: null }, { dueDate: { $gte: now } }] };
+  const unpaid = { status: { $nin: ['PAID', 'CANCELLED'] } };
+  switch (key) {
+    case 'paid':
+      return { status: 'PAID' };
+    case 'cancelled':
+      return { status: 'CANCELLED' };
+    case 'overdue':
+      return { $and: [unpaid, { dueDate: { $lt: now } }] };
+    case 'partially paid':
+      return { $and: [{ status: 'PARTIALLY_PAID' }, notYetDue] };
+    case 'pending':
+      return { $and: [unpaid, { status: { $ne: 'PARTIALLY_PAID' } }, notYetDue] };
+    default:
+      return null;
+  }
+}
+
 function shapeInvoiceRow(row) {
   const student = row.student || {};
   const fullName = [student.firstName, student.lastName].filter(Boolean).join(' ').trim();
@@ -221,6 +247,8 @@ export class AccountantService {
     if (query.academicYearId) match.academicYearId = toObjectId(query.academicYearId);
     if (query.studentId) match.studentId = toObjectId(query.studentId);
     if (query.rawStatus) match.status = query.rawStatus;
+    const derived = derivedStatusMatch(query.status);
+    if (derived) match.$and = [...(match.$and || []), derived];
 
     const postMatch = {};
     if (query.classId) postMatch['enrollment.classId'] = toObjectId(query.classId);
@@ -253,9 +281,7 @@ export class AccountantService {
     const total = result?.total?.[0]?.count || 0;
 
     // client-side "derived status" filter (Paid / Partially Paid / Pending / Overdue)
-    const filtered = query.status
-      ? rows.filter((r) => r.status.toLowerCase() === String(query.status).toLowerCase())
-      : rows;
+    const filtered = rows; // status is already applied in the query
 
     return {
       data: filtered,
@@ -280,6 +306,18 @@ export class AccountantService {
     if (query.academicYearId) match.academicYearId = toObjectId(query.academicYearId);
     if (query.studentId) match.studentId = toObjectId(query.studentId);
     if (query.dueBefore) match.dueDate = { $lte: new Date(query.dueBefore) };
+    // Due-date window (dueFrom / dueTo) and "owes at least" amount.
+    if (query.dueFrom || query.dueTo) {
+      match.dueDate = { ...(match.dueDate || {}) };
+      if (query.dueFrom) match.dueDate.$gte = new Date(query.dueFrom);
+      if (query.dueTo) match.dueDate.$lte = endOfDay(query.dueTo);
+    }
+    const minPending = Number(query.minPending);
+    if (query.minPending !== undefined && query.minPending !== '' && Number.isFinite(minPending) && minPending > 0) {
+      match.balanceAmount = { $gt: 0, $gte: minPending };
+    }
+    const statusMatch = derivedStatusMatch(query.status);
+    if (statusMatch) match.$and = [...(match.$and || []), statusMatch];
 
     const postMatch = {};
     if (query.classId) postMatch['enrollment.classId'] = toObjectId(query.classId);
@@ -328,9 +366,7 @@ export class AccountantService {
     const total = result?.total?.[0]?.count || 0;
     const totals = result?.totals?.[0] || { totalFee: 0, totalPaid: 0, totalPending: 0 };
 
-    const filtered = query.status
-      ? rows.filter((r) => r.status.toLowerCase() === String(query.status).toLowerCase())
-      : rows;
+    const filtered = rows; // status is already applied in the query
 
     return {
       data: filtered,

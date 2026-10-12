@@ -12,6 +12,7 @@ import { fmtHM, withPrefix } from '../../../lib/format';
 import { Card } from '../../../components/ui';
 import { Badge, ErrorView, SectionTitle, StaleNotice, StatCard } from '../../../components/kit';
 import SchoolHeader from '../../../components/SchoolHeader';
+import SchoolBanners from '../../../components/SchoolBanners';
 import RefreshableScroll from '../../../components/RefreshableScroll';
 import { alpha, font, radius, spacing } from '../../../theme';
 import { SkeletonHome } from '../../../components/Skeleton';
@@ -78,6 +79,7 @@ export default function TeacherHome() {
             </View>
           ) : null}
         </SchoolHeader>
+        <SchoolBanners />
 
         <View style={styles.body}>
           {/* Quick CTA Action Pills */}

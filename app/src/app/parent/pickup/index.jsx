@@ -7,6 +7,7 @@ import { useStyles, useTheme } from '../../../context/ThemeContext';
 import { fmtDateTime } from '../../../lib/format';
 import { useActivePickup } from '../../../lib/useActivePickup';
 import PickupOtpCard from '../../../components/parent/PickupOtpCard';
+import PickupQrCard from '../../../components/parent/PickupQrCard';
 import { Badge, EmptyState } from '../../../components/kit';
 import PagedList from '../../../components/PagedList';
 import { isActivePickup, pickupStatus } from '../../../components/parent/pickupStatus';
@@ -36,6 +37,7 @@ export default function PickupHistory() {
       contentContainerStyle={{ paddingTop: spacing.lg }}
       ListHeaderComponent={
         <>
+          {api.pickupQr ? <PickupQrCard key={scopeKey} fetchQr={() => api.pickupQr()} childName={child?.name} /> : null}
           {active?.otp ? <PickupOtpCard session={active} childName={child?.name} /> : null}
           {active?.otp ? null : (
             <View style={[styles.info, { backgroundColor: alpha(theme.primary, theme.isDark ? 0.18 : 0.08), borderColor: alpha(theme.primary, 0.25) }]}>

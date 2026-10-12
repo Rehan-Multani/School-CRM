@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
-import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { useToast } from '../../components/ui/Toast';
 import { academicPortalApi, examPortalApi } from '../../../../shared/api/client';
 import { apiMessage } from '../academics/utils';
@@ -29,25 +28,19 @@ import {
   Search,
   Send,
   Sparkles,
-  Trash2,
+  Power,
 } from 'lucide-react';
 import { SkeletonTable } from '../../components/ui/SkeletonLoader';
+import { ExamTypesManager, useExamTypes } from '../../../../shared/exams/ExamTypesManager';
 
 const inputClass =
   'h-10 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:border-slate-800 dark:bg-slate-950 dark:text-white';
 
-const EXAM_TYPES = [
-  { value: 'UNIT_TEST', label: 'Unit Test' },
-  { value: 'MONTHLY_TEST', label: 'Monthly Test' },
-  { value: 'QUARTERLY', label: 'Quarterly Examination' },
-  { value: 'HALF_YEARLY', label: 'Half Yearly Examination' },
-  { value: 'ANNUAL', label: 'Annual / Final Examination' },
-  { value: 'PRE_BOARD', label: 'Pre-Board Examination' },
-];
-
 export const ExamManagement = () => {
   const navigate = useNavigate();
   const { showToast, ToastComponent } = useToast();
+  const { types: examTypes, reload: reloadExamTypes } = useExamTypes(examPortalApi);
+  const [typesModalOpen, setTypesModalOpen] = useState(false);
 
   // Stats & Data
   const [stats, setStats] = useState({
@@ -72,7 +65,6 @@ export const ExamManagement = () => {
   // Modals
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -86,6 +78,14 @@ export const ExamManagement = () => {
     status: 'DRAFT',
     description: '',
   });
+
+  // Keep the form on a type that still exists and is active (types are editable).
+  useEffect(() => {
+    const active = examTypes.filter((t) => t.isActive);
+    if (active.length && !active.some((t) => t.value === formData.examType)) {
+      setFormData((prev) => ({ ...prev, examType: active.find((t) => t.value === 'HALF_YEARLY')?.value || active[0].value }));
+    }
+  }, [examTypes, formData.examType]);
 
   // Load Years & Stats
   const loadReferenceData = useCallback(async () => {
@@ -239,16 +239,14 @@ export const ExamManagement = () => {
     }
   };
 
-  const handleDeleteExam = async () => {
-    if (!deleteTarget) return;
+  const handleToggleExam = async (exam) => {
+    const next = exam.isActive === false;
     try {
-      const res = await examPortalApi.deleteExam(deleteTarget.id);
-      showToast(res.message || 'Exam term removed', 'success');
-      setDeleteTarget(null);
+      await examPortalApi.updateExam(exam.id, { isActive: next });
+      showToast(`Exam ${next ? 'activated' : 'deactivated'}`, 'success');
       loadExams();
-      examPortalApi.stats().then((r) => setStats(r.data || {})).catch(() => {});
     } catch (err) {
-      showToast(apiMessage(err, 'Failed to delete exam'), 'error');
+      showToast(apiMessage(err, 'Failed to update exam'), 'error');
     }
   };
 
@@ -258,6 +256,15 @@ export const ExamManagement = () => {
         title="Examinations & Terms"
         subtitle="Manage examination terms, timetables, grading, marks entry, and report cards."
         actions={
+          <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setTypesModalOpen(true)}
+            className="inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-all cursor-pointer dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+          >
+            <Layers className="h-3.5 w-3.5 shrink-0" />
+            <span className="whitespace-nowrap">Exam Types</span>
+          </button>
           <button
             type="button"
             onClick={handleOpenCreateModal}
@@ -266,6 +273,7 @@ export const ExamManagement = () => {
             <Plus className="h-3.5 w-3.5 shrink-0" />
             <span className="whitespace-nowrap">Create Exam</span>
           </button>
+          </div>
         }
       />
 
@@ -370,7 +378,7 @@ export const ExamManagement = () => {
               className="h-9 rounded-xl border border-slate-200 bg-slate-50/80 px-2.5 text-xs font-bold text-slate-800 outline-none focus:border-primary focus:bg-white dark:border-slate-800 dark:bg-slate-950 dark:text-white cursor-pointer"
             >
               <option value="ALL">All Exam Types</option>
-              {EXAM_TYPES.map((t) => (
+              {examTypes.map((t) => (
                 <option key={t.value} value={t.value}>
                   {t.label}
                 </option>
@@ -504,6 +512,11 @@ export const ExamManagement = () => {
                     >
                       {item.status}
                     </Badge>
+                    {item.isActive === false && (
+                      <span className="ml-1.5 inline-flex rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                        INACTIVE
+                      </span>
+                    )}
                   </td>
 
                   <td className="px-5 py-4 text-right" onClick={(e) => e.stopPropagation()}>
@@ -519,11 +532,15 @@ export const ExamManagement = () => {
 
                       <button
                         type="button"
-                        onClick={() => setDeleteTarget(item)}
-                        className="rounded-xl p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/50"
-                        title="Delete Exam"
+                        onClick={() => handleToggleExam(item)}
+                        className={`rounded-xl p-1.5 ${
+                          item.isActive === false
+                            ? 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/50'
+                        }`}
+                        title={item.isActive === false ? 'Activate Exam' : 'Deactivate Exam'}
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Power className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </td>
@@ -574,7 +591,7 @@ export const ExamManagement = () => {
                 required
                 className={inputClass}
               >
-                {EXAM_TYPES.map((t) => (
+                {examTypes.filter((t) => t.isActive).map((t) => (
                   <option key={t.value} value={t.value}>
                     {t.label}
                   </option>
@@ -720,17 +737,14 @@ export const ExamManagement = () => {
         </form>
       </Modal>
 
-      {/* CONFIRM DELETE EXAM */}
-      <ConfirmDialog
-        isOpen={Boolean(deleteTarget)}
-        title="Delete Examination Term"
-        message={`Are you sure you want to delete "${deleteTarget?.name}"? All associated subjects, timetable schedules, marks, and calculated results will be permanently removed.`}
-        confirmLabel="Delete Exam"
-        onConfirm={handleDeleteExam}
-        onCancel={() => setDeleteTarget(null)}
-        variant="danger"
-      />
-
+      {typesModalOpen && (
+        <ExamTypesManager
+          api={examPortalApi}
+          showToast={showToast}
+          onClose={() => setTypesModalOpen(false)}
+          onChanged={reloadExamTypes}
+        />
+      )}
       <ToastComponent />
     </div>
   );

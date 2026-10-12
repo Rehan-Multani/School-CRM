@@ -136,6 +136,13 @@ export const schoolThemeApi = {
 export const platformAuthApi = {
   login: (email, password) =>
     apiClient.post('/platform/auth/login', { email, password }).then((res) => res.data),
+  // Passwordless option: requestOtp(email) -> { challengeId }, then verifyOtp.
+  requestOtp: (email) =>
+    apiClient.post('/platform/auth/login/request-otp', { email }).then((res) => res.data),
+  verifyOtp: (challengeId, otp) =>
+    apiClient.post('/platform/auth/login/verify-otp', { challengeId, otp }).then((res) => res.data),
+  resendOtp: (challengeId) =>
+    apiClient.post('/platform/auth/login/resend-otp', { challengeId }).then((res) => res.data),
   me: () => apiClient.get('/platform/auth/me').then((res) => res.data),
   // Revokes this account's refresh tokens server-side. Clearing localStorage
   // alone leaves a stolen refresh token valid for its full 30-day lifetime.
@@ -398,6 +405,13 @@ export const platformAppConfigApi = {
   forceLogoutHistory: () => apiClient.get('/platform/app-config/force-logout').then((res) => res.data),
 };
 
+export const platformBoardApi = {
+  list: (params) => apiClient.get('/platform/boards', { params }).then((res) => res.data),
+  create: (payload) => apiClient.post('/platform/boards', payload).then((res) => res.data),
+  update: (id, payload) => apiClient.put(`/platform/boards/${id}`, payload).then((res) => res.data),
+  setActive: (id, isActive) => apiClient.patch(`/platform/boards/${id}/status`, { isActive }).then((res) => res.data),
+};
+
 export const platformSchoolApi = {
   list: (params) => apiClient.get('/platform/schools', { params }).then((res) => res.data),
   create: (payload) => apiClient.post('/platform/schools', payload).then((res) => res.data),
@@ -408,7 +422,9 @@ export const platformSchoolApi = {
     apiClient.post(`/platform/schools/${id}/reset-login`, payload).then((res) => res.data),
   changePassword: (id, password) =>
     apiClient.post(`/platform/schools/${id}/change-password`, { password }).then((res) => res.data),
-  remove: (id) => apiClient.delete(`/platform/schools/${id}`).then((res) => res.data),
+  // Super Admin must confirm with their own password (verified server-side).
+  remove: (id, password) =>
+    apiClient.delete(`/platform/schools/${id}`, { data: { password } }).then((res) => res.data),
   loginAs: (id) => apiClient.post(`/platform/schools/${id}/login-as`).then((res) => res.data),
   getFeatures: (id) => apiClient.get(`/platform/schools/${id}/features`).then((res) => res.data),
   // Plan usage vs. limits: { students:{used,limit}, teachers:{…}, staff:{…} }
@@ -1421,4 +1437,30 @@ export const teacherPickupApi = {
     pickupDemoClient
       .post(`/platform/school-portal/teacher/pickups/${id}/complete`, payload)
       .then((r) => r.data),
+};
+
+// ---- Database backup (Super Admin: whole database) ----
+export const platformBackupApi = {
+  summary: () => apiClient.get('/platform/superadmin/backup/summary').then((r) => r.data),
+  download: async () => {
+    try {
+      const res = await apiClient.get('/platform/superadmin/backup/download', {
+        responseType: 'blob',
+        timeout: 0,
+      });
+      const disposition = res.headers?.['content-disposition'] || '';
+      const filename = /filename="?([^";]+)"?/i.exec(disposition)?.[1] || 'full-backup.json';
+      return { blob: res.data, filename };
+    } catch (err) {
+      const blob = err.response?.data;
+      if (blob instanceof Blob) {
+        try {
+          err.response.data = JSON.parse(await blob.text());
+        } catch {
+          /* keep original */
+        }
+      }
+      throw err;
+    }
+  },
 };

@@ -592,9 +592,11 @@ export const EmployeeFormModal = ({
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-bold text-slate-500">Date of Birth</label>
+                <label className="mb-1 block text-[11px] font-bold text-slate-500">Date of Birth *</label>
                 <input
                   type="date"
+                  required
+                  max={new Date().toISOString().split('T')[0]}
                   className={inputClass}
                   value={form.dateOfBirth}
                   onChange={(e) => updateField('dateOfBirth', e.target.value)}
