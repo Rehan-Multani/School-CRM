@@ -15,8 +15,10 @@ import { assetUrl } from '../api/client';
  * saved per school.
  */
 
+// Vertical (portrait) is 54 x 86 mm, horizontal (landscape) is the same card turned: 86 x 54 mm.
 const CARD_W = 54;
 const CARD_H = 86;
+const cardSize = (d) => (d?.orientation === 'horizontal' ? { W: CARD_H, H: CARD_W } : { W: CARD_W, H: CARD_H });
 
 const FIELD_OPTIONS = [
   { key: 'rollNo', label: 'Roll no' },
@@ -30,6 +32,7 @@ const FIELD_OPTIONS = [
 
 const BASE_DESIGN = {
   template: 'classic',
+  orientation: 'vertical',
   primaryColor: '#1e3a8a',
   secondaryColor: '',
   accentColor: '#c9a227',
@@ -188,7 +191,7 @@ const ICON_PATHS = {
   pin: <path d="M12 21s6-6.2 6-11a6 6 0 0 0-12 0c0 4.8 6 11 6 11z" fill="#fff" />,
 };
 
-function Row({ icon, label, value, color, textColor, height, showIcons }) {
+function Row({ icon, label, value, color, textColor, height, showIcons, labelWidth = 11.5 }) {
   if (!value) return null;
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '1.2mm', height: `${height}mm` }}>
@@ -200,7 +203,7 @@ function Row({ icon, label, value, color, textColor, height, showIcons }) {
           {ICON_PATHS[icon]}
         </svg>
       ) : null}
-      <span style={{ width: '11.5mm', flexShrink: 0, fontWeight: 700, color: textColor, whiteSpace: 'nowrap' }}>{label}</span>
+      <span style={{ width: `${labelWidth}mm`, flexShrink: 0, fontWeight: 700, color: textColor, whiteSpace: 'nowrap' }}>{label}</span>
       <span style={{ fontWeight: 400, color: textColor, flexShrink: 0 }}>:</span>
       <span style={{ fontWeight: 600, color: textColor, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
         {value}
@@ -224,8 +227,8 @@ function backgroundFor(d) {
   return layers.join(', ');
 }
 
-function HeaderShape({ d, headerH, dark, gradientEnd }) {
-  const W = CARD_W;
+function HeaderShape({ d, headerH, dark, gradientEnd, amp = 1 }) {
+  const { W } = cardSize(d);
   const base = headerH - 6;
   const fill = d.headerGradient ? 'url(#idcard-hdr)' : d.primaryColor;
   let accentPath;
@@ -234,8 +237,8 @@ function HeaderShape({ d, headerH, dark, gradientEnd }) {
     accentPath = `M0 0H${W}V${base - 0.5}Q${W / 2} ${headerH + 6} 0 ${base - 0.5}Z`;
     mainPath = `M0 0H${W}V${base - 2.2}Q${W / 2} ${headerH + 3.6} 0 ${base - 2.2}Z`;
   } else if (d.headerStyle === 'wave') {
-    accentPath = `M0 0H${W}V${base + 0.5}C${W * 0.8} ${base + 7} ${W * 0.62} ${base - 4} ${W / 2} ${base + 1.5}S${W * 0.2} ${base + 7} 0 ${base + 0.5}Z`;
-    mainPath = `M0 0H${W}V${base - 1.3}C${W * 0.8} ${base + 5.2} ${W * 0.62} ${base - 5.8} ${W / 2} ${base - 0.3}S${W * 0.2} ${base + 5.2} 0 ${base - 1.3}Z`;
+    accentPath = `M0 0H${W}V${base + 0.5}C${W * 0.8} ${base + 7 * amp} ${W * 0.62} ${base - 4 * amp} ${W / 2} ${base + 1.5}S${W * 0.2} ${base + 7 * amp} 0 ${base + 0.5}Z`;
+    mainPath = `M0 0H${W}V${base - 1.3}C${W * 0.8} ${base + 5.2 * amp} ${W * 0.62} ${base - 5.8 * amp} ${W / 2} ${base - 0.3}S${W * 0.2} ${base + 5.2 * amp} 0 ${base - 1.3}Z`;
   } else if (d.headerStyle === 'slant') {
     accentPath = `M0 0H${W}V${base - 4}L0 ${base + 6.5}Z`;
     mainPath = `M0 0H${W}V${base - 5.8}L0 ${base + 4.7}Z`;
@@ -289,10 +292,11 @@ function LogoMark({ logo, school, d, size, withRing }) {
 }
 
 function cardShell(d) {
+  const { W, H } = cardSize(d);
   return {
     position: 'relative',
-    width: `${CARD_W}mm`,
-    height: `${CARD_H}mm`,
+    width: `${W}mm`,
+    height: `${H}mm`,
     boxSizing: 'border-box',
     border: d.showBorder ? `0.4mm solid ${d.borderColor}` : 'none',
     borderRadius: `${RADIUS[d.cornerRadius] || 3.2}mm`,
@@ -389,8 +393,255 @@ function footerBar({ d, school, student }) {
   );
 }
 
+function buildRows(student, d) {
+  return [
+    { icon: 'idcard', label: 'Adm. No', value: student.admissionNumber },
+    d.fields.rollNo && { icon: 'list', label: 'Roll No', value: student.rollNumber },
+    d.fields.phone && { icon: 'phone', label: 'Phone', value: student.parentPhone },
+    d.fields.gender && { icon: 'user', label: 'Gender', value: prettyGender(student.gender) },
+    d.fields.dob && { icon: 'cake', label: 'DOB', value: formatDate(student.dateOfBirth) },
+    d.fields.parent && { icon: 'user', label: 'Parent', value: truncate(student.parentName, 22) },
+    d.fields.house && { icon: 'home', label: 'House', value: student.house },
+    d.fields.address && { icon: 'pin', label: 'Address', value: truncate(student.address, 26) },
+  ].filter((row) => row && row.value);
+}
+
+// Landscape card (86 x 54 mm): school header on top, photo on the left,
+// name / class / details on the right, title ribbon + footer at the bottom.
+function IdCardHorizontal({ student, school, design }) {
+  const d = design;
+  const { W, H } = cardSize(d);
+  const logo = school?.logo ? absoluteSrc(assetUrl(school.logo)) : '';
+  const photo = student.photo ? absoluteSrc(assetUrl(student.photo)) : '';
+  const className = (student.className || '').replace(/^class\s+/i, '').trim();
+  const classLine = [className, student.sectionName].filter(Boolean).join(' - ');
+  const dark = d.footerBg || shade(d.primaryColor, 0.45);
+  const gradientEnd = d.secondaryColor || shade(d.primaryColor, 0.45);
+  const wave = d.headerStyle === 'wave';
+  const headerH = wave ? 23 : 19;
+  const rows = buildRows(student, d);
+
+  const ribbonTop = H - 6 - 3.6;
+  const contentTop = wave ? 21.4 : 19.4;
+  const bottomLimit = (d.cardTitle ? ribbonTop - 0.6 : H - 6.5) - (d.signature ? 4.4 : 0);
+  const hasClass = d.classStyle !== 'hidden' && Boolean(classLine);
+
+  const photoSize = Math.max(14, Math.min(PHOTO_MM[d.photoSize] || 20, bottomLimit - contentTop));
+  const photoW = d.photoShape === 'circle' ? photoSize : photoSize * 0.85;
+  const photoRadius = d.photoShape === 'circle' ? '50%' : d.photoShape === 'rounded' ? '2.2mm' : '0.6mm';
+  const nameMm = NAME_MM[d.nameSize] || 3.6;
+  const displayName = d.nameCase === 'upper' ? (student.name || '').toUpperCase() : titleCase(student.name || '');
+
+  const colLeft = 4.5 + photoW + 4;
+  const colWidth = W - 4 - colLeft;
+  const rowsTop = contentTop + 4.6 + (hasClass ? 6.4 : 1);
+  const avail = bottomLimit - rowsTop;
+  const twoCols = rows.length > 1 && avail / rows.length < 3;
+  const perCol = twoCols ? Math.ceil(rows.length / 2) : rows.length;
+  const rowH = Math.max(2.4, Math.min(3.8, avail / Math.max(perCol, 1)));
+  const rowFont = Math.min(2.4, rowH * 0.62);
+
+  const classStyle = {
+    display: 'inline-block',
+    marginTop: '0.8mm',
+    padding: '0.5mm 3.2mm',
+    borderRadius: '2.4mm',
+    fontWeight: 800,
+    fontSize: '2.2mm',
+    letterSpacing: '0.1mm',
+    whiteSpace: 'nowrap',
+    textTransform: 'uppercase',
+    ...(d.classStyle === 'pill'
+      ? { background: d.primaryColor, border: `0.4mm solid ${d.accentColor}`, color: '#fff' }
+      : d.classStyle === 'outline'
+        ? { background: 'transparent', border: `0.4mm solid ${d.primaryColor}`, color: d.primaryColor }
+        : { background: 'transparent', border: 'none', color: d.primaryColor, padding: '0.5mm 0' }),
+  };
+
+  const renderRow = (row) => (
+    <Row
+      key={row.label}
+      {...row}
+      color={d.primaryColor}
+      textColor={d.textColor}
+      height={rowH}
+      showIcons={d.showIcons && !twoCols}
+      labelWidth={twoCols ? 8.2 : 11.5}
+    />
+  );
+
+  return (
+    <div style={cardShell(d)}>
+      <HeaderShape d={d} headerH={headerH} dark={dark} gradientEnd={gradientEnd} amp={wave ? 0.45 : 1} />
+
+      {d.lanyardSlot && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '1.2mm',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '10mm',
+            height: '2.2mm',
+            borderRadius: '1.1mm',
+            background: '#f1f5f9',
+            border: '0.3mm solid #cbd5e1',
+          }}
+        />
+      )}
+
+      {headerBlock({ d: { ...d, logoPosition: d.logoPosition === 'none' ? 'none' : 'header' }, school, logo })}
+
+      {/* Photo */}
+      <div style={{ position: 'absolute', top: `${contentTop + (bottomLimit - contentTop - photoSize) / 2}mm`, left: '4.5mm' }}>
+        <div
+          style={{
+            width: `${photoW}mm`,
+            height: `${photoSize}mm`,
+            borderRadius: photoRadius,
+            border: `0.7mm solid ${d.primaryColor}`,
+            boxShadow: d.photoRing ? `0 0 0 0.6mm ${d.accentColor}` : 'none',
+            overflow: 'hidden',
+            background: '#e2e8f0',
+            boxSizing: 'border-box',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {photo ? (
+            <img src={photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <span style={{ fontWeight: 800, fontSize: `${photoSize * 0.3}mm`, color: '#475569' }}>{initials(student.name)}</span>
+          )}
+        </div>
+      </div>
+
+      {/* Name + class */}
+      <div style={{ position: 'absolute', top: `${contentTop}mm`, left: `${colLeft}mm`, width: `${colWidth}mm` }}>
+        <div
+          style={{
+            fontWeight: 800,
+            fontSize: `${nameMm}mm`,
+            lineHeight: 1.1,
+            color: d.textColor,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {displayName}
+        </div>
+        {hasClass ? <div style={classStyle}>Class {classLine}</div> : null}
+      </div>
+
+      {/* Details */}
+      <div
+        style={{
+          position: 'absolute',
+          top: `${rowsTop}mm`,
+          left: `${colLeft}mm`,
+          width: `${colWidth}mm`,
+          fontSize: `${rowFont}mm`,
+          display: twoCols ? 'grid' : 'block',
+          gridTemplateColumns: twoCols ? '1fr 1fr' : undefined,
+          gridAutoFlow: twoCols ? 'column' : undefined,
+          gridTemplateRows: twoCols ? `repeat(${perCol}, ${rowH}mm)` : undefined,
+          columnGap: twoCols ? '2mm' : undefined,
+        }}
+      >
+        {rows.map(renderRow)}
+      </div>
+
+      {d.signature && (
+        <div style={{ position: 'absolute', right: '4mm', top: `${ribbonTop - 4.2}mm`, width: '17mm', textAlign: 'center' }}>
+          <div style={{ borderTop: `0.25mm solid ${d.textColor}`, marginTop: '2.2mm', paddingTop: '0.4mm', fontSize: '1.7mm', color: d.textColor, fontWeight: 600 }}>
+            {d.signatureLabel || 'Principal'}
+          </div>
+        </div>
+      )}
+
+      {d.cardTitle ? (
+        <div
+          style={{
+            position: 'absolute',
+            top: `${ribbonTop}mm`,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '30mm',
+            height: '3.7mm',
+            background: d.accentColor,
+            clipPath: 'polygon(7% 0, 93% 0, 100% 100%, 0 100%)',
+            color: shade(d.accentColor, 0.65),
+            fontWeight: 800,
+            fontSize: '1.9mm',
+            letterSpacing: '0.15mm',
+            textAlign: 'center',
+            lineHeight: '3.7mm',
+            textTransform: 'uppercase',
+          }}
+        >
+          {d.cardTitle}
+        </div>
+      ) : null}
+      {footerBar({ d, school, student })}
+    </div>
+  );
+}
+
+// Back of the landscape card.
+function IdCardBackHorizontal({ school, design }) {
+  const d = design;
+  const dark = d.footerBg || shade(d.primaryColor, 0.45);
+  const gradientEnd = d.secondaryColor || shade(d.primaryColor, 0.45);
+  const logo = school?.logo ? absoluteSrc(assetUrl(school.logo)) : '';
+  const lines = [
+    school?.address,
+    school?.phone && `Phone: ${school.phone}`,
+    school?.email && `Email: ${school.email}`,
+    school?.website,
+  ].filter(Boolean);
+  return (
+    <div style={cardShell(d)}>
+      <HeaderShape d={d} headerH={11} dark={dark} gradientEnd={gradientEnd} />
+      <div style={{ position: 'absolute', top: '15mm', left: '6mm' }}>
+        <LogoMark logo={logo} school={school} d={d} size={15} withRing />
+      </div>
+      <div style={{ position: 'absolute', top: '14mm', left: '26mm', right: '6mm', color: d.textColor }}>
+        <div style={{ fontWeight: 800, fontSize: '2.8mm', textTransform: 'uppercase', color: d.primaryColor, lineHeight: 1.15 }}>
+          {school?.name}
+        </div>
+        <div style={{ height: '0.4mm', width: '14mm', background: d.accentColor, margin: '1.2mm 0' }} />
+        <div style={{ fontSize: '2mm', lineHeight: 1.35 }}>{d.backText}</div>
+        <div style={{ marginTop: '1.8mm', fontSize: '1.9mm', lineHeight: 1.4, fontWeight: 600 }}>
+          {lines.map((line) => (
+            <div key={line}>{line}</div>
+          ))}
+        </div>
+      </div>
+      <div style={{ position: 'absolute', right: '6mm', bottom: '8.5mm', width: '28mm', textAlign: 'center' }}>
+        <div style={{ borderTop: `0.25mm solid ${d.textColor}`, paddingTop: '0.5mm', fontSize: '1.8mm', color: d.textColor, fontWeight: 600 }}>
+          {d.signatureLabel || 'Authorised Signatory'}
+        </div>
+      </div>
+      <div
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: '6mm',
+          background: dark,
+          borderTop: `0.4mm solid ${d.accentColor}`,
+        }}
+      />
+    </div>
+  );
+}
+
 export function IdCard({ student, school, design }) {
   const d = design;
+  if (d.orientation === 'horizontal') return <IdCardHorizontal student={student} school={school} design={d} />;
   const logo = school?.logo ? absoluteSrc(assetUrl(school.logo)) : '';
   const photo = student.photo ? absoluteSrc(assetUrl(student.photo)) : '';
   // Class names are often saved as "Class 10" already - don't print "Class Class 10".
@@ -401,16 +652,7 @@ export function IdCard({ student, school, design }) {
   const headerH = 26;
   const showBadge = d.logoPosition === 'badge';
 
-  const rows = [
-    { icon: 'idcard', label: 'Adm. No', value: student.admissionNumber },
-    d.fields.rollNo && { icon: 'list', label: 'Roll No', value: student.rollNumber },
-    d.fields.phone && { icon: 'phone', label: 'Phone', value: student.parentPhone },
-    d.fields.gender && { icon: 'user', label: 'Gender', value: prettyGender(student.gender) },
-    d.fields.dob && { icon: 'cake', label: 'DOB', value: formatDate(student.dateOfBirth) },
-    d.fields.parent && { icon: 'user', label: 'Parent', value: truncate(student.parentName, 22) },
-    d.fields.house && { icon: 'home', label: 'House', value: student.house },
-    d.fields.address && { icon: 'pin', label: 'Address', value: truncate(student.address, 26) },
-  ].filter((row) => row && row.value);
+  const rows = buildRows(student, d);
 
   // Vertical layout is computed: a bigger photo / more rows / a signature
   // line shrink the photo first, so the card never overflows.
@@ -564,6 +806,7 @@ export function IdCard({ student, school, design }) {
 // Back of the card: terms text + school contact + signature.
 export function IdCardBack({ school, design }) {
   const d = design;
+  if (d.orientation === 'horizontal') return <IdCardBackHorizontal school={school} design={d} />;
   const dark = d.footerBg || shade(d.primaryColor, 0.45);
   const gradientEnd = d.secondaryColor || shade(d.primaryColor, 0.45);
   const logo = school?.logo ? absoluteSrc(assetUrl(school.logo)) : '';
@@ -632,13 +875,15 @@ function printCards(win, students, school, design) {
       )}
     </>
   );
+  const { W } = cardSize(design);
+  const cols = design.orientation === 'horizontal' ? 2 : 3;
   win.document.open();
   win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Student ID Cards</title>
 <style>
   @page { size: A4; margin: 10mm; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body { margin: 0; background: #fff; }
-  .sheet { display: grid; grid-template-columns: repeat(3, ${CARD_W}mm); gap: 6mm; justify-content: center; }
+  .sheet { display: grid; grid-template-columns: repeat(${cols}, ${W}mm); gap: 6mm; justify-content: center; }
   .sheet.back { break-before: page; page-break-before: always; }
   .slot { break-inside: avoid; page-break-inside: avoid; }
 </style></head><body>${markup}</body></html>`);
@@ -755,6 +1000,34 @@ function DesignEditor({ design, patch, patchField, applyTemplate }) {
 
       {section === 'template' && (
         <div>
+          <label className={labelClass}>Card format</label>
+          <div className="mb-4 flex flex-wrap gap-2">
+            {[
+              ['vertical', 'Vertical (portrait)', '54 × 86 mm'],
+              ['horizontal', 'Horizontal (landscape)', '86 × 54 mm'],
+            ].map(([key, title, size]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => patch({ orientation: key })}
+                className={`flex items-center gap-3 rounded-xl border px-4 py-2 text-left transition ${
+                  (design.orientation || 'vertical') === key
+                    ? 'border-indigo-500 bg-indigo-600 text-white'
+                    : 'border-slate-200 text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
+                }`}
+              >
+                <span
+                  className={`block rounded-sm border-2 ${key === 'vertical' ? 'h-6 w-4' : 'h-4 w-6'} ${
+                    (design.orientation || 'vertical') === key ? 'border-white' : 'border-slate-400'
+                  }`}
+                />
+                <span>
+                  <span className="block text-sm font-bold">{title}</span>
+                  <span className="block text-[11px] opacity-80">{size}</span>
+                </span>
+              </button>
+            ))}
+          </div>
           <label className={labelClass}>Start from a template</label>
           <div className="flex flex-wrap gap-2">
             {Object.entries(TEMPLATES).map(([key, tpl]) => (
@@ -1016,7 +1289,13 @@ export default function StudentIdCards({ api }) {
   };
 
   // Any manual tweak means the card is no longer a pure template.
-  const patchDesign = (patch) => setDesign((prev) => ({ ...prev, template: 'custom', ...patch }));
+  // Switching the card format alone does not make the card "custom".
+  const patchDesign = (patch) =>
+    setDesign((prev) => ({
+      ...prev,
+      ...(Object.keys(patch).every((k) => k === 'orientation') ? {} : { template: 'custom' }),
+      ...patch,
+    }));
   const patchField = (key, value) =>
     setDesign((prev) => ({ ...prev, fields: { ...prev.fields, [key]: value } }));
   const applyTemplate = (key) =>
@@ -1217,7 +1496,10 @@ export default function StudentIdCards({ api }) {
         </div>
       ) : design ? (
         <div className={`transition-opacity ${loading ? 'opacity-60' : ''}`}>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(54mm,1fr))] justify-items-center gap-5">
+          <div
+            className="grid justify-items-center gap-5"
+            style={{ gridTemplateColumns: `repeat(auto-fill, minmax(${design.orientation === 'horizontal' ? 86 : 54}mm, 1fr))` }}
+          >
             {students.map((student) => (
               <div key={student.id} className="relative">
                 <label className="absolute right-1.5 top-1.5 z-10 flex h-6 w-6 cursor-pointer items-center justify-center rounded-md bg-white/90 shadow">

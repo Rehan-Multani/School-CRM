@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { DoorOpen, Plus, Pencil, Trash2, Search, Loader2, X } from 'lucide-react';
+import { SkeletonTableRow } from '../../ui/SkeletonLoader';
 
 /**
  * Visitor log, shared by HR / School Admin / Principal.
@@ -165,11 +166,7 @@ export default function VisitorManager({ api, canEdit = false }) {
           </thead>
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan={canEdit ? 7 : 6} className="px-4 py-10 text-center text-slate-400">
-                  <Loader2 className="mx-auto h-5 w-5 animate-spin" />
-                </td>
-              </tr>
+              Array.from({ length: 6 }).map((_, i) => <SkeletonTableRow key={i} columns={canEdit ? 7 : 6} />)
             ) : rows.length === 0 ? (
               <tr>
                 <td colSpan={canEdit ? 7 : 6} className="px-4 py-10 text-center text-slate-400">
@@ -234,11 +231,11 @@ export default function VisitorManager({ api, canEdit = false }) {
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className={labelClass}>Visitor name *</label>
-                <input className={inputClass} value={editing.name} onChange={set('name')} maxLength={120} autoFocus />
+                <input className={inputClass} value={editing.name} onChange={set('name')} maxLength={120} autoFocus placeholder="e.g. Rahul Sharma" />
               </div>
               <div>
                 <label className={labelClass}>Mobile number *</label>
-                <input className={inputClass} value={editing.mobile} onChange={set('mobile')} maxLength={20} inputMode="tel" />
+                <input className={inputClass} value={editing.mobile} onChange={set('mobile')} maxLength={20} inputMode="tel" placeholder="e.g. 9876543210" />
               </div>
               <div className="sm:col-span-2">
                 <label className={labelClass}>Purpose of visit *</label>
@@ -246,7 +243,7 @@ export default function VisitorManager({ api, canEdit = false }) {
               </div>
               <div>
                 <label className={labelClass}>Person to meet</label>
-                <input className={inputClass} value={editing.personToMeet} onChange={set('personToMeet')} maxLength={120} />
+                <input className={inputClass} value={editing.personToMeet} onChange={set('personToMeet')} maxLength={120} placeholder="e.g. Principal / Class teacher" />
               </div>
               <div>
                 <label className={labelClass}>Visit date &amp; time</label>
@@ -254,7 +251,7 @@ export default function VisitorManager({ api, canEdit = false }) {
               </div>
               <div className="sm:col-span-2">
                 <label className={labelClass}>Remarks</label>
-                <textarea className={`${inputClass} h-20 py-2`} value={editing.remarks} onChange={set('remarks')} maxLength={500} />
+                <textarea className={`${inputClass} h-20 py-2`} value={editing.remarks} onChange={set('remarks')} maxLength={500} placeholder="Any note about the visit (optional)" />
               </div>
             </div>
 

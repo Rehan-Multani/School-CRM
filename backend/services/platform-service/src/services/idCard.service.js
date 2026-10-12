@@ -17,6 +17,7 @@ const COLOR_KEYS = ['primaryColor', 'accentColor', 'textColor', 'headerTextColor
 const OPTIONAL_COLOR_KEYS = ['secondaryColor', 'footerBg'];
 const ENUMS = {
   template: ['classic', 'modern', 'minimal', 'bold', 'custom'],
+  orientation: ['vertical', 'horizontal'],
   headerStyle: ['curved', 'flat', 'wave', 'slant'],
   logoPosition: ['badge', 'header', 'none'],
   logoShape: ['circle', 'square'],
