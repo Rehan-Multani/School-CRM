@@ -2,7 +2,7 @@
   "expo": {
     "name": "School CRM",
     "slug": "school-crm",
-    "version": "1.1.2",
+    "version": "1.1.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -21,7 +21,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "package": "com.schoolcrm.app",
-      "versionCode": 5,
+      "versionCode": 6,
       "permissions": [
         "android.permission.INTERNET",
         "android.permission.ACCESS_NETWORK_STATE",
@@ -67,7 +67,7 @@
         "expo-image-picker",
         {
           "photosPermission": "School CRM needs access to your photos to attach images to homework, assignments and your profile.",
-          "cameraPermission": false,
+          "cameraPermission": "School CRM uses the camera to scan the parent's pickup QR code.",
           "microphonePermission": false
         }
       ],
