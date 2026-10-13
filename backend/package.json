@@ -5,8 +5,8 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon index.js",
-    "start": "node server.js",
+    "dev": "node init && nodemon index.js",
+    "start": "node init && node server.js",
     "supervisor": "node index.js",
     "clean-ports": "node clean-ports.js",
     "seed": "node services/auth-service/src/seedSuperAdmin.js",

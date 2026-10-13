@@ -26,4 +26,4 @@ export default defineConfig([
       'react-hooks/rules-of-hooks': 'error'
     },
   },
-])
+]);
