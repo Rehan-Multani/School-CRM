@@ -4,6 +4,7 @@ import {
   runExpiryCheckJob,
   runPendingPlanChangeJob,
   runGracePeriodJob,
+  runLapsedSubscriptionJob,
   runFailedPaymentRecoveryJob,
   runWebhookRecoveryJob,
   runStaleDetectionJob,
@@ -43,6 +44,8 @@ export function startSubscriptionCronJobs() {
   cron.schedule('*/15 * * * *', () => runExpiryCheckJob());
   cron.schedule('*/15 * * * *', () => runPendingPlanChangeJob());
   cron.schedule('7,22,37,52 * * * *', () => runGracePeriodJob());
+  // Paid period over and Razorpay never renewed it -> close it (and stop Razorpay billing it).
+  cron.schedule('*/15 * * * *', () => runLapsedSubscriptionJob());
   cron.schedule('*/15 * * * *', () => runFailedPaymentRecoveryJob());
   // Every 10 min — webhook recovery should catch up quickly after a transient failure.
   cron.schedule('*/10 * * * *', () => runWebhookRecoveryJob());

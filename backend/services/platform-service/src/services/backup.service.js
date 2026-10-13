@@ -70,7 +70,7 @@ function stripSecrets(value) {
 }
 
 /** Every collection that holds this school's rows, with the filter that selects them. */
-function schoolTargets(schoolId) {
+export function schoolTargets(schoolId) {
   const id = oid(schoolId);
   const idOrString = { $in: [id, String(schoolId)] };
   const targets = [{ name: 'schools', coll: mongoose.model('School').collection, filter: { _id: id } }];

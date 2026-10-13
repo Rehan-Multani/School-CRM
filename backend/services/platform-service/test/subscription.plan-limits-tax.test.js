@@ -37,6 +37,7 @@ function studentPayload(n) {
     sectionId: ctx.a.sectionId,
     admissionNumber: `LIM-${n}`,
     firstName: `Limit${n}`,
+    dateOfBirth: '2012-05-10',
     parentName: 'Parent',
     parentPhone: `98765432${String(n).padStart(2, '0')}`,
   };

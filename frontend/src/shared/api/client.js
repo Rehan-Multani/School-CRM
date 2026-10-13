@@ -286,6 +286,8 @@ function studentRequestConfig(payload) {
 }
 
 export const schoolPortalApi = {
+  planUsage: () => schoolAdminClient.get('/platform/school-portal/plan-usage').then((res) => res.data),
+  dataNotice: () => schoolAdminClient.get('/platform/school-portal/data-notice').then((res) => res.data),
   dashboardSummary: () => schoolAdminClient.get('/platform/school-portal/dashboard/summary').then((res) => res.data),
   reportsSummary: () => schoolAdminClient.get('/platform/school-portal/reports/summary').then((res) => res.data),
   reportData: (category, params) =>
@@ -502,7 +504,10 @@ export const feePortalApi = {
   invoices: (params) => schoolAdminClient.get('/platform/school-portal/fees/invoices', { params }).then((r) => r.data),
   getInvoice: (id) => schoolAdminClient.get(`/platform/school-portal/fees/invoices/${id}`).then((r) => r.data),
   generateInvoice: (payload) => schoolAdminClient.post('/platform/school-portal/fees/invoices/generate', payload).then((r) => r.data),
-  payInvoice: (invoiceId, payload) => schoolAdminClient.post(`/platform/school-portal/fees/invoices/${invoiceId}/pay`, payload).then((r) => r.data),
+  payInvoice: (invoiceId, payload, idempotencyKey) =>
+    schoolAdminClient
+      .post(`/platform/school-portal/fees/invoices/${invoiceId}/pay`, payload, idempotencyKey ? { headers: { 'Idempotency-Key': idempotencyKey } } : undefined)
+      .then((r) => r.data),
   payments: (params) => schoolAdminClient.get('/platform/school-portal/fees/payments', { params }).then((r) => r.data),
   getPayment: (id) => schoolAdminClient.get(`/platform/school-portal/fees/payments/${id}`).then((r) => r.data),
 
@@ -1024,12 +1029,33 @@ const visitorApi = (client) => {
 export const schoolAdminVisitorApi = visitorApi(schoolAdminClient);
 export const principalVisitorApi = visitorApi(principalClient);
 export const hrVisitorApi = visitorApi(hrClient);
+// Student enquiries: the school's public form submissions. School Admin, Principal and HR share one shape.
+const studentEnquiryApi = (client) => {
+  const base = '/platform/school-portal/student-enquiries';
+  return {
+    list: (params) => client.get(base, { params }).then((r) => r.data),
+    update: (id, payload) => client.patch(`${base}/${id}`, payload).then((r) => r.data),
+    remove: (id) => client.delete(`${base}/${id}`).then((r) => r.data),
+    getForm: () => client.get(`${base}/form`).then((r) => r.data),
+    saveForm: (payload) => client.put(`${base}/form`, payload).then((r) => r.data),
+  };
+};
+export const schoolAdminStudentEnquiryApi = studentEnquiryApi(schoolAdminClient);
+export const principalStudentEnquiryApi = studentEnquiryApi(principalClient);
+export const hrStudentEnquiryApi = studentEnquiryApi(hrClient);
+// Public (no login) — the page behind a school's enquiry link.
+export const publicSchoolEnquiryApi = {
+  getForm: (schoolId) => apiClient.get(`/platform/student-enquiry/${encodeURIComponent(schoolId)}`).then((r) => r.data),
+  submit: (schoolId, payload) => apiClient.post(`/platform/student-enquiry/${encodeURIComponent(schoolId)}`, payload).then((r) => r.data),
+};
 
 export const schoolAdminIdCardApi = idCardApi(schoolAdminClient);
 export const principalIdCardApi = idCardApi(principalClient);
 export const hrIdCardApi = idCardApi(hrClient);
 
 export const principalStudentApi = {
+  planUsage: () => principalClient.get('/platform/school-portal/plan-usage').then((res) => res.data),
+  dataNotice: () => principalClient.get('/platform/school-portal/data-notice').then((res) => res.data),
   students: (params) => principalClient.get('/platform/school-portal/students', { params }).then((res) => res.data),
   getStudent: (id) => principalClient.get(`/platform/school-portal/students/${id}`).then((res) => res.data),
   createStudent: (payload) =>
@@ -1344,9 +1370,13 @@ export const accountantApi = {
       .then((r) => r.data),
   generateInvoice: (payload) =>
     accountantClient.post('/platform/school-portal/accountant/fees/invoices/generate', payload).then((r) => r.data),
-  collectPayment: (invoiceId, payload) =>
+  collectPayment: (invoiceId, payload, idempotencyKey) =>
     accountantClient
-      .post(`/platform/school-portal/accountant/fees/invoices/${invoiceId}/pay`, payload)
+      .post(
+        `/platform/school-portal/accountant/fees/invoices/${invoiceId}/pay`,
+        payload,
+        idempotencyKey ? { headers: { 'Idempotency-Key': idempotencyKey } } : undefined,
+      )
       .then((r) => r.data),
   generateSchedule: (payload) =>
     accountantClient.post('/platform/school-portal/accountant/invoices/schedule', payload).then((r) => r.data),

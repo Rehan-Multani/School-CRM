@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { invalidateEntitlementOnWrite } from '../utils/entitlementCache.js';
+import { isLapsed, lapseDeadline } from '../utils/subscriptionLapse.js';
 
 // Razorpay subscription lifecycle states + two local-only states (EXPIRED for
 // grace-period-exhausted, FAILED as a terminal local marker when Razorpay
@@ -100,6 +101,10 @@ schoolSubscriptionSchema.methods.toPublicJSON = function toPublicJSON(extra = {}
     plan: extra.plan || undefined,
     razorpaySubscriptionId: this.razorpaySubscriptionId || '',
     status: this.status,
+    // Razorpay says `active` but the paid period ended and no renewal arrived.
+    lapsed: isLapsed(this),
+    // When access closes if nobody renews (only meaningful while lapsed).
+    lapseDeadline: isLapsed(this) ? lapseDeadline(this) : null,
     currentPeriodStart: this.currentPeriodStart,
     currentPeriodEnd: this.currentPeriodEnd,
     trialStart: this.trialStart,

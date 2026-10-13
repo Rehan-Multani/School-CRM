@@ -15,6 +15,7 @@ import { LeaveRequest } from '../models/LeaveRequest.js';
 import { PerformanceReview } from '../models/PerformanceReview.js';
 import { deleteUploadedFile } from '../utils/upload.utils.js';
 import { pushEvents } from './pushEvents.service.js';
+import { assertCanAdd, assertCanActivate } from './planLimits.service.js';
 
 function normalizeTeacher(teacher) {
   const firstName = teacher.firstName || teacher.name?.split(' ')[0] || '';
@@ -322,6 +323,7 @@ class HRService {
     if (employeeType === 'TEACHER') {
       const existing = await Teacher.findOne({ schoolId, $or: [{ email }, { employeeId }] });
       if (existing) throw new AppError('Teacher with this email or employee ID already exists', 400);
+      if (status === 'ACTIVE') await assertCanAdd(schoolId, 'teachers');
 
       const teacher = await Teacher.create({
         schoolId,
@@ -391,6 +393,7 @@ class HRService {
     } else {
       const existing = await SchoolUser.findOne({ schoolId, $or: [{ email }, { employeeId }] });
       if (existing) throw new AppError('Staff with this email or employee ID already exists', 400);
+      if (status === 'ACTIVE') await assertCanAdd(schoolId, 'staff');
 
       let passwordHash = '';
       if (payload.password) {
@@ -579,6 +582,16 @@ class HRService {
       throw new AppError('Invalid status', 400);
     }
 
+    if (status.toUpperCase() === 'ACTIVE') {
+      // Becoming ACTIVE takes a seat of the plan.
+      const [curStaff, curTeacher] = await Promise.all([
+        SchoolUser.findOne({ schoolId, _id: id }).select('status').lean(),
+        Teacher.findOne({ schoolId, _id: id }).select('status').lean(),
+      ]);
+      if (curStaff) await assertCanActivate(schoolId, 'staff', curStaff.status);
+      else if (curTeacher) await assertCanActivate(schoolId, 'teachers', curTeacher.status);
+    }
+
     const staff = await SchoolUser.findOneAndUpdate(
       { schoolId, _id: id },
       { $set: { status: status.toUpperCase() } },
@@ -599,6 +612,7 @@ class HRService {
   async approveEmployee(schoolId, id, reviewer = {}) {
     const staff = await SchoolUser.findOne({ schoolId, _id: id });
     if (staff) {
+      await assertCanActivate(schoolId, 'staff', staff.status);
       staff.status = 'ACTIVE';
       await staff.save();
 
@@ -617,6 +631,7 @@ class HRService {
 
     const teacher = await Teacher.findOne({ schoolId, _id: id });
     if (teacher) {
+      await assertCanActivate(schoolId, 'teachers', teacher.status);
       teacher.status = 'ACTIVE';
       if (teacher.account) {
         teacher.account.accountStatus = 'ACTIVE';

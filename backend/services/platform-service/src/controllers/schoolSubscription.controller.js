@@ -173,7 +173,10 @@ export async function changeMySubscriptionPlan(req, res, next) {
     const mySchoolId = schoolAdminSchoolId(req);
     const mine = await schoolSubscriptionService.getForSchool(mySchoolId);
     if (!mine) throw new AppError('No subscription found for this school', 404);
-    const data = await schoolSubscriptionService.changePlan(mine.id, { newPlanId: req.body?.planId }, actorFrom(req, 'school_admin'));
+    // A School Admin's change always takes effect at the next renewal (when the new
+    // price is charged). An immediate switch would hand out the bigger plan's seats
+    // and features before any payment: that is Super Admin only.
+    const data = await schoolSubscriptionService.changePlan(mine.id, { newPlanId: req.body?.planId, schedule: 'cycle_end' }, actorFrom(req, 'school_admin'));
     res.json({ success: true, data, message: 'Plan change processed' });
   } catch (error) {
     next(error);
@@ -196,9 +199,7 @@ export async function cancelMySubscription(req, res, next) {
 export async function listMySubscriptionPayments(req, res, next) {
   try {
     const mySchoolId = schoolAdminSchoolId(req);
-    const mine = await schoolSubscriptionService.getForSchool(mySchoolId);
-    if (!mine) return res.json({ success: true, data: [], pagination: { page: 1, limit: 25, total: 0, totalPages: 1 } });
-    const result = await schoolSubscriptionService.listPayments(mine.id, req.query);
+    const result = await schoolSubscriptionService.listPaymentsForSchool(mySchoolId, req.query);
     res.json({ success: true, ...result });
   } catch (error) {
     next(error);
@@ -208,9 +209,7 @@ export async function listMySubscriptionPayments(req, res, next) {
 export async function listMySubscriptionInvoices(req, res, next) {
   try {
     const mySchoolId = schoolAdminSchoolId(req);
-    const mine = await schoolSubscriptionService.getForSchool(mySchoolId);
-    if (!mine) return res.json({ success: true, data: [], pagination: { page: 1, limit: 25, total: 0, totalPages: 1 } });
-    const result = await schoolSubscriptionService.listInvoices(mine.id, req.query);
+    const result = await schoolSubscriptionService.listInvoicesForSchool(mySchoolId, req.query);
     res.json({ success: true, ...result });
   } catch (error) {
     next(error);
@@ -220,9 +219,7 @@ export async function listMySubscriptionInvoices(req, res, next) {
 export async function listMySubscriptionHistory(req, res, next) {
   try {
     const mySchoolId = schoolAdminSchoolId(req);
-    const mine = await schoolSubscriptionService.getForSchool(mySchoolId);
-    if (!mine) return res.json({ success: true, data: [], pagination: { page: 1, limit: 25, total: 0, totalPages: 1 } });
-    const result = await schoolSubscriptionService.listHistory(mine.id, req.query);
+    const result = await schoolSubscriptionService.listHistoryForSchool(mySchoolId, req.query);
     res.json({ success: true, ...result });
   } catch (error) {
     next(error);

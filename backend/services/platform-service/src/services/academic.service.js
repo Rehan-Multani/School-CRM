@@ -7,7 +7,7 @@ import { normalizeMobile } from '../utils/mobile.js';
 import { Student } from '../models/Student.js';
 import { Parent } from '../models/Parent.js';
 import { ParentStudent, PARENT_RELATIONSHIPS } from '../models/ParentStudent.js';
-import { assertCanAdd } from './planLimits.service.js';
+import { assertCanAdd, assertCanActivate } from './planLimits.service.js';
 import {
   deleteMulterFiles,
   deleteUploadedFile,
@@ -1141,8 +1141,9 @@ export class AcademicService {
   }
 
   async updateTeacherStatus(schoolId, id, status) {
-    await assertTeacher(schoolId, id);
+    const current = await assertTeacher(schoolId, id);
     const nextStatus = ensureOption(status, TEACHER_STATUSES, 'Status');
+    if (nextStatus === 'ACTIVE') await assertCanActivate(schoolId, 'teachers', current?.status);
     const teacher = await academicRepository.updateTeacher(schoolId, id, { status: nextStatus });
     const counts = await academicRepository.teacherAssignmentCounts(schoolId, teacher._id);
     return { ...teacher.toPublicJSON(), counts };

@@ -83,4 +83,29 @@ export async function assertCanAdd(schoolId, kind, count = 1) {
   }
 }
 
-export const planLimitsService = { assertCanAdd, getPlanUsage, resolvePlanLimits };
+/**
+ * A record that is NOT active yet (pending approval / inactive) takes a seat the
+ * moment it becomes ACTIVE, so that transition is checked like a new add.
+ */
+export async function assertCanActivate(schoolId, kind, currentStatus) {
+  if (String(currentStatus || '').toUpperCase() === 'ACTIVE') return;
+  await assertCanAdd(schoolId, kind, 1);
+}
+
+/**
+ * Hard guarantee for concurrent adds: the pre-check in assertCanAdd can be passed
+ * by several requests at once, so after the insert we count again. Throws when
+ * the school is now over its plan; the caller removes the record it just made.
+ */
+export async function assertWithinLimit(schoolId, kind) {
+  const limits = await resolvePlanLimits(schoolId);
+  const limit = limits[kind];
+  if (!limit) return;
+  const school = await resolveSchool(schoolId);
+  const used = await countActive(school?._id || schoolId, kind);
+  if (used > limit) {
+    throw new AppError(`Your plan allows up to ${limit} ${kind}. Upgrade the plan to add more.`, 403, PLAN_LIMIT_REACHED);
+  }
+}
+
+export const planLimitsService = { assertCanAdd, assertCanActivate, assertWithinLimit, getPlanUsage, resolvePlanLimits };

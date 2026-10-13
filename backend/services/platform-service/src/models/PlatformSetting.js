@@ -32,6 +32,10 @@ const platformSettingSchema = new mongoose.Schema(
     },
     // GST / tax applied to locally generated subscription invoices (percent; 0 = no tax).
     taxPercent: { type: Number, default: 18, min: 0, max: 100 },
+    // Total stored data (MB) of one school at which its admin dashboard starts
+    // showing the gentle "clean up old data" notice. 0 = never show it.
+    // Deliberately NOT in toPublicJSON — schools must not see the number.
+    dataWarningMb: { type: Number, default: 0, min: 0 },
     updatedBy: { type: String, default: null },
   },
   { timestamps: true }

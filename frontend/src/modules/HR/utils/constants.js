@@ -30,6 +30,7 @@ export const NAVIGATION_ITEMS = [
   { name: 'Student ID Cards', path: '/hr/id-cards', icon: IdCard, category: 'HR Management' },
   { name: 'Certificates', path: '/hr/certificates', icon: CertificateIcon, category: 'HR Management' },
   { name: 'Visitors', path: '/hr/visitors', icon: DoorOpen, category: 'HR Management' },
+  { name: 'Student Enquiry', path: '/hr/student-enquiry', icon: ClipboardList, category: 'HR Management' },
   { name: 'Mark Present', path: '/hr/my-attendance', icon: Fingerprint, category: 'HR Management' },
 
   // OPERATIONS

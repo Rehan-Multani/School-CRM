@@ -8,6 +8,7 @@ import bundledLogo from '../../../../assets/School_logo.png';
 import {
   AlertCircle,
   Check,
+  Database,
   HelpCircle,
   ImagePlus,
   Link2,
@@ -20,9 +21,10 @@ import {
 } from 'lucide-react';
 import FaqSettingsTab from './components/FaqSettingsTab';
 import ContactSettingsTab from './components/ContactSettingsTab';
+import DataNoticeSettingsTab from './components/DataNoticeSettingsTab';
 
 const tabTriggerClass = cn(
-  'gap-2 rounded-lg px-4 py-2 text-sm font-medium',
+  'shrink-0 gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium',
   'data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm',
   'dark:data-[state=active]:bg-slate-800 dark:data-[state=active]:text-indigo-400'
 );
@@ -186,7 +188,7 @@ export default function SettingsIndex() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-start gap-3">
         <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-600/25">
           <Settings className="h-5 w-5" />
@@ -200,7 +202,7 @@ export default function SettingsIndex() {
       </div>
 
       <Tabs defaultValue="branding" className="w-full">
-        <TabsList className="h-auto w-full justify-start gap-1 rounded-xl border border-slate-200 bg-slate-100/80 p-1 dark:border-slate-800 dark:bg-slate-900/70">
+        <TabsList className="h-auto w-full flex-nowrap justify-start gap-1 overflow-x-auto rounded-xl border border-slate-200 bg-slate-100/80 p-1 dark:border-slate-800 dark:bg-slate-900/70">
           <TabsTrigger value="branding" className={tabTriggerClass}>
             <ImagePlus className="h-4 w-4" />
             Branding &amp; Logo
@@ -212,6 +214,10 @@ export default function SettingsIndex() {
           <TabsTrigger value="billing" className={tabTriggerClass}>
             <Percent className="h-4 w-4" />
             Billing
+          </TabsTrigger>
+          <TabsTrigger value="data-notice" className={tabTriggerClass}>
+            <Database className="h-4 w-4" />
+            Data Notice
           </TabsTrigger>
           <TabsTrigger value="contact" className={tabTriggerClass}>
             <Mail className="h-4 w-4" />
@@ -490,6 +496,10 @@ export default function SettingsIndex() {
               </div>
             </div>
           </form>
+        </TabsContent>
+
+        <TabsContent value="data-notice" className="mt-6">
+          <DataNoticeSettingsTab />
         </TabsContent>
 
         <TabsContent value="contact" className="mt-6">

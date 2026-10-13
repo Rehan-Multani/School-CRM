@@ -36,6 +36,7 @@ const emptyForm = () => ({
   name: '',
   price: '',
   planType: 'Monthly',
+  maxStudents: '',
   features: [],
   featureDraft: '',
 });
@@ -51,6 +52,7 @@ export default function PlansIndex() {
   const [deleting, setDeleting] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [priceError, setPriceError] = useState('');
+  const [studentsError, setStudentsError] = useState('');
 
   const loadPlans = async () => {
     setLoading(true);
@@ -72,6 +74,7 @@ export default function PlansIndex() {
     setForm(emptyForm());
     setEditingPlan(null);
     setPriceError('');
+    setStudentsError('');
   };
 
   const openCreate = () => {
@@ -82,10 +85,12 @@ export default function PlansIndex() {
   const openEdit = (plan) => {
     setEditingPlan(plan);
     setPriceError('');
+    setStudentsError('');
     setForm({
       name: plan.name,
       price: String(plan.price),
       planType: plan.planType,
+      maxStudents: plan.limits?.students ? String(plan.limits.students) : '',
       features: plan.features || [],
       featureDraft: '',
     });
@@ -129,11 +134,25 @@ export default function PlansIndex() {
       return;
     }
 
+    // Plans are sold per number of students: this is the seat count the school can never exceed.
+    const seats = Number(form.maxStudents);
+    if (form.maxStudents === '' || !Number.isInteger(seats) || seats < 1) {
+      setStudentsError('Enter how many students this plan allows (a whole number, 1 or more)');
+      return;
+    }
+    setStudentsError('');
+
     const payload = {
       name: form.name.trim(),
       price: priceNum,
       planType: form.planType,
       features: form.features,
+      // keep teacher / staff limits an existing plan already has
+      limits: {
+        students: seats,
+        teachers: editingPlan?.limits?.teachers ?? null,
+        staff: editingPlan?.limits?.staff ?? null,
+      },
     };
     // Recurring Razorpay billing is always on for every plan type — the
     // backend creates the matching Razorpay plan by default (no trial), so the
@@ -268,6 +287,27 @@ export default function PlansIndex() {
                 </Select>
               </div>
 
+              <Input
+                label="Number of students allowed"
+                type="number"
+                min="1"
+                step="1"
+                placeholder="e.g. 500"
+                value={form.maxStudents}
+                error={studentsError}
+                onKeyDown={(e) => {
+                  if (['-', '+', 'e', 'E', '.'].includes(e.key)) e.preventDefault();
+                }}
+                onChange={(e) => {
+                  setForm((prev) => ({ ...prev, maxStudents: e.target.value.replace(/[^0-9]/g, '') }));
+                  setStudentsError('');
+                }}
+                required
+              />
+              <p className="-mt-2 text-[11px] text-slate-500">
+                The school (admin, principal and every staff member) cannot add more active students than this.
+              </p>
+
               <div className="space-y-2">
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
                   Features
@@ -375,6 +415,12 @@ export default function PlansIndex() {
                     ₹{Number(plan.price || 0).toLocaleString('en-IN')}
                   </span>
                   <span className="text-xs text-slate-500">/ {(plan.planType || '').toLowerCase()}</span>
+                </div>
+
+                <div className="rounded-xl bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300">
+                  {plan.limits?.students
+                    ? `Up to ${Number(plan.limits.students).toLocaleString('en-IN')} students`
+                    : 'Student limit not set - edit this plan to set it'}
                 </div>
 
                 <hr className="border-slate-200 dark:border-slate-800" />

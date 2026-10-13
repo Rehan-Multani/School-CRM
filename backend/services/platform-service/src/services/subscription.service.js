@@ -56,7 +56,20 @@ function normalizeLimit(value) {
   return Math.floor(n);
 }
 
-function normalizePayload(payload, createdBy) {
+// A plan is sold per number of students: that count is what caps how many
+// active students the school (admin, principal, any staff) can add.
+function normalizeStudentLimit(value) {
+  if (value === undefined || value === null || value === '') {
+    throw new AppError('Enter how many students this plan allows', 400);
+  }
+  const n = Number(value);
+  if (!Number.isFinite(n) || !Number.isInteger(n) || n < 1) {
+    throw new AppError('Student limit must be a whole number of at least 1', 400);
+  }
+  return n;
+}
+
+function normalizePayload(payload, createdBy, { requireStudentLimit = false } = {}) {
   const base = {
     name: requireText(payload?.name, 'Plan name'),
     price: normalizePrice(payload?.price),
@@ -81,9 +94,12 @@ function normalizePayload(payload, createdBy) {
       base.taxPercent = Math.round(taxPercent * 100) / 100;
     }
   }
+  if (requireStudentLimit && payload?.limits?.students === undefined) {
+    throw new AppError('Enter how many students this plan allows', 400);
+  }
   if (payload?.limits !== undefined) {
     base.limits = {
-      students: normalizeLimit(payload.limits?.students),
+      students: normalizeStudentLimit(payload.limits?.students),
       teachers: normalizeLimit(payload.limits?.teachers),
       staff: normalizeLimit(payload.limits?.staff),
     };
@@ -121,7 +137,7 @@ export class SubscriptionService {
    * plans on retry.
    */
   async createPlan(payload, createdBy) {
-    const normalized = normalizePayload(payload, createdBy);
+    const normalized = normalizePayload(payload, createdBy, { requireStudentLimit: true });
 
     if (payload?.razorpayPlanId) {
       // Recovery / explicit linkage path — trust only after fetching it back from Razorpay.
@@ -260,6 +276,13 @@ export class SubscriptionService {
   }
 
   async deletePlan(id) {
+    const inUse = await schoolSubscriptionRepository.countByPlan(id);
+    if (inUse > 0) {
+      throw new AppError(
+        `${inUse} school subscription(s) use this plan, so it cannot be deleted. Archive it instead - it stays for existing schools and disappears for new ones.`,
+        409,
+      );
+    }
     const plan = await subscriptionRepository.deleteById(id);
     if (!plan) {
       throw new AppError('Subscription plan not found', 404);

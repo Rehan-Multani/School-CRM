@@ -19,6 +19,7 @@ import {
   IdCard,
   Award as CertificateIcon,
   DoorOpen,
+  ClipboardList,
   Database
 } from 'lucide-react';
 
@@ -34,6 +35,7 @@ export const NAVIGATION_ITEMS = [
   { name: 'Student ID Cards', path: '/principal/id-cards', icon: IdCard, category: 'People' },
   { name: 'Certificates', path: '/principal/certificates', icon: CertificateIcon, category: 'People' },
   { name: 'Visitors', path: '/principal/visitors', icon: DoorOpen, category: 'People' },
+  { name: 'Student Enquiry', path: '/principal/student-enquiry', icon: ClipboardList, category: 'People' },
   { name: 'Teacher Management', path: '/principal/teachers', icon: UserCheck, category: 'People' },
   { name: 'Staff Management', path: '/principal/staff', icon: Briefcase, category: 'People' },
   

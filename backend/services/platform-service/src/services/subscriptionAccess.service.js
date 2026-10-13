@@ -3,6 +3,7 @@ import { AppError } from '../../../shared/AppError.js';
 import { School } from '../models/School.js';
 import { schoolSubscriptionRepository } from '../repositories/schoolSubscription.repository.js';
 import { cachedSubscription } from '../utils/entitlementCache.js';
+import { isLapsed, isLapseExpired } from '../utils/subscriptionLapse.js';
 
 export const ACCESS_STATES = ['none', 'manual', 'trial', 'active', 'grace_period', 'past_due', 'cancelled_pending', 'expired'];
 
@@ -26,6 +27,9 @@ function deriveState(sub) {
     return ended(sub.currentPeriodEnd) ? 'expired' : 'cancelled_pending';
   }
   if (sub.gracePeriodEndsAt && now < new Date(sub.gracePeriodEndsAt).getTime()) return 'grace_period';
+  // Active on Razorpay but the paid period ended and nothing renewed it.
+  if (isLapseExpired(sub, now)) return 'expired';
+  if (isLapsed(sub, now)) return 'past_due';
   if (sub.status === 'halted' || sub.status === 'pending') return 'past_due';
   // `created` is deliberately absent: the checkout was opened but nothing has
   // been paid or authorised, so it grants nothing.

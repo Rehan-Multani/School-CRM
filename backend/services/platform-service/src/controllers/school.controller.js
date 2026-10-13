@@ -1,6 +1,8 @@
 import { schoolService } from '../services/school.service.js';
 import { auditLogService } from '../services/auditLog.service.js';
 import { getPlanUsage } from '../services/planLimits.service.js';
+import { getDataNotice } from '../services/dataUsage.service.js';
+import { schoolId as tenantSchoolId } from '../utils/tenant.js';
 
 export async function listSchools(req, res, next) {
   try {
@@ -402,10 +404,20 @@ export async function schoolPlanUsage(req, res, next) {
   }
 }
 
-// Same, for the signed-in School Admin's own school.
+// Same, for the signed-in School Admin's / Principal's own school.
 export async function schoolPortalPlanUsage(req, res, next) {
   try {
-    const data = await getPlanUsage(req.user?.sub);
+    const data = await getPlanUsage(tenantSchoolId(req));
+    res.json({ success: true, data });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Dashboard notice for the signed-in School Admin / Principal's own school.
+export async function schoolPortalDataNotice(req, res, next) {
+  try {
+    const data = await getDataNotice(tenantSchoolId(req));
     res.json({ success: true, data });
   } catch (error) {
     next(error);

@@ -10,6 +10,7 @@ import { School } from '../models/School.js';
 import { SchoolClass } from '../models/SchoolClass.js';
 import { Section } from '../models/Section.js';
 import { parseCsvObjects, toCsv } from '../utils/csv.js';
+import { assertCanAdd } from './planLimits.service.js';
 
 // Student lifecycle: year-end promotion, transfer / leaving (+TC), bulk CSV
 // import. Kept apart from student.service.js on purpose — it only composes
@@ -275,6 +276,7 @@ export class StudentLifecycleService {
     const studentId = requireId(studentIdRaw, 'Student ID');
     const student = await studentRepository.findStudentById(schoolId, studentId);
     if (!student) throw new AppError('Student not found', 404);
+    if (student.status !== 'ACTIVE') await assertCanAdd(schoolId, 'students');
     const current = await studentRepository.findCurrentEnrollmentByStudent(schoolId, student._id);
     if (current && ['TRANSFERRED', 'WITHDRAWN'].includes(current.status)) {
       await studentRepository.updateEnrollment(schoolId, current._id, { status: 'ACTIVE', leavingDate: null });

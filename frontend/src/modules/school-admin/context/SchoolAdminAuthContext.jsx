@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { schoolAdminAuthApi, schoolPortalApi } from '../../../shared/api/client';
 import { useSchoolAdminTheme } from './SchoolAdminThemeContext';
 import { clearSession } from '../../../shared/lib/clearSession';
@@ -125,6 +125,25 @@ export const SchoolAdminAuthProvider = ({ children }) => {
     return next;
   };
 
+  // Keep the entitlement fresh while the panel stays open: when the paid period
+  // ends and nothing renews it, the sidebar must collapse to "Plans" by itself.
+  const refreshRef = useRef(null);
+  useEffect(() => {
+    if (!user) return undefined;
+    let last = Date.now();
+    const poke = () => {
+      if (document.visibilityState !== 'visible' || Date.now() - last < 60000) return;
+      last = Date.now();
+      refreshRef.current?.();
+    };
+    const timer = setInterval(poke, 5 * 60 * 1000);
+    window.addEventListener('focus', poke);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('focus', poke);
+    };
+  }, [Boolean(user)]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const refreshUser = async () => {
     try {
       const result = await schoolPortalApi.me();
@@ -143,6 +162,7 @@ export const SchoolAdminAuthProvider = ({ children }) => {
 
   // The server decides (live autopay subscription or an active manual plan).
   // A stored plan NAME is not proof: it stays behind after a plan has ended.
+  refreshRef.current = refreshUser;
   const hasPlan = Boolean(user?.hasPlan);
 
   return (

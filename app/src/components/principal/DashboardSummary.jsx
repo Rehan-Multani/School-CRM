@@ -118,6 +118,7 @@ const DashboardSummary = forwardRef(function DashboardSummary(_props, ref) {
           ['Reports', 'bar-chart-outline', '/principal/reports'],
           ['Notifications', 'notifications-outline', '/principal/notifications'],
           ['Meetings', 'people-circle-outline', '/principal/meetings'],
+          ['Enquiries', 'clipboard-outline', '/principal/enquiries'],
           ['Safe pickup', 'shield-checkmark-outline', '/principal/safe-pickup'],
           ['Events', 'calendar-number-outline', '/principal/events'],
           ['Homework', 'book-outline', '/principal/homework'],

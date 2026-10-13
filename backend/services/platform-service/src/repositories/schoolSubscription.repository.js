@@ -10,6 +10,25 @@ class SchoolSubscriptionRepository {
     return SchoolSubscription.countDocuments({ $or: [{ planId }, { pendingPlanId: planId }] });
   }
 
+  // Active-like subscriptions whose paid period ended more than `before` ago (lapse cron).
+  findLapsedCandidates(before) {
+    return SchoolSubscription.find({
+      status: { $in: ['active', 'authenticated'] },
+      cancelAtPeriodEnd: { $ne: true },
+      currentPeriodEnd: { $ne: null, $lt: before },
+    });
+  }
+
+  // Any earlier subscription (even an abandoned checkout that was never paid
+  // does not count: only ones that were authenticated / charged).
+  async hasEverHadSubscription(schoolId) {
+    const n = await SchoolSubscription.countDocuments({
+      schoolId,
+      $or: [{ lastPaymentAt: { $ne: null } }, { status: { $in: ['authenticated', 'active', 'halted', 'pending', 'paused', 'cancelled', 'expired', 'completed'] } }],
+    });
+    return n > 0;
+  }
+
   findActiveLikeForSchool(schoolId) {
     return SchoolSubscription.findOne({
       schoolId,
@@ -116,6 +135,34 @@ class SchoolSubscriptionRepository {
     const [items, total] = await Promise.all([
       SubscriptionPayment.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
       SubscriptionPayment.countDocuments(filter),
+    ]);
+    return { items, total, page, limit };
+  }
+
+  // School-wide (every subscription the school has had) - what the School Admin sees.
+  async listPaymentsForSchool(schoolId, query = {}) {
+    const filter = { schoolId };
+    const { page, limit, skip } = sanitizePagination({ page: query.page, limit: query.limit, defaultLimit: 25, maxLimit: 100 });
+    const [items, total] = await Promise.all([
+      SubscriptionPayment.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      SubscriptionPayment.countDocuments(filter),
+    ]);
+    return { items, total, page, limit };
+  }
+  async listInvoicesForSchool(schoolId, query = {}) {
+    const filter = { school: schoolId };
+    const { page, limit, skip } = sanitizePagination({ page: query.page, limit: query.limit, defaultLimit: 25, maxLimit: 100 });
+    const [items, total] = await Promise.all([
+      Invoice.find(filter).sort({ issuedAt: -1 }).skip(skip).limit(limit),
+      Invoice.countDocuments(filter),
+    ]);
+    return { items, total, page, limit };
+  }
+  async listHistoryForSchool(schoolId, query = {}) {
+    const { page, limit, skip } = sanitizePagination({ page: query.page, limit: query.limit, defaultLimit: 50, maxLimit: 200 });
+    const [items, total] = await Promise.all([
+      SubscriptionHistory.find({ schoolId }).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      SubscriptionHistory.countDocuments({ schoolId }),
     ]);
     return { items, total, page, limit };
   }

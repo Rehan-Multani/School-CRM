@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { AppError } from '../../../shared/AppError.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { deleteUploadedFile } from '../utils/upload.utils.js';
-import { assertCanAdd } from './planLimits.service.js';
+import { assertCanAdd, assertCanActivate } from './planLimits.service.js';
 
 const VALID_ROLES = ['TEACHER', 'LIBRARIAN', 'HR', 'ACCOUNTANT', 'TRANSPORT', 'PRINCIPAL'];
 const VALID_STATUSES = ['ACTIVE', 'INACTIVE'];
@@ -243,6 +243,7 @@ class UserService {
     const validStatus = ensureOption(status, VALID_STATUSES, 'Status');
     const user = await userRepository.findUserById(schoolId, id);
     if (!user) throw new AppError('User not found', 404);
+    if (validStatus === 'ACTIVE') await assertCanActivate(schoolId, 'staff', user.status);
 
     const updated = await userRepository.updateUser(schoolId, id, { status: validStatus });
     return updated.toPublicJSON();

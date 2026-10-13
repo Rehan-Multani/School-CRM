@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   loginRateLimiter,
+  studentEnquirySubmitLimiter,
   passwordResetRateLimiter,
   appPasswordResetRateLimiter,
   otpLoginRateLimiter,
@@ -62,6 +63,7 @@ import {
   updatePlatformSettings,
   updatePlatformLogo,
   deletePlatformLogo,
+  getDataWarning,
 } from '../controllers/platformSetting.controller.js';
 import { uploadPlatformLogo } from '../middleware/uploadPlatformLogo.js';
 import {
@@ -98,6 +100,7 @@ import {
   schoolPortalSettings,
   schoolPlanUsage,
   schoolPortalPlanUsage,
+  schoolPortalDataNotice,
   schoolPortalUpdateBranding,
   schoolPortalGetAttendanceGeofence,
   schoolPortalUpdateAttendanceGeofence,
@@ -523,6 +526,7 @@ import { requireSchoolAdmin } from '../middleware/requireSchoolAdmin.js';
 import { requireLibrarian } from '../middleware/requireLibrarian.js';
 import { requireHR } from '../middleware/requireHR.js';
 import { listVisitors, createVisitor, updateVisitor, deleteVisitor } from '../controllers/visitor.controller.js';
+import { listEnquiries, updateEnquiry, deleteEnquiry, getEnquiryForm, saveEnquiryForm, publicEnquiryForm, submitPublicEnquiry } from '../controllers/studentEnquiry.controller.js';
 import { idCardOptions, idCardStudents, saveIdCardDesign } from '../controllers/idCard.controller.js';
 import {
   certificateOptions, listTemplates, createTemplate, updateTemplate, deleteTemplate,
@@ -655,6 +659,7 @@ import { uploadStudentFiles, convertStudentImages } from '../middleware/uploadSt
 import { convertTeacherImages, uploadTeacherFiles } from '../middleware/uploadTeacherPhoto.js';
 import { convertSchoolUserImages, uploadSchoolUserFiles } from '../middleware/uploadSchoolUser.js';
 import { uploadDriverFiles, convertDriverImages } from '../middleware/uploadDriverFiles.js';
+import { withIdempotency } from '../middleware/idempotency.js';
 
 const router = Router();
 
@@ -696,6 +701,9 @@ router.get('/school-theme/:schoolId/logo', schoolLogoPublic);
 // School banners shown on the apps' home screens (public, like the theme).
 router.get('/school-theme/:schoolId/banners', publicBanners);
 router.get('/school-theme/:schoolId/banners/:bannerId/image', publicBannerImage);
+// Student enquiry: the school's public form (no login). Staff side is under /school-portal/student-enquiries.
+router.get('/student-enquiry/:schoolId', publicEnquiryForm);
+router.post('/student-enquiry/:schoolId', studentEnquirySubmitLimiter, submitPublicEnquiry);
 router.post('/school-auth/login', loginRateLimiter, schoolAdminLogin);
 // Redeems the one-time code from "Login as school" (Super Admin → Schools).
 router.post('/school-auth/login-as', loginRateLimiter, schoolAdminLoginAs);
@@ -728,7 +736,7 @@ router.get('/school-portal/accountant/students/:id', requireAccountant, getAccou
 
 router.get('/school-portal/accountant/fees/students/:studentId/profile', requireAccountant, getStudentFeeProfile);
 router.post('/school-portal/accountant/fees/invoices/generate', requireAccountant, accountantGenerateInvoice);
-router.post('/school-portal/accountant/fees/invoices/:invoiceId/pay', requireAccountant, accountantCollectPayment);
+router.post('/school-portal/accountant/fees/invoices/:invoiceId/pay', requireAccountant, withIdempotency('fee.pay'), accountantCollectPayment);
 
 router.get('/school-portal/accountant/fee-structures', requireAccountant, listAccountantFeeStructures);
 router.get('/school-portal/accountant/fee-structures/:id', requireAccountant, getAccountantFeeStructure);
@@ -784,7 +792,9 @@ router.post('/school-portal/select-plan/checkout', requireSchoolAdmin, schoolIni
 router.get('/school-portal/config', requireSchoolAdmin, schoolPortalConfig);
 router.patch('/school-portal/config', requireSchoolAdmin, schoolPortalUpdateConfig);
 router.get('/school-portal/settings', requireSchoolAdmin, schoolPortalSettings);
-router.get('/school-portal/plan-usage', requireSchoolAdmin, schoolPortalPlanUsage);
+router.get('/school-portal/plan-usage', requirePrincipal, schoolPortalPlanUsage);
+// Gentle "clean up old data" dashboard notice (threshold = Super Admin setting).
+router.get('/school-portal/data-notice', requirePrincipal, schoolPortalDataNotice);
 router.patch('/school-portal/settings/theme', requireSchoolAdmin, schoolPortalUpdateTheme);
 router.patch('/school-portal/settings/branding', requireSchoolAdmin, schoolPortalUpdateBranding);
 // School location + radius inside which teachers may mark their own attendance (app).
@@ -960,11 +970,11 @@ router.get('/school-portal/fees/settings', requireSchoolAdmin, getFeeSettings);
 router.put('/school-portal/fees/settings', requireSchoolAdmin, updateFeeSettings);
 router.post('/school-portal/fees/late-fees/apply', requireSchoolAdmin, applyLateFeesNow);
 router.get('/school-portal/fees/invoices/:id', requireSchoolAdmin, validateObjectId('id'), getFeeInvoice);
-router.post('/school-portal/fees/invoices/:invoiceId/pay', requireSchoolAdmin, validateObjectId('invoiceId'), payFeeInvoice);
+router.post('/school-portal/fees/invoices/:invoiceId/pay', requireSchoolAdmin, validateObjectId('invoiceId'), withIdempotency('fee.pay'), payFeeInvoice);
 router.get('/school-portal/fees/payments', requireSchoolAdmin, listFeePayments);
 router.get('/school-portal/fees/payments/:id', requireSchoolAdmin, validateObjectId('id'), getFeePayment);
 router.post('/school-portal/fees/payments/:id/refund', requireSchoolAdmin, validateObjectId('id'), refundFeePayment);
-router.post('/school-portal/fees/collect', requireSchoolAdmin, collectFeePayment);
+router.post('/school-portal/fees/collect', requireSchoolAdmin, withIdempotency('fee.collect'), collectFeePayment);
 
 // Finance Routes
 router.get('/school-portal/finance/transactions', requireSchoolAdmin, listFinanceTransactions);
@@ -1112,7 +1122,7 @@ router.get('/school-portal/fees/structures', requireSchoolAdmin, listFeeStructur
 router.post('/school-portal/fees/structures', requireSchoolAdmin, createFeeStructure);
 router.get('/school-portal/fees/assignments', requireSchoolAdmin, listStudentFeeAssignments);
 router.post('/school-portal/fees/assignments', requireSchoolAdmin, createStudentFeeAssignment);
-router.post('/school-portal/fees/collect', requireSchoolAdmin, collectFeePayment);
+router.post('/school-portal/fees/collect', requireSchoolAdmin, withIdempotency('fee.collect'), collectFeePayment);
 router.get('/school-portal/fees/payments', requireSchoolAdmin, listFeePayments);
 router.get('/school-portal/finance/transactions', requireSchoolAdmin, listFinanceTransactions);
 router.get('/school-portal/finance/summary', requireSchoolAdmin, getFinanceSummary);
@@ -1179,6 +1189,13 @@ router.get('/school-portal/visitors', requireHR, listVisitors);
 router.post('/school-portal/visitors', requireHR, createVisitor);
 router.patch('/school-portal/visitors/:id', requireHR, validateObjectId('id'), updateVisitor);
 router.delete('/school-portal/visitors/:id', requireHR, validateObjectId('id'), deleteVisitor);
+// Student enquiries from the school's public form: School Admin, Principal and HR share one list
+// (requireHR admits all three). Static paths before :id paths.
+router.get('/school-portal/student-enquiries', requireHR, listEnquiries);
+router.get('/school-portal/student-enquiries/form', requireHR, getEnquiryForm);
+router.put('/school-portal/student-enquiries/form', requireHR, saveEnquiryForm);
+router.patch('/school-portal/student-enquiries/:id', requireHR, validateObjectId('id'), updateEnquiry);
+router.delete('/school-portal/student-enquiries/:id', requireHR, validateObjectId('id'), deleteEnquiry);
 
 // Student ID cards: one shared read API for School Admin, Principal and HR (requireHR admits all three).
 router.get('/school-portal/id-cards/options', requireHR, idCardOptions);
@@ -1440,6 +1457,7 @@ router.delete('/app-config/logo', requireSuperAdmin, deletePlatformLogo);
 
 // Mobile app: version-update push, and force logout of app roles (see appSession.service.js).
 router.post('/app-config/notify-update', requireSuperAdmin, notifyAppUpdate);
+router.get('/app-config/data-warning', requireSuperAdmin, getDataWarning);
 router.get('/app-config/logout-notice', getLogoutNotice); // public — the app asks after a 401
 router.get('/app-config/force-logout', requireSuperAdmin, superForceLogoutHistory);
 router.post('/app-config/force-logout', requireSuperAdmin, superForceLogout);

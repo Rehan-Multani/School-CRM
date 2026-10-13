@@ -93,6 +93,12 @@ export class PlatformSettingService {
     return created.toPublicJSON();
   }
 
+  /** Super Admin only — kept out of the public app-config payload. */
+  async getDataWarningMb() {
+    const existing = await platformSettingRepository.findPlatformSetting();
+    return Number(existing?.dataWarningMb) || 0;
+  }
+
   async updateSettings(patch, updatedBy) {
     const update = { updatedBy: updatedBy || null };
 
@@ -136,6 +142,15 @@ export class PlatformSettingService {
         throw new AppError('Tax % must be a number between 0 and 100', 400);
       }
       update.taxPercent = Math.round(taxPercent * 100) / 100;
+    }
+
+    // Data-usage notice threshold in MB (0 switches the notice off)
+    if (patch?.dataWarningMb !== undefined && patch.dataWarningMb !== null && patch.dataWarningMb !== '') {
+      const mb = Number(patch.dataWarningMb);
+      if (!Number.isFinite(mb) || mb < 0 || mb > 10_000_000) {
+        throw new AppError('Data notice limit must be a number of MB, 0 or more', 400);
+      }
+      update.dataWarningMb = Math.round(mb * 100) / 100;
     }
 
     // Public contact details (sales, support, privacy, phone, office address)

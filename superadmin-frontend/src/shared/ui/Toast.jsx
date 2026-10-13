@@ -120,6 +120,11 @@ export const showToast = (type, message, title) => {
   );
 };
 
+// showToast.success('Saved') etc. — shorthand some pages use.
+['success', 'error', 'info', 'warning'].forEach((type) => {
+  showToast[type] = (message, title) => showToast(type, message, title);
+});
+
 export const AppToaster = () => (
   <Toaster
     position="top-center"

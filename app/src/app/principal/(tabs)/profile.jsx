@@ -57,6 +57,7 @@ export default function PrincipalProfile() {
       <ModuleList
         items={[
           { icon: 'notifications-outline', title: 'Notifications', subtitle: 'Send and review announcements', href: '/principal/notifications' },
+          { icon: 'clipboard-outline', title: 'Student Enquiry', subtitle: 'Enquiries and form link', href: '/principal/enquiries' },
           { icon: 'videocam-outline', title: 'Meetings', subtitle: 'Schedule and minutes', href: '/principal/meetings' },
           { icon: 'sparkles-outline', title: 'Events', subtitle: 'School events calendar', href: '/principal/events' },
           { icon: 'bar-chart-outline', title: 'Reports', subtitle: 'Summaries and exports', href: '/principal/reports' },

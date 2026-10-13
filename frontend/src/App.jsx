@@ -11,6 +11,7 @@ import { TermsPage } from './modules/landing/pages/TermsPage';
 import { NotFoundPage } from './modules/landing/pages/NotFoundPage';
 import { PortalPickerPage } from './modules/landing/pages/PortalPickerPage';
 import { VerifyCertificatePage } from './modules/landing/pages/VerifyCertificatePage';
+import { EnquiryFormPage } from './modules/landing/pages/EnquiryFormPage';
 
 import { StudentAuthProvider } from './modules/student/context/StudentAuthContext';
 import { ThemeProvider } from './modules/student/context/ThemeContext';
@@ -129,6 +130,9 @@ function App() {
 
                                                                          {/* Public certificate verification (QR code target) */}
                                                                          <Route path="/verify-certificate/:code" element={<VerifyCertificatePage />} />
+
+                                                                         {/* Public student-enquiry form (a school's shareable link) */}
+                                                                         <Route path="/enquiry/:schoolId" element={<EnquiryFormPage />} />
 
                                                                          {/* Portal picker (staff sign in) */}
                                                                          <Route path="/login" element={<PortalPickerPage />} />

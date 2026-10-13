@@ -20,6 +20,7 @@ import { LoginAsCode } from '../models/LoginAsCode.js';
 import { AuditLog } from '../models/AuditLog.js';
 import { subscriptionAccessService } from './subscriptionAccess.service.js';
 import { boardService } from './board.service.js';
+import { paidPeriodOver } from '../utils/subscriptionLapse.js';
 
 // "Login as school": the hand-off code lives for a minute, the session it buys
 // for two hours (a support visit, not a standing login).
@@ -1173,10 +1174,20 @@ export class SchoolService {
   async initiateSubscriptionCheckout(schoolId, planId, req) {
     console.log(`[subscription-flow] checkout requested — school=${schoolId} plan=${planId}`);
 
-    const school = await schoolRepository.findById(schoolId);
+    let school = await schoolRepository.findById(schoolId);
     if (!school) {
       throw new AppError('School not found', 404);
     }
+
+    // The paid period is over and nothing renewed it: the school is paying again
+    // now, so close the dead subscription first (and stop Razorpay billing it).
+    const overdue = await schoolSubscriptionRepository.findActiveLikeForSchool(schoolId);
+    if (overdue && paidPeriodOver(overdue)) {
+      console.log(`[subscription-flow] period ended without renewal — school=${schoolId} closing razorpaySubscriptionId=${overdue.razorpaySubscriptionId} before a new checkout`);
+      await schoolSubscriptionService.expireLapsed(overdue, { performedBy: school.name || 'School Admin', source: 'school_admin' });
+      school = await schoolRepository.findById(schoolId);
+    }
+
     if (school.subscriptionPlan) {
       console.log(`[subscription-flow] rejected — school=${schoolId} already has plan "${school.subscriptionPlan}"`);
       throw new AppError('A subscription plan is already selected for this school', 400);

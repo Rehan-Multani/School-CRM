@@ -7,6 +7,7 @@ import { razorpaySubscriptionService } from './razorpaySubscription.service.js';
 import { notificationService } from './notification.service.js';
 import { auditLogService } from './auditLog.service.js';
 import { mapPlanTypeToInterval } from './subscription.service.js';
+import { paidPeriodOver } from '../utils/subscriptionLapse.js';
 
 const GRACE_PERIOD_DAYS = 3; // TODO: make per-plan configurable if the business needs it later
 
@@ -72,11 +73,22 @@ class SchoolSubscriptionService {
 
     const existing = await schoolSubscriptionRepository.findActiveLikeForSchool(schoolId);
     if (existing) {
-      throw new AppError('This school already has an active or pending subscription', 409);
+      // "Active" on Razorpay but its paid period ended and nothing renewed it:
+      // the school is buying a plan again, so close the dead one first (and stop
+      // Razorpay from ever charging it later).
+      if (paidPeriodOver(existing)) {
+        await this.expireLapsed(existing, { performedBy: actor?.name || 'School Admin', source: actor?.source || 'school_admin' });
+      } else {
+        throw new AppError('This school already has an active or pending subscription', 409);
+      }
     }
 
     const qty = Math.max(1, Number(quantity) || 1);
-    const effectiveTrialDays = trialDays !== undefined && trialDays !== null ? Number(trialDays) : plan.trialDays || 0;
+    // A free trial is a one-time welcome: a school that has had ANY subscription
+    // before cannot get another one by cancelling and subscribing again.
+    const hadSubscription = await schoolSubscriptionRepository.hasEverHadSubscription(schoolId);
+    const requestedTrial = trialDays !== undefined && trialDays !== null ? Number(trialDays) : plan.trialDays || 0;
+    const effectiveTrialDays = hadSubscription && actor?.source === 'school_admin' ? 0 : requestedTrial;
 
     // Reuse the school's own Razorpay customer once it exists — deterministic
     // from our own record, not dependent on Razorpay matching this attempt's
@@ -163,6 +175,43 @@ class SchoolSubscriptionService {
       razorpayKeyId: razorpaySubscriptionService.publicKeyId(),
       razorpaySubscriptionId: rzpSub.id,
     };
+  }
+
+  /**
+   * Ends a subscription whose paid period is over and was never renewed:
+   * stops it on Razorpay (so it can't charge later), marks it expired and takes
+   * the plan off the school. Safe to call twice.
+   */
+  async expireLapsed(sub, { performedBy = 'System', source = 'cron' } = {}) {
+    const fromStatus = sub.status;
+    if (sub.razorpaySubscriptionId && razorpaySubscriptionService.isConfigured()) {
+      try {
+        await razorpaySubscriptionService.cancelSubscription(sub.razorpaySubscriptionId, { atCycleEnd: false });
+      } catch (error) {
+        // Already cancelled / completed on Razorpay's side, or a transient failure.
+        console.log(`[subscription-flow] lapsed cancel on Razorpay skipped for ${sub.razorpaySubscriptionId}: ${error?.message}`);
+      }
+    }
+    const now = new Date();
+    sub.status = 'expired';
+    sub.endedAt = now;
+    sub.cancelledAt = sub.cancelledAt || now;
+    await schoolSubscriptionRepository.save(sub);
+    await schoolSubscriptionRepository.recordHistory({
+      schoolId: sub.schoolId?._id || sub.schoolId,
+      subscriptionId: sub._id,
+      action: 'expired',
+      fromStatus,
+      toStatus: 'expired',
+      reason: 'Paid period ended and no renewal was received',
+      performedBy,
+      source,
+    });
+    await School.updateOne(
+      { _id: sub.schoolId?._id || sub.schoolId },
+      { $set: { subscriptionPlan: '', 'subscription.status': 'Expired', 'subscription.endsAt': now } },
+    );
+    return sub;
   }
 
   async checkoutForSchool(schoolId, { planId }, actor) {
@@ -346,6 +395,19 @@ class SchoolSubscriptionService {
   // ---------------------------------------------------------------
   // Sub-resources
   // ---------------------------------------------------------------
+  async listPaymentsForSchool(schoolId, query) {
+    const { items, total, page, limit } = await schoolSubscriptionRepository.listPaymentsForSchool(schoolId, query);
+    return { data: items.map((i) => i.toPublicJSON()), pagination: { page, limit, total, totalPages: Math.ceil(total / limit) || 1 } };
+  }
+  async listInvoicesForSchool(schoolId, query) {
+    const { items, total, page, limit } = await schoolSubscriptionRepository.listInvoicesForSchool(schoolId, query);
+    return { data: items.map((i) => i.toPublicJSON()), pagination: { page, limit, total, totalPages: Math.ceil(total / limit) || 1 } };
+  }
+  async listHistoryForSchool(schoolId, query) {
+    const { items, total, page, limit } = await schoolSubscriptionRepository.listHistoryForSchool(schoolId, query);
+    return { data: items.map((i) => i.toPublicJSON()), pagination: { page, limit, total, totalPages: Math.ceil(total / limit) || 1 } };
+  }
+
   async listPayments(subscriptionId, query) {
     const { items, total, page, limit } = await schoolSubscriptionRepository.listPayments(subscriptionId, query);
     return { data: items.map((i) => i.toPublicJSON()), pagination: { page, limit, total, totalPages: Math.ceil(total / limit) || 1 } };

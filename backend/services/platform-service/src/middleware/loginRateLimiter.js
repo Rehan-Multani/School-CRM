@@ -79,3 +79,13 @@ export const enquiryRateLimiter = rateLimit({
     message: 'You have sent several enquiries already. Please try again later or email us directly.',
   },
 });
+
+// Public student-enquiry form (a school's own link): no login, so this IP budget is what
+// stops a bot from filling a school's list. A family submits once; it only bounds the IP.
+export const studentEnquirySubmitLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many enquiries from this connection. Please try again later.' },
+});

@@ -356,6 +356,15 @@ export class BillingService {
       throw new AppError('Payment signature is invalid', 400);
     }
 
+    // The signature proves the payment belongs to that ORDER; the order must be the
+    // one we created for THIS invoice, or any small paid order could settle a big invoice.
+    requireId(id, 'Invoice');
+    const invoice = await billingRepository.findById(id);
+    if (!invoice) throw new AppError('Invoice not found', 404);
+    if (!invoice.razorpayOrderId || invoice.razorpayOrderId !== orderId) {
+      throw new AppError('This payment does not belong to this invoice', 400);
+    }
+
     return this.markPaid(id, {
       paymentMethod: 'Online',
       paymentReference: paymentId,

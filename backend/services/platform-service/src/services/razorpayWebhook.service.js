@@ -464,7 +464,14 @@ class RazorpayWebhookService {
         (eventName === 'payment.captured' && paymentEntity?.notes?.type === 'SCHOOL_FEE') ||
         (eventName === 'order.paid' && (paymentEntity?.notes?.type === 'SCHOOL_FEE' || orderEntity?.notes?.type === 'SCHOOL_FEE'))
       ) {
-        const feeEntity = paymentEntity?.notes?.type === 'SCHOOL_FEE' ? paymentEntity : orderEntity;
+        // order.paid carries both entities: always key the payment by the real payment id
+        // (the order id would let the same money be credited a second time).
+        const feeEntity =
+          paymentEntity?.notes?.type === 'SCHOOL_FEE'
+            ? paymentEntity
+            : paymentEntity?.id && orderEntity?.notes?.type === 'SCHOOL_FEE'
+              ? { ...paymentEntity, notes: orderEntity.notes }
+              : orderEntity;
         const res = await parentFeePaymentService.reconcileFromRazorpay(feeEntity);
         console.log(`[fee-payment] webhook event="${eventName}" reconcile → ${JSON.stringify(res)}`);
         webhookEventDoc.processed = true;

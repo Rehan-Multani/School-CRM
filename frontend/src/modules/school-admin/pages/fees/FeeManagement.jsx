@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Badge } from '../../components/ui/Badge';
 import { Modal } from '../../components/ui/Modal';
@@ -44,7 +44,10 @@ const paymentBadge = (s) =>
 const inputClass =
   'h-11 w-full rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 text-xs font-semibold outline-none focus:border-primary focus:bg-white dark:border-slate-800 dark:bg-slate-950 dark:text-white';
 
+const newPayKey = () => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+
 export const FeeManagement = () => {
+  const payKeyRef = useRef(null);
   const [activeTab, setActiveTab] = useState('structures');
   const { showToast, ToastComponent } = useToast();
   const { user } = useSchoolAdminAuth();
@@ -301,12 +304,19 @@ export const FeeManagement = () => {
     if (!selectedInvoice) return;
     setPaying(true);
     try {
-      const res = await feePortalApi.payInvoice(selectedInvoice.id, {
-        amount: Number(paymentForm.amount),
-        paymentMethod: paymentForm.paymentMethod,
-        paymentReference: paymentForm.paymentReference,
-        remarks: paymentForm.remarks,
-      });
+      // One key per payment attempt: a retry replays the first result instead of recording twice.
+      if (payKeyRef.current?.invoice !== selectedInvoice.id) payKeyRef.current = { invoice: selectedInvoice.id, key: newPayKey() };
+      const res = await feePortalApi.payInvoice(
+        selectedInvoice.id,
+        {
+          amount: Number(paymentForm.amount),
+          paymentMethod: paymentForm.paymentMethod,
+          paymentReference: paymentForm.paymentReference,
+          remarks: paymentForm.remarks,
+        },
+        payKeyRef.current.key,
+      );
+      payKeyRef.current = null;
       showToast('Fee payment recorded successfully!', 'success');
       setPayModalOpen(false);
       loadInvoices();

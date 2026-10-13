@@ -16,6 +16,7 @@ import { fetchAllPages } from '../../../../shared/lib/exportRows';
 import { PromoteStudentsModal } from './PromoteStudentsModal';
 import { TransferStudentModal } from './TransferStudentModal';
 import { ImportStudentsModal } from './ImportStudentsModal';
+import { SeatUsageBanner, useSeatUsage } from '../../../../shared/components/SeatUsage';
 import { IndiaLocationFields } from '../../components/ui/IndiaLocationFields';
 
 const inputClass =
@@ -153,6 +154,10 @@ export const StudentManagement = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [students, setStudents] = useState([]);
+  const { usage: seatUsage, reload: reloadSeats, full: seatsFull } = useSeatUsage(schoolPortalApi.planUsage);
+  useEffect(() => {
+    reloadSeats();
+  }, [students, reloadSeats]);
   // The list is fetched one page at a time; search and paging happen on the server.
   const [pager, setPager] = useState({ page: 1, pageSize: 10, search: '' });
   const [total, setTotal] = useState(0);
@@ -770,13 +775,17 @@ export const StudentManagement = () => {
             <button
               type="button"
               onClick={openCreateModal}
-              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white"
+              disabled={seatsFull}
+              title={seatsFull ? 'Your plan is full. Upgrade the plan to add more students.' : undefined}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Plus className="h-3.5 w-3.5" /> Add Student
             </button>
           </div>
         }
       />
+
+      <SeatUsageBanner usage={seatUsage} />
 
       <CountCards items={stats} />
 
@@ -879,7 +888,7 @@ export const StudentManagement = () => {
           title="No students found"
           description="Start by adding a student record and mapping them to the correct academic year, class, and section."
           action={
-            <button type="button" onClick={openCreateModal} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white">
+            <button type="button" onClick={openCreateModal} disabled={seatsFull} className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:cursor-not-allowed disabled:opacity-50">
               Add Student
             </button>
           }

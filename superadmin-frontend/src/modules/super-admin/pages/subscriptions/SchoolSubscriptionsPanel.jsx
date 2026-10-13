@@ -73,6 +73,12 @@ const STATUS_CONFIG = {
     dotClass: 'bg-amber-500',
     pulse: true,
   },
+  past_due: {
+    label: 'Past due',
+    pillClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+    dotClass: 'bg-amber-500',
+    pulse: true,
+  },
   halted: {
     label: 'Halted',
     pillClass: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
@@ -732,7 +738,7 @@ export default function SchoolSubscriptionsPanel() {
                 ) : (
                   filteredRows.map((r) => {
                     const isCancelled = r.status === 'cancelled' || r.cancelAtPeriodEnd;
-                    const effectiveStatus = isCancelled ? 'cancelled' : r.status;
+                    const effectiveStatus = isCancelled ? 'cancelled' : r.lapsed ? 'past_due' : r.status;
                     const statusInfo = STATUS_CONFIG[effectiveStatus] || {
                       label: effectiveStatus,
                       pillClass: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
@@ -1271,16 +1277,13 @@ export default function SchoolSubscriptionsPanel() {
                   <DialogTitle className="text-base font-bold text-slate-900 dark:text-white">
                     {detail?.school?.name || detail?.schoolName || 'School Subscription'}
                   </DialogTitle>
-                  <p className="text-xs text-slate-400">
-                    Plan: <span className="font-semibold text-indigo-600 dark:text-indigo-400">{detail?.plan?.name}</span> · ₹{detail?.totalAmount}
-                  </p>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
                     <p className="text-xs text-slate-400">
                       Plan: <span className="font-semibold text-indigo-600 dark:text-indigo-400">{detail?.plan?.name}</span> · ₹{detail?.totalAmount}
                     </p>
                     {detail && (() => {
                       const isDetailCancelled = detail.status === 'cancelled' || detail.cancelAtPeriodEnd;
-                      const detailEffectiveStatus = isDetailCancelled ? 'cancelled' : detail.status;
+                      const detailEffectiveStatus = isDetailCancelled ? 'cancelled' : detail.lapsed ? 'past_due' : detail.status;
                       const detailInfo = STATUS_CONFIG[detailEffectiveStatus];
                       return detailInfo ? (
                         <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold capitalize ${detailInfo.pillClass}`}>
@@ -1311,7 +1314,6 @@ export default function SchoolSubscriptionsPanel() {
           <div className="mt-2 flex gap-1.5 border-b border-slate-200/80 pb-2 dark:border-slate-800/80">
             {[
               { id: 'payments', label: 'Payments', icon: Receipt, count: detailData.payments.length },
-              { id: 'invoices', label: 'Invoices', icon: Receipt, count: detailData.invoices.length },
               { id: 'invoices', label: 'Invoices', icon: FileText, count: detailData.invoices.length },
             ].map((t) => (
               <button

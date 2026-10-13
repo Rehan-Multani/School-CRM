@@ -9,7 +9,7 @@ import {
   toStudentDocumentPublicPath,
 } from '../utils/upload.utils.js';
 import { normalizeMobile } from '../utils/mobile.js';
-import { assertCanAdd } from './planLimits.service.js';
+import { assertCanAdd, assertWithinLimit } from './planLimits.service.js';
 
 const STUDENT_STATUSES = ['ACTIVE', 'INACTIVE'];
 const GENDERS = ['MALE', 'FEMALE', 'OTHER'];
@@ -218,7 +218,8 @@ export class StudentService {
 
   async createStudent(schoolId, payload, files = {}) {
     if (!mongoose.isValidObjectId(schoolId)) throw new AppError('Invalid school context', 400);
-    await assertCanAdd(schoolId, 'students');
+    // An INACTIVE student does not use a seat.
+    if (payload.status !== 'INACTIVE') await assertCanAdd(schoolId, 'students');
     const [year, cls, section] = await Promise.all([
       assertYear(schoolId, payload.academicYearId),
       assertClass(schoolId, payload.classId),
@@ -246,6 +247,8 @@ export class StudentService {
         photo: files.photo ? toStudentPhotoPublicPath(files.photo.filename) : '',
         documents: docPaths,
       });
+      // Concurrent adds can all pass the pre-check: count again now that this one exists.
+      if (studentPayload.status !== 'INACTIVE') await assertWithinLimit(schoolId, 'students');
 
       const enrollment = await studentRepository.createEnrollment({
         schoolId,
@@ -306,7 +309,11 @@ export class StudentService {
     if (payload.parentName !== undefined) update.parentName = requireText(payload.parentName, 'Parent name');
     if (payload.parentPhone !== undefined) update.parentPhone = normalizeMobile(payload.parentPhone, 'Parent phone');
     if (payload.address !== undefined) update.address = optionalText(payload.address);
-    if (payload.status !== undefined) update.status = ensureOption(payload.status, STUDENT_STATUSES, 'Status');
+    if (payload.status !== undefined) {
+      update.status = ensureOption(payload.status, STUDENT_STATUSES, 'Status');
+      // INACTIVE -> ACTIVE takes a seat again.
+      if (update.status === 'ACTIVE' && existing.status !== 'ACTIVE') await assertCanAdd(schoolId, 'students');
+    }
     if (files.photo) update.photo = toStudentPhotoPublicPath(files.photo.filename);
     if (!files.photo && shouldRemovePhoto) update.photo = '';
 
@@ -423,6 +430,7 @@ export class StudentService {
     const nextStatus = ensureOption(status, STUDENT_STATUSES, 'Status');
     const student = await studentRepository.findStudentById(schoolId, studentId);
     if (!student) throw new AppError('Student not found', 404);
+    if (nextStatus === 'ACTIVE' && student.status !== 'ACTIVE') await assertCanAdd(schoolId, 'students');
 
     await studentRepository.updateStudent(schoolId, studentId, { status: nextStatus });
     const enrollment = await studentRepository.findCurrentEnrollmentByStudent(schoolId, student._id);

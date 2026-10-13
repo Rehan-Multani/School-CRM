@@ -32,6 +32,7 @@ import { SafePickupHistory } from '../pages/safe-pickup/SafePickupHistory';
 import { StudentIdCardsPage } from '../pages/id-cards/StudentIdCardsPage';
 import { CertificatesPage } from '../pages/certificates/CertificatesPage';
 import { VisitorsPage } from '../pages/visitors/VisitorsPage';
+import { StudentEnquiryPage } from '../pages/enquiry/StudentEnquiryPage';
 import { PrincipalBackup } from '../pages/backup/PrincipalBackup';
 
 export const PrincipalRoutes = () => {
@@ -42,6 +43,7 @@ export const PrincipalRoutes = () => {
       <Route path="id-cards" element={<StudentIdCardsPage />} />
       <Route path="certificates" element={<CertificatesPage />} />
       <Route path="visitors" element={<VisitorsPage />} />
+      <Route path="student-enquiry" element={<StudentEnquiryPage />} />
       <Route path="backup" element={<PrincipalBackup />} />
       <Route path="students/:studentId" element={<StudentDetail />} />
       <Route path="teachers" element={<TeacherManagement />} />

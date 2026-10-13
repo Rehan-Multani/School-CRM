@@ -17,6 +17,7 @@ import {
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useSchoolAdminAuth } from '../../context/SchoolAdminAuthContext';
 import { schoolPortalApi, schoolSubscriptionApi } from '../../../../shared/api/client';
+import BillingHistory from './BillingHistory';
 
 function loadRazorpayScript() {
   return new Promise((resolve) => {
@@ -53,7 +54,7 @@ function formatDate(value) {
 // Active Plan Details Card (User's required simple view)
 // Only shows: Plan name/price, Started date (kb liya), End date (kab tak chalega), Cancel button
 // ============================================================================
-function ActivePlanCard({
+export function ActivePlanCard({
   planName,
   price,
   planType,
@@ -61,14 +62,18 @@ function ActivePlanCard({
   endsAt,
   daysRemaining,
   cancelAtPeriodEnd,
+  studentLimit,
   isCancelled,
+  phase = 'active',
+  lapseDeadline,
   onCancel,
   cancelling,
 }) {
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const ended = phase === 'renewing' || phase === 'past_due' || phase === 'expired';
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="w-full">
       <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
         {/* Decorative subtle ambient blur */}
         <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-indigo-500/10 blur-3xl dark:bg-indigo-500/5" />
@@ -76,7 +81,22 @@ function ActivePlanCard({
         {/* Plan Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-6 dark:border-slate-800">
           <div>
-            {isCancelled ? (
+            {phase === 'expired' ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-rose-600" />
+                Subscription Expired
+              </span>
+            ) : phase === 'past_due' ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-300">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
+                Payment Overdue
+              </span>
+            ) : phase === 'renewing' ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700 dark:border-sky-900/40 dark:bg-sky-950/20 dark:text-sky-300">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-sky-500" />
+                Renewal Processing
+              </span>
+            ) : isCancelled ? (
               <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700 dark:border-rose-900/40 dark:bg-slate-900/10 dark:text-rose-400">
                 <span className="h-1.5 w-1.5 rounded-full bg-indigo-600" />
                 Cancelled Subscription
@@ -90,16 +110,19 @@ function ActivePlanCard({
             <h2 className="mt-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white sm:text-3xl">
               {planName}
             </h2>
-            <p className="mt-1 text-sm font-semibold text-slate-500 dark:text-slate-400">
-              {formatInr(price)} / {planType?.toLowerCase() || 'month'}
-            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">{formatInr(price)}</div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+              per {planType?.toLowerCase() === 'yearly' ? 'year' : planType?.toLowerCase() === 'weekly' ? 'week' : 'month'}
+            </div>
           </div>
         </div>
 
         {/* 2 Core Details:
             1. Plan Started On
             2. Valid Until */}
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {/* 1. Plan Started On */}
           <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-5 dark:border-slate-800 dark:bg-slate-950/40">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
@@ -120,7 +143,7 @@ function ActivePlanCard({
               <div className="rounded-lg bg-emerald-50 p-1.5 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
                 <Clock className="h-4 w-4" />
               </div>
-              {isCancelled && (!daysRemaining || daysRemaining === 0) ? 'Ended On' : 'Valid Until'}
+              {ended || (isCancelled && (!daysRemaining || daysRemaining === 0)) ? 'Period Ended On' : 'Valid Until'}
             </div>
             <p className="mt-3 text-lg font-black text-slate-900 dark:text-white">
               {formatDate(endsAt)}
@@ -129,16 +152,59 @@ function ActivePlanCard({
               <p className={`mt-0.5 text-xs font-semibold ${isCancelled ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                 {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining
               </p>
-            ) : isCancelled ? (
+            ) : phase === 'renewing' ? (
+              <p className="mt-0.5 text-xs font-semibold text-sky-600 dark:text-sky-400">
+                Renewal payment pending
+              </p>
+            ) : isCancelled || ended ? (
               <p className="mt-0.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
                 Subscription ended
               </p>
             ) : null}
           </div>
+
+          {/* 3. Student seats of the plan */}
+          <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-5 dark:border-slate-800 dark:bg-slate-950/40">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400">
+              <div className="rounded-lg bg-violet-50 p-1.5 text-violet-600 dark:bg-violet-950/50 dark:text-violet-400">
+                <Users className="h-4 w-4" />
+              </div>
+              Students Allowed
+            </div>
+            <p className="mt-3 text-lg font-black text-slate-900 dark:text-white">
+              {studentLimit ? `Up to ${Number(studentLimit).toLocaleString('en-IN')}` : 'Unlimited'}
+            </p>
+            <p className="mt-0.5 text-xs text-slate-400">Active students on this plan</p>
+          </div>
         </div>
 
+        {/* Renewal notices: the paid period is over and no payment was received */}
+        {phase === 'renewing' && (
+          <div className="mt-6 rounded-2xl border border-sky-200 bg-sky-50/80 p-4 text-xs font-semibold text-sky-800 dark:border-sky-900/40 dark:bg-sky-950/20 dark:text-sky-300">
+            Your plan period ended on <strong>{formatDate(endsAt)}</strong>. Auto-renewal is being processed with your
+            payment method - this page updates once the payment is confirmed. If it is not received within a day, your
+            portal access will be closed until a plan is purchased.
+          </div>
+        )}
+        {phase === 'past_due' && (
+          <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/90 p-4 text-xs font-semibold text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/20 dark:text-amber-200">
+            Your plan ended on <strong>{formatDate(endsAt)}</strong> and the auto-renewal payment was not received.
+            {lapseDeadline ? (
+              <> Choose a plan below before <strong>{formatDate(lapseDeadline)}</strong> to keep your portal running.</>
+            ) : (
+              <> Choose a plan below to keep your portal running.</>
+            )}
+          </div>
+        )}
+        {phase === 'expired' && (
+          <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50/80 p-4 text-xs font-semibold text-rose-800 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300">
+            Your plan ended on <strong>{formatDate(endsAt)}</strong> and was not renewed. Choose a plan below to restore
+            full access for your school.
+          </div>
+        )}
+
         {/* Cancellation Notice if already scheduled or cancelled */}
-        {isCancelled && (
+        {isCancelled && phase !== 'expired' && (
           <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50/80 p-4 text-xs font-semibold text-rose-800 dark:border-rose-900/40 dark:bg-rose-950/20 dark:text-rose-300">
             {daysRemaining !== undefined && daysRemaining !== null && daysRemaining > 0 ? (
               <>
@@ -153,7 +219,7 @@ function ActivePlanCard({
         )}
 
         {/* Cancel Option (Only shown if subscription is active and not yet cancelled) */}
-        {!isCancelled && (
+        {!isCancelled && phase === 'active' && (
           <div className="mt-8 border-t border-slate-100 pt-6 dark:border-slate-800">
             {!confirmCancel ? (
               <button
@@ -246,16 +312,16 @@ function OnboardingBanner({ user }) {
 // ============================================================================
 // Pricing Card (shown ONLY to schools without a plan during onboarding)
 // ============================================================================
-function InitialPricingCard({ plan, onSelect, selectingId, confirming }) {
+export function InitialPricingCard({ plan, onSelect, selectingId, confirming, isPopular = false, isCurrent = false }) {
   const isSelectingThis = selectingId === plan.id;
-  const isPopular =
-    plan.name?.toLowerCase().includes('growth') ||
-    plan.name?.toLowerCase().includes('popular') ||
-    plan.planType === 'Monthly';
+  // The student count already has its own highlighted line above; do not repeat it as a bullet.
+  const visibleFeatures = (plan.features || []).filter(
+    (f) => !(plan.limits?.students && /^up to [\d,]+ students?$/i.test(String(f).trim())),
+  );
 
   return (
     <div
-      className={`group relative flex flex-col justify-between rounded-3xl border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-xl dark:bg-slate-900 ${
+      className={`group relative flex h-full flex-col justify-between rounded-3xl border bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-xl dark:bg-slate-900 ${
         isPopular
           ? 'border-indigo-400/80 shadow-indigo-500/5 ring-2 ring-indigo-500/20 hover:border-indigo-500 dark:border-indigo-500/40'
           : 'border-slate-200 hover:border-slate-300 dark:border-slate-800 dark:hover:border-slate-700'
@@ -278,8 +344,13 @@ function InitialPricingCard({ plan, onSelect, selectingId, confirming }) {
           </span>
         </div>
 
-        <h3 className="mt-4 text-xl font-black text-slate-900 dark:text-white">
+        <h3 className="mt-4 flex items-center gap-2 text-xl font-black text-slate-900 dark:text-white">
           {plan.name}
+          {isCurrent ? (
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+              Your plan
+            </span>
+          ) : null}
         </h3>
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
           {plan.description || 'Full-featured suite designed for institutional excellence.'}
@@ -294,12 +365,22 @@ function InitialPricingCard({ plan, onSelect, selectingId, confirming }) {
           </span>
         </div>
 
+        {plan.limits?.students ? (
+          <div className="mt-5 flex items-center gap-2 rounded-xl bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300">
+            <Users className="h-4 w-4" />
+            Up to {Number(plan.limits.students).toLocaleString('en-IN')} students
+          </div>
+        ) : null}
+
         <div className="mt-5 space-y-2.5">
           <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
             What&apos;s Included
           </p>
           <ul className="space-y-2">
-            {(plan.features || []).map((feature) => (
+            {!visibleFeatures.length ? (
+              <li className="text-xs text-slate-400">All core modules included.</li>
+            ) : null}
+            {visibleFeatures.map((feature) => (
               <li key={feature} className="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-300">
                 <div className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-100/80 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
                   <Check className="h-2.5 w-2.5 stroke-[3]" />
@@ -487,6 +568,10 @@ export default function SubscriptionPlans() {
         if (recurringSub.cancelAtPeriodEnd && recurringSub.currentPeriodEnd) {
           return new Date(recurringSub.currentPeriodEnd).getTime() > now;
         }
+        // Paid period over and never renewed: access is closed once the deadline passes.
+        if (recurringSub.lapsed && recurringSub.lapseDeadline && new Date(recurringSub.lapseDeadline).getTime() <= now) {
+          return false;
+        }
         return true;
       }
       if (['cancelled', 'expired', 'completed', 'failed'].includes(status)) {
@@ -523,6 +608,27 @@ export default function SubscriptionPlans() {
     }
     return Boolean(cancelAtPeriodEnd);
   }, [recurringSub, subscription, cancelAtPeriodEnd]);
+
+  // What happened to the paid period (Razorpay may still say "active"):
+  //   renewing -> period just ended, the auto-renewal charge is still being processed
+  //   past_due -> renewal never arrived; access ends at lapseDeadline
+  //   expired  -> access closed, a plan has to be bought again
+  const isExpiredSub = useMemo(() => {
+    if (!recurringSub || isCancelled) return false;
+    if (recurringSub.status === 'expired') return true;
+    return Boolean(
+      recurringSub.lapsed && recurringSub.lapseDeadline && new Date(recurringSub.lapseDeadline).getTime() <= Date.now(),
+    );
+  }, [recurringSub, isCancelled]);
+
+  const phase = useMemo(() => {
+    if (isCancelled) return 'cancelled';
+    if (isExpiredSub) return 'expired';
+    if (recurringSub?.lapsed) return 'past_due';
+    const end = recurringSub?.currentPeriodEnd ? new Date(recurringSub.currentPeriodEnd).getTime() : null;
+    if (end !== null && end < Date.now() && ['active', 'authenticated'].includes(recurringSub?.status)) return 'renewing';
+    return 'active';
+  }, [recurringSub, isCancelled, isExpiredSub]);
 
   // Active plan details
   const activePlanName =
@@ -565,13 +671,35 @@ export default function SubscriptionPlans() {
 
   const hasSubscriptionHistory = Boolean(recurringSub || subscription || user?.subscriptionPlan);
 
+  const popularPlanId = plans.find((p) => /growth|popular/i.test(p.name || ''))?.id || null;
+  const currentPlanId = recurringSub?.planId || recurringSub?.plan?.id || null;
+  const planGrid = (
+    <div className="grid grid-cols-1 items-stretch gap-6 pt-3 sm:grid-cols-2 xl:grid-cols-3">
+      {plans.map((plan) => (
+        <InitialPricingCard
+          key={plan.id}
+          plan={plan}
+          onSelect={handleSelect}
+          selectingId={selectingId}
+          confirming={confirming}
+          isPopular={plan.id === popularPlanId}
+          isCurrent={plan.id === currentPlanId}
+        />
+      ))}
+    </div>
+  );
+
   return (
-    <div className="space-y-6 pb-12">
+    <div className="mx-auto w-full max-w-6xl space-y-6 pb-12">
       {/* Header */}
       <PageHeader
-        title={isCancelled ? 'School Subscription' : (isPlanActive ? 'School Subscription' : 'Choose an Institution Plan')}
+        title={isCancelled || isExpiredSub ? 'School Subscription' : (isPlanActive ? 'School Subscription' : 'Choose an Institution Plan')}
         subtitle={
-          isCancelled
+          phase === 'expired'
+            ? 'Your subscription has expired. Choose a plan to restore access for your school.'
+            : phase === 'past_due'
+              ? 'Your plan period has ended and the renewal payment was not received.'
+              : isCancelled
             ? `Current subscription status: Cancelled. ${isPlanActive ? `Portal access remains active until ${formatDate(activeEndsAt)}.` : 'Choose a plan to reactivate your portal.'}`
             : (isPlanActive
               ? `Current subscription status and details for ${user?.schoolName || 'your school'}.`
@@ -605,13 +733,11 @@ export default function SubscriptionPlans() {
       )}
 
       {loading ? (
-        <div className="mx-auto max-w-2xl animate-pulse space-y-4">
+        <div className="w-full animate-pulse space-y-4">
           <div className="h-64 rounded-3xl border border-slate-200 bg-slate-100 dark:border-slate-800 dark:bg-slate-900" />
         </div>
       ) : isPlanActive ? (
-        /* ===================================================================
-           ACTIVE / PERIOD-END CANCELLED PLAN VIEW
-           =================================================================== */
+        <div className="space-y-8">
         <ActivePlanCard
           planName={activePlanName}
           price={activePrice}
@@ -621,10 +747,28 @@ export default function SubscriptionPlans() {
           daysRemaining={activeDaysRemaining}
           cancelAtPeriodEnd={cancelAtPeriodEnd || Boolean(recurringSub?.cancelAtPeriodEnd)}
           isCancelled={isCancelled}
+          phase={phase}
+          studentLimit={recurringSub?.plan?.limits?.students}
+          lapseDeadline={recurringSub?.lapseDeadline}
           onCancel={handleCancelSubscription}
           cancelling={cancelling}
         />
-      ) : isCancelled && hasSubscriptionHistory ? (
+          {phase === 'past_due' || phase === 'renewing' ? (
+            <section className="space-y-4 border-t border-slate-200 pt-6 dark:border-slate-800">
+              <div>
+                <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">
+                  {phase === 'past_due' ? 'Renew your plan' : 'Need to pay now?'}
+                </h3>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  Start a new subscription below. It replaces the unpaid one and no extra charge is made on the old one.
+                </p>
+              </div>
+              {planGrid}
+            </section>
+          ) : null}
+          <BillingHistory refreshKey={String(recurringSub?.updatedAt || '')} />
+        </div>
+      ) : (isCancelled || isExpiredSub) && hasSubscriptionHistory ? (
         /* ===================================================================
            EXPIRED / FULLY CANCELLED PLAN VIEW
            Shows Cancelled Status Card + Plan Options Below to Re-subscribe
@@ -638,7 +782,9 @@ export default function SubscriptionPlans() {
             endsAt={activeEndsAt}
             daysRemaining={0}
             cancelAtPeriodEnd={true}
-            isCancelled={true}
+            isCancelled={!isExpiredSub}
+            phase={isExpiredSub ? 'expired' : 'cancelled'}
+            studentLimit={recurringSub?.plan?.limits?.students}
             onCancel={handleCancelSubscription}
             cancelling={cancelling}
           />
@@ -652,18 +798,10 @@ export default function SubscriptionPlans() {
                 Select any tier below to immediately restore uninterrupted access for your school institution.
               </p>
             </div>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              {plans.map((plan) => (
-                <InitialPricingCard
-                  key={plan.id}
-                  plan={plan}
-                  onSelect={handleSelect}
-                  selectingId={selectingId}
-                  confirming={confirming}
-                />
-              ))}
-            </div>
+            {planGrid}
           </section>
+
+          <BillingHistory refreshKey={String(recurringSub?.updatedAt || '')} />
         </div>
       ) : (
         /* ===================================================================
@@ -676,17 +814,7 @@ export default function SubscriptionPlans() {
             <h3 className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
               Select Your School Plan
             </h3>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              {plans.map((plan) => (
-                <InitialPricingCard
-                  key={plan.id}
-                  plan={plan}
-                  onSelect={handleSelect}
-                  selectingId={selectingId}
-                  confirming={confirming}
-                />
-              ))}
-            </div>
+            {planGrid}
           </section>
         </div>
       )}

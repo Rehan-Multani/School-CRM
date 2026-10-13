@@ -390,6 +390,7 @@ export const platformLegalApi = {
 // the platform logo used by every portal's <BrandLogo>.
 export const platformAppConfigApi = {
   get: () => apiClient.get('/platform/app-config').then((res) => res.data),
+  getDataWarning: () => apiClient.get('/platform/app-config/data-warning').then((res) => res.data),
   update: (payload) => apiClient.put('/platform/app-config', payload).then((res) => res.data),
   uploadLogo: (file) => {
     const fd = new FormData();

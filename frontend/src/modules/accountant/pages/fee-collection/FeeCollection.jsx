@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useToast } from '../../components/ui/Toast';
 import { Badge } from '../../components/ui/Badge';
@@ -21,7 +21,10 @@ const PAYMENT_METHODS = [
 const invoiceBadge = (status) =>
   status === 'PAID' ? 'success' : status === 'PARTIALLY_PAID' ? 'info' : status === 'OVERDUE' ? 'danger' : 'warning';
 
+const newPayKey = () => (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+
 export const FeeCollection = () => {
+  const payKeyRef = useRef(null);
   const { showToast, ToastComponent } = useToast();
   const { user } = useAccountantAuth();
 
@@ -89,6 +92,7 @@ export const FeeCollection = () => {
   );
 
   const startCollect = (invoice) => {
+    payKeyRef.current = null;
     setActiveInvoice(invoice);
     setForm((f) => ({ ...f, amount: String(invoice.balanceAmount || '') }));
   };
@@ -101,15 +105,24 @@ export const FeeCollection = () => {
     if (amount > activeInvoice.balanceAmount)
       return showToast(`Amount exceeds balance (${formatCurrency(activeInvoice.balanceAmount)})`, 'error');
 
+    // One key per payment attempt: a retry (slow network, second click) replays the
+    // first result instead of recording the money twice.
+    if (payKeyRef.current?.invoice !== activeInvoice.id) payKeyRef.current = { invoice: activeInvoice.id, key: newPayKey() };
+
     setSubmitting(true);
     accountantApi
-      .collectPayment(activeInvoice.id, {
-        amount,
-        paymentMethod: form.paymentMethod,
-        paymentReference: form.paymentReference,
-        remarks: form.remarks,
-      })
+      .collectPayment(
+        activeInvoice.id,
+        {
+          amount,
+          paymentMethod: form.paymentMethod,
+          paymentReference: form.paymentReference,
+          remarks: form.remarks,
+        },
+        payKeyRef.current.key,
+      )
       .then((res) => {
+        payKeyRef.current = null;
         const data = res?.data;
         showToast(`Payment recorded — receipt ${data?.receiptNumber}`, 'success');
         setReceipt({

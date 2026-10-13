@@ -10,6 +10,7 @@ import { api } from '../client';
 
 const SP = '/school-portal/principal/safe-pickup';
 const MEET = '/school-portal/principal/meetings';
+const ENQ = '/school-portal/student-enquiries';
 
 export const principalMiscApi = {
   // Dashboard
@@ -27,6 +28,11 @@ export const principalMiscApi = {
   updateMeeting: (id, payload) => api.patch(`${MEET}/${id}`, payload),
   setMeetingStatus: (id, status, minutes) => api.patch(`${MEET}/${id}/status`, { status, minutes }),
   deleteMeeting: (id) => api.delete(`${MEET}/${id}`),
+
+  // Student enquiries (public form submissions). list -> { data: [], stats: { TOTAL, NEW, ... }, pagination }
+  studentEnquiries: (params) => api.get(ENQ, params),
+  updateStudentEnquiry: (id, payload) => api.patch(`${ENQ}/${id}`, payload),
+  studentEnquiryForm: () => api.get(`${ENQ}/form`),
 
   // Reports
   reportsSummary: () => api.get('/school-portal/reports/summary'),

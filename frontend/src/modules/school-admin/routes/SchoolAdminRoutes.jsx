@@ -44,6 +44,7 @@ const EventsManagement = lazy(() => import('../pages/events/EventsManagement').t
 const ReportsHub = lazy(() => import('../pages/reports/ReportsHub').then((m) => ({ default: m.ReportsHub })));
 const BannerManagement = lazy(() => import('../pages/banners/BannerManagement').then((m) => ({ default: m.BannerManagement })));
 const VisitorsPage = lazy(() => import('../pages/visitors/VisitorsPage').then((m) => ({ default: m.VisitorsPage })));
+const StudentEnquiryPage = lazy(() => import('../pages/enquiry/StudentEnquiryPage').then((m) => ({ default: m.StudentEnquiryPage })));
 const CertificatesPage = lazy(() => import('../pages/certificates/CertificatesPage').then((m) => ({ default: m.CertificatesPage })));
 const StudentIdCardsPage = lazy(() => import('../pages/id-cards/StudentIdCardsPage').then((m) => ({ default: m.StudentIdCardsPage })));
 const SchoolBackup = lazy(() => import('../pages/backup/SchoolBackup').then((m) => ({ default: m.SchoolBackup })));
@@ -117,6 +118,7 @@ export const SchoolAdminRoutes = () => {
       <Route path="id-cards" element={<StudentIdCardsPage />} />
       <Route path="certificates" element={<CertificatesPage />} />
       <Route path="visitors" element={<VisitorsPage />} />
+      <Route path="student-enquiry" element={<StudentEnquiryPage />} />
       <Route path="banners" element={<BannerManagement />} />
       <Route path="support" element={<Support />} />
       <Route path="settings" element={<Settings />} />

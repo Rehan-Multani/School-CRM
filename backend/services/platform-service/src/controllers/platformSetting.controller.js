@@ -39,3 +39,13 @@ export async function deletePlatformLogo(req, res, next) {
     next(error);
   }
 }
+
+// Super Admin: the MB threshold for the school dashboards' "clean up data" notice.
+export async function getDataWarning(req, res, next) {
+  try {
+    const dataWarningMb = await platformSettingService.getDataWarningMb();
+    res.json({ success: true, data: { dataWarningMb } });
+  } catch (error) {
+    next(error);
+  }
+}

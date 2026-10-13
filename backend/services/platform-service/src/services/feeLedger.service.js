@@ -198,7 +198,19 @@ export const feeLedgerService = {
         assignmentBefore = { paidAmount: assignment.paidAmount, status: assignment.status };
         assignment.paidAmount = r2((assignment.paidAmount || 0) + amount);
         assignment.updateStatus();
-        await assignment.save();
+        // Optimistic lock: only the request that still sees the old paid amount wins, so
+        // two collections at once cannot both fit under the same due.
+        const { StudentFeeAssignment } = await import('../models/StudentFeeAssignment.js');
+        const swapped = await StudentFeeAssignment.findOneAndUpdate(
+          { _id: assignment._id, paidAmount: assignmentBefore.paidAmount ?? 0 },
+          { $set: { paidAmount: assignment.paidAmount, status: assignment.status } },
+          { new: true },
+        );
+        if (!swapped) {
+          assignment.paidAmount = assignmentBefore.paidAmount;
+          assignment.status = assignmentBefore.status;
+          throw new AppError('This fee was just updated by someone else. Reload and try again.', 409, 'PAYMENT_CONFLICT');
+        }
       }
 
       // 2. FeePayment with a sequential receipt number.
@@ -339,6 +351,23 @@ export const feeLedgerService = {
     const reason = String(p.reason || '').trim();
     if (!reason) throw new AppError('A reason is required', 400);
 
+    // Claim the refund atomically: two requests at once (double click, two staff) must not
+    // both pass the refundable check above and refund the same money twice.
+    const was = payment.refundedAmount || 0;
+    const claimed = await FeePayment.findOneAndUpdate(
+      {
+        _id: payment._id,
+        schoolId: oid(schoolId),
+        status: { $in: ['COMPLETED', 'REFUNDED'] },
+        $or: [{ refundedAmount: was }, ...(was === 0 ? [{ refundedAmount: { $exists: false } }] : [])],
+      },
+      { $inc: { refundedAmount: amount } },
+      { new: false },
+    );
+    if (!claimed) {
+      throw new AppError('This payment was just changed by someone else. Reload and try again.', 409, 'PAYMENT_CONFLICT');
+    }
+    try {
     // Overpaid portion first (it never touched the invoice balance), then the applied portion.
     const fromOverpaid = Math.min(amount, r2(payment.overpaidAmount || 0));
     const fromApplied = r2(amount - fromOverpaid);
@@ -394,5 +423,10 @@ export const feeLedgerService = {
     let invoice = null;
     if (payment.invoiceId) invoice = await this.recomputeInvoice(payment.invoiceId);
     return { payment, refund: { amount, kind, fromOverpaid, fromApplied }, invoice };
+    } catch (error) {
+      // Give the claimed amount back so a failed refund does not leave the payment half-refunded.
+      await FeePayment.updateOne({ _id: payment._id }, { $inc: { refundedAmount: -amount } }).catch(() => {});
+      throw error;
+    }
   },
 };

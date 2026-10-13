@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { usePrincipalAuth } from '../context/PrincipalAuthContext';
 import { useNavigate } from 'react-router-dom';
-import { principalDashboardApi } from '../../../shared/api/client';
+import { principalDashboardApi, principalStudentApi } from '../../../shared/api/client';
+import { DataCareNotice } from '../../../shared/components/DataCareNotice';
 import {
   AlertTriangle,
   ArrowRight,
@@ -109,6 +110,7 @@ export const Dashboard = () => {
 
   return (
     <div className="space-y-8 pb-12">
+      <DataCareNotice fetchNotice={principalStudentApi.dataNotice} />
       {/* Page Welcome & School Profile Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
         <div className="flex items-center gap-4">

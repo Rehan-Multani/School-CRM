@@ -5,7 +5,9 @@ import { schoolSubscriptionRepository } from '../repositories/schoolSubscription
 import { subscriptionRepository } from '../repositories/subscription.repository.js';
 import { razorpaySubscriptionService } from '../services/razorpaySubscription.service.js';
 import { razorpayWebhookService } from '../services/razorpayWebhook.service.js';
-import { GRACE_PERIOD_DAYS } from '../services/schoolSubscription.service.js';
+import { GRACE_PERIOD_DAYS, schoolSubscriptionService } from '../services/schoolSubscription.service.js';
+import { isLapseExpired } from '../utils/subscriptionLapse.js';
+import { RENEWAL_BUFFER_DAYS, LAPSE_GRACE_DAYS } from '../utils/subscriptionLapse.js';
 import { syncSubscriptionFromRazorpay } from '../services/subscriptionSync.service.js';
 import { notificationService } from '../services/notification.service.js';
 import { School } from '../models/School.js';
@@ -164,6 +166,42 @@ export async function runPendingPlanChangeJob() {
 // ---------------------------------------------------------------------------
 // Job 3 — Grace period: once gracePeriodEndsAt has passed for a still-failing
 // subscription, flip to 'expired' (restricts premium access — never deletes data).
+// ---------------------------------------------------------------------------
+export async function runLapsedSubscriptionJob() {
+  await withLock('subscription-lapsed', 15 * 60 * 1000, async () => {
+    const before = new Date(Date.now() - (RENEWAL_BUFFER_DAYS + LAPSE_GRACE_DAYS) * 86400000);
+    const candidates = await schoolSubscriptionRepository.findLapsedCandidates(before);
+    let expired = 0;
+    for (const sub of candidates) {
+      try {
+        // Razorpay may have renewed it and the webhook never arrived: ask first.
+        if (sub.razorpaySubscriptionId && razorpaySubscriptionService.isConfigured()) {
+          await syncSubscriptionFromRazorpay(sub, { performedBy: 'Cron', source: 'cron' }).catch(() => {});
+        }
+        if (!isLapseExpired(sub)) continue;
+        await schoolSubscriptionService.expireLapsed(sub, { performedBy: 'Cron', source: 'cron' });
+        expired += 1;
+        notificationService
+          .send(
+            {
+              title: 'Subscription expired',
+              body: 'Your plan period ended and the renewal payment was not received. Choose a plan to restore access.',
+              audiences: ['school-admin'],
+            },
+            'Billing System',
+            { schoolId: String(sub.schoolId?._id || sub.schoolId) },
+          )
+          .catch((err) => log('lapsed', `notification failed: ${err?.message}`));
+      } catch (error) {
+        log('lapsed', `could not expire ${sub.razorpaySubscriptionId}: ${error?.message}`);
+      }
+    }
+    log('lapsed', `checked ${candidates.length}, expired ${expired}`);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Job 3 — Grace period (see above)
 // ---------------------------------------------------------------------------
 export async function runGracePeriodJob() {
   await withLock('subscription-grace-period', 15 * 60 * 1000, async () => {
