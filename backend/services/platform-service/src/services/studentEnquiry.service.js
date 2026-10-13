@@ -1,10 +1,13 @@
+import crypto from 'crypto';
 import mongoose from 'mongoose';
 import { AppError } from '../../../shared/AppError.js';
 import { sanitizePagination, escapeRegex } from '../../../shared/sanitize.js';
 import { StudentEnquiry, ENQUIRY_STATUSES } from '../models/StudentEnquiry.js';
 import { EnquiryFormConfig } from '../models/EnquiryFormConfig.js';
-import { schoolService } from './school.service.js';
+import { schoolThemeSnapshot } from './school.service.js';
 
+// 24 URL-safe chars (144 bits) — not guessable, not derived from anything.
+const newToken = () => crypto.randomBytes(18).toString('base64url');
 const oid = (v) => new mongoose.Types.ObjectId(String(v));
 const str = (v) => (typeof v === 'string' ? v.trim() : typeof v === 'number' ? String(v) : '');
 const MAX_FIELDS = 25;
@@ -157,21 +160,61 @@ class StudentEnquiryService {
     return publicConfig(doc, schoolId);
   }
 
-  // What the share link needs: the school's public slug (the link is built from it).
+  // The school's public link token, created on first use. Two requests racing to
+  // create it is fine: only the one that finds it empty writes, then both re-read.
+  async ensureToken(schoolId) {
+    let doc = await EnquiryFormConfig.findOneAndUpdate(
+      { schoolId: oid(schoolId) },
+      { $setOnInsert: { schoolId: oid(schoolId) } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+    if (!doc.publicToken) {
+      await EnquiryFormConfig.updateOne(
+        { _id: doc._id, $or: [{ publicToken: { $exists: false } }, { publicToken: null }, { publicToken: '' }] },
+        { $set: { publicToken: newToken() } }
+      );
+      doc = await EnquiryFormConfig.findById(doc._id);
+    }
+    return doc.publicToken;
+  }
+
+  // What the share link needs. The link is built from a random token, not the school's slug.
   async shareInfo(schoolId) {
     const { School } = await import('../models/School.js');
-    const school = await School.findById(oid(schoolId)).select('schoolId name').lean();
+    const school = await School.findById(oid(schoolId)).select('name').lean();
     if (!school) throw new AppError('School not found', 404, 'NOT_FOUND');
-    return { schoolSlug: school.schoolId, schoolName: school.name, path: `/enquiry/${school.schoolId}` };
+    const token = await this.ensureToken(schoolId);
+    return { schoolName: school.name, path: `/enquiry/${token}` };
+  }
+
+  // Issue a new token; every link shared before stops working.
+  async regenerateLink(schoolId) {
+    await this.ensureToken(schoolId);
+    await EnquiryFormConfig.updateOne({ schoolId: oid(schoolId) }, { $set: { publicToken: newToken() } });
+    return this.shareInfo(schoolId);
+  }
+
+  // Token → school. 404 for anything that is not a live token (old slug links included).
+  async resolveToken(token) {
+    const t = str(token);
+    if (!/^[A-Za-z0-9_-]{16,64}$/.test(t)) throw new AppError('This enquiry link is not valid', 404, 'NOT_FOUND');
+    const cfg = await EnquiryFormConfig.findOne({ publicToken: t }).select('schoolId').lean();
+    if (!cfg) throw new AppError('This enquiry link is not valid', 404, 'NOT_FOUND');
+    const { School } = await import('../models/School.js');
+    const school = await School.findById(cfg.schoolId).select('_id name logo settings.primaryColor settings.portalBranding').lean();
+    if (!school) throw new AppError('This enquiry link is not valid', 404, 'NOT_FOUND');
+    return school;
   }
 
   // ---- Public form (no login) ----
-  async publicForm(idOrSlug) {
-    const school = await schoolService.findPublicSchool(idOrSlug, '_id schoolId name');
+  async publicForm(token) {
+    const school = await this.resolveToken(token);
     const cfg = await this.getConfig(school._id);
+    const theme = schoolThemeSnapshot(school);
     return {
-      schoolId: school.schoolId,
       schoolName: school.name,
+      logo: theme.branding.logo,
+      primaryColor: theme.primaryColor,
       enabled: cfg.enabled,
       title: cfg.title,
       intro: cfg.intro,
@@ -179,8 +222,8 @@ class StudentEnquiryService {
     };
   }
 
-  async submit(idOrSlug, answers = {}) {
-    const school = await schoolService.findPublicSchool(idOrSlug, '_id schoolId name');
+  async submit(token, answers = {}) {
+    const school = await this.resolveToken(token);
     const cfg = await this.getConfig(school._id);
     if (!cfg.enabled) throw new AppError('This school is not taking enquiries through this form right now', 403, 'FORM_CLOSED');
     if (!answers || typeof answers !== 'object' || Array.isArray(answers)) {

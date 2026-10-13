@@ -16,6 +16,7 @@ import { PerformanceReview } from '../models/PerformanceReview.js';
 import { deleteUploadedFile } from '../utils/upload.utils.js';
 import { pushEvents } from './pushEvents.service.js';
 import { assertCanAdd, assertCanActivate } from './planLimits.service.js';
+import { assertSingleActivePrincipal } from './user.service.js';
 
 function normalizeTeacher(teacher) {
   const firstName = teacher.firstName || teacher.name?.split(' ')[0] || '';
@@ -585,10 +586,14 @@ class HRService {
     if (status.toUpperCase() === 'ACTIVE') {
       // Becoming ACTIVE takes a seat of the plan.
       const [curStaff, curTeacher] = await Promise.all([
-        SchoolUser.findOne({ schoolId, _id: id }).select('status').lean(),
+        SchoolUser.findOne({ schoolId, _id: id }).select('status role').lean(),
         Teacher.findOne({ schoolId, _id: id }).select('status').lean(),
       ]);
-      if (curStaff) await assertCanActivate(schoolId, 'staff', curStaff.status);
+      if (curStaff) {
+        await assertCanActivate(schoolId, 'staff', curStaff.status);
+        // One active Principal per school.
+        if (curStaff.role === 'PRINCIPAL' && curStaff.status !== 'ACTIVE') await assertSingleActivePrincipal(schoolId, id);
+      }
       else if (curTeacher) await assertCanActivate(schoolId, 'teachers', curTeacher.status);
     }
 

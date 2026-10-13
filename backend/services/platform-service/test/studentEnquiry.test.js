@@ -13,22 +13,54 @@ beforeAll(async () => {
 }, 90000);
 afterAll(disconnect);
 
+// The public link carries a random token (from the staff form endpoint), never the school's slug.
+const tokenOf = async (adminToken) => {
+  const cfg = await request(app).get('/school-portal/student-enquiries/form').set(auth(adminToken));
+  return cfg.body.data.path.replace('/enquiry/', '');
+};
+
 describe('Student enquiry', () => {
+  let token;
+
+  it('link is token-based: the school slug no longer opens the form, public data hides the slug', async () => {
+    token = await tokenOf(ctx.a.adminToken);
+    expect(token).toMatch(/^[A-Za-z0-9_-]{16,}$/);
+    expect(token).not.toBe(ctx.a.schoolId);
+    expect(await tokenOf(ctx.a.adminToken)).toBe(token); // stable between calls
+
+    const bySlug = await request(app).get(`/student-enquiry/${ctx.a.schoolId}`);
+    expect(bySlug.status).toBe(404);
+    const pub = await request(app).get(`/student-enquiry/${token}`);
+    expect(pub.status).toBe(200);
+    expect(pub.body.data.schoolId).toBeUndefined();
+    expect(pub.body.data.schoolName).toBeTruthy();
+  });
+
+  it('regenerating the link disables the old one', async () => {
+    const res = await request(app).post('/school-portal/student-enquiries/form/regenerate-link').set(auth(ctx.a.adminToken));
+    expect(res.status).toBe(200);
+    const fresh = res.body.data.path.replace('/enquiry/', '');
+    expect(fresh).not.toBe(token);
+    expect((await request(app).get(`/student-enquiry/${token}`)).status).toBe(404);
+    expect((await request(app).get(`/student-enquiry/${fresh}`)).status).toBe(200);
+    token = fresh;
+  });
+
   it('public form → submit → staff list/update/delete, tenant isolated', async () => {
-    const form = await request(app).get(`/student-enquiry/${ctx.a.schoolId}`);
+    const form = await request(app).get(`/student-enquiry/${token}`);
     expect(form.status).toBe(200);
     expect(form.body.data.enabled).toBe(true);
     expect(form.body.data.fields.map((f) => f.key)).toEqual(expect.arrayContaining(['studentName', 'mobile']));
 
-    const bad = await request(app).post(`/student-enquiry/${ctx.a.schoolId}`).send({ answers: { studentName: 'Aarav' } });
+    const bad = await request(app).post(`/student-enquiry/${token}`).send({ answers: { studentName: 'Aarav' } });
     expect(bad.status).toBe(400);
 
     const ok = await request(app)
-      .post(`/student-enquiry/${ctx.a.schoolId}`)
+      .post(`/student-enquiry/${token}`)
       .send({ answers: { studentName: 'Aarav', parentName: 'Ravi', mobile: '9876543210', classApplying: 'Class 3', message: 'Fees?' } });
     expect(ok.status).toBe(201);
 
-    const bot = await request(app).post(`/student-enquiry/${ctx.a.schoolId}`).send({ website: 'spam.com', answers: {} });
+    const bot = await request(app).post(`/student-enquiry/${token}`).send({ website: 'spam.com', answers: {} });
     expect(bot.status).toBe(201);
 
     const list = await request(app).get('/school-portal/student-enquiries').set(auth(ctx.a.adminToken));
@@ -60,19 +92,19 @@ describe('Student enquiry', () => {
     const custom = save.body.data.fields.find((f) => f.label === 'Transport needed?');
     expect(custom.key).toMatch(/^c_/);
 
-    const pub = await request(app).get(`/student-enquiry/${ctx.a.schoolId}`);
+    const pub = await request(app).get(`/student-enquiry/${token}`);
     expect(pub.body.data.title).toBe('Join Us');
     expect(pub.body.data.fields.find((f) => f.key === 'parentName')).toBeUndefined();
 
-    const missing = await request(app).post(`/student-enquiry/${ctx.a.schoolId}`).send({ answers: { studentName: 'A', mobile: '9876543210' } });
+    const missing = await request(app).post(`/student-enquiry/${token}`).send({ answers: { studentName: 'A', mobile: '9876543210' } });
     expect(missing.status).toBe(400);
-    const wrong = await request(app).post(`/student-enquiry/${ctx.a.schoolId}`).send({ answers: { studentName: 'A', mobile: '9876543210', [custom.key]: 'Maybe' } });
+    const wrong = await request(app).post(`/student-enquiry/${token}`).send({ answers: { studentName: 'A', mobile: '9876543210', [custom.key]: 'Maybe' } });
     expect(wrong.status).toBe(400);
-    const good = await request(app).post(`/student-enquiry/${ctx.a.schoolId}`).send({ answers: { studentName: 'A', mobile: '9876543210', [custom.key]: 'Yes' } });
+    const good = await request(app).post(`/student-enquiry/${token}`).send({ answers: { studentName: 'A', mobile: '9876543210', [custom.key]: 'Yes' } });
     expect(good.status).toBe(201);
 
     await request(app).put('/school-portal/student-enquiries/form').set(auth(ctx.a.adminToken)).send({ enabled: false });
-    const closed = await request(app).post(`/student-enquiry/${ctx.a.schoolId}`).send({ answers: { studentName: 'A', mobile: '9876543210', [custom.key]: 'Yes' } });
+    const closed = await request(app).post(`/student-enquiry/${token}`).send({ answers: { studentName: 'A', mobile: '9876543210', [custom.key]: 'Yes' } });
     expect(closed.status).toBe(403);
   });
 });

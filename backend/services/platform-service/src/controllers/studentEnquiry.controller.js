@@ -44,9 +44,16 @@ export const saveEnquiryForm = wrap(async (req, res) => {
   sendSuccess(res, config, 'Enquiry form saved');
 });
 
+export const regenerateEnquiryLink = wrap(async (req, res) => {
+  const data = await studentEnquiryService.regenerateLink(schoolId(req));
+  audit(req, 'ENQUIRY_LINK_REGENERATED', '', 'Student enquiry form link regenerated (old link disabled)');
+  sendSuccess(res, data, 'New enquiry link created');
+});
+
 // Public (no login): the parent opens the school's link, fills the form, submits.
+// `:token` is the random link token, never the school's slug or id.
 export const publicEnquiryForm = wrap(async (req, res) => {
-  const data = await studentEnquiryService.publicForm(req.params.schoolId);
+  const data = await studentEnquiryService.publicForm(req.params.token);
   sendSuccess(res, data);
 });
 
@@ -55,6 +62,6 @@ export const submitPublicEnquiry = wrap(async (req, res) => {
   if (req.body && typeof req.body.website === 'string' && req.body.website.trim()) {
     return sendSuccess(res, { message: 'Thank you! Your enquiry has been received.' }, 'Submitted', 201);
   }
-  const data = await studentEnquiryService.submit(req.params.schoolId, req.body?.answers);
+  const data = await studentEnquiryService.submit(req.params.token, req.body?.answers);
   sendSuccess(res, data, 'Submitted', 201);
 });

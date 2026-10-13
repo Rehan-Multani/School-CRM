@@ -926,11 +926,16 @@ export const UserManagement = () => {
                   className={inputClass}
                   required
                 >
-                  {ROLES.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.label}
-                    </option>
-                  ))}
+                  {ROLES.map((r) => {
+                    // One active Principal per school (enforced by the API too).
+                    const principalTaken = r.id === 'PRINCIPAL' && !!stats.activePrincipalId
+                      && stats.activePrincipalId !== editingUser?.id;
+                    return (
+                      <option key={r.id} value={r.id} disabled={principalTaken}>
+                        {r.label}{principalTaken ? ' (already assigned)' : ''}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 

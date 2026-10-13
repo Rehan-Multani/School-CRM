@@ -32,6 +32,31 @@ function parseDate(value) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
+export const PRINCIPAL_EXISTS = 'PRINCIPAL_EXISTS';
+
+// One ACTIVE Principal per school. Called wherever a staff record becomes an
+// active Principal (create, role change, re-activation). `excludeId` is the
+// record being edited, so saving the current Principal is not blocked.
+export async function assertSingleActivePrincipal(schoolId, excludeId = null) {
+  const existing = await userRepository.findActivePrincipal(schoolId, excludeId);
+  if (existing) {
+    throw new AppError(
+      `This school already has an active Principal (${existing.name}). Make that account inactive or change its role before adding another.`,
+      409,
+      PRINCIPAL_EXISTS
+    );
+  }
+}
+
+// Two requests can both pass the check above; the partial unique index on the
+// model then rejects the second one — report it like the check does.
+function rethrowPrincipalDuplicate(error) {
+  if (error?.code === 11000 && /role/.test(JSON.stringify(error.keyPattern || {}))) {
+    throw new AppError('This school already has an active Principal.', 409, PRINCIPAL_EXISTS);
+  }
+  throw error;
+}
+
 class UserService {
   async listUsers(schoolId, query = {}) {
     const result = await userRepository.listUsers(schoolId, query);
@@ -81,6 +106,13 @@ class UserService {
       throw new AppError(`Employee ID "${employeeId}" is already assigned to another user`, 409);
     }
 
+    const status = payload.status && VALID_STATUSES.includes(payload.status.toUpperCase())
+      ? payload.status.toUpperCase()
+      : 'ACTIVE';
+    if (role === 'PRINCIPAL' && status === 'ACTIVE') {
+      await assertSingleActivePrincipal(schoolId);
+    }
+
     const dateOfBirth = requireBirthDate(payload.dateOfBirth);
     const passwordHash = await bcrypt.hash(rawPassword, 10);
     const fullName = `${firstName} ${lastName}`.trim();
@@ -100,33 +132,36 @@ class UserService {
     // Documents (max 3 images)
     const docs = Array.isArray(files.documents) ? files.documents.slice(0, 3) : [];
 
-    const created = await userRepository.createUser({
-      schoolId,
-      employeeId,
-      firstName,
-      lastName,
-      name: fullName,
-      email,
-      passwordHash,
-      role,
-      phone: optionalText(payload.phone || payload.mobileNumber),
-      dateOfBirth,
-      gender: payload.gender && VALID_GENDERS.includes(payload.gender.toUpperCase())
-        ? payload.gender.toUpperCase()
-        : 'MALE',
-      specialization: optionalText(payload.specialization),
-      joiningDate: parseDate(payload.joiningDate) || new Date(),
-      leavingDate: parseDate(payload.leavingDate),
-      department: optionalText(payload.department),
-      designation: optionalText(payload.designation) || role,
-      basicSalary: Number(payload.basicSalary) || 0,
-      bankDetails,
-      documents: docs,
-      photo: files.photo || '',
-      status: payload.status && VALID_STATUSES.includes(payload.status.toUpperCase())
-        ? payload.status.toUpperCase()
-        : 'ACTIVE',
-    });
+    let created;
+    try {
+      created = await userRepository.createUser({
+        schoolId,
+        employeeId,
+        firstName,
+        lastName,
+        name: fullName,
+        email,
+        passwordHash,
+        role,
+        phone: optionalText(payload.phone || payload.mobileNumber),
+        dateOfBirth,
+        gender: payload.gender && VALID_GENDERS.includes(payload.gender.toUpperCase())
+          ? payload.gender.toUpperCase()
+          : 'MALE',
+        specialization: optionalText(payload.specialization),
+        joiningDate: parseDate(payload.joiningDate) || new Date(),
+        leavingDate: parseDate(payload.leavingDate),
+        department: optionalText(payload.department),
+        designation: optionalText(payload.designation) || role,
+        basicSalary: Number(payload.basicSalary) || 0,
+        bankDetails,
+        documents: docs,
+        photo: files.photo || '',
+        status,
+      });
+    } catch (error) {
+      rethrowPrincipalDuplicate(error);
+    }
 
     return created.toPublicJSON();
   }
@@ -235,7 +270,19 @@ class UserService {
       updates.status = ensureOption(payload.status, VALID_STATUSES, 'Status');
     }
 
-    const updated = await userRepository.updateUser(schoolId, id, updates);
+    // The record ends up an active Principal: make sure it is the only one.
+    const nextRole = updates.role || user.role;
+    const nextStatus = updates.status || user.status;
+    const becomesActivePrincipal = nextRole === 'PRINCIPAL' && nextStatus === 'ACTIVE'
+      && (user.role !== 'PRINCIPAL' || user.status !== 'ACTIVE');
+    if (becomesActivePrincipal) await assertSingleActivePrincipal(schoolId, id);
+
+    let updated;
+    try {
+      updated = await userRepository.updateUser(schoolId, id, updates);
+    } catch (error) {
+      rethrowPrincipalDuplicate(error);
+    }
     return updated.toPublicJSON();
   }
 
@@ -243,9 +290,17 @@ class UserService {
     const validStatus = ensureOption(status, VALID_STATUSES, 'Status');
     const user = await userRepository.findUserById(schoolId, id);
     if (!user) throw new AppError('User not found', 404);
-    if (validStatus === 'ACTIVE') await assertCanActivate(schoolId, 'staff', user.status);
+    if (validStatus === 'ACTIVE') {
+      await assertCanActivate(schoolId, 'staff', user.status);
+      if (user.role === 'PRINCIPAL' && user.status !== 'ACTIVE') await assertSingleActivePrincipal(schoolId, id);
+    }
 
-    const updated = await userRepository.updateUser(schoolId, id, { status: validStatus });
+    let updated;
+    try {
+      updated = await userRepository.updateUser(schoolId, id, { status: validStatus });
+    } catch (error) {
+      rethrowPrincipalDuplicate(error);
+    }
     return updated.toPublicJSON();
   }
 

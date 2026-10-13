@@ -132,7 +132,7 @@ function App() {
                                                                          <Route path="/verify-certificate/:code" element={<VerifyCertificatePage />} />
 
                                                                          {/* Public student-enquiry form (a school's shareable link) */}
-                                                                         <Route path="/enquiry/:schoolId" element={<EnquiryFormPage />} />
+                                                                         <Route path="/enquiry/:token" element={<EnquiryFormPage />} />
 
                                                                          {/* Portal picker (staff sign in) */}
                                                                          <Route path="/login" element={<PortalPickerPage />} />

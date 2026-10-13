@@ -109,6 +109,12 @@ const schoolUserSchema = new mongoose.Schema(
 schoolUserSchema.index({ schoolId: 1, email: 1 }, { unique: true });
 schoolUserSchema.index({ schoolId: 1, employeeId: 1 }, { unique: true });
 schoolUserSchema.index({ schoolId: 1, role: 1 });
+// One ACTIVE Principal per school — the hard guarantee behind the check in
+// user.service (two simultaneous requests can both pass a pre-check).
+schoolUserSchema.index(
+  { schoolId: 1 },
+  { unique: true, partialFilterExpression: { role: 'PRINCIPAL', status: 'ACTIVE' }, name: 'one_active_principal_per_school' }
+);
 
 schoolUserSchema.pre('save', function bumpTokenVersionOnPasswordChange() {
   if (!this.isNew && this.isModified('passwordHash')) {

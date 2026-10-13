@@ -526,7 +526,7 @@ import { requireSchoolAdmin } from '../middleware/requireSchoolAdmin.js';
 import { requireLibrarian } from '../middleware/requireLibrarian.js';
 import { requireHR } from '../middleware/requireHR.js';
 import { listVisitors, createVisitor, updateVisitor, deleteVisitor } from '../controllers/visitor.controller.js';
-import { listEnquiries, updateEnquiry, deleteEnquiry, getEnquiryForm, saveEnquiryForm, publicEnquiryForm, submitPublicEnquiry } from '../controllers/studentEnquiry.controller.js';
+import { listEnquiries, updateEnquiry, deleteEnquiry, getEnquiryForm, saveEnquiryForm, regenerateEnquiryLink, publicEnquiryForm, submitPublicEnquiry } from '../controllers/studentEnquiry.controller.js';
 import { idCardOptions, idCardStudents, saveIdCardDesign } from '../controllers/idCard.controller.js';
 import {
   certificateOptions, listTemplates, createTemplate, updateTemplate, deleteTemplate,
@@ -702,8 +702,8 @@ router.get('/school-theme/:schoolId/logo', schoolLogoPublic);
 router.get('/school-theme/:schoolId/banners', publicBanners);
 router.get('/school-theme/:schoolId/banners/:bannerId/image', publicBannerImage);
 // Student enquiry: the school's public form (no login). Staff side is under /school-portal/student-enquiries.
-router.get('/student-enquiry/:schoolId', publicEnquiryForm);
-router.post('/student-enquiry/:schoolId', studentEnquirySubmitLimiter, submitPublicEnquiry);
+router.get('/student-enquiry/:token', publicEnquiryForm);
+router.post('/student-enquiry/:token', studentEnquirySubmitLimiter, submitPublicEnquiry);
 router.post('/school-auth/login', loginRateLimiter, schoolAdminLogin);
 // Redeems the one-time code from "Login as school" (Super Admin → Schools).
 router.post('/school-auth/login-as', loginRateLimiter, schoolAdminLoginAs);
@@ -1194,6 +1194,7 @@ router.delete('/school-portal/visitors/:id', requireHR, validateObjectId('id'), 
 router.get('/school-portal/student-enquiries', requireHR, listEnquiries);
 router.get('/school-portal/student-enquiries/form', requireHR, getEnquiryForm);
 router.put('/school-portal/student-enquiries/form', requireHR, saveEnquiryForm);
+router.post('/school-portal/student-enquiries/form/regenerate-link', requireHR, regenerateEnquiryLink);
 router.patch('/school-portal/student-enquiries/:id', requireHR, validateObjectId('id'), updateEnquiry);
 router.delete('/school-portal/student-enquiries/:id', requireHR, validateObjectId('id'), deleteEnquiry);
 

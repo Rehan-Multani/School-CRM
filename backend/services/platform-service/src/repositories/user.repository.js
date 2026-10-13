@@ -24,6 +24,14 @@ class UserRepository {
     });
   }
 
+  // The school's active Principal (if any), optionally ignoring one user (the
+  // one being edited).
+  async findActivePrincipal(schoolId, excludeId = null) {
+    const filter = { schoolId, role: 'PRINCIPAL', status: 'ACTIVE' };
+    if (excludeId) filter._id = { $ne: excludeId };
+    return SchoolUser.findOne(filter).select('_id name');
+  }
+
   async listUsers(schoolId, query = {}) {
     const filter = { schoolId };
 
@@ -63,13 +71,14 @@ class UserRepository {
     ]);
 
     // Summary counts
-    const [activeCount, inactiveCount, roleCounts] = await Promise.all([
+    const [activeCount, inactiveCount, roleCounts, activePrincipal] = await Promise.all([
       SchoolUser.countDocuments({ schoolId, status: 'ACTIVE' }),
       SchoolUser.countDocuments({ schoolId, status: 'INACTIVE' }),
       SchoolUser.aggregate([
         { $match: { schoolId } },
         { $group: { _id: '$role', count: { $sum: 1 } } },
       ]),
+      this.findActivePrincipal(schoolId),
     ]);
 
     const roleStats = {
@@ -94,6 +103,8 @@ class UserRepository {
         total: activeCount + inactiveCount,
         active: activeCount,
         inactive: inactiveCount,
+        // Lets the staff form disable the Principal option (one active Principal per school).
+        activePrincipalId: activePrincipal ? activePrincipal._id.toString() : null,
         ...roleStats,
       },
     };

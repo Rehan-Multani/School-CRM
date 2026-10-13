@@ -18,6 +18,9 @@ const fieldSchema = new mongoose.Schema(
 const enquiryFormConfigSchema = new mongoose.Schema(
   {
     schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true, unique: true },
+    // Random, unguessable id that the public link is built from (/enquiry/<token>).
+    // The school's own slug is never part of the link. Regenerating it kills the old link.
+    publicToken: { type: String, trim: true, unique: true, sparse: true },
     enabled: { type: Boolean, default: true },
     title: { type: String, default: 'Student Enquiry', trim: true, maxlength: 120 },
     intro: { type: String, default: '', trim: true, maxlength: 500 },

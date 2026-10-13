@@ -1038,6 +1038,7 @@ const studentEnquiryApi = (client) => {
     remove: (id) => client.delete(`${base}/${id}`).then((r) => r.data),
     getForm: () => client.get(`${base}/form`).then((r) => r.data),
     saveForm: (payload) => client.put(`${base}/form`, payload).then((r) => r.data),
+    regenerateLink: () => client.post(`${base}/form/regenerate-link`).then((r) => r.data),
   };
 };
 export const schoolAdminStudentEnquiryApi = studentEnquiryApi(schoolAdminClient);

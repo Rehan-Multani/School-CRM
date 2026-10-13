@@ -39,9 +39,19 @@ const TYPES = [
   ['phone', 'Phone'],
 ];
 
-function ShareCard({ path, enabled }) {
+function ShareCard({ path, enabled, onRegenerate }) {
   const [copied, setCopied] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
   if (!path) return null;
+  const regenerate = async () => {
+    if (!window.confirm('Create a new link? The current link will stop working immediately, so share the new one again.')) return;
+    setRegenerating(true);
+    try {
+      await onRegenerate();
+    } finally {
+      setRegenerating(false);
+    }
+  };
   const link = `${window.location.origin}${path}`;
   const copy = async () => {
     try {
@@ -86,7 +96,14 @@ function ShareCard({ path, enabled }) {
           <ExternalLink className="h-4 w-4" /> Open
         </a>
       </div>
-      <p className="mt-2 text-xs text-slate-500">Share this link with parents (WhatsApp, SMS, website). Submissions appear in the list below.</p>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs text-slate-500">Share this link with parents (WhatsApp, SMS, website). Submissions appear in the list below.</p>
+        {onRegenerate ? (
+          <button type="button" className="text-xs font-bold text-slate-500 underline-offset-2 hover:text-rose-600 hover:underline disabled:opacity-50" onClick={regenerate} disabled={regenerating}>
+            {regenerating ? 'Creating…' : 'Create new link'}
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -446,7 +463,20 @@ export default function StudentEnquiryManager({ api }) {
       </div>
 
       {error ? <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</div> : null}
-      {config ? <ShareCard path={config.path} enabled={config.enabled} /> : null}
+      {config ? (
+        <ShareCard
+          path={config.path}
+          enabled={config.enabled}
+          onRegenerate={async () => {
+            try {
+              const res = await api.regenerateLink();
+              setConfig((old) => ({ ...old, ...res.data }));
+            } catch (err) {
+              setError(errText(err, 'Could not create a new link'));
+            }
+          }}
+        />
+      ) : null}
 
       <div className="flex gap-2 border-b border-slate-200 dark:border-slate-800">
         {[['list', 'Enquiries'], ['form', 'Form settings']].map(([key, label]) => (
