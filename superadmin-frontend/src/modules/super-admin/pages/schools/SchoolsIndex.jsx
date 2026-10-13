@@ -14,6 +14,7 @@ import {
 import { useSuperAdminNotifications } from '../../context/SuperAdminNotificationContext';
 import { platformSchoolApi, platformSubscriptionApi, platformBoardApi } from '../../../../shared/api/client';
 import schoolLogo from '../../../../assets/School_logo.png';
+import { imageFileToWebpDataUrl } from '../../../../shared/lib/imageToWebp';
 import {
   Plus,
   Search,
@@ -512,15 +513,16 @@ export default function SchoolsIndex() {
       return;
     }
 
-    if (file.size > MAX_LOGO_SIZE) {
-      addNotification('error', 'Logo image must be 2MB or smaller.');
+    if (file.size > 12 * 1024 * 1024) {
+      addNotification('error', 'Please choose an image under 12MB.');
       event.target.value = '';
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => updateForm('logo', String(reader.result));
-    reader.readAsDataURL(file);
+    // Scaled down and converted to WebP here, so the request stays small.
+    imageFileToWebpDataUrl(file, { maxSize: 512 })
+      .then((dataUrl) => updateForm('logo', dataUrl))
+      .catch(() => addNotification('error', 'Unable to read this image. Please try another file.'));
   };
 
   const handleRemoveLogo = () => {

@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 import sharp from 'sharp';
-import { brandAssetVersion, parseImageDataUri } from '../utils/brandAsset.utils.js';
+import { brandAssetVersion, parseImageDataUri, toWebpDataUri } from '../utils/brandAsset.utils.js';
 import { AppError } from '../../../shared/AppError.js';
 import { signAccessToken } from '../../../shared/generateToken.js';
 import { env } from '../config/env.js';
@@ -944,10 +944,10 @@ export class SchoolService {
     const $set = {};
 
     if (payload.logo !== undefined) {
-      $set['settings.portalBranding.logo'] = normalizeBrandAsset(payload.logo, 'Logo');
+      $set['settings.portalBranding.logo'] = await toWebpDataUri(normalizeBrandAsset(payload.logo, 'Logo'), 512);
     }
     if (payload.favicon !== undefined) {
-      $set['settings.portalBranding.favicon'] = normalizeBrandAsset(payload.favicon, 'Favicon');
+      $set['settings.portalBranding.favicon'] = await toWebpDataUri(normalizeBrandAsset(payload.favicon, 'Favicon'), 128);
     }
 
     if (!Object.keys($set).length) {

@@ -2,7 +2,7 @@
   "expo": {
     "name": "School CRM",
     "slug": "school-crm",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -21,7 +21,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "package": "com.schoolcrm.app",
-      "versionCode": 4,
+      "versionCode": 5,
       "permissions": [
         "android.permission.INTERNET",
         "android.permission.ACCESS_NETWORK_STATE",

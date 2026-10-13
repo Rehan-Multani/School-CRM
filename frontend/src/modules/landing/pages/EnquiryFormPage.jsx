@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { CheckCircle2, ShieldAlert, Loader2, Lock, GraduationCap, Send } from 'lucide-react';
+import { CheckCircle2, ShieldAlert, Loader2, Lock, Send } from 'lucide-react';
 import { publicSchoolEnquiryApi } from '../../../shared/api/client';
+import BrandLogo from '../../../shared/ui/BrandLogo';
 
 const INPUT_TYPE = { phone: 'tel', email: 'email', number: 'number', date: 'date' };
 const HEX_RE = /^#[0-9a-fA-F]{6}$/;
@@ -13,12 +14,42 @@ const inputClass =
 // The school's primary colour, or the platform default when it is not a plain #RRGGBB.
 const brandOrDefault = (c) => (HEX_RE.test(c || '') ? c : '#4F46E5');
 
+// Hint text for the built-in fields; a custom field falls back to its type / label.
+const PLACEHOLDERS = {
+  studentName: 'e.g. Aarav Sharma',
+  parentName: 'e.g. Rakesh Sharma',
+  mobile: '10-digit mobile number',
+  email: 'name@example.com',
+  classApplying: 'e.g. Class 5',
+  message: 'Write your question or message here',
+};
+
+function placeholderFor(field) {
+  if (PLACEHOLDERS[field.key]) return PLACEHOLDERS[field.key];
+  const label = String(field.label || '').replace(/\s*[*?]\s*$/, '').trim().toLowerCase();
+  switch (field.type) {
+    case 'phone':
+      return '10-digit mobile number';
+    case 'email':
+      return 'name@example.com';
+    case 'textarea':
+      return label ? `Write ${label} here` : 'Write here';
+    case 'number':
+      return label ? `Enter ${label}` : 'Enter a number';
+    case 'date':
+      return undefined;
+    default:
+      return label ? `Enter ${label}` : undefined;
+  }
+}
+
+// The school's own logo; the platform's default logo when it has none (or it fails to load).
 function SchoolMark({ logo, name }) {
   const [broken, setBroken] = useState(false);
   if (logo && !broken) {
     return <img src={logo} alt={name} onError={() => setBroken(true)} className="h-full w-full object-contain" />;
   }
-  return <GraduationCap className="h-9 w-9 text-[var(--brand)]" />;
+  return <BrandLogo alt={name || 'School'} className="h-full w-full rounded-none" />;
 }
 
 /** Public page behind a school's enquiry link (the link carries a random token, not the school's id). */
@@ -142,10 +173,10 @@ export const EnquiryFormPage = () => {
                       {f.required ? <span className="text-rose-500"> *</span> : null}
                     </label>
                     {f.type === 'textarea' ? (
-                      <textarea id={`f-${f.key}`} className={`${inputClass} h-28 resize-none`} value={answers[f.key] || ''} onChange={set(f.key)} maxLength={1000} />
+                      <textarea id={`f-${f.key}`} className={`${inputClass} h-28 resize-none`} value={answers[f.key] || ''} onChange={set(f.key)} maxLength={1000} placeholder={placeholderFor(f)} />
                     ) : f.type === 'select' ? (
                       <select id={`f-${f.key}`} className={inputClass} value={answers[f.key] || ''} onChange={set(f.key)}>
-                        <option value="">Select…</option>
+                        <option value="">{f.label ? `Select ${String(f.label).toLowerCase()}` : 'Select…'}</option>
                         {f.options.map((o) => (
                           <option key={o} value={o}>
                             {o}
@@ -162,6 +193,7 @@ export const EnquiryFormPage = () => {
                         value={answers[f.key] || ''}
                         onChange={set(f.key)}
                         maxLength={200}
+                        placeholder={placeholderFor(f)}
                       />
                     )}
                   </div>

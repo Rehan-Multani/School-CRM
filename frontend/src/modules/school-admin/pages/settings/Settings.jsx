@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { SkeletonForm } from '../../components/ui/SkeletonLoader';
 import { AttendanceLocation } from './AttendanceLocation';
+import { imageFileToWebpDataUrl } from '../../../../shared/lib/imageToWebp';
 
 const TABS = [
   { id: 'theme', label: 'Theme' },
@@ -49,6 +50,7 @@ const DEFAULT_TEMPLATE_BODY =
   'Dear {ParentName},\n\nWe have received a tuition fee payment of {Amount} on {Date}. Your receipt number is {ReceiptNo}.\n\nWarm regards,\nSchool Administration';
 
 function apiMessage(error, fallback) {
+  if (error?.response?.status === 413) return 'The image is too large. Please choose a smaller image.';
   return error?.response?.data?.message || error?.message || fallback;
 }
 
@@ -261,13 +263,14 @@ export const Settings = () => {
       showToast('Please choose an image file', 'error');
       return;
     }
-    if (file.size > 2 * 1024 * 1024) {
-      showToast('Please upload an image under 2MB', 'error');
+    if (file.size > 12 * 1024 * 1024) {
+      showToast('Please choose an image under 12MB', 'error');
       return;
     }
 
     try {
-      const dataUrl = await readFileAsDataUrl(file);
+      // Scaled down and converted to WebP here, so the upload stays a few KB.
+      const dataUrl = await imageFileToWebpDataUrl(file, { maxSize: type === 'logo' ? 512 : 128 });
       if (type === 'logo') {
         setBrandingLogo(dataUrl);
       } else {

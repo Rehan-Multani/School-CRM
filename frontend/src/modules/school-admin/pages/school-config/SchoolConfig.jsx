@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import { SkeletonForm } from '../../components/ui/SkeletonLoader';
+import { imageFileToWebpDataUrl } from '../../../../shared/lib/imageToWebp';
 
 const SCHOOL_TYPES = ['Public', 'Private', 'Government', 'Government Aided', 'International', 'Other'];
 const SCHOOL_MEDIA = ['English', 'Hindi', 'English + Hindi', 'Other'];
@@ -220,13 +221,14 @@ export const SchoolConfig = () => {
       showToast('Please choose an image file', 'error');
       return;
     }
-    if (file.size > MAX_LOGO_SIZE) {
-      showToast('Please upload an image under 2MB', 'error');
+    if (file.size > 12 * 1024 * 1024) {
+      showToast('Please choose an image under 12MB', 'error');
       return;
     }
 
     try {
-      const dataUrl = await readFileAsDataUrl(file);
+      // Scaled down and converted to WebP in the browser (a few KB instead of MBs).
+      const dataUrl = await imageFileToWebpDataUrl(file, { maxSize: 512 });
       updateForm('logo', dataUrl);
     } catch (error) {
       showToast(apiMessage(error, 'Unable to load image'), 'error');

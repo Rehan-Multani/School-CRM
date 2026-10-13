@@ -22,6 +22,28 @@ export function parseImageDataUri(value) {
   return buffer.length ? { contentType: match[1].toLowerCase(), buffer } : null;
 }
 
+/**
+ * Re-encodes a raster image data URI as a small WebP data URI (fits inside
+ * maxSize x maxSize, never enlarged, transparency kept). Vector (SVG), animated
+ * or unreadable inputs come back unchanged so nothing a school uploaded is lost.
+ */
+export async function toWebpDataUri(value, maxSize = 512, sharpLib = null) {
+  const parsed = parseImageDataUri(value);
+  if (!parsed || /svg|gif/.test(parsed.contentType)) return value;
+  try {
+    const sharp = sharpLib || (await import('sharp')).default;
+    const buffer = await sharp(parsed.buffer, { failOn: 'none' })
+      .rotate() // honour camera orientation, then drop the metadata
+      .resize({ width: maxSize, height: maxSize, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 86 })
+      .toBuffer();
+    if (!buffer.length || buffer.length >= parsed.buffer.length * 1.2) return value;
+    return `data:image/webp;base64,${buffer.toString('base64')}`;
+  } catch {
+    return value;
+  }
+}
+
 /** Path (relative to the platform router) of a school's logo image. */
 export function schoolLogoPath(schoolId, logo) {
   return `/school-theme/${encodeURIComponent(schoolId)}/logo?v=${brandAssetVersion(logo)}`;

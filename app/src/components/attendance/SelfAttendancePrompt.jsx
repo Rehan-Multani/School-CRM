@@ -18,6 +18,11 @@ export default function SelfAttendancePrompt({ api, route }) {
   const visibleRef = useRef(false);
   const checking = useRef(false);
   const mounted = useRef(true);
+  // Home stays mounted underneath the Mark Present screen, and the fingerprint /
+  // location system dialogs fire AppState "active" while it is open. Without this
+  // the reminder popped up over the Mark Present screen mid check-in (before the
+  // check-in finished) and made people verify twice.
+  const focused = useRef(false);
 
   const setShown = useCallback((v) => {
     visibleRef.current = v;
@@ -25,11 +30,12 @@ export default function SelfAttendancePrompt({ api, route }) {
   }, []);
 
   const check = useCallback(async () => {
-    if (checking.current || visibleRef.current) return;
+    if (checking.current || visibleRef.current || !focused.current) return;
     checking.current = true;
     try {
       const res = await api.today();
-      if (!mounted.current || !res?.config?.enabled) return;
+      // Re-check focus: the user may have left Home while the request was in flight.
+      if (!mounted.current || !focused.current || !res?.config?.enabled) return;
       const rec = res.record;
       const done = rec?.checkedIn || ['LEAVE', 'HOLIDAY'].includes(rec?.status);
       if (!done) setShown(true);
@@ -43,8 +49,14 @@ export default function SelfAttendancePrompt({ api, route }) {
   // Home gains focus (app start, after login, coming back from another screen).
   useFocusEffect(
     useCallback(() => {
+      focused.current = true;
       check();
-    }, [check]),
+      return () => {
+        // Leaving Home (e.g. to Mark Present): drop the reminder, it is being acted on.
+        focused.current = false;
+        setShown(false);
+      };
+    }, [check, setShown]),
   );
 
   // App returns from the background.
